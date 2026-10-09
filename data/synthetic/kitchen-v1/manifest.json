@@ -1,0 +1,21 @@
+{
+  "created_date": "2026-10-10",
+  "data_version": "synthetic-kitchen-2026-10-10-v1",
+  "fact_count": 12,
+  "files": [
+    {
+      "path": "models.json",
+      "sha256": "fb9792f87b1f13a953b2d4c8b64bdd79ed87f27ae4a4d7614763f58f53ab904c"
+    },
+    {
+      "path": "sources.jsonl",
+      "sha256": "f83c966a771562ca5b0d6294ef83eeca012e00b3e75929a39926d249ca3ed84d"
+    }
+  ],
+  "model_count": 3,
+  "provenance": "Newly authored fictional fixtures; no existing LG assets or market observations reused.",
+  "purpose": "test_only",
+  "review_count": 40,
+  "scope_count": 4,
+  "synthetic": true
+}

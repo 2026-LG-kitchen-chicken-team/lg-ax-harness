@@ -1,0 +1,21 @@
+{
+  "created_date": "2026-10-10",
+  "data_version": "lg-observed-2026-10-10-v1",
+  "fact_count": 4,
+  "files": [
+    {
+      "path": "models.json",
+      "sha256": "c08308f1ad54810d4d7ec8fbbaf3b6a1a7e0ea5a7b81e1d7702cd18adb9e79ae"
+    },
+    {
+      "path": "sources.jsonl",
+      "sha256": "91d6b2d84f0547f8f1ebaf8760028ef03edc8ab43f2fb56c27ba62af6e282a9e"
+    }
+  ],
+  "model_count": 1,
+  "provenance": "Newly observed official LG product-page specification summaries and three customer-review excerpts. Not AI review summaries. Positive convenience/expectation evidence only; no verified present-model pain, publication date, purchase verification or sponsorship status. Snapshot excerpt hashes are not full-webpage hashes.",
+  "purpose": "business",
+  "review_count": 3,
+  "scope_count": 1,
+  "synthetic": false
+}

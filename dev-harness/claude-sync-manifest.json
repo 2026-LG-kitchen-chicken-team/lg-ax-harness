@@ -1,0 +1,21 @@
+{
+  "source": ".agents/skills",
+  "target": ".claude/skills",
+  "transforms": [
+    "harness: Claude-native entrypoint; no upstream Codex runtime references",
+    "other Skills: project skill path adapted"
+  ],
+  "files": {
+    "agent-skill-authoring/SKILL.md": "8f15e4fd98b152e0dda21f8d5ffd6d851887ca8a860610d7c2712501d5f848d7",
+    "competition-intake/SKILL.md": "399e5fc3b2cc505cbf8631a0b59ea097d9849a41ef2215a47df6e195c1f7c224",
+    "data-evidence-contract/SKILL.md": "553f05ee4ff99a945d9d0cfaf643e9787baafa7703e0ed289e934e27d646328d",
+    "evaluate-harness/references/token-quality-audit.md": "337dc1a670f8652c1d78c2edba7c2affc960eb67c9a84c8e69b4ed6716af5892",
+    "evaluate-harness/SKILL.md": "3b91b3e844873638bf0553a4a563e200c594c074720de42131b5ec5c8cc290ad",
+    "harness/SKILL.md": "731d9ea86c56f97b8b5368b5e81bfef1ea1e63fd17e1da82d539461f4bba922e",
+    "harness-design/references/tool-contract.md": "35cc4895e27c875690e694739827263d848ac710f4b29939d19e559f777afe75",
+    "harness-design/SKILL.md": "4dfeef7e2abdb042c74a8c53cb7fd550b403e679fc1c0699bfed52295c13bf48",
+    "implement-and-check/SKILL.md": "c9f26349c3fea1b60d04260bd874c4c04ddfd4bb5dec5ec9cba606dd179523df",
+    "review-change/SKILL.md": "645bf741a34e51ad8b5ebc67e0fa73a259a9b79739b21667dd0de0beff0c0dc6",
+    "submission-and-demo/SKILL.md": "33bbbaa8e8b1d4cf8426eef442f1e8ca1f3a1f49f2b46ffc03a3a6886185002f"
+  }
+}

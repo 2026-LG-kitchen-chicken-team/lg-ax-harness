@@ -1,1 +1,9 @@
-* text=auto eol=lf
+* text=auto whitespace=trailing-space,space-before-tab,cr-at-eol
+.agents/skills/** -text
+.claude/skills/** -text
+vendor/codex-harness/** -text
+skills/** -text
+agents/product-planning.md -text
+product-tools/** -text
+docs/contracts/** -text
+data/** -text

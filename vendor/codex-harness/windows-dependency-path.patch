@@ -1,0 +1,5 @@
+--- a/skills/harness/scripts/run_state.py
++++ b/skills/harness/scripts/run_state.py
+@@ -354,1 +354,1 @@
+-            dependency_paths.append(str(directory.relative_to(project) / f"task-{identifier}" / "result.json"))
++            dependency_paths.append((directory.relative_to(project) / f"task-{identifier}" / "result.json").as_posix())

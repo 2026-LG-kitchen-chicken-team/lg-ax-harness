@@ -1,0 +1,23 @@
+[
+  {
+    "capacity_l": 832,
+    "dimensions_mm": {
+      "depth": 913,
+      "height": 1790,
+      "width": 913
+    },
+    "document_version": "pdp-snapshot-2026-10-10",
+    "layout": {
+      "arrangement": "side_by_side",
+      "door_count": 2,
+      "internal_dimensions_mm": null,
+      "shelf_spacing_mm": null
+    },
+    "model_id": "S836GBB122",
+    "model_version": "unspecified",
+    "name": "LG 디오스 AI 오브제컬렉션 냉장고 (양문형, 매직스페이스)",
+    "product_family": "refrigerator",
+    "spec_source_id": "SPEC-S836GBB122-01",
+    "synthetic": false
+  }
+]

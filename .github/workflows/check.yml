@@ -1,4 +1,4 @@
-name: Development checks
+name: Development harness checks
 
 on:
   push:
@@ -17,16 +17,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      - run: npm run doctor -- --ci
-      - run: npm run check -- --tool ci
+          python-version: '3.12'
+      - run: python dev-harness/cli.py validate
+      - run: python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/dev-harness -v
+      - run: python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/product-tools -v
+      - run: python scripts/check-product-assets.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: development-check-${{ matrix.os }}
-          path: reports/
+          name: development-harness-checks-${{ matrix.os }}
+          path: .harness/checks/
+          include-hidden-files: true
           if-no-files-found: warn

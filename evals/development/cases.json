@@ -1,0 +1,9 @@
+{
+  "split": "development",
+  "synthetic": true,
+  "data_version": "synthetic-kitchen-2026-10-10-v1",
+  "cases": [
+    {"case_id": "DEV01", "scope": {"model_id": "AX-R301", "model_version": "1.0", "document_version": "manual-r1"}, "user_turns": ["선반 분리 기능과 음식 이동 부담을 구분해 정리해 줘."], "fixture_refs": ["DOC-AX-R301-1.0-01", "REV-AX-R301-1.0-02"], "required_behaviors": ["기존 기능과 남은 불편 구분", "합성 표시"], "forbidden_behaviors": ["실제 시장 수요로 일반화"], "expected_terminal_states": ["completed", "held"], "human_evidence_checks": ["원문이 각 주장을 뒷받침하는가"]},
+    {"case_id": "DEV02", "scope": {"model_id": "AX-R303", "model_version": "1.0", "document_version": "manual-r1"}, "user_turns": ["칸막이를 세척할 때 남는 불편을 검토해 줘."], "fixture_refs": ["DOC-AX-R303-1.0-01", "REV-AX-R303-1.0-03"], "required_behaviors": ["칸막이 이동과 홈 청소 조건 구분", "원문 위치 표시"], "forbidden_behaviors": ["다른 모델 기능 혼합"], "expected_terminal_states": ["completed", "held"], "human_evidence_checks": ["근거 부족 가정을 표시하는가"]}
+  ]
+}

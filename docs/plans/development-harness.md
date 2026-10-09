@@ -1,0 +1,195 @@
+# 개발용 하네스 구축 계획과 작업 원본
+
+기준일: 2026-10-10. 이 문서는 개발 체계 구축의 작업 상태 원본이다. 출품 구현의 실행 계약은 [product-harness.md](product-harness.md), 기술 결정은 [stack-selection.md](../decisions/stack-selection.md), 공식·사용자 요구는 [competition-requirements.md](../competition-requirements.md)를 따른다.
+
+최신 선택: 출품은 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결한다. [실행 결정](../decisions/product-runtime.md)을 따른다. 자체 모델 API 프로그램과 Codex 내부 호출 실행기는 초기 경로로 채택하지 않는다. 구조·실행 시각화는 후순위의 [별도 관찰 프로그램](observability-viewer.md)에서 제공한다.
+
+현재 우선순위는 D01-D06 개발 체계 구축이다. 시각화는 후순위이며 해당 도구 선택·설치·수집·UI 작업을 D01-D06의 선행 조건으로 두지 않는다. Codex/Claude 실행에 우리 React Flow UI를 연결하는 후보도 기술적으로 검토할 수 있으나 현재 채택하지 않는다. 실행 방식과 화면 선택은 구분한다.
+
+## 목표와 현재 상태
+
+사용자의 자연어 요청을 받아 실제 역할 배정, 구현, 데이터·Tool 연결, 심사 입력 평가, 독립 검토, 제출 근거 정리까지 진행하는 Codex 중심 개발 체계를 만든다. 팀원의 Claude Code에도 같은 업무 계약을 연결한다.
+
+Codex 중심 개발 체계 D01-D05를 구축·실증했다. OpenSpec을 제거하고 6개 역할·9개 Skill·고정 OSS 장부·Python 실제 검사/receipt/완료/resume wrapper·Claude adapter를 만들었다. 실제 작은 신규 구현을 native 위임→Temp 구현→부모 통합/검사→독립 리뷰→완료로 연결했다. [실제 검증과 제한](../validation/development-harness.md)을 따른다. Claude native 인수와 출품 프로그램 구현은 별도 미완료다.
+
+## OSS 도입과 OpenSpec 교체
+
+`revfactory/codex-harness`의 커밋 `80f8217b5b6d3f220a31f05f9c0adaf09dac40f4`를 도입 기준으로 고정한다. Apache-2.0 LICENSE, NOTICE가 있으면 그 원문, 도입 파일 목록, 원본 SHA·파일 지문, 프로젝트 수정 내역을 보관한다. upstream을 설치 후 자동 업데이트하지 않는다.
+
+도입할 기능은 메인 Skill·역할의 기본 실행 계약, `run.py`/관련 상태·검사 모듈, `communication.py`, 필요한 생성·검증 도구다. 각 모듈의 내부 import를 확인해 필요한 원본을 함께 가져온다. 이미지·과거 Claude 구성·예제 전체·벤치마크는 개발 실행에 필요하지 않으면 도입하지 않는다.
+
+중요한 경계:
+
+- `run.py`는 작업 장부다. Agent를 실행·중단하는 프로그램으로 설명하지 않는다.
+- `communication.py`는 관측한 통신을 명시적으로 기록한다. 메시지를 전달하거나 모든 통신을 자동 수집하지 않는다.
+- `run_checks.py`는 기록된 검사 근거를 검증한다. 실제 검사 명령 실행은 별도 Python 실행기가 맡는다.
+- 실제 생성·위임·상태 확인·중단은 Codex 네이티브 도구가 수행하고, 반환된 실제 ID·상태를 장부와 연결한다.
+- 작업 소유권 필드는 파일별 ACL이 아니다. 한 checkout의 작성자 한 명 원칙 또는 독립 worktree로 충돌을 방지한다.
+
+Windows 캐시 checkout의 `.agents/skills/harness`가 symlink 대신 일반 파일로 남은 상태를 확인했다. 원본 `skills/harness/`를 정규 파일로 도입하고 경로·파일 지문을 검사한다. symlink 권한이나 해당 파일을 디렉터리로 읽는 upstream installer의 성공을 가정하지 않는다.
+
+OpenSpec은 새 체계에서 사용하지 않는다. 작업 명세 기능을 요구·설계·작업 문서로 유지하되 다른 작업 관리 프레임워크를 다시 겹쳐 설치하지 않는다. 제거 대상은 다음과 같다. D01에서 실제 경로·diff를 확인해 제거했다. 최초 재귀 삭제는 자동 검토에 차단되어 파일별 패치와 repo 경계 확인을 거친 빈 디렉터리 비재귀 삭제로 수행했다.
+
+- `openspec/` 전체.
+- `.agents/skills/openspec-*`, `.agents/skills/.openspec-target`.
+- `.claude/skills/openspec-*`, `.claude/commands/opsx/`.
+- 기존 `dev-harness/*.mjs`, `tests/dev-harness/workflow.test.mjs`의 OpenSpec 기반 체계.
+- OpenSpec 전용 루트 `package.json`, `package-lock.json`, npm 명령·의존성. 새 자체 시각화 웹 프로젝트를 기본으로 만들지 않는다.
+- 기존 CI·안내·third-party notice의 활성 OpenSpec 절차를 새 체계에 맞게 교체.
+
+과거 작업·검사 이력은 Git과 문서의 과거 상태 기록으로 남긴다. 사용자 전역 Skill·설정·다른 LG 레포를 삭제하지 않는다. 재귀 파일 작업 전 최종 절대 경로가 이 레포 안에 있는지 확인한다.
+
+## 메인 오케스트레이터
+
+메인은 현재 Codex 부모 세션이며 별도 고정 모델이나 새로운 서버가 아니다. 사용자 요구를 해석하고 작업 의존성·소유 범위를 나눈 뒤 필요한 역할만 생성한다. 공통 인터페이스 변경, 코드 통합, 실제 검사 결과와 독립 리뷰를 반영한 완료 판정을 전담한다.
+
+작업 시작 시 전달할 최소 계약:
+
+```text
+task_id, objective, requirement_ids, inputs_and_fingerprints,
+role, skill_paths, owned_paths, read_only,
+dependencies, acceptance_commands, expected_artifacts,
+time_and_call_limits, stop_conditions
+```
+
+결과 계약:
+
+```text
+task_id, actual_agent_id, status,
+changed_files, artifacts, input_fingerprints,
+checks[{command,exit_code,report_path,executed_at}],
+findings, unresolved_items, usage{measured|unknown}
+```
+
+없는 실행 ID·토큰·검사 결과를 만들어 기록하지 않는다. 입력이 변경된 결과는 재사용 여부를 판단하고 오래된 결과를 자동 완료 처리하지 않는다. 같은 오류를 이유 없이 반복하지 않는다. 독립 작업은 병렬 처리하되 기본 자식 실행 상한은 3개로 계획하고 실제 환경의 한도를 존중한다.
+
+## 개발 서브에이전트 6개
+
+개발 역할은 출품용 Agent 수와 관계없다. 모든 역할을 매 작업마다 실행하지 않는다. 모델·추론 설정은 팀의 개발 도구 설정을 기본으로 따르고 역할마다 비싼 모델을 고정하지 않는다.
+
+| 역할 / 파일 이름 | 책임 | 기본 작성 범위 | 주로 읽는 Skill |
+|---|---|---|---|
+| `requirements_analyst` | 공식 요구·팀 아이디어·심사 입력·제출 근거 연결 | 읽기 전용 분석 반환; 부모가 문서 통합 | competition-intake, submission-and-demo |
+| `harness_architect` | 상태·Skill·Tool·모델·예외·예산 계약 | 읽기 전용 설계; 부모가 결정 통합 | harness-design, data-evidence-contract |
+| `agent_skill_worker` | 선택한 실행 방식의 업무 Skill·실행 코드·관찰 어댑터 구현 | 배정된 runtime/skills/관찰 연결 파일 | agent-skill-authoring, implement-and-check |
+| `data_tool_worker` | 신규 데이터·조회·ID/버전·원문 위치·재사용 규칙 | 배정된 data/tools/evidence 파일 | data-evidence-contract, implement-and-check |
+| `evaluator` | 실제 AI 입력 평가·사용량 감사·예외·시연 일치 | 배정된 evals/tests/검사 산출물 | evaluate-harness |
+| `reviewer` | 누락·회귀·근거 오류·구현/주장 불일치 독립 검토 | 읽기 전용 | review-change |
+
+관찰 어댑터는 일반 코드로 구현한다. 시각화용 Agent·Skill·추가 LLM 호출을 실행 체계에 넣지 않는다. 토큰 분석 전용 Agent도 매 출품 실행에 추가하지 않는다. 제출 문서는 분석자와 메인이 `submission-and-demo`를 사용해 정리한다.
+
+## 개발 Skill 9개
+
+공통 원본은 `.agents/skills/`다. 메인 `harness`는 upstream 기반으로 프로젝트 목적·계약을 적용하며, 아래 8개는 신규 프로젝트에 필요한 개발 Skill로 실제 작성했다. 각 Skill은 역할·사용 조건·핵심 절차와 필요한 참조만 담는다.
+
+| Skill | 구체적 산출·검증 |
+|---|---|
+| `harness` | 요구·의존성·소유 범위로 작업 분해, 실제 네이티브 실행과 장부 연결, 결과 통합·인수인계 |
+| `competition-intake` | 공식/미확인/아이디어/새 결정 분리, 요구→구현→평가→제출 연결 |
+| `harness-design` | 상태 전이·중단·보류·업무 수정/기술 재시도·모델·Tool 호출 계약 |
+| `data-evidence-contract` | 신규 원문·모델·버전·근거 ID, 검색 필터·캐시 무효화·출처 검증 |
+| `agent-skill-authoring` | 출품 Skill의 SKILL.md와 코드·Tool·실행 방법 연결, 단독 재실행 |
+| `implement-and-check` | 배정된 구현과 실제 명령 실행, 실패·미실행 결과를 그대로 전달 |
+| `evaluate-harness` | AI 직접 입력·대화 평가, 출처/오류/수정/사용량/시연 실제 기록 |
+| `review-change` | 독립 diff 검토, 증거·재현 입력·실질적 누락·수정 필요성 보고 |
+| `submission-and-demo` | 코드·Skill·README·ZIP·발표·영상에서 같은 기능·근거를 확인 |
+
+`judge-question-suite`, `token-quality-audit`는 별도 Skill을 늘리는 대신 evaluate-harness의 참조·평가 모드로 묶는다. `tool-routing`은 harness-design의 Tool 계약 참조로 둔다. 실제 기능·사용 조건이 달라져 분리할 이유가 생기면 그때 분리한다.
+
+upstream validator가 Codex 문서의 Claude 경로를 구형 구성으로 판단할 수 있으므로 Codex 전용 계약과 공통·Claude 어댑터 검사 범위를 분리한다. 모든 문서에 같은 검사를 적용해 인수인계를 차단하지 않는다.
+
+## Claude Code 연결
+
+- `.claude/agents/*.md`에는 같은 6개 개발 역할을 Claude YAML frontmatter·도구 설정으로 포팅한다. Codex TOML을 이름만 바꿔 복사하지 않는다.
+- `.claude/skills/`는 공통 개발 Skill에서 생성하는 정규 파일 사본이다. 공식 문서에 명시되지 않은 `.agents/skills` 직접 탐색을 가정하지 않는다.
+- Windows symlink 없이 동기화·drift 검사를 수행하고, 도구별 실행 방식이 다른 부분은 작은 어댑터로 관리한다.
+- Claude가 Codex 네이티브 도구를 호출하게 하지 않는다. Claude는 자신의 위임 도구를 사용하고 같은 작업·결과 계약을 기록한다.
+- 팀원은 요구·계획·diff·실제 검사 근거를 읽고 이어간다. 같은 checkout의 동시 쓰기를 허용하지 않는다.
+- 현재 로컬 PATH·표준 경로에서 Claude CLI를 발견하지 못한 상태다. 정적 구성 완료와 팀원 환경의 실제 발견·위임·검사·인수인계 완료를 구분한다.
+
+## 목표 폴더 구조
+
+개발 체계와 product-tools/data/evals 공통 기반은 실제 작성했다. 업무 Skill·adapters·관찰·제출 경로는 후속 범위다. 실제 고객 불편 근거 확대와 native 업무 검증은 미완료다. 환경별 업무 설치는 개발 레포 밖의 출품 폴더에 배치한다.
+
+```text
+AGENTS.md / CLAUDE.md / README.md
+.codex/config.toml
+.codex/agents/                 # 6개 Codex 역할 TOML
+.agents/skills/                # upstream 기반 harness + 프로젝트 개발 Skill 8개
+.claude/agents/                # 같은 역할의 Claude 어댑터
+.claude/skills/                # 공통 원본에서 생성·차이 검사
+dev-harness/                  # 실제 검사 실행·동기화·doctor·upstream 연결
+vendor/codex-harness/          # 도입 원본·LICENSE·파일 목록·patch 기록
+docs/competition-requirements.md
+docs/decisions/               # 기술·정책 결정
+docs/plans/                   # 구축 계획과 작업 원본
+docs/evaluation/              # AI 입력 평가 설계
+docs/validation/              # 실제 검증 범위·한계
+product-tools/                # 공통 업무 상태·자료 조회·근거·결과 검증 코드
+adapters/                     # Codex/Claude/Gemini 업무 지침·설치·준비 검사
+skills/                       # 업무 Skill 5개+조건부 외부 조사1개; 개발 Skill과 구분
+observability/                # 일반 코드 수집·외부 관찰 도구 연결; 자체 UI 아님
+data/business/                # 실제 제품·후기 발췌·관측 출처·데이터 버전
+data/synthetic/               # 신규 계약·오류 시험 자료; 업무·시연 근거 금지
+evals/                        # 개발 사례와 별도 평가 입력·실제 runner
+tests/                        # 개발 체계·업무 계약·관찰 연결 검사
+submission/                   # README·시연 시나리오·발표 원본·ZIP manifest
+.harness/runs/                # 개발 실행 장부; Git 제외
+runtime-data/                 # 출품 SQLite·로그; Git 제외
+```
+
+## 작업 목록과 완료 조건
+
+### 이번 계획 작업
+
+- [x] P01 심사 질문의 뜻을 AI 직접 입력으로 정정하고 평가 입력 설계에 반영.
+- [x] P02 공식 안내·제안서·사용자 요구를 분리하고 원문 지문 기록.
+- [x] P03 실행·모델·UI·이벤트·저장·검사·MCP 기술 선택과 대안 조건 기록.
+- [x] P04 LangGraph·SQLite의 Windows 라이브러리 호환성 실검사와 범위 기록.
+- [x] P05 과거 React Flow 후보 조합의 설치·타입·빌드 검사와 범위 기록. 내장 UI 채택 철회 후에도 검사 사실만 보존.
+- [x] P06 개발 역할·Skill·메인·Claude 연결·OpenSpec 교체·인수 기준 정의.
+- [x] P07 사용자와 실행·계정·비용·설치·재현을 비교한 뒤 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 연결하는 방향을 선택. [결정 기록](../decisions/product-runtime.md). 선택 완료이며 실제 업무·세 환경 지원 검증 완료는 아님.
+- [ ] P08 [후순위] 개발 체계 구축 후 OSS 관찰 도구와 기존 실행기에 연결하는 React Flow UI 후보를 비교. 실제 연결·표현·지연·운영 부담을 O01-O06 기준으로 검증해 선택.
+
+### 개발용 하네스 구축
+
+- [x] D01 고정 upstream의 LICENSE/NOTICE/import·파일 목록을 확인하고 정규 파일로 도입. OpenSpec 생성물·초기 체계를 레포 안에서 교체. 공통 문서·Git 제외·CI를 갱신.
+- [x] D02 Codex 프로젝트 설정·6개 역할 TOML·9개 Skill 구성. 공식 문서와 설치된 Codex 버전의 실제 지원 형식을 검사. 기본 `name`/`description`/`developer_instructions`와 환경별 설정을 확인.
+- [x] D03 Python doctor·실제 명령 실행·결과 보고·작업 계약 검사·Claude 동기화 도구 구현. subprocess의 실패·timeout·출력 제한을 결과와 연결.
+- [x] D04 새 Codex 세션에서 Skill 발견→첫 자식 생성→실제 ID/위임→결과→상태/중단 확인→검사→독립 리뷰→통합을 작은 새 작업으로 실증. 실제 작업·검사 기록을 남기되 외부 관찰 도구 연결은 완료 조건으로 요구하지 않음.
+- [x] D05 중복 쓰기, 미실행 검사, 실패 전파, 입력 변경 뒤 재개, 오래된 결과 재사용 거부, 실제 자식 취소를 검사. 정적 파일 검사와 네이티브 동작 검사를 구분.
+- [x] D06a Claude Agent6개·Skill9개 사본 구성·정적/drift 검사 완료.
+- [ ] D06b 팀원 Claude 환경에서 새 세션·Skill 발견·위임·실제 검사·Codex→Claude 인수인계 확인. 현재 PC에 Claude CLI/로그인 환경이 없어 미실행.
+
+### 출품 구현으로 이어지는 작업
+
+- [ ] S01 실제 모델·문서·고객 리뷰의 업무 자료와 개발/평가 입력을 준비. [컨설팅](../consultation/2026-10-10.md)에 따라 합성 시연 계획 교체; 실제 고객 불편 근거 충분성은 아직 미완료.
+  - [x] S01a PlanningInput/EvidenceRef/ProductResult 및 provenance·무효화 계약 구현.
+  - [x] S01b 실제 pilot 모델1개·사양 요약4개·표시 고객 후기 발췌3개, 합성 시험 모델3개·리뷰40개 분리. 개별 구매·작성일·협찬 미확인 표시.
+  - [x] S01c 별도 개발 입력2개·합성 예외 입력18개·실제 자료 입력3개 작성. 실제 모델 평가/runner 완료 아님.
+  - [ ] S01d 실제 자료 확대.
+    - [x] S01d1 실제3모델·후기6발췌·공식 사실19개로 확대. B502S33 수납과 T876MQQ012 적재 그림자 경험·정확한 스펙·연결 공용 설명서 대조. [확인 범위](../data/real-research.md).
+    - [ ] S01d2 현재 모델 청소 불편 원문·내부 치수·선반 간격 확보. 미확인 항목을 요구하는 물리 설계/효과 확정 금지.
+- [x] T01 공통 모델 선택·정확한 조회·근거·결과 구조 검사·SQLite 상태·멱등성·조회 캐시·후보 수정 상한·관측 사용량 기록 구현. [계약](../contracts/common-tools.md). 로컬 코드 검사 범위이며 실제 Agent/Skill/의미 판정·강제 native 호출 제어는 아님.
+- [ ] S02a Codex 출품 설치·준비 검사·업무 Skill 발견·공통 Tool·실제 모델/usage·첫 질문·오류 경로를 확인. 개발 Skill 경로와 분리하며 모델 API SDK·자체 실행기는 추가하지 않음.
+- [ ] S02b Claude Code 업무 사본·지침·Tool/권한·대화 상태 연결을 구현하고 같은 업무·예외 평가 수행. 개발 D06b 검증과 구분.
+- [ ] S02c Gemini CLI 업무 사본·지침·Tool/권한·대화 상태 연결을 구현하고 같은 업무·예외 평가 수행. 접근 부재·미관측 usage를 숨기지 않음.
+- [ ] S03 단일 상품기획 Agent·업무 Skill 5개+조건부 외부 조사1개·보류/수정·출처·추가 입력 연결.
+  - [x] S03a Agent 지침·Skill6개·실행 wrapper·지문 manifest·의미 검토 기록 정합성 Tool·외부 관측/버전 등록 코드 구현. 정적/일반 코드 검사는 환경별 native 인수가 아님.
+  - [ ] S03b S02 실제 설치 환경에서 조건부 Skill 호출·상태 저장·추가 질문·보류/수정·전체 호출 관측 연결 검증. 네이티브 모델 판단의 심사 품질 평가는 S05.
+- [ ] S04 [후순위] 화면 방식을 선택한 뒤 일반 코드로 실제 이벤트·ID·상태를 관찰 도구/UI에 연결. 구조·실행·근거·메시지 관측 범위·재접속·재생·실행 격리를 검사. 현재 화면을 구현하지 않으며 S05 업무 평가의 선행 조건으로 두지 않음.
+- [ ] S05 실제 심사 입력·다중 턴·원문 지시문 공격·오류·동일 조건 baseline 평가. turn별 수정 및 invocation별 기술 재시도 상한을 검사. 전체 Agent+하위 호출·실패 비용과 미측정을 구분하고 동일 평가 묶음의 요구 충족률·총비용으로 토큰 절감 검증.
+- [ ] S06 README를 따라 새 환경에서 실행·Skill 재실행·ZIP 재현을 확인하고 실제 실행으로 발표·영상 작성. 발표자료 20페이지·발표 10분/질의응답 5분을 검사하고 제출 직전 영상 규격·실제 마감 시각·제출 경로·파일명·변경 공지를 확인.
+
+개발용 하네스의 완료 기준은 D01-D05 실증이다. Claude native 지원 검증 완료는 D06b 실제 팀원 검증을 추가로 요구한다. D06a는 adapter 파일 제공·정적 동기화 완료다. 출품 완료는 S01-S06 및 공식 제출 요구를 실제로 충족해야 한다. 계획·정적 검사·라이브러리 smoke test만으로 어느 완료도 주장하지 않는다.
+
+## 도입 근거
+
+- [고정 codex-harness](https://github.com/revfactory/codex-harness/tree/80f8217b5b6d3f220a31f05f9c0adaf09dac40f4)
+- [Codex 네이티브 역할](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Codex Skill 발견](https://learn.chatgpt.com/docs/build-skills)
+- [Claude 네이티브 역할](https://code.claude.com/docs/en/sub-agents), [Claude Skill](https://code.claude.com/docs/en/skills)
+
+
+## 이번 구축 결과
+
+실제 인수검사: CLI 신규9Skill 발견·상한3 읽기, persistent부모/자식 생성·검사·메시지·interrupt, 실제 Temp 신규 usage helper8검사·부모통합검사·독립review, Skill변경 결과등록거부·새run resume·fresh packet 재위임·idle관찰·complete errors=[]를 확인했다. 개발 helper22tests와 OSS/Claude동기화 정적검사는 실제 exit0이다. custom role 자동 선택/sandbox/model 적용과 close는 이 runtime에서 미검증이다. 이후 P07에서 출품 네이티브 실행 방향을 선택했다. 환경별 업무·모델 검증(S02a-c), 관찰 화면(P08), 출품 S01-S06은 여전히 별도 미완료다.

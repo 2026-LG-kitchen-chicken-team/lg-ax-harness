@@ -1,6 +1,12 @@
 node_modules/
 reports/
 .cache/
+.harness/
+_workspace/
+runtime-data/
+.venv/
+__pycache__/
+*.py[cod]
 .env
 .env.*
 !.env.example

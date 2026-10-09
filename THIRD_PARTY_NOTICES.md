@@ -1,25 +1,5 @@
 # Third-party notices
 
-`.agents/skills/openspec-*`, `.claude/skills/openspec-*`, `.claude/commands/opsx/`는 [OpenSpec 1.14.1](https://github.com/Fission-AI/OpenSpec/tree/v1.14.1)의 생성 파일이다.
+revfactory/codex-harness commit `80f8217b5b6d3f220a31f05f9c0adaf09dac40f4` is imported under Apache-2.0.
 
-## OpenSpec — MIT License
-
-Copyright (c) 2024 OpenSpec Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Original source and its upstream attribution are preserved in [LICENSE](vendor/codex-harness/LICENSE) and [NOTICE](vendor/codex-harness/NOTICE). [Import manifest](vendor/codex-harness/import-manifest.json) records Git blob bytes and SHA256. [Adaptation record](vendor/codex-harness/patches.json) records modifications in the active project copy. Vendor originals are not modified. Windows copies are regular files; the upstream global installer was not run.

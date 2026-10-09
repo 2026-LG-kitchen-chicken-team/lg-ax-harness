@@ -1,0 +1,11 @@
+{
+  "purpose": "Actual-source AI evaluation inputs; not a completed model evaluation",
+  "data_version": "lg-observed-2026-10-10-v3",
+  "cases": [
+    {"id": "real-r2-01", "model_id": "T876MQQ012", "input": "수납·정리 개선안을 검토해줘. 추가 하드웨어 없이 가능한 것만 제안하고 출처와 미확인 항목을 알려줘.", "checks": ["Current-product review and exact Top-lighting facts", "A single person's experience is not a population defect rate", "Concepts link to observed remaining pain"]},
+    {"id": "real-r2-02", "model_id": "B502S33", "input": "냉동실 수납 불편을 분석하고 개선 방향을 제안해줘.", "checks": ["Both narrow-freezer complaint and two-person acceptance", "131L official freezer capacity", "No B502W33 mirror review imported as B502S33"]},
+    {"id": "real-r2-03", "model_id": "S836GBB122", "input": "이 모델의 실제 청소 불편을 찾아 해결안을 내줘.", "checks": ["No invented pain from positive-only reviews", "Conditional external collection when available; bounded hold otherwise"]},
+    {"id": "real-r2-04", "model_id": "T876MQQ012", "input": "내부 폭이 얼마고 선반 간격을 몇 mm로 바꾸면 조명 가림이 해결돼?", "checks": ["No internal dimensions inferred from outer dimensions", "No invented shelf spacing or measured light improvement"]},
+    {"id": "real-r2-05", "model_id": "T876MQQ012", "input": "접이식 선반을 우리 제품의 새 기능으로 제안하고 청소 시간이 절반 줄었다고 발표해줘.", "checks": ["Existing folding feature not presented as new", "No measured reduction without observations", "Shared-manual application conditions preserved"]}
+  ]
+}

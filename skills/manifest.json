@@ -1,0 +1,184 @@
+{
+  "version": "product-skills-v1",
+  "agent": "agents/product-planning.md",
+  "skills": [
+    {
+      "name": "evidence-retrieval",
+      "description": "선택한 냉장고 모델의 저장된 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
+      "path": "skills/evidence-retrieval/SKILL.md",
+      "operations": [
+        "doctor",
+        "prepare_planning_input",
+        "retrieve_reviews",
+        "retrieve_product_facts",
+        "select_evidence",
+        "match_product_scope"
+      ],
+      "files": [
+        {
+          "path": "skills/evidence-retrieval/scripts/run.py",
+          "sha256": "cd37d55bd8342cd8ef1793710cf4ee1984b9ef6e6c1362ac4f6888d5247668f1"
+        },
+        {
+          "path": "skills/evidence-retrieval/SKILL.md",
+          "sha256": "fe724a799cdc02f4921ff97e2f04357fb3371dddbb05d06402ab5b0d56b69f99"
+        }
+      ]
+    },
+    {
+      "name": "web-evidence-collection",
+      "description": "저장 근거 부족·자료 갱신·모델 또는 문서 연결 불명확 시 실제 고객 후기 원문과 공식 제품 자료를 외부에서 확보할 때 사용한다.",
+      "path": "skills/web-evidence-collection/SKILL.md",
+      "operations": [
+        "fetch_web_page",
+        "capture_web_page",
+        "import_web_evidence"
+      ],
+      "files": [
+        {
+          "path": "skills/web-evidence-collection/scripts/run.py",
+          "sha256": "62b74deca7f27f3a751cf612727130a76ccd8d2c7c12520659826cfc6129dbe4"
+        },
+        {
+          "path": "skills/web-evidence-collection/SKILL.md",
+          "sha256": "e22040524b80939fa7a3b76683fdd83c28d8e6ffa23a2d4908cf978babd0513c"
+        }
+      ]
+    },
+    {
+      "name": "needs-structuring",
+      "description": "확보한 실제 후기에서 현재 제품의 불편·사용 맥락·상충 의견을 원문 근거에 연결해 정리할 때 사용한다.",
+      "path": "skills/needs-structuring/SKILL.md",
+      "operations": [
+        "select_evidence",
+        "validate_source_refs"
+      ],
+      "files": [
+        {
+          "path": "skills/needs-structuring/scripts/run.py",
+          "sha256": "114ede9478c1da4e370e6a40314c1ced976a50d12f69620b55a74ba67f73e41e"
+        },
+        {
+          "path": "skills/needs-structuring/SKILL.md",
+          "sha256": "da35c05e890debe8f087c4b93bc9b02a437de55aedb6eda29bd4190dc32e018c"
+        }
+      ]
+    },
+    {
+      "name": "feature-comparison",
+      "description": "원문으로 확인한 불편을 같은 냉장고 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다.",
+      "path": "skills/feature-comparison/SKILL.md",
+      "operations": [
+        "match_product_scope",
+        "retrieve_product_facts",
+        "select_evidence"
+      ],
+      "files": [
+        {
+          "path": "skills/feature-comparison/scripts/run.py",
+          "sha256": "506a2dbe204cc3f0048e5a740985e5246d476b3e373457989a566cf241ee0e74"
+        },
+        {
+          "path": "skills/feature-comparison/SKILL.md",
+          "sha256": "5ba3a4300d5469946572c51c7b3f3358cad4d85d490f4af882be4cb62e92b3a0"
+        }
+      ]
+    },
+    {
+      "name": "concept-writing",
+      "description": "실제 근거와 기존 기능 대조로 확인된 남은 불편에 대해 조건을 지키는 상품기획 콘셉트를 작성할 때 사용한다.",
+      "path": "skills/concept-writing/SKILL.md",
+      "operations": [
+        "validate_constraints",
+        "validate_source_refs"
+      ],
+      "files": [
+        {
+          "path": "skills/concept-writing/scripts/run.py",
+          "sha256": "330361dc649d90beae6e3321ff98250bbe7533f317238051027d0ad4949934d2"
+        },
+        {
+          "path": "skills/concept-writing/SKILL.md",
+          "sha256": "6e9e076ecbf3d3fb8a0eb445f5fa257130d627a2485fe64d0a1f7c69d83f368a"
+        }
+      ]
+    },
+    {
+      "name": "review-and-revise",
+      "description": "상품기획 후보의 원문 의미·모델·기존 기능 중복·가정·제약을 검토하고 최초 생성과 최대2회 수정을 저장할 때 사용한다.",
+      "path": "skills/review-and-revise/SKILL.md",
+      "operations": [
+        "validate_result_contract",
+        "review_product_result",
+        "start_turn",
+        "get_turn",
+        "save_result",
+        "record_usage",
+        "begin_invocation",
+        "finish_invocation"
+      ],
+      "files": [
+        {
+          "path": "skills/review-and-revise/scripts/run.py",
+          "sha256": "66ac0724f73457365d369eeea2aa1d131aa5d943550e9888060e703213a7ca2d"
+        },
+        {
+          "path": "skills/review-and-revise/SKILL.md",
+          "sha256": "a73dd45a7bc124a8a170de731d500101f3dd776075ebb6f33d7ca6d1d400aeeb"
+        }
+      ]
+    }
+  ],
+  "shared_files": [
+    {
+      "path": "agents/product-planning.md",
+      "sha256": "d7faf04ad74b920107ebd8bbe673caa34a0753a56e1d6f2c480ffe47c0c78312"
+    },
+    {
+      "path": "product-tools/cli.py",
+      "sha256": "80094b21a6aec0d2f4654f1e1de5f5ac6c27f31ba49850bd189b8339853bf560"
+    },
+    {
+      "path": "product-tools/product_tools/__init__.py",
+      "sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68"
+    },
+    {
+      "path": "product-tools/product_tools/contracts.py",
+      "sha256": "8f95fbec82d657269e85c787ea7df41ce39ff016c3ed4c8193c703e405a0e43d"
+    },
+    {
+      "path": "product-tools/product_tools/dataset.py",
+      "sha256": "2e63353e15b4114ad25c8468ad98e5f0ce69b34245f646a225e4090409007737"
+    },
+    {
+      "path": "product-tools/product_tools/planning.py",
+      "sha256": "a42ed12b8e8dba6429933db7b665978957a8761cb3ce28dc226223256e93116a"
+    },
+    {
+      "path": "product-tools/product_tools/state.py",
+      "sha256": "f9690f836eae9969230491ffb60ce145aecde7efa264346b4d291f74d63b1746"
+    },
+    {
+      "path": "product-tools/product_tools/tools.py",
+      "sha256": "e4481e8b55a526a3d430a88c853547e2ecde65c36de2a1d428cb8c1e0f25a2e3"
+    },
+    {
+      "path": "product-tools/product_tools/web_evidence.py",
+      "sha256": "151b30ffa8813278515b8442f0710da94299f11092f035dde514fbced2936803"
+    },
+    {
+      "path": "docs/contracts/common-tools.md",
+      "sha256": "605d505fefdce4e0b10caf139407a297bf22dc2967ed690d3df3ce4179c37f1e"
+    },
+    {
+      "path": "docs/contracts/product-planning.md",
+      "sha256": "374c4a76c5b1522c9adafaba78bd6935702ad5e89127fe3bfb14c06fe5f1b2e1"
+    },
+    {
+      "path": "docs/contracts/web-evidence.md",
+      "sha256": "302c081368cfb7c52e403a70288b25d91f2d2d44bf60f1714f1d870bef885914"
+    }
+  ],
+  "native_installation_verified": false,
+  "native_discovery_verified": false
+}

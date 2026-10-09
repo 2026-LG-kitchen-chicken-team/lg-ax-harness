@@ -1,70 +1,62 @@
-# 개발 체계 사용법
+# 개발 체계 사용·검사·인수인계
 
-## 설치와 업데이트
+Codex 부모가 작업을 관리하며 helper는 기록·검사를 담당한다. Claude는 별도 네이티브 실행을 사용한다. [검증 상태](validation/development-harness.md)와 [작업 목록](plans/development-harness.md)을 먼저 확인한다.
 
-`npm ci`로 lockfile과 일치하는 개발 의존성을 설치한다. 초기 기반은 `@fission-ai/openspec` 1.14.1이다. 양쪽 도구 연결 파일은 다음 명령으로 생성했다.
+## 환경
 
-```powershell
-npm run spec -- init --tools codex,claude --profile core --language Korean --no-animation
+Python 3.12.x, uv와 로그인된 개발 도구가 필요하다. `uv sync --locked` 후 `uv run python dev-harness/cli.py doctor`로 파일·동기화·OSS 지문을 검사한다. Windows에서 한국어 파일은 `Get-Content -Encoding utf8` 또는 UTF-8 명시 reader로 읽는다. 모델·추론·인증은 사용자 개발 환경을 상속하며 전역 설정을 수정하지 않는다.
+
+## 역할과 Skill 선택
+
+메인은 요구/결정/작업 목록/diff를 읽고 objective, requirement_ids, inputs_and_fingerprints, role, skill_paths, owned_paths, read_only, dependencies, acceptance_commands, expected_artifacts, time_and_call_limits, stop_conditions를 배정한다. 필요한 역할만 사용한다. 읽기 전용 분석자·설계자·리뷰어는 결과를 반환하고 부모가 문서와 기록을 쓴다. 작성 병렬화는 독립 worktree에서 한다.
+
+Codex custom role 도구가 있으면 해당 역할을 선택한다. 현재 설치환경은 역할 선택 인수를 노출하지 않아 TOML developer_instructions + 필요한 Skill + 최신 packet을 `collaboration.spawn_agent`/`followup_task` 메시지로 전달한다. 실제 반환 ID만 기록한다. runtime의 close가 없는 상황에서 interrupt를 closed로 바꾸지 않는다. idle 세션을 재사용한다. fallback이 TOML sandbox 설정을 자동 적용하는 것은 아니다.
+
+## 작업 장부와 실제 검사
+
+메인이 프로젝트 안에 JSON plan을 작성한다. 각 task에는 id/role/dependencies/ownership/inputs/context/acceptance/required/max_attempts가 있다. 아래는 형식 예이며 실제 command와 파일은 배정한 작업에 맞춘다.
+
+```json
+{"objective":"새 업무 Tool 구현","tasks":[{"id":"tool","role":"data_tool_worker","dependencies":[],"ownership":["tools/"],"inputs":["docs/plans/product-harness.md",".codex/agents/data_tool_worker.toml"],"context":{"decisions":["한 작성자, 10분 상한"],"skill_paths":[".agents/skills/implement-and-check/SKILL.md"]},"acceptance":["정상·timeout·근거 부족 사례 실제 검사"],"required":true,"max_attempts":2}]}
 ```
 
-초기화 명령은 이미 수행되었으므로 보통 다시 실행할 필요가 없다. 생성 Skill·명령은 Git으로 공유한다. 도구 버전을 올릴 때 package와 lockfile, 생성 파일의 변경을 함께 검토하고 다시 검사한다.
-
-저장소의 `npm run spec -- ...` 연결 프로그램은 로컬 OpenSpec만 실행한다. CLI child process의 telemetry·completion 안내를 끄고, 설정·데이터 경로를 gitignored `.cache/openspec/`로 지정한다. 사용자 CODEX_HOME이나 Claude 전역 설정은 바꾸지 않는다. init/update가 기존 전역 OpenSpec 프롬프트를 자동 migration할 수 있으므로, 연결 프로그램은 해당 파일이 발견되면 실행을 중단한다.
-
-`npm run spec -- config ...` 설정은 이 저장소용 cache에 적용된다. cache는 공유 상태가 아니므로 팀 기본 설정을 그곳에 의존시키지 않는다.
-
-## 두 도구의 역할
-
-Codex는 루트 `AGENTS.md`와 `.agents/skills/openspec-*`를 사용한다. Claude Code는 `CLAUDE.md`에서 `AGENTS.md`를 가져오고 `.claude/skills/`, `.claude/commands/opsx/`를 사용한다.
-
-| 작업 | Codex | Claude Code |
-|---|---|---|
-| 아이디어 조사 | `$openspec-explore` | `/opsx:explore` |
-| 요구사항·설계·작업 작성 | `$openspec-propose` | `/opsx:propose` |
-| 구현 | `$openspec-apply-change` | `/opsx:apply` |
-| 진행 중 계획 변경 | `$openspec-update-change` | `/opsx:update` |
-| 검증 후 정리 | `$openspec-archive-change` | `/opsx:archive` |
-
-Codex Desktop에서는 Skills에서 선택할 수 있다. 도구가 생성 Skill을 발견하지 못하면 새 세션에서 확인한다. Codex·Claude 자체 설치·로그인은 OpenSpec 설치와 별개다. 개별 도구 설치가 없는 CI에서도 문서·코드 검사 프로그램은 실행된다.
-
-루트 공통 규칙 외에 사용자 전역 지침이 적용될 수 있다. 첫 세션에서 프로젝트 규칙과 Skill을 실제로 읽는지 확인한다.
-
-## 작업과 인수인계
-
-요구사항은 `openspec/specs/`, 진행 중 변경은 `openspec/changes/<id>/`에서 관리한다. 한 변경의 proposal·design·tasks·spec delta를 함께 읽는다. 같은 checkout의 파일·Git 작성은 한 도구가 담당한다.
-
-예를 들어 Codex가 작업 중 멈췄다면 Claude에게 다음처럼 요청한다.
-
-> bootstrap-development-harness의 변경 문서와 tasks, git diff, 최신 검사 결과를 읽고 현재 진행 상태를 설명한 뒤 남은 작업을 이어서 수행해줘.
-
-도구 간 자동 메시지 전달이나 자동 잠금 서버는 없다. 분리 가능한 리뷰는 읽기 전용으로 진행할 수 있고, 병렬 작성이 필요해지면 독립 worktree를 사용한다.
-
-## 실제 검사
-
 ```powershell
-npm run doctor
-npm run check -- --tool codex --change bootstrap-development-harness
-npm run report
-npm run audit
+uv run python dev-harness/cli.py ledger init --plan-file .harness/plan.json --run-id RUN
+uv run python dev-harness/cli.py ledger ready --run RUN
+# 실제 네이티브 생성이 반환한 ID를 사용한다.
+uv run python dev-harness/cli.py ledger start --run RUN --task TASK --agent-id ACTUAL_ID
+uv run python dev-harness/cli.py packet --run RUN --task TASK
+# 위 packet과 역할 지침을 실제 native 위임 도구로 전달한다.
+uv run python dev-harness/cli.py check --run RUN --task TASK --input RELEVANT_FILE --timeout 120 -- ACTUAL_COMMAND ARG
 ```
 
-`doctor`는 Node·OpenSpec·프로젝트 연결 파일을 검사하고 coding CLI의 사용 가능 여부를 별도로 표시한다. CLI 존재나 버전만으로 로그인·Skill 인식을 증명하지 않는다.
+check는 shell=False argv로 실제 실행하며 stdout/stderr/receipt를 `.harness/checks`에 저장한다. 실패·timeout·not_run·output_limit은 완료 근거로 통과하지 않는다. 출력은 종료 후 지정 크기로 잘라 보존하고 output_limit으로 표시한다. 실행 중 디스크 quota를 강제하는 기능은 아니다. Windows 후손 종료가 실패하면 error에 기록하며 직접 프로세스 종료를 시도한다.
 
-`check`는 OpenSpec 구조 검사와 개발 하네스 자체 테스트를 실제로 실행한다. 실패한 검사, timeout, 실행 오류는 실패로 기록되고 성공 exit code로 바뀌지 않는다. 출력 보고서는 `reports/`에 있으며 `report`는 이를 CLI에서 요약한다. 사용 도구 표기는 사용자의 실행 문맥이며 실제 모델 호출 관찰을 의미하지 않는다. 토큰 사용량은 현재 미측정이다.
+검사 receipt는 run/task/attempt/actual agent/contract와 시작 시각, 입력 파일·로그 지문을 연결한다. 다른 task/attempt 검사와 입력 변경·로그 변경을 거부한다. 올바른 명령이 acceptance 의미를 충분히 검사하는지는 독립 리뷰에서 확인한다. 로컬 기록은 서명된 보안 증명이 아니다.
 
-현재 체크에는 출품 프로그램 실행·업무 평가가 없다. 실제 제품 entrypoint와 평가 기준이 생기면 별도 검증으로 연결한다. OpenSpec `validate`·`status`나 코딩 도구의 완료 선언은 업무 정확성을 증명하지 않는다.
+result JSON의 completed checks에는 name/required/receipt를 넣는다. run_id, task_id, status, summary, artifacts, checks, issues를 포함한다. 산출물은 기존/현재 mutable plan·registry·result 파일을 담지 않는다.
 
-## 초기 환경 확인 결과
+```powershell
+uv run python dev-harness/cli.py ledger result --run RUN --task TASK --result-file .harness/result.json
+# 실제 final/idle을 관찰한 뒤 기록한다.
+uv run python dev-harness/cli.py ledger agent --run RUN --agent-id ACTUAL_ID --state idle --evidence ACTUAL_OBSERVATION
+uv run python dev-harness/cli.py complete --run RUN
+```
 
-2026-10-09에 로컬 명세 검사, 실제 check, 자체 테스트 16개가 통과했다. Codex CLI 0.162.0의 새 세션은 공통 지침과 선택 Skill을 인식했으나 Windows shell helper의 `setup refresh had errors` 때문에 프로젝트 파일 읽기를 완료하지 못했다. Claude CLI는 현재 PATH와 표준 설치 경로에서 발견되지 않았다. 양쪽 세션과 도구 간 인수인계 검증은 미완료다.
+complete는 upstream 장부 검사와 현재 receipt를 다시 확인한다. upstream `validate.py --complete` 단독은 receipt 재검증을 대신하지 않는다. 완료 후 근거가 바뀌면 `ledger resume --run RUN --new-run NEW_RUN`으로 이전 기록을 보존하고 변경 결과·후속 작업을 재실행한다. wrapper는 손상/오래된 receipt의 작업 계약도 무효화한다. 실패·blocked 결과에도 실제 check status와 evidence를 명시한다.
 
-[최초 GitHub Actions 실행](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/actions/runs/37937691414)은 계정 결제 또는 spending limit 문제라는 GitHub annotation과 함께 잡 시작 전에 차단되었다. Windows·Linux CI 통과를 주장하지 않는다. 계정 측 문제가 해결된 뒤 workflow를 다시 실행해 확인해야 한다.
+`communication.py`는 observed 통신을 recorded→실제 native 전송→sent/failed→received 순서로 기록한다. 기록 helper가 메시지를 보내지 않는다. 읽기 전용 역할은 부모에게 로그를 요청한다. 세부 형식은 [실행 계약](../.agents/skills/harness/references/project-workflow.md)을 읽는다.
 
-## 의존성 보안의 현재 제한
+## 확인 명령
 
-2026-10-09의 `npm audit`에서는 `braces` 3.0.3의 중첩 패턴 처리 stack exhaustion 취약점 **GHSA-vfj7-8cjw-p6xm**을 확인했다. 한 advisory가 OpenSpec → fast-glob → micromatch → braces 경로의 4개 high 항목으로 보고된다. 공개 advisory에는 patched version이 없고, npm이 제안하는 OpenSpec 0.17.2로의 강제 downgrade는 현재 설계를 변경하므로 수행하지 않았다.
+```powershell
+uv run python dev-harness/cli.py validate
+uv run python dev-harness/cli.py sync-claude --check
+uv run python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/dev-harness -v
+```
 
-이 제한은 숨기지 않으며 `npm run audit`가 현재 실패함을 기능 검사와 구분한다. 이 도구는 로컬 개발에 사용하고 외부 입력을 받는 서비스로 노출하지 않는다. 업데이트 시 수정 버전과 audit 결과를 다시 확인해야 한다.
+검사는 실제 exit code를 남긴다. 단위 검사의 synthetic agent ID와 native 인수검사의 실제 ID를 구분한다. 현재 검사 수·근거는 [검증 기록](validation/development-harness.md)을 따른다. CI Windows/Ubuntu workflow는 구성했으며 원격 실행 여부는 별도로 확인한다.
 
-출처: [GitHub Advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), [OpenSpec 1.14.1](https://github.com/Fission-AI/OpenSpec/tree/v1.14.1), [지원 도구](https://github.com/Fission-AI/OpenSpec/blob/v1.14.1/docs/supported-tools.md), [Codex 지침](https://learn.chatgpt.com/docs/agent-configuration/agents-md), [Claude 지침](https://code.claude.com/docs/en/memory).
+## Claude 인수 절차
+
+Codex 작업 종료 후 요구/결정/작업 목록/diff/실제 checks/남은 문제를 전달한다. `uv run python dev-harness/cli.py sync-claude` 후 drift를 검사한다. Claude 팀원은 새 세션에서 `/harness` 발견, 필요한 `.claude/agents` 역할 호출, 작은 신규 fixture 작업·실제 command/exit/receipt, 독립 리뷰, Codex 결과 인수·추가 실행을 확인한다. 로그는 Git 밖에 보존하고 관찰 ID/도구/시각을 기록한다. Claude native 상태와 Codex registry의 동등 매핑을 검증 전에 가정하지 않는다. 현재 PC에 Claude CLI/인증 환경이 없어 이 native 인수는 미실행이다.
