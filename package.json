@@ -1,0 +1,18 @@
+{
+  "name": "lg-ax-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Codex·Claude Code용 신규 LG AX 프로젝트 개발 체계",
+  "type": "module",
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "doctor": "node dev-harness/doctor.mjs",
+    "check": "node dev-harness/check.mjs",
+    "test": "node --test",
+    "report": "node dev-harness/report.mjs",
+    "spec": "node dev-harness/openspec.mjs",
+    "spec:validate": "node dev-harness/openspec.mjs validate --all --strict --no-interactive --json",
+    "audit": "npm audit"
+  },
+  "devDependencies": { "@fission-ai/openspec": "1.14.1" }
+}
