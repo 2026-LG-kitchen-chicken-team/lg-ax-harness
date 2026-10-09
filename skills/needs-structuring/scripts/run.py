@@ -4,7 +4,9 @@ from pathlib import Path
 import runpy
 import sys
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = next((p for p in Path(__file__).resolve().parents if (p / 'skills/manifest.json').is_file() and (p / 'product-tools/cli.py').is_file()), None)
+if ROOT is None:
+    raise SystemExit('Cannot locate the product bundle root')
 OPERATIONS = ['select_evidence', 'validate_source_refs']
 
 def main():

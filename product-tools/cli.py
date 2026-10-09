@@ -10,11 +10,18 @@ from product_tools.state import StateStore
 from product_tools.tools import ProductTools
 from product_tools.planning import review_product_result
 from product_tools.web_evidence import WebEvidence
+from product_tools.conversation import Conversation
 
 ROOT = Path(__file__).resolve().parents[1]
 
 def dispatch(data, store, operation, payload):
     tools = ProductTools(data)
+    if operation in ("open_request", "open_request_bundle", "current_request", "export_session"):
+        return getattr(Conversation(store, ROOT), operation)(payload)
+    if operation == "save_reviewed_result":
+        obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment",))
+        payload = {**payload, "assessment": payload.get("assessment")}
+        return store.save_result(**payload, require_review=True)
     if operation == "review_product_result":
         return review_product_result(data, payload)
     if operation in ("fetch_web_page", "capture_web_page", "import_web_evidence"):
@@ -65,7 +72,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / "data/business/lg-research-v3")
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("doctor", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "start_turn", "get_turn", "save_result", "record_usage", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("doctor", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "open_request", "open_request_bundle", "current_request", "export_session", "save_reviewed_result", "start_turn", "get_turn", "save_result", "record_usage", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None

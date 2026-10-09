@@ -109,7 +109,7 @@ upstream validator가 Codex 문서의 Claude 경로를 구형 구성으로 판�
 
 ## 목표 폴더 구조
 
-개발 체계와 product-tools/data/evals 공통 기반은 실제 작성했다. 업무 Skill·adapters·관찰·제출 경로는 후속 범위다. 실제 고객 불편 근거 확대와 native 업무 검증은 미완료다. 환경별 업무 설치는 개발 레포 밖의 출품 폴더에 배치한다.
+개발 체계와 product-tools/data/evals 공통 기반, 업무 Skill과 세 환경의 파일 설치 adapter를 작성했다. Codex native 업무를 검증했으며 Claude/Gemini는 파일·공통 Tool 준비 검사만 통과했다. 관찰 화면·발표/영상·최종 제출은 후속 범위다. 환경별 업무 설치는 개발 레포 밖의 출품 폴더에 배치한다.
 
 ```text
 AGENTS.md / CLAUDE.md / README.md
@@ -171,15 +171,30 @@ runtime-data/                 # 출품 SQLite·로그; Git 제외
     - [x] S01d1 실제3모델·후기6발췌·공식 사실19개로 확대. B502S33 수납과 T876MQQ012 적재 그림자 경험·정확한 스펙·연결 공용 설명서 대조. [확인 범위](../data/real-research.md).
     - [ ] S01d2 현재 모델 청소 불편 원문·내부 치수·선반 간격 확보. 미확인 항목을 요구하는 물리 설계/효과 확정 금지.
 - [x] T01 공통 모델 선택·정확한 조회·근거·결과 구조 검사·SQLite 상태·멱등성·조회 캐시·후보 수정 상한·관측 사용량 기록 구현. [계약](../contracts/common-tools.md). 로컬 코드 검사 범위이며 실제 Agent/Skill/의미 판정·강제 native 호출 제어는 아님.
-- [ ] S02a Codex 출품 설치·준비 검사·업무 Skill 발견·공통 Tool·실제 모델/usage·첫 질문·오류 경로를 확인. 개발 Skill 경로와 분리하며 모델 API SDK·자체 실행기는 추가하지 않음.
+- [x] S02a Codex 출품 설치·준비 검사·native 업무Skill6개 발견·실제 모델/누적 usage·첫 질문/후속/자료 부족·오류 복구를 확인. Windows Codex0.162.0 전체 접근 모드 인수이며 workspace-write 준비 실패·비용 미측정은 [검증 기록](../validation/codex-product.md)에 보존. Claude/Gemini나 AI 품질 통과를 포함하지 않음.
 - [ ] S02b Claude Code 업무 사본·지침·Tool/권한·대화 상태 연결을 구현하고 같은 업무·예외 평가 수행. 개발 D06b 검증과 구분.
+  - [x] S02b1 .claude/skills 업무6개·CLAUDE.md→AGENTS.md·설치 manifest/지문·새 폴더 잠금 환경·auth-free doctor 검사. [실제 준비 범위](../validation/portable-product.md).
+  - [ ] S02b2 팀원 환경의 인증/신뢰/권한·Skill 발견·실제 업무/후속/예외·usage 인수. [개발 인수와 구분한 체크리스트](../evaluation/claude-native-handoff.md).
 - [ ] S02c Gemini CLI 업무 사본·지침·Tool/권한·대화 상태 연결을 구현하고 같은 업무·예외 평가 수행. 접근 부재·미관측 usage를 숨기지 않음.
+  - [x] S02c1 .gemini/skills 업무6개·GEMINI.md→AGENTS.md·설치 manifest/지문·새 폴더 잠금 환경·auth-free doctor 검사.
+  - [ ] S02c2 실행자 환경의 인증/폴더 신뢰/Skill 동의·실제 발견/업무/예외·대화/usage 인수.
 - [ ] S03 단일 상품기획 Agent·업무 Skill 5개+조건부 외부 조사1개·보류/수정·출처·추가 입력 연결.
   - [x] S03a Agent 지침·Skill6개·실행 wrapper·지문 manifest·의미 검토 기록 정합성 Tool·외부 관측/버전 등록 코드 구현. 정적/일반 코드 검사는 환경별 native 인수가 아님.
   - [ ] S03b S02 실제 설치 환경에서 조건부 Skill 호출·상태 저장·추가 질문·보류/수정·전체 호출 관측 연결 검증. 네이티브 모델 판단의 심사 품질 평가는 S05.
+    - [x] S03b1 Codex 실제 첫 입력→조건부 외부 근거→기획→실패 후보/수정1회→저장/export, 같은 native 대화 후속 입력, 긍정/기대만 있는 자료의 held, 미확인 모델 needs_input/no fake turn, native 명령/Tool 오류 복구. 성공 CLI usage 누적/차이를 기록하고 실패 미측정을 보존. native 전체 backend 비용·Claude/Gemini 연결은 포함하지 않음.
+    - [ ] S03b2 Claude/Gemini에서 동일 업무/예외와 관측 범위를 검증.
 - [ ] S04 [후순위] 화면 방식을 선택한 뒤 일반 코드로 실제 이벤트·ID·상태를 관찰 도구/UI에 연결. 구조·실행·근거·메시지 관측 범위·재접속·재생·실행 격리를 검사. 현재 화면을 구현하지 않으며 S05 업무 평가의 선행 조건으로 두지 않음.
 - [ ] S05 실제 심사 입력·다중 턴·원문 지시문 공격·오류·동일 조건 baseline 평가. turn별 수정 및 invocation별 기술 재시도 상한을 검사. 전체 Agent+하위 호출·실패 비용과 미측정을 구분하고 동일 평가 묶음의 요구 충족률·총비용으로 토큰 절감 검증.
+  - [x] S05a 개발용 native 평가 runner·격리/동결/실패·미측정/누적차이 경계 검사, 실제 자료 질문6개와 독립 원문 검토 방식 구현. 출품 모델 호출기 추가 아님.
+  - [x] S05b 실제 R01/R04 두사례 × 이전/개선/일반 프롬프트6회 실행·저장 일치·source 감사·독립 의미검토. [결과와 한계](../validation/s05-pilot.md). 세션 관측 입력36.5% 감소이나 자식 사용량/현금 비용/우위 미입증, baseline 양식 안내 부족과 구조 실패 보존.
+  - [ ] S05c 보완 계약의 baseline·반복측정·native single-agent 제어·R02/03/05/06·원문 지시문·실제 장애/취소·전체 비용/인간 공수 검증. 옵션/검사 코드만으로 실제 통과를 표시하지 않음.
+    - [x] S05c1 보완 양식6회 재비교·source/저장 감사·익명 독립 원문 검토. 관측 세션 입력 감소와 시간 증가를 함께 기록하고 baseline 대비 우위는 미입증. 옵션만으로 위임 제거는 실패로 보존. [후속 기록](../validation/s05-followup.md).
+    - [x] S05c2 나머지4사례·native 재개와 조건 변경/이력·명시한 단일 Agent 선호의 실제 관측·독립 원문 검토. 제품 저장 일치, 일반2건 unused_evidence 구조 실패도 보존.
+    - [x] S05c3 test_only 지시문 파일·일회성 wrapper 장애·owned CLI deadline 시험. 실제 전달/복구/프로세스 종료 범위이며 반환 근거 속 공격·업무 cancelled 지원·전체 재시도 한도는 별도 미완료.
+    - [ ] S05c4 전체 Agent/backend 실패 포함 청구 및 실제 사람 활동 시간·요구 충족률·반복 일반화 검증. [공수 측정 절차](../evaluation/human-effect-protocol.md).
 - [ ] S06 README를 따라 새 환경에서 실행·Skill 재실행·ZIP 재현을 확인하고 실제 실행으로 발표·영상 작성. 발표자료 20페이지·발표 10분/질의응답 5분을 검사하고 제출 직전 영상 규격·실제 마감 시각·제출 경로·파일명·변경 공지를 확인.
+  - [x] S06a 업무 source ZIP70파일 manifest·새 Temp 추출·uv 잠금 환경·공통 Skill doctor·ZIP 내부 소스의 새 Claude 사본 설치를 실증. [재현 연습](../validation/submission-rehearsal.md). native 신규 환경·영상·최종 제출 완료가 아님.
+  - [ ] S06b 발표/영상·최종 지원 환경 재현·운영진 제출 규격/마감/공지 대조.
 
 개발용 하네스의 완료 기준은 D01-D05 실증이다. Claude native 지원 검증 완료는 D06b 실제 팀원 검증을 추가로 요구한다. D06a는 adapter 파일 제공·정적 동기화 완료다. 출품 완료는 S01-S06 및 공식 제출 요구를 실제로 충족해야 한다. 계획·정적 검사·라이브러리 smoke test만으로 어느 완료도 주장하지 않는다.
 
@@ -193,3 +208,9 @@ runtime-data/                 # 출품 SQLite·로그; Git 제외
 ## 이번 구축 결과
 
 실제 인수검사: CLI 신규9Skill 발견·상한3 읽기, persistent부모/자식 생성·검사·메시지·interrupt, 실제 Temp 신규 usage helper8검사·부모통합검사·독립review, Skill변경 결과등록거부·새run resume·fresh packet 재위임·idle관찰·complete errors=[]를 확인했다. 개발 helper22tests와 OSS/Claude동기화 정적검사는 실제 exit0이다. custom role 자동 선택/sandbox/model 적용과 close는 이 runtime에서 미검증이다. 이후 P07에서 출품 네이티브 실행 방향을 선택했다. 환경별 업무·모델 검증(S02a-c), 관찰 화면(P08), 출품 S01-S06은 여전히 별도 미완료다.
+
+## Codex 출품 설치·실제 업무 연결 추가
+
+[인수 기록](../validation/codex-product.md)에 따라 Codex 전용 별도 설치, 자동 Skill 발견, 정상/후속/보류/미확인 모델·실제 오류와 저장/export를 실증했다. 공통 도구75검사·독립 리뷰를 연결했다. 설치 프로그램은 모델을 호출하지 않으며 실제 모델은 실행자가 연 Codex다. 샌드박스 지원 제한·미측정 비용·품질/토큰 효과 미평가를 유지한다.
+
+후속으로 [S05 비교/예외](../validation/s05-followup.md), [Claude/Gemini 로컬 준비](../validation/portable-product.md), [소스 ZIP 재현](../validation/submission-rehearsal.md)을 추가했다. 과거75검사 시점과 현재82검사를 구분한다. 청소 불편·내부 치수의 [추가 조사](../data/s01d2-followup.md)도 확보 실패로 보존했다. native portability·전체 비용·사람 공수·시장 신규성·최종 제출을 완료로 바꾸지 않는다.

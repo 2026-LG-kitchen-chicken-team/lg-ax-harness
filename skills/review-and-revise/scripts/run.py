@@ -4,8 +4,10 @@ from pathlib import Path
 import runpy
 import sys
 
-ROOT = Path(__file__).resolve().parents[3]
-OPERATIONS = ['validate_result_contract', 'review_product_result', 'start_turn', 'get_turn', 'save_result', 'record_usage', 'begin_invocation', 'finish_invocation']
+ROOT = next((p for p in Path(__file__).resolve().parents if (p / 'skills/manifest.json').is_file() and (p / 'product-tools/cli.py').is_file()), None)
+if ROOT is None:
+    raise SystemExit('Cannot locate the product bundle root')
+OPERATIONS = ['validate_result_contract', 'review_product_result', 'start_turn', 'get_turn', 'save_result', 'save_reviewed_result', 'export_session', 'current_request', 'record_usage', 'begin_invocation', 'finish_invocation']
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

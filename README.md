@@ -1,6 +1,6 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
-출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. 환경별 native 설치·실제 업무 인수와 시각화 프로그램은 아직 완료하지 않았다.
+출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. Codex 출품 설치와 실제 업무 연결을 검증했으며 Claude/Gemini와 시각화는 별도 작업이다.
 
 ## 시작
 
@@ -49,7 +49,7 @@ uv run python product-tools/cli.py retrieve_reviews --input evals/development/re
 uv run python -m unittest discover -s tests/product-tools -v
 ```
 
-- [출품 실행 방식](docs/decisions/product-runtime.md): 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결하는 방향을 선택했다. 공통 도구·Agent/Skill 원본 구현과 환경별 설치·발견·실제 업무 호환성 미검증을 구분한다. 시작 절차와 개발 폴더는 개발 체계용이다.
+- [출품 실행 방식](docs/decisions/product-runtime.md): 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결하는 방향을 선택했다. 공통 도구·Agent/Skill 원본과 Codex 설치·실제 업무 연결, Claude/Gemini 미검증을 구분한다. 위 시작 절차와 개발 폴더는 개발 체계용이다.
 - [연구원 컨설팅 반영](docs/consultation/2026-10-10.md): 실제 리뷰·모델 선택·정확한 사양·업무 효과 기준.
 - [기술 확정](docs/decisions/stack-selection.md): 개발 기반·역할·검사·MCP와 출품 실행 선택·미채택 대안을 구분.
 - [실제 검증과 제한](docs/validation/development-harness.md): 정적 검사, 네이티브 위임, 구현·검사·통합의 근거.
@@ -67,4 +67,35 @@ uv run python skills/evidence-retrieval/scripts/run.py doctor
 uv run python skills/evidence-retrieval/scripts/run.py prepare_planning_input --input evals/development/select-research-model.json
 ```
 
-조건부 외부 조사와 검토 Tool은 [외부 조사](docs/contracts/web-evidence.md)·[업무 계약](docs/contracts/product-planning.md)을 따른다. 위 명령은 코드/자료 확인이며 제품 Agent의 설치·자동 Skill 선택·전체 업무 인수는 다음 S02 작업이다.
+조건부 외부 조사와 검토 Tool은 [외부 조사](docs/contracts/web-evidence.md)·[업무 계약](docs/contracts/product-planning.md)을 따른다. 위 명령은 코드/자료 확인이다. Codex 설치·실제 업무 연결은 아래 별도 폴더에서 검증한다.
+
+## Codex 출품 설치
+
+개발 레포에서 새 별도 폴더를 지정한다. 기존 폴더는 덮어쓰지 않는다.
+
+```powershell
+uv run python adapters/codex/install.py --target C:/YOUR-NEW-PRODUCT-FOLDER
+```
+
+그 폴더에서 `uv sync --locked`, `uv run python product-doctor.py`, `codex`를 실행하고 `T876MQQ012를 기준으로 수납·정리 개선안을 만들어줘. 하드웨어 추가 없이.`라고 질문한다. 업무Skill6개만 설치하며 세션·요청 키는 일반 코드가 만든다. 추가 질문과 실패/수정 이력·검토·export를 연결한다. 별도 모델 API key·제품 내부 Codex 실행기는 추가하지 않는다.
+
+현재 실제 설치 폴더는 `C:/Users/user/Documents/ChatGPT/LG-AX-product-codex`다. [설치·대화 계약](docs/contracts/codex-product.md)과 [실제 Codex 검증·Windows 권한 제한](docs/validation/codex-product.md)을 따른다. workspace-write 명령 실행기 준비 오류는 실패로 보존했고 전체 접근 모드에서 확인한다. doctor 성공이 권한·AI 품질 통과를 뜻하지 않는다.
+
+## Claude·Gemini 준비와 제출 재현
+
+공통 업무 원본을 각 환경의 Skill 위치와 진입 지침으로 설치한다. 개발 레포 밖의 **서로 다른 새 폴더**를 지정한다.
+
+```powershell
+uv run python adapters/claude/install.py --target C:/NEW-CLAUDE-PRODUCT
+uv run python adapters/gemini/install.py --target C:/NEW-GEMINI-PRODUCT
+```
+
+설치 폴더에서 `uv sync --locked`, `uv run python product-doctor.py`를 실행하고, 실행자 자신의 설치·로그인·폴더 신뢰/Skill 동의를 마친 CLI를 연다. 파일 설치기는 로그인·전역 설정·모델 호출을 하지 않는다. [설치 계약](docs/contracts/portable-product.md)과 [로컬 검사](docs/validation/portable-product.md)는 통과했지만 실제 Claude/Gemini 발견·업무·예외·사용량은 미검증이다. 팀원의 개발 체계 인수는 [별도 체크리스트](docs/evaluation/claude-native-handoff.md)를 따른다.
+
+```powershell
+uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED-PRODUCT --archive C:/NEW-SOURCE.zip
+```
+
+이 ZIP은 [새 폴더 재현 연습](docs/validation/submission-rehearsal.md)용 업무 소스다. 발표·영상·최종 제출 요건 확인을 포함하지 않는다. 실제 로그·DB·인증·의존성 환경은 제외한다. 제품 설치물에 개발 평가 실행기를 넣지 않는다.
+
+실제 심사 입력의 비교·다중 턴·장애 시험은 [S05 후속 검증](docs/validation/s05-followup.md)에 기록한다. 관측 usage와 전체 청구 비용을 구분하며, 사람의 공수 효과는 [측정 절차](docs/evaluation/human-effect-protocol.md)에 따른 실제 기록이 있어야 확정한다. 청소 불편·내부 치수는 [후속 조사](docs/data/s01d2-followup.md)에서도 확보하지 못해 물리 배치 확정은 보류한다.

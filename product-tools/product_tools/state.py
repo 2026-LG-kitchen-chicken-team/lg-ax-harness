@@ -150,12 +150,21 @@ class StateStore:
                 "business_reuse_eligible": valid and structurally_valid and known_runtime and known_workflow and row["status"] == "completed",
                 "invalidation_reason": row["invalidation_reason"] or (None if valid else "dataset_or_code_changed"),
                 "latest_result": candidate if valid and structurally_valid else None,
-                "last_validation": validation,
-                "result_history": [{**{k: r[k] for k in ("result_key", "payload_hash", "result_version", "created_at")}, "validation": strict_json(r["validation_json"])} for r in history],
+                "last_validation": self.compact_validation(validation),
+                "result_history": [{**{k: r[k] for k in ("result_key", "payload_hash", "result_version", "created_at")}, "validation": self.compact_validation(strict_json(r["validation_json"]))} for r in history],
                 "usage_summary": self.usage_summary(session_id, turn_id),
                 "semantic_status": "unverified", "acceptance_ready": False, "native_execution_controlled": False}
 
-    def save_result(self, session_id, turn_id, result_key, result, expected_result_version):
+    @staticmethod
+    def compact_validation(value):
+        if value is None:
+            return None
+        result = {k: v for k, v in value.items() if k not in ("assessment", "review")}
+        if "review" in value:
+            result["review_summary"] = {k: v for k, v in value["review"].items() if k in ("can_finalize_reported_result", "reported_reasoning_consistent", "semantic_status", "acceptance_ready")}
+        return result
+
+    def save_result(self, session_id, turn_id, result_key, result, expected_result_version, assessment=None, require_review=False):
         identifier(result_key, "result_key")
         integer(expected_result_version, "expected_result_version", 0, 3)
         payload = canonical(result)
@@ -174,6 +183,10 @@ class StateStore:
                 if fingerprint(result) != duplicate[1]:
                     fail("result_integrity", "Stored candidate fingerprint changed")
                 report = strict_json(duplicate[2])
+                if require_review and not report.get("review_required"):
+                    fail("result_conflict", "Stored candidate did not require review; cannot upgrade a replay")
+                if report.get("assessment") != assessment:
+                    fail("result_conflict", "Result key already has a different review assessment")
                 accepted = report.get("contract_valid") is True
                 reason = report.get("error", {}).get("code")
             else:
@@ -190,8 +203,15 @@ class StateStore:
                         report = self.tools.validate_result_contract(strict_json(row["input_json"]), result)
                         if result["revisions"] != revision:
                             fail("revision_mismatch", "Result revision must match stored business revision count")
+                        report["review_required"] = require_review
+                        if require_review or assessment is not None:
+                            from .planning import review_product_result
+                            review = review_product_result(self.dataset, {"input": strict_json(row["input_json"]), "result": result, "assessment": assessment})
+                            report.update(review=review, assessment=assessment)
+                            if not review["can_finalize_reported_result"]:
+                                fail("review_not_finalizable", "Reported review requires correction or a held result")
                     except ToolError as exc:
-                        report = {"contract_valid": False, "semantic_status": "unverified", "acceptance_ready": False,
+                        report = {**(report or {}), "review_required": require_review, "assessment": assessment, "contract_valid": False, "semantic_status": "unverified", "acceptance_ready": False,
                                   "error": {"code": exc.code, "message": str(exc)}}
                         accepted, reason = False, exc.code
                     version = row["result_version"] + 1
@@ -199,7 +219,7 @@ class StateStore:
                                     (turn_id, result_key, payload, fingerprint(result), version, now(), canonical(report)))
                     status = result["status"] if accepted else "held" if revision == 2 else "needs_revision"
                     self.db.execute("UPDATE turns SET status=?, revision_count=?, result_version=? WHERE turn_id=?", (status, revision, version, turn_id))
-        return {"accepted": accepted, "reason": reason, "validation": report, "turn": self.get_turn(session_id, turn_id)}
+        return {"accepted": accepted, "reason": reason, "validation": self.compact_validation(report), "turn": self.get_turn(session_id, turn_id)}
 
     def record_usage(self, session_id, turn_id, call):
         self.row(session_id, turn_id)

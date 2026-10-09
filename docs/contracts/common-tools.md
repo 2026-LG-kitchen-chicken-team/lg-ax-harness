@@ -13,7 +13,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## 입력 부담과 내부 계약
 
-사람은 우선 모델을 선택한다. `prepare_planning_input`의 필수값은 `model_id`, 내부 세션·요청 키뿐이다. 세션·요청 키는 향후 어댑터가 생성하며 사용자가 직접 기입할 항목이 아니다. 질문·대상·조건·버전·실행 메타데이터는 선택 입력이다. 여러 스냅샷이 있는 모델은 정확한 버전을 추가 확인한다. 사용자가 불편을 상세히 쓰도록 강제하지 않는다.
+사람은 우선 모델을 선택한다. `prepare_planning_input`의 필수값은 `model_id`, 내부 세션·요청 키뿐이다. Codex 업무의 open_request가 세션·요청 키를 생성하며 사용자가 직접 기입할 항목이 아니다. 질문·대상·조건·버전·실행 메타데이터는 선택 입력이다. 여러 스냅샷이 있는 모델은 정확한 버전을 추가 확인한다. 사용자가 불편을 상세히 쓰도록 강제하지 않는다.
 
 내부 `PlanningInput`은 session_id/request_key/question/product_family/model_scope/target_customer/context/constraints/data_version/runtime/workflow를 보존한다. 모델·제품 버전·문서 버전을 묶어 정확히 조회하고 LLM 모델 ID와 제품 model_id를 구분한다. `runtime`의 모델·설정·버전과 Skill/프롬프트 지문은 관측되지 않으면 null이다. 자동 생성된 fixture 메타데이터를 실제 Codex 모델 관측으로 설명하지 않는다.
 
@@ -30,6 +30,8 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 | Tool | JSON 입력 | 출력/오류 |
 |---|---|---|
 | doctor | 없음 또는 `{}` | 지문·모델·수량·business/test_only·검사 범위 |
+| open_request / current_request / export_session | [Codex 대화 계약](codex-product.md) | 자동 handle·실제 추가 질문·동일 요청 재개·전체 이력 export |
+| save_reviewed_result | session_id/turn_id/result_key/result/assessment/expected_result_version | 구조와 검토 정합성·실패 시도 기록; 의미 품질 미검증 |
 | prepare_planning_input | 모델·세션·요청 키, 선택 질문/조건 | 내부 입력·공식 모델 정보; unknown_model/unknown_scope/needs_input |
 | retrieve_reviews / retrieve_product_facts | 정확한 scope, 선택 query/limit/feature_key | 원문·origin·지문·조회 범위·빈 조회/잘림·캐시 여부. 리뷰에는 feature_key 없음 |
 | select_evidence / match_product_scope | scope와 source_ids / scope | 정확한 근거 또는 scope_mismatch/source_not_found |
@@ -46,7 +48,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## SQLite 상태와 재사용
 
-`UNIQUE(session_id,request_key)`를 유지한다. 같은 키·동일 입력 재전송은 기존 turn·수정 횟수를 반환하고 같은 키·다른 입력은 충돌이다. `user_submitted=true`는 호출자의 진술이며 사용자 인증·승인 증명이 아니다. 환경 어댑터가 실제 새 입력과 연결하는 검증은 아직 남아 있다.
+`UNIQUE(session_id,request_key)`를 유지한다. 같은 키·동일 입력 재전송은 기존 turn·수정 횟수를 반환하고 같은 키·다른 입력은 충돌이다. `user_submitted=true`는 호출자의 진술이며 사용자 인증·승인 증명이 아니다. 실제 Codex 첫 입력·후속 입력 연결은 [native 검증](../validation/codex-product.md)을 따른다. Claude/Gemini 검증은 남아 있다.
 
 최초 후보는 revision 0, 수정 후보는 1·2다. **검증에 실패한 후보도 시도로 기록**하고 새 result_key·재접속으로 한도를 초기화하지 않는다. 같은 result_key·동일 결과는 멱등, 다른 결과는 충돌이다. 세 번의 후보 이후 더 제출하면 보류하고 이력·실패 사유를 유지한다. 결과 버전은 낙관적 동시 갱신 검사에 사용하며 트랜잭션 실패는 후보·카운터를 함께 롤백한다. 복구할 수 없는 malformed JSON/크기 초과는 Tool 입력 오류이며 후보로 적재되지 않는다.
 
@@ -73,4 +75,6 @@ uv run python -m unittest discover -s tests/product-tools -v
 
 ## 2026-10-10 출품 Skill·외부 조사 추가
 
-현재 기본 catalog는 실제 lg-research-v3(3모델·6후기·19사실)다. 최초 pilot과 기존 검사 이력은 보존한다. Agent/Skill 원본6개·실행 wrapper는 작성했으며 설치·발견·세 native 환경 인수는 별도다. `review_product_result`의 입력/판정 한계는 [상품기획 계약](product-planning.md), fetch_web_page/capture_web_page/import_web_evidence는 [외부 조사 계약](web-evidence.md)을 따른다. 자료 버전은 초기 조사 후 확정하고 이미 시작된 turn은 새 키로 초기화하지 않는다.
+현재 기본 catalog는 실제 lg-research-v3(3모델·6후기·19사실)다. 최초 pilot과 기존 검사 이력은 보존한다. Agent/Skill 원본6개·실행 wrapper와 Codex 설치·대화 Tool을 작성했다. 실제 Codex 발견·업무 연결은 native 검증 기록을 따르며 Claude/Gemini 인수는 별도다. `review_product_result`의 입력/판정 한계는 [상품기획 계약](product-planning.md), fetch_web_page/capture_web_page/import_web_evidence는 [외부 조사 계약](web-evidence.md)을 따른다. 자료 버전은 초기 조사 후 확정하고 이미 시작된 turn은 새 키로 초기화하지 않는다.
+
+S05 추가: open_request_bundle은 open_request와 동일 입력/멱등 계약이며 정확한 scope의 리뷰·사실 원문을 한 번 반환한다. 종류 metadata와 원문 refs를 분리하고 조회20개/종류·응답 바이트 상한의 잘림/누락 ID를 명시한다. 자료 충분성은 판단하지 않는다. 큰 현재 결과는 handle과 detail 조회 안내를 유지한다. save_reviewed_result는 assessment 검사를 transaction 안에서 필수로 수행하여 null/필드 누락도 유효 JSON 후보이면 실패 이력과 수정 횟수에 남긴다. 마지막 저장 응답의 turn을 다음 저장/최종 상태에 사용하며 충돌/재개/외부 변경에만 재조회한다. 원문 의미 검토는 생략하지 않는다.

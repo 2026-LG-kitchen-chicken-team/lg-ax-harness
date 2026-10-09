@@ -4,14 +4,14 @@
 
 ## 현재 상태와 원본
 
-- 2026-10-10에 OpenSpec을 교체하고 Codex 중심 개발 역할·Skill·검사 실행기를 구축했다. 실제 인수검사 상태는 `docs/validation/development-harness.md`를 따른다. 출품 업무 프로그램은 아직 구현 완료하지 않았다.
+- 2026-10-10에 OpenSpec을 교체하고 Codex 중심 개발 역할·Skill·검사 실행기를 구축했다. 실제 인수검사 상태는 `docs/validation/development-harness.md`를 따른다. Codex 업무 설치·실제 연결은 docs/validation/codex-product.md를 따르며 Claude/Gemini·심사 품질/효과·최종 제출은 미완료다.
 - 요구 원본은 `docs/competition-requirements.md`, 기술 결정은 `docs/decisions/stack-selection.md`, 개발 체계 작업 상태 원본은 `docs/plans/development-harness.md`다.
 - 출품 실행·시연 계약은 `docs/plans/product-harness.md`, AI 직접 입력 평가는 `docs/evaluation/judge-input-cases.md`다.
 - 출품 실행은 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결하는 방식으로 사용자가 선택했다. `docs/decisions/product-runtime.md`를 따른다. 초기 경로에 자체 모델 API 실행기나 Codex 내부 호출 실행기를 추가하지 않는다. 세 환경의 지원 목표와 실제 검증 상태를 구분한다.
 - 사용자가 제공한 연구원 컨설팅은 `docs/consultation/2026-10-10.md`를 따른다. 업무·시연 자료는 실제 제품·리뷰이며 합성 자료는 계약·오류 시험 전용이다. 사용자에게 상세 불편 입력을 강제하지 않고 모델 선택에서 AI가 실제 근거로 불편을 찾아야 한다. 정확한 해당 모델 사양·외형/내부 치수 구분과 시간·공수 효과 검증을 유지한다.
-- 공통 자료·입출력·상태 코드는 `product-tools/`, 계약은 `docs/contracts/common-tools.md`다. 현재 실제 pilot의 불편 근거 충분성, 업무 Skill·native 실행·효과 평가는 미완료다.
+- 공통 자료·입출력·상태 코드는 `product-tools/`, 계약은 `docs/contracts/common-tools.md`다. Codex 설치/자동발견·정상/후속/보류/오류 저장을 확인했다. 현재 실제 자료 충분성·청소/내부 치수·AI 품질/효과 평가와 Claude/Gemini native 연결은 미완료다.
 - 시각화는 `docs/plans/observability-viewer.md`의 별도 프로그램에서 제공하며 후순위다.
-- 현재 우선순위는 개발 체계 D01-D06 구축이다. 시각화 도구·수집·화면 작업은 후순위이며 개발 체계 인수검사의 선행 조건이 아니다. 기존 실행기에 연결하는 React Flow UI도 후속 후보일 뿐 현재 채택·구현하지 않는다.
+- Codex 개발 체계 D01-D05와 업무 설치 S02a를 검증했다. 다음 우선순위는 실제 AI 심사 입력·baseline·품질/효과 평가 S05 및 자료 부족 보강이며 팀원 Claude 인수 D06b와 출품 Claude/Gemini는 별도다. 시각화 도구·수집·화면 작업은 후순위이며 개발 체계 인수검사의 선행 조건이 아니다. 기존 실행기에 연결하는 React Flow UI도 후속 후보일 뿐 현재 채택·구현하지 않는다.
 - OpenSpec 파일·Skill·명령·초기 검사 도구는 제거했다. 새로운 작업을 OpenSpec 절차로 시작하지 않는다.
 - 계획·정적 검사·라이브러리 호환성 검사를 네이티브 개발 Agent 동작이나 출품 AI 품질 통과로 설명하지 않는다.
 

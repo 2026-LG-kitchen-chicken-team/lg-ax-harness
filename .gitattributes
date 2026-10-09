@@ -7,3 +7,4 @@ agents/product-planning.md -text
 product-tools/** -text
 docs/contracts/** -text
 data/** -text
+adapters/codex/templates/** -text
