@@ -55,6 +55,12 @@ npm run audit
 
 현재 체크에는 출품 프로그램 실행·업무 평가가 없다. 실제 제품 entrypoint와 평가 기준이 생기면 별도 검증으로 연결한다. OpenSpec `validate`·`status`나 코딩 도구의 완료 선언은 업무 정확성을 증명하지 않는다.
 
+## 초기 환경 확인 결과
+
+2026-10-09에 로컬 명세 검사, 실제 check, 자체 테스트 16개가 통과했다. Codex CLI 0.162.0의 새 세션은 공통 지침과 선택 Skill을 인식했으나 Windows shell helper의 `setup refresh had errors` 때문에 프로젝트 파일 읽기를 완료하지 못했다. Claude CLI는 현재 PATH와 표준 설치 경로에서 발견되지 않았다. 양쪽 세션과 도구 간 인수인계 검증은 미완료다.
+
+[최초 GitHub Actions 실행](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/actions/runs/37937691414)은 계정 결제 또는 spending limit 문제라는 GitHub annotation과 함께 잡 시작 전에 차단되었다. Windows·Linux CI 통과를 주장하지 않는다. 계정 측 문제가 해결된 뒤 workflow를 다시 실행해 확인해야 한다.
+
 ## 의존성 보안의 현재 제한
 
 2026-10-09의 `npm audit`에서는 `braces` 3.0.3의 중첩 패턴 처리 stack exhaustion 취약점 **GHSA-vfj7-8cjw-p6xm**을 확인했다. 한 advisory가 OpenSpec → fast-glob → micromatch → braces 경로의 4개 high 항목으로 보고된다. 공개 advisory에는 patched version이 없고, npm이 제안하는 OpenSpec 0.17.2로의 강제 downgrade는 현재 설계를 변경하므로 수행하지 않았다.
