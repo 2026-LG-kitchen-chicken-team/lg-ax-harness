@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
@@ -81,6 +82,44 @@ class CompactReceiptTests(unittest.TestCase):
         self.assertNotIn("assessment",v)
         self.assertEqual(len(v["review_summary"]["findings"]),20)
         self.assertEqual(v["review_summary"]["findings_omitted"],4)
+
+    def combined(self, key, revision, assessment):
+        return self.conversation.save_and_export({'session_id':self.turn['session_id'], 'turn_id':self.turn['turn_id'],
+            'result_key':key,'result':self.result(revision),'expected_result_version':revision,'assessment':assessment})
+
+    def test_combined_save_rejection_repair_and_stale_replay(self):
+        rejected=self.combined('bad-combined',0,None)
+        self.assertFalse(rejected['delivery_ready']);self.assertFalse(rejected['save']['accepted'])
+        self.assertIsNotNone(rejected['export'])
+        good={'claim_checks':[],'feature_matches':[],'concept_links':[]}
+        repaired=self.combined('fixed-combined',1,good)
+        self.assertTrue(repaired['delivery_ready'])
+        self.combined('latest-combined',2,good)
+        old=self.combined('fixed-combined',1,good)
+        self.assertFalse(old['delivery_ready']); self.assertTrue(old['save']['accepted'])
+        self.assertEqual(old['save']['receipt']['candidate_result_version'],2)
+        self.assertEqual(old['save']['receipt']['current_result_version'],3)
+
+    def test_combined_export_failure_keeps_real_candidate_and_recovers(self):
+        good={'claim_checks':[],'feature_matches':[],'concept_links':[]}
+        with patch.object(self.conversation,'export_session',side_effect=OSError('fixture disk failure')):
+            saved=self.combined('export-failure',0,good)
+        self.assertFalse(saved['delivery_ready']); self.assertTrue(saved['save']['accepted'])
+        self.assertEqual(saved['export_error']['code'],'export_failed')
+        self.assertEqual(self.store.get_turn(self.turn['session_id'],self.turn['turn_id'])['result_version'],1)
+        recovered=self.combined('export-failure',0,good)
+        self.assertTrue(recovered['delivery_ready']);self.assertIsNotNone(recovered['export'])
+
+    def test_combined_final_reads_share_locked_sqlite_snapshot(self):
+        good={'claim_checks':[],'feature_matches':[],'concept_links':[]}
+        real=self.conversation.export_session
+        observed=[]
+        def export(p):
+            observed.append(self.store.db.in_transaction)
+            return real(p)
+        with patch.object(self.conversation,'export_session',side_effect=export):
+            saved=self.combined('snapshot',0,good)
+        self.assertEqual(observed,[True]);self.assertTrue(saved['delivery_ready'])
 
 
 if __name__ == "__main__": unittest.main()

@@ -5,10 +5,8 @@ description: "원문으로 확인한 불편을 같은 냉장고 모델의 기존
 
 # 기존 기능 대조
 
-bundle의 정확한 모델·문서 범위와 제품 사실을 사용한다. 모델 범위가 모호하거나 추가 사실·잘림·변경 문서를 확인할 때만 `match_product_scope/retrieve_product_facts/select_evidence`로 필요한 자료를 조회한다. 이미 받은 원문을 다시 조회하지 않는다. 단독 실행에서는 필요한 정확 scope와 사실을 먼저 확보한다. exact 스펙을 우선하고 공통 홍보 이미지·FAQ·적용 모델 한정 설명서를 현재 모델에 무조건 적용하지 않는다.
+단독 실행이면 프로젝트 루트 agents/product-planning.md의 공통 안전 규칙을 먼저 읽는다. 이미 문맥에 있으면 유지한다. exact 스펙을 우선하고 공용 설명서의 해당 부품/적용 모델을 확인한다. 각 pain을 제품 사실과 비교하여 resolved/partially_resolved/unresolved/uncertain과 원문 대조 이유를 적는다. 서로 다른 사용 조건을 합쳐 부분 해소를 단정하지 않는다.
 
-불편마다 기존 기능과 사용 조건을 대조해 resolved/partially_resolved/unresolved/uncertain을 판단하고 이유를 적는다. 기능 존재는 해결 완료가 아니다. not_documented는 부재가 아니고 conflicting이면 하나를 임의 선택하지 않는다.
+existing_features/remaining_pains와 feature_matches를 작성한다. 불확실한 남은 문제는 확정 사실이 아닌 한계가 있는 조건부 기획 가설로만 다룬다. 물리 배치의 내부 치수 부족은 보류한다. 양식은 review-and-revise/references/payload.md다.
 
-근거가 있는 미해결 부분만 remaining_pains에 넣고 [업무 검토 계약](../../docs/contracts/product-planning.md)의 feature_matches로 원래 pain과 제품 출처를 연결한다. 치수·조절 간격·도어 개방 조건이 필요하지만 없으면 조사 또는 보류한다. 외형 값으로 내부를 추정하지 않는다.
-
-실행: `uv run python skills/feature-comparison/scripts/run.py OP --input JSON_PATH`. OP는 match_product_scope/retrieve_product_facts/select_evidence다. 비교 의미는 네이티브 모델의 판단이며 코드 검색만으로 해결 판정하지 않는다.
+bundle 사실을 유지한다. 추가/잘림/문서 변경과 단독 실행 때만 정확 scope로 필요한 조회를 한다. 실행: `uv run python skills/feature-comparison/scripts/run.py OP --input JSON_PATH`. OP: match_product_scope/retrieve_product_facts/select_evidence. 의미는 네이티브 모델이 판단한다.

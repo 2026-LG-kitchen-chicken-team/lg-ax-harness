@@ -168,3 +168,28 @@ class Conversation:
         path = base / (session + "-" + digest + ".json")
         path.write_bytes(raw)
         return {"path": path.relative_to(self.workspace).as_posix(), "sha256": digest, "turn_count": len(turns), "request_count": len(requests), "usage_summary": value["usage_summary"], "semantic_status": "unverified"}
+
+    def save_and_export(self, payload):
+        """One mechanical roundtrip. Rejections/history persist before export.
+
+        Export failure cannot roll back a stored candidate. A caller can recover
+        with current_request/export_session; a stale replay is never delivered.
+        """
+        obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment"))
+        saved = self.store.save_result(**payload, require_review=True, response_mode="receipt")
+        receipt = saved["receipt"]
+        latest = (receipt["candidate_result_version"] == receipt["current_result_version"]
+                  and receipt["candidate_result_version"] is not None and receipt["valid"] is True)
+        response = {"save": saved, "delivery_ready": saved["accepted"] is True and latest, "export": None, "export_error": None}
+        # Include rejected candidates too, so exhaustion/held final retains proof.
+        try:
+            # One SQLite snapshot across export and the final read. get_turn has
+            # several SELECTs; an interleaving writer must not mix their versions.
+            with self.store.transaction():
+                response["export"] = self.export_session({"session_id": payload["session_id"]})
+                current = self.store.get_turn(payload["session_id"], payload["turn_id"])
+                if current["result_version"] != receipt["current_result_version"] or current["valid"] is not True or current["status"] != receipt["status"]:
+                    response.update(delivery_ready=False, export_error={"code": "current_state_changed", "message": "Reread current_request/get_turn; exported history is preserved"})
+        except (OSError, ValueError) as exc:
+            response.update(delivery_ready=False, export_error={"code": "export_failed", "message": str(exc)[:512]})
+        return response

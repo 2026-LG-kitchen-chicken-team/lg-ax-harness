@@ -184,6 +184,32 @@ class PlanningWebTests(unittest.TestCase):
         self.assertIsNone(self.planning["runtime"]["engine"])
         self.assertIsNone(self.planning["runtime"]["model_id"])
 
+    def test_exact_linked_html_manual_topic_and_other_document_rejection(self):
+        url='https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html'
+        association=self.web.collect(self.browser('html-association',content='T876MQQ012 support link '+url),True)
+        manual=self.web.collect({**self.browser('html-manual',content='Code fixture manual cleaning text.'),'url':url+'#topic_31'},True)
+        entry={**self.observation(manual),'kind':'product_fact','feature_key':'cleaning_instructions','availability':'present',
+               'text':'Code fixture manual cleaning text.','support_quote':'Code fixture manual cleaning text.','association_snapshot_id':association['snapshot_id']}
+        self.web.import_evidence(self.data,{'data_version':'html-manual-v1','observations':[entry]})
+        other=self.web.collect({**self.browser('other-manual',content='Code fixture manual cleaning text.'),'url':url.replace('69140202','71401547')+'#topic_31'},True)
+        wrong={**entry,'snapshot_id':other['snapshot_id'],'source_id':'OTHER-MANUAL'}
+        self.error('scope_mismatch',self.web.import_evidence,self.data,{'data_version':'html-manual-v2','observations':[wrong]})
+
+    def test_exact_http_href_allows_only_https_observed_same_manual(self):
+        href='http://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html'
+        association=self.web.collect(self.browser('literal-http-link',content='T876MQQ012 support link '+href),True)
+        manual=self.web.collect({**self.browser('https-manual',content='Code fixture manual cleaning text.'),'url':href.replace('http:','https:')+'#topic_31'},True)
+        entry={**self.observation(manual),'kind':'product_fact','feature_key':'cleaning_instructions','availability':'present',
+               'text':'Code fixture manual cleaning text.','support_quote':'Code fixture manual cleaning text.','association_snapshot_id':association['snapshot_id']}
+        self.web.import_evidence(self.data,{'data_version':'literal-http-v1','observations':[entry]})
+        for i,bad in enumerate((href+':80',href.replace('.com/','.com:81/'),href+'?different=true',href.replace('http://','http://user@'),href.replace('http://','http://@'),href.replace('http://','http://:@'),href.replace('.com/','.com:abc/'))):
+            wrong=self.web.collect({**self.browser('bad-href-'+str(i),content='T876MQQ012 support link '+bad),'research_id':'bad-research-'+str(i)},True)
+            self.error('scope_mismatch',self.web.import_evidence,self.data,{'data_version':'bad-http-'+str(i),'observations':[{**entry,'association_snapshot_id':wrong['snapshot_id']}]})
+        mixed=self.web.collect({**self.browser('mixed-port',content='T876MQQ012 support links '+href+' '+href.replace('.com/','.com:abc/')),'research_id':'mixed-port'},True)
+        self.web.import_evidence(self.data,{'data_version':'valid-with-malformed-link','observations':[{**entry,'association_snapshot_id':mixed['snapshot_id']}]})
+        for bad in ('https://@www.lge.co.kr/','https://:@www.lge.co.kr/','https://www.lge.co.kr:abc/'):
+            self.error('unsupported_url',self.web.collect,{**self.browser('bad-collection'),'url':bad},True)
+
     def test_conflicting_same_page_and_six_page_limit(self):
         self.web.collect(self.browser(), True)
         self.error("request_conflict", self.web.collect, self.browser(content="changed"), True)

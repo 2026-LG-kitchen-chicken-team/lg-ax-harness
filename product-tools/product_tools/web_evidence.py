@@ -12,14 +12,18 @@ from urllib.request import build_opener, HTTPRedirectHandler, ProxyHandler, Requ
 from .contracts import canonical, fail, fingerprint, identifier, items, obj, strict_json, text
 from .dataset import Dataset
 
-ALLOWED_HOSTS = {"www.lge.co.kr", "static.lge.co.kr", "gscs-b2c.lge.com", "min-inter.co.kr"}
+ALLOWED_HOSTS = {"www.lge.co.kr", "static.lge.co.kr", "gscs-b2c.lge.com", "gscs-manual.lge.com", "min-inter.co.kr"}
 MAX_PAGE_BYTES = 2097152
 
 
 def public_url(value):
     text(value, "url", 2000)
-    parsed = urlparse(value)
-    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS or parsed.username or parsed.password or parsed.port not in (None, 443):
+    try:
+        parsed = urlparse(value)
+        port = parsed.port
+    except ValueError:
+        fail("unsupported_url", "Malformed source URL/port")
+    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS or parsed.username is not None or parsed.password is not None or port not in (None, 443):
         fail("unsupported_url", "Use an approved HTTPS source host without credentials/custom ports")
     return value
 
@@ -172,13 +176,34 @@ class WebEvidence:
         product_url = urlparse(public_url(association["url"]))
         model = exact["model_id"]
         model_token = re.search(r"(?<![A-Za-z0-9])" + re.escape(model) + r"(?![A-Za-z0-9])", association["text"], re.IGNORECASE)
-        observed_urls = {url.rstrip(")],.;") for url in re.findall(r"https://[^\s<>\"']+", association["text"])}
+        observed_urls = {url.rstrip(")],.;") for url in re.findall(r"https?://[^\s<>\"']+", association["text"])}
         product_path = product_url.path.rstrip("/")
         is_product = product_path.casefold() in ("/product/refrigerators/" + model.casefold(), "/refrigerators/" + model.casefold())
+        is_pdf = manual_url.hostname == "gscs-b2c.lge.com" and manual_url.path == "/open/downloadFile"
+        is_html = (manual_url.hostname == "gscs-manual.lge.com"
+                   and re.fullmatch(r"/CNZ/MFL[0-9]+/ko-kr/main\.html", manual_url.path) is not None
+                   and not manual_url.query and (not manual_url.fragment or re.fullmatch(r"topic_[0-9]+", manual_url.fragment)))
+        # Hash topics share the exact linked HTML document, not another manual.
+        linked = snapshot["url"] in observed_urls or (is_html and manual_url._replace(fragment="").geturl() in observed_urls)
+        # LG's exact PDP exposes an HTTP href; the manual itself is observed via
+        # HTTPS. Preserve the literal href and match only the same document.
+        # This does not permit HTTP collection or weaken TLS validation.
+        if is_html and not linked:
+            for observed in observed_urls:
+                try:
+                    parsed = urlparse(observed)
+                    port = parsed.port
+                except ValueError:
+                    continue
+                if (parsed.scheme == "http" and parsed.hostname == manual_url.hostname
+                        and parsed.username is None and parsed.password is None and port in (None, 80)
+                        and parsed.path == manual_url.path and not parsed.query and not parsed.fragment):
+                    linked = True
+                    break
         if (entry["kind"] != "product_fact" or entry["model_matching"] != "product_page_association"
-                or manual_url.hostname != "gscs-b2c.lge.com" or manual_url.path != "/open/downloadFile"
+                or not (is_pdf or is_html)
                 or product_url.hostname != "www.lge.co.kr" or not is_product
-                or not model_token or snapshot["url"] not in observed_urls):
+                or not model_token or not linked):
             fail("scope_mismatch", "A generic manual needs the exact official product page model and the same observed manual link")
 
     def import_evidence(self, dataset, payload):

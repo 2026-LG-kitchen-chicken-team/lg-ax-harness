@@ -3,6 +3,22 @@ from .contracts import fail, identifier, items, obj, text
 from .tools import ProductTools
 
 
+def qualification(record):
+    """A declared limitation is not source truth; require an explicit bounded draft."""
+    value = record.get("qualification")
+    if value is None:
+        return None
+    obj(value, ("basis", "limitations", "original_statement_supported"))
+    if value["basis"] not in ("page_linked_example", "conditional_draft") or type(value["original_statement_supported"]) is not bool:
+        fail("invalid_assessment", "Unknown qualification basis/support")
+    limits = items(value["limitations"], "limitations", 5)
+    if not limits:
+        fail("invalid_assessment", "A qualified claim must retain explicit limitations")
+    for limit in limits:
+        text(limit, "limitation", 500)
+    return value
+
+
 def review_product_result(dataset, payload):
     obj(payload, ("input", "result", "assessment"))
     planning, result = payload["input"], payload["result"]
@@ -10,9 +26,11 @@ def review_product_result(dataset, payload):
     assessment = obj(payload["assessment"], ("claim_checks", "feature_matches", "concept_links"))
     claims = {c["id"]: c for key in ("pains", "existing_features", "remaining_pains", "concepts") for c in result[key]}
     cited = {r["source_id"] for r in result["evidence_refs"]}
-    findings, checked = [], set()
+    findings, checked, qualified = [], set(), {}
+    pain_ids = {p["id"] for p in result["pains"]}
+    draft_ids = {p["id"] for key in ("remaining_pains", "concepts") for p in result[key]}
     for check in items(assessment["claim_checks"], "claim_checks", 63):
-        obj(check, ("claim_id", "source_ids", "support_status", "scope_relation", "rationale"))
+        obj(check, ("claim_id", "source_ids", "support_status", "scope_relation", "rationale"), ("qualification",))
         claim_id = identifier(check["claim_id"], "claim_id")
         if claim_id not in claims or claim_id in checked:
             fail("invalid_assessment", "Unknown or duplicate claim assessment")
@@ -22,7 +40,23 @@ def review_product_result(dataset, payload):
         if check["support_status"] not in ("supported", "unsupported", "uncertain") or check["scope_relation"] not in ("current_model", "previous_product", "unclear"):
             fail("invalid_assessment", "Unknown support/scope assessment")
         text(check["rationale"], "rationale")
-        if check["support_status"] != "supported" or check["scope_relation"] != "current_model":
+        q = qualification(check)
+        limited = False
+        if q and check["support_status"] != "unsupported" and check["scope_relation"] != "previous_product":
+            if q["basis"] == "page_linked_example" and claim_id in pain_ids and q["original_statement_supported"]:
+                reviews = [dataset.source(s) for s in check["source_ids"] if dataset.source(s)["kind"] == "review"]
+                limited = bool(reviews) and all(r["origin"]["model_matching"] == "product_page_association" for r in reviews)
+            elif q["basis"] == "conditional_draft" and claim_id in draft_ids:
+                # A proposal may honestly be absent from the source. Its cited
+                # premise, assumptions and remaining feasibility checks still apply.
+                limited = bool(result["assumptions"])
+                if claim_id in {c["id"] for c in result["concepts"]}:
+                    limited = limited and bool(claims[claim_id]["assumptions"])
+        if limited:
+            qualified[claim_id] = q
+        elif q:
+            findings.append("invalid_qualification:" + claim_id)
+        if not limited and (check["support_status"] != "supported" or check["scope_relation"] != "current_model"):
             findings.append("unsupported_or_uncertain:" + claim_id)
     if checked != claims.keys():
         fail("invalid_assessment", "Every claim requires a support assessment")
@@ -47,7 +81,7 @@ def review_product_result(dataset, payload):
         if match["resolution"] not in ("resolved", "partially_resolved", "unresolved", "uncertain"):
             fail("invalid_assessment", "Unknown feature resolution")
         text(match["rationale"], "rationale")
-        if not refs or match["resolution"] in ("resolved", "uncertain"):
+        if not refs or match["resolution"] == "resolved" or (match["resolution"] == "uncertain" and qualified.get(rid, {}).get("basis") != "conditional_draft"):
             findings.append("remaining_pain_not_supported:" + rid)
     if matched != remaining_ids:
         fail("invalid_assessment", "Every remaining pain needs a feature comparison")
@@ -73,7 +107,7 @@ def review_product_result(dataset, payload):
         if any(dataset.source(s)["kind"] != "product_fact" for s in geometry):
             fail("invalid_assessment", "Geometry support requires product facts")
         text(link["rationale"], "rationale")
-        if link["duplicates_existing"] is not False:
+        if link["duplicates_existing"] is True or (link["duplicates_existing"] is None and qualified.get(cid, {}).get("basis") != "conditional_draft"):
             findings.append("duplicate_or_unchecked:" + cid)
         if link["geometry_required"] and (not link["geometry_known"] or not geometry):
             findings.append("geometry_unconfirmed:" + cid)
@@ -81,5 +115,6 @@ def review_product_result(dataset, payload):
         fail("invalid_assessment", "Every concept requires linkage and feasibility assessment")
     return {**structural, "assessment_contract_valid": True, "reported_reasoning_consistent": not findings,
             "can_finalize_reported_result": result["status"] != "completed" or not findings,
-            "findings": findings, "semantic_status": "unverified", "acceptance_ready": False,
+            "findings": findings, "qualified_claim_ids": sorted(qualified), "completion_scope": "planning_draft_only",
+            "semantic_status": "unverified", "acceptance_ready": False,
             "note": "Checks the model's report, not whether its interpretation is true. Original-source evaluation remains required."}

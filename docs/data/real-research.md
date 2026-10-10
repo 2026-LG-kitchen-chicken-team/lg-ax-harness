@@ -29,3 +29,11 @@ PDF 전체와 렌더 이미지는 runtime-data에만 보관하며 Git 제외다.
 확인한 원본 PDF SHA256: `daf2eedaa91956b0e1e88b2ce70377f710e508600fcc6080bf3e88d6d641ed6d`. 표지·17·19쪽을 시각 확인했다.
 
 독립 사용 점검에서 글의 제휴 수수료 고지를 확인해 v3의 commercial_disclosure로 보존했다. 제품 제공·협찬 여부는 null로 구분한다. v2는 초기 관측 이력으로 보존하며 덮어쓰지 않는다.
+
+## B502S33 공식 청소 절차 추가 — 2026-10-11 KST
+
+부모가 실제 Chrome의 B502S33 정확 PDP 고객지원에서 바로보기 링크를 읽고 [HTML 설명서 내부 청소](https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html#topic_31)를 확인했다. DOM href는 `http://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html`이며 원문 그대로 보존했다. 설명서는 HTTPS로 관측했으며, 코드가 동일 host·경로만 연결하고 수집·TLS 기준을 완화하지 않는지 회귀·독립 리뷰했다. 문서 버전은 MFL69140202/18이다. PDP의2024-10-04/2024-07-15는 표시 등록일이고 문서 발행일·제조 버전으로 확정하지 않는다.
+
+실제 원문은 식품을 꺼낸 뒤 구성품을 분리하고, 선반·문 바구니·고무 패킹을 물 묻힌 부드러운 수건으로 닦고, 물기를 완전히 제거하도록 안내한다. `capture_web_page`2회→`import_web_evidence`1회로 Git 제외 `runtime-data/catalogs/lg-browser-b502-clean-20261010-v1`에 source `OBS-B502S33-MANUAL-CLEAN-20261010`1개를 추가했다. 원본 v3는 변경하지 않았다. 연결 snapshot `738263a3efcebc1017f95faf1ef0619e053423ed184ed67afba15d2ab9a8b358`, 설명서 snapshot `f0f45540b2844a5b15713694db0a7a26ba8ed55d824615fec042cbf995aca220`을 보존했다.
+
+공용 문서의 model_matching은 product_page_association이다. 코드 import는 structural_valid=true/semantic_status=unverified/acceptance_ready=false다. 이는 **부모 브라우저 관측·일반 코드 등록**이며 출품 AI가 조사 Skill을 선택해 처리한 native 실행과는 별도다. source의 청소 절차가 실제 청소 불편·내부 usable mm·선반 간격·청소 시간 절감·고객 모집단을 입증하지 않는다. 이번 추가에서 그런 새 근거는0개이며 S01d2의 충분성은 미완료다.

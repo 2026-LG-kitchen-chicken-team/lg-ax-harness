@@ -13,6 +13,10 @@
 | 저장과 검토 기록 검사 통합, export 전체 재독해 억제 | [검토 Skill](../../skills/review-and-revise/SKILL.md), [짧은 저장 양식](../../skills/review-and-revise/references/payload.md) | 최종 저장의 accepted/status/valid와 export 경로·SHA·건수를 확인한다. 단독 Skill/진단/충돌의 필수 검사는 유지한다. v5.2에 compact receipt·bounded findings·최종 요약/실제 export 지문으로 개선했다. 아래 후속 평가와 실패를 함께 따른다 |
 | 업무 수정·기술 재시도 상한 | [공통 계약](../contracts/common-tools.md), [외부 조사 계약](../contracts/web-evidence.md) | 업무 수정 최대2회·페이지별 최초+일시 오류 재시도1회 등은 각각의 코드/지침 범위다. native/backend 전체 모델 호출·토큰 상한을 강제하는 기능으로 설명하지 않는다 |
 
+## 2026-10-11 추가 실측
+
+[12입력/11세션 기록](../validation/seven-task-progress.md)의 R01 각2회에서 새 v5.3 혼합 버전은 이전 v5.2보다 noncache21.24%/명령 출력 bytes21.19% 감소했지만 총 input2.13%/경과12.53% 증가했다. 첫 개선 질문 저장 실패·baseline 계약 결함·캐시 미초기화·비맹검을 포함한 결과이며 전체 절감 우위는 미입증이다. 실패5/timeout1과 후속 세션 중복 제거를 포함한 관측 input3,922,702/cache3,476,864/output122,099/reasoning40,500은 전체 backend 청구가 아니다. save→final 단계 시간·사람 공수·실제 비용은 unknown이다. [사람 직접 측정 도구](team-measurement.md)를 구현하고 팀원에게 메일 발송했으며 실제 결과 회신을 기다린다.
+
 ## 발표 가능한 실측과 한계
 
 아래 묶음은 서로 다른 평가다. 합쳐서 한 절감률·일반 성공률을 만들지 않는다. 캐시 초기화와 전체 backend 청구는 검증하지 않았다.

@@ -16,6 +16,10 @@
 
 원문 의미의 판단은 코드에 하드코딩하지 않는다. 코드가 판정하는 것은 필드·ID·원문 인용·검토 누락·보고된 불확실성·출처 종류·연결 정합성이다. `can_finalize_reported_result`는 그 보고에 따른 상태이며 `semantic_status=unverified`, `acceptance_ready=false`를 유지한다. 부정확한 해석을 supported라고 적는 오류는 별도 AI 평가·독립 원문 검토에서 찾아야 한다.
 
+v5.3은 기획 초안 완료와 모델 귀속/실물/효과 검증 완료를 구분한다. claim_checks에 선택 qualification={basis,limitations,original_statement_supported}를 추가했다. basis=page_linked_example은 실제 page association 리뷰를 인용하는 pain만, conditional_draft는 assumptions를 가진 remaining_pain/concept만 허용한다. page_linked_example에는 원문 관측의 자기보고 true가 필요하다. conditional_draft는 원문에서 직접 관측되지 않은 제안에 false를 유지할 수 있으며 실제 전제 근거·한계 배열·assumptions·unsupported와 previous_product 배제가 필요하다. false를 true로 바꿔 통과시키지 않는다. 2026-10-11 독립 평가에서 두 의미가 섞여 정직한 baseline 제안이 거절되는 결함을 확인해 계약을 수정했으며, 당시 실패 기록은 보존한다. 모델 귀속 unclear/uncertain을 지우지 않고 제한적인 초안을 저장할 수 있다. conditional_draft인 remaining_pain의 해소 uncertain과 concept의 중복 null도 가설로만 허용하며 resolved/중복true/치수 의존성 부족은 차단한다. 결과의 completion_scope=planning_draft_only이며 원문·귀속·한계의 실제 의미는 독립 검토한다. qualification 생략은 기존 동작이다.
+
+`save_and_export` 입력은 {session_id,turn_id,result_key,result,expected_result_version,assessment}. 실제 저장 검사를 receipt 방식으로 실행하고 거절 후보도 이력/export에 보존한다. {save,delivery_ready,export,export_error}를 반환하며 최신 accepted/valid 후보와 export 성공 때만 delivery_ready다. export 실패는 저장을 취소하지 않고 별도 export_session으로 복구한다. 과거 accepted key 재생·외부 상태 변경은 완료로 전달하지 않는다. 이 결합은 모델 호출이 없는 일반 코드이며 독립 기존 API도 유지한다.
+
 ## 실제 업무 순서와 재개
 
 정확한 모델 자료 조회→필요 시 외부 조사·새 dataset 확정→내부 입력·start_turn→불편 구조화→기존 기능 대조→근거 있는 후보→원문 검토·코드 검사→후보 저장이다. open_request가 첫 입력의 내부 식별자를 만들고 current_request가 재개 시 보존한다.

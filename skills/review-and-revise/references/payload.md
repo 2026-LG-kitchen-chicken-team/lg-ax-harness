@@ -1,6 +1,6 @@
 # 짧은 저장 양식
 
-양식 참고이며 업무 정답·실제 실행 기록이 아니다. 일반적인 첫 저장은 open_request_bundle → 원문 판단/assessment → save_reviewed_result → export_session이다. 같은 상태를 선행 validate/review/get_turn으로 반복 확인할 필요 없다. 저장 자체가 구조·검토 기록을 검사한다. state_conflict/재개/외부 변경이면 current_request/get_turn을 읽는다.
+양식 참고이며 업무 정답·실제 실행 기록이 아니다. 일반 업무는 open_request_bundle → 원문 판단/assessment → save_and_export다. 선행 validate/review/get_turn은 진단에만 한다. save_and_export는 아래6필수 필드(assessment 포함)로 저장 검사와 export를 묶고 {save,delivery_ready,export,export_error}를 반환한다. response_mode 없이 receipt를 자동 사용한다. accepted=false도 후보가 저장되고 export된다. 최종 JSON은 {receipt:save.receipt,export}다. export_error는 저장을 되돌리지 않으며 export_session으로 복구한다. stale replay는 delivery_ready=false다. 기존 save_reviewed_result와 export_session은 별도 호출로도 사용한다.
 
 open_request_bundle 입력: `{question:"실제 요청",model_id:"선택 모델",user_submitted:true}`. 후속에는 같은 session_id/prior_turn_id와 실제 추가 질문을 준다. constraints 기본값은 `{max_concepts:3,hardware_allowed:false,exclude_pains:[]}`. 전체 constraints를 지정할 때3필드를 모두 넣는다. bundle.scope는 조회 입력의 `scope`이며 PlanningInput의 배열 `model_scope`와 다르다. records는 종류 metadata, evidence_refs에 원문·URL·SHA가 한 번 들어 있다. omitted_source_ids/truncated이면 필요한 것만 좁혀 조회한다. 긍정/상충 의견을 누락하지 않는다.
 
@@ -17,6 +17,8 @@ save_reviewed_result 입력은6필수 필드와 선택 response_mode다. 일반 
 - claim_checks: 모든 claim마다 `{claim_id,source_ids,support_status:"supported|unsupported|uncertain 중 한 값",scope_relation:"current_model|previous_product|unclear 중 한 값",rationale:"원문 대조 이유"}`. source_ids 순서도 claim과 같아야 한다.
 - feature_matches: 남은 불편마다 `{remaining_pain_id,pain_id,feature_source_ids:["인용한 제품 사실ID"],resolution:"resolved|partially_resolved|unresolved|uncertain 중 한 값",rationale}`.
 - concept_links: concept마다 `{concept_id,remaining_pain_ids:["남은 불편ID"],duplicates_existing:false,geometry_required:false,geometry_known:false,geometry_source_ids:[],rationale}`. 치수 필요 시 실제 내부 치수 근거를 대조한다. 외형 치수는 대신 쓸 수 없다.
+
+원문이 지지하는 문장과 정확 모델 귀속·대표성·기능 해소·중복 검증을 구분한다. claim_checks의 선택 qualification은 `{basis:"page_linked_example|conditional_draft",limitations:["실제 미확인 항목"],original_statement_supported:bool}`다. 이 값은 해당 주장 자체가 원문에 직접 관측됐는지를 뜻한다. page_linked_example에는 true가 필요하며은 origin.model_matching=product_page_association인 review를 인용하는 pain에만 쓴다. 정확 모델·구매 확인/전체 고객 사실로 바꾸지 않는다. conditional_draft는 remaining_pain/concept의 가설에만 쓴다. 원문에 없는 제안은 original_statement_supported=false를 정직하게 유지할 수 있으나 출발점 원문·주장 연결과 나머지 제약을 생략할 수 없다. result.assumptions와 concept.assumptions에 실제 한계를 남긴다. scope_relation=unclear/support_status=uncertain을 유지할 수 있고 기능 해소 uncertain·중복 null도 조건부 초안으로 표현할 수 있다. unsupported·previous_product 전이·이미 resolved·중복 true·내부 치수 의존성 부족은 이 선언으로 통과하지 못한다. qualification이 없으면 기존의 supported/current_model 규칙이다. 코드가 선언의 진실성을 증명하지 않는다.
 
 expected_result_version은 응답 turn.result_version(첫0, 다음1, 다음2)이다. result.revisions는 최초0/수정1/2다. 같은 후보 재전송은 같은 result_key와 원문/assessment를 유지한다. accepted=false도 저장되고 한도를 소비한다. 응답 turn이 다음 저장과 최종 상태의 기준이며 accepted/status/valid를 반드시 확인한다. 실패/취소/수정 소진을 새 turn으로 우회하지 않는다. export_session 입력은 `{session_id:"값"}`이고 큰 export를 다시 읽지 않는다.
 

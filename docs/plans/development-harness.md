@@ -1,10 +1,14 @@
 # 개발용 하네스 구축 계획과 작업 원본
 
-기준일: 2026-10-10. 이 문서는 개발 체계 구축의 작업 상태 원본이다. 출품 구현의 실행 계약은 [product-harness.md](product-harness.md), 기술 결정은 [stack-selection.md](../decisions/stack-selection.md), 공식·사용자 요구는 [competition-requirements.md](../competition-requirements.md)를 따른다.
+기준일: 2026-10-11. 이 문서는 개발 체계 구축의 작업 상태 원본이다. 출품 구현의 실행 계약은 [product-harness.md](product-harness.md), 기술 결정은 [stack-selection.md](../decisions/stack-selection.md), 공식·사용자 요구는 [competition-requirements.md](../competition-requirements.md)를 따른다.
 
 최신 선택: 출품은 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결한다. [실행 결정](../decisions/product-runtime.md)을 따른다. 자체 모델 API 프로그램과 Codex 내부 호출 실행기는 초기 경로로 채택하지 않는다. 구조·실행 시각화는 후순위의 [별도 관찰 프로그램](observability-viewer.md)에서 제공한다.
 
 Codex 개발 체계 D01-D05는 검증했으며 현재 우선순위는 S05 품질·효과 평가와 실제 자료 보강이다. D06b Claude 개발 인수는 팀원 환경에서 별도로 진행해야 한다. 시각화는 후순위이며 도구 선택·설치·수집·UI를 개발 체계나 S05의 선행 조건으로 두지 않는다. Codex/Claude 실행에 React Flow UI를 연결하는 후보는 현재 채택하지 않았다.
+
+## 2026-10-11 요청한 1–7번의 수행 결과
+
+[최신 실행·검토 기록](../validation/seven-task-progress.md)에 실제12입력/11세션·실패/timeout·수정 계약·248검사·팀 메일 발송을 정리했다. save/export 통합과 조건부 초안 검토·실제 설명서 연계·사람 측정 도구를 구현했다. 총 토큰/지연 우위는 미입증이며 업무 AI 웹 최종 timeout, Claude/Gemini 인증, 사람 측정·전체 청구·청소 불편/내부 치수 원문은 미완료다. 기존 체크박스를 모두 완료로 바꾸지 않는다. 다음은 팀 회신 검토와 웹 지연/실제 근거·지원 환경 인수이며 영상/UI는 후속이다.
 
 ## 최신 남은 작업 순서 — 2026-10-10 토큰·시연 대책 반영
 
@@ -238,9 +242,9 @@ runtime-data/                 # 출품 SQLite·로그; Git 제외
 
 [인수 기록](../validation/codex-product.md)에 따라 Codex 전용 별도 설치, 자동 Skill 발견, 정상/후속/보류/미확인 모델·실제 오류와 저장/export를 실증했다. 공통 도구75검사·독립 리뷰를 연결했다. 설치 프로그램은 모델을 호출하지 않으며 실제 모델은 실행자가 연 Codex다. 샌드박스 지원 제한·미측정 비용·품질/토큰 효과 미평가를 유지한다.
 
-후속으로 [S05 비교/예외](../validation/s05-followup.md), [Claude/Gemini 로컬 준비](../validation/portable-product.md), [소스 ZIP 재현](../validation/submission-rehearsal.md)을 추가했다. 과거75검사 시점과 현재82검사를 구분한다. 청소 불편·내부 치수의 [추가 조사](../data/s01d2-followup.md)도 확보 실패로 보존했다. native portability·전체 비용·사람 공수·시장 신규성·최종 제출을 완료로 바꾸지 않는다.
+후속으로 [S05 비교/예외](../validation/s05-followup.md), [Claude/Gemini 로컬 준비](../validation/portable-product.md), [소스 ZIP 재현](../validation/submission-rehearsal.md)을 추가했다. 당시75검사와 이후82검사 checkpoint를 구분한다. 현재 검사는 상단의 2026-10-11 기록을 따른다. 청소 불편·내부 치수의 [추가 조사](../data/s01d2-followup.md)도 확보 실패로 보존했다. native portability·전체 비용·사람 공수·시장 신규성·최종 제출을 완료로 바꾸지 않는다.
 
-최신 코드 검사는 제품102개·평가47개·observer34개·개발22개다. 이전82/18 및97/29 기록은 당시 결과로 보존한다. S05e의 Skill 중복 호출 개선과 알려진1쌍의 독립 원문 검토 후 S06d2 첫 제품 시험판을 배포했다. S05f에서 v5.1 실제2턴의 보류/후속·진단 버전 변경·이력 보존과 독립 의미 검토를 확인했지만 J17 두 조건은 최종 응답 전 시간초과로 S05 전체는 미완료다. 다음 우선순위는 저장 뒤 큰 최종 응답/반복 검사의 지연을 별도 계약으로 개선하고, 팀 개별 결과 접수/환경별 인수·실제 웹 수집/native import·제한된 반복/미사용 평가를 수행하는 것이다. 전체 비용·사람 공수·실제 발표/영상 작업은 별도 미완료다.
+당시 v5.2 checkpoint는 제품102개·평가47개·observer34개·개발22개다. 최신 검사 범위와 수치는 상단의 2026-10-11 기록을 따른다. 이전82/18 및97/29 기록은 당시 결과로 보존한다. S05e의 Skill 중복 호출 개선과 알려진1쌍의 독립 원문 검토 후 S06d2 첫 제품 시험판을 배포했다. S05f에서 v5.1 실제2턴의 보류/후속·진단 버전 변경·이력 보존과 독립 의미 검토를 확인했지만 J17 두 조건은 최종 응답 전 시간초과로 S05 전체는 미완료다. 다음 우선순위는 저장 뒤 큰 최종 응답/반복 검사의 지연을 별도 계약으로 개선하고, 팀 개별 결과 접수/환경별 인수·실제 웹 수집/native import·제한된 반복/미사용 평가를 수행하는 것이다. 전체 비용·사람 공수·실제 발표/영상 작업은 별도 미완료다.
 
 팀 실행을 접수할 저장소 양식과 환경별 검토 색인을 마련했다. 다음 판단은 실제 팀 보고서에 근거한다. 양식 구축을 팀원의 실행 결과·환경 인수 완료로 집계하지 않으며 공개된 질문을 미사용 평가로 바꾸지 않는다.
 

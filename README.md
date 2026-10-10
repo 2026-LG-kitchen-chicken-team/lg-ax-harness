@@ -2,6 +2,8 @@
 
 출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. Codex 출품 설치와 실제 업무 연결을 검증했으며 Claude/Gemini와 시각화는 별도 작업이다.
 
+2026-10-11: [1–7번 최신 작업·실제 검사](docs/validation/seven-task-progress.md), [팀원 실제 시간 측정·회신](docs/evaluation/team-measurement.md). 실패/timeout과 미측정 사람 공수·전체 청구·Claude/Gemini native 미인수를 보존한다.
+
 ## 시작
 
 Python 3.12와 uv, 로그인된 Codex를 사용한다. 이 레포에서:
@@ -110,7 +112,7 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 
 [실행 결과 Issue](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/issues/new?template=harness-test-result.md)에 환경·실제 질문/답변·관측 Skill/Tool·오류·후속 이력·사용량을 남긴다. 읽기 권한으로 접수하고 관리자가 비식별 검토 보고서를 레포에 정리한다. 이 절차를 위해 기존 테스트를 다시 실행할 필요는 없다. [접수 방법](docs/evaluation/team-test-records.md), [환경별 결과 색인](docs/validation/team-runs/index.md), [질문 범위와 미사용 평가](docs/evaluation/coverage-and-holdout.md)를 따른다.
 
-팀원들이 실행했다는 사용자 보고와 실제 결과를 접수·검토한 상태를 구분한다. 아직 개별 보고서를 받지 않았으므로 새 환경의 지원·품질 통과를 추가하지 않았다. 실행 종료·업무 상태·내용 검토를 따로 기록하고, 실패 → 수정 commit → 재시험을 연결한다. 수백 질문 후보를 마련하더라도 개발에 노출된 사례와 미사용 평가를 분리한다.
+팀원들이 실행했다는 사용자 보고와 실제 결과를 접수·검토한 상태를 구분한다. 대겸의 ZIP 보고서는 접수·검토했지만 native 원본·DB·export는 받지 못했다. 새로 발송한 사람 측정·원본 요청의 회신은 아직 없으며 새 환경 지원·전체 사용량/공수 통과를 추가하지 않았다. 실행 종료·업무 상태·내용 검토를 따로 기록하고, 실패 → 수정 commit → 재시험을 연결한다. 수백 질문 후보를 마련하더라도 개발에 노출된 사례와 미사용 평가를 분리한다.
 
 ## 제품 릴리스
 
