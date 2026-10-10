@@ -358,9 +358,16 @@ def usage_report(events):
                     invalid = True
             seen[index] = value
         ordered = [seen[key] for key in sorted(seen)]
-        for before, after in zip(ordered, ordered[1:]):
-            if any(before.get(k) is not None and after.get(k) is not None and after[k] < before[k] for k in USAGE):
-                invalid = True
+        high_water = {}
+        for snapshot in ordered:
+            for field in USAGE:
+                observed = snapshot.get(field)
+                if observed is None:
+                    continue  # a partial observation does not reset cumulative history
+                previous = high_water.get(field)
+                if previous is not None and observed < previous:
+                    invalid = True
+                high_water[field] = observed if previous is None else max(previous, observed)
         last = ordered[-1]
         values = {k: None if invalid else last.get(k) for k in USAGE}
         values["noncached_input_tokens"] = None if values["input_tokens"] is None or values["cached_input_tokens"] is None else values["input_tokens"] - values["cached_input_tokens"]

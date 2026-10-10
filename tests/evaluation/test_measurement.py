@@ -144,6 +144,38 @@ class MeasurementTests(unittest.TestCase):
             self.assertTrue(value["conflict_or_reverse"])
             self.assertIsNone(value["values"]["input_tokens"])
 
+    def test_usage_null_gap_does_not_hide_reverse_in_any_field(self):
+        for field in ("input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens"):
+            with self.subTest(field=field):
+                base = {"source": "native", "scope_id": "partial-session", "coverage": "partial"}
+                snapshots = [event("usage", **base, **{field: value}, snapshot_index=index)
+                             for index, value in enumerate((100, None, 90), 1)]
+                scope = usage_report(snapshots)["scopes"][0]
+                self.assertTrue(scope["conflict_or_reverse"])
+                self.assertEqual(scope["coverage"], "unknown")
+                self.assertTrue(all(value is None for value in scope["values"].values()))
+
+    def test_usage_initial_null_then_observed_zero_is_legitimate(self):
+        base = {"source": "native", "scope_id": "zero-session", "coverage": "partial"}
+        scope = usage_report([event("usage", **base, snapshot_index=1, input_tokens=None, cached_input_tokens=None),
+                              event("usage", **base, snapshot_index=2, input_tokens=0, cached_input_tokens=0)])["scopes"][0]
+        self.assertFalse(scope["conflict_or_reverse"])
+        self.assertEqual(scope["values"]["input_tokens"], 0)
+        self.assertEqual(scope["values"]["noncached_input_tokens"], 0)
+        self.assertIsNone(scope["values"]["output_tokens"])
+
+    def test_usage_partial_snapshot_keeps_latest_unknown_without_filling(self):
+        base = {"source": "native", "scope_id": "partial-session", "coverage": "partial"}
+        snapshots = [event("usage", **base, snapshot_index=1, input_tokens=100, cached_input_tokens=40),
+                     event("usage", **base, snapshot_index=2, input_tokens=None, cached_input_tokens=None),
+                     event("usage", **base, snapshot_index=3, input_tokens=120, cached_input_tokens=None)]
+        scope = usage_report(snapshots)["scopes"][0]
+        self.assertFalse(scope["conflict_or_reverse"])
+        self.assertEqual(scope["values"]["input_tokens"], 120)
+        self.assertIsNone(scope["values"]["cached_input_tokens"])
+        self.assertIsNone(scope["values"]["noncached_input_tokens"])
+        self.assertEqual(scope["coverage"], "partial")
+
     def test_quality_missing_counts_and_mismatch_gate_reduction(self):
         value = report(self.store, "one")
         self.assertIsNone(compare(value, value)["human_active_reduction_percent"])
