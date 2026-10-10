@@ -65,6 +65,8 @@
 
 체크 receipt: product `889ba03431954f2ab23990f315ecc43b`, evaluation `ed1381717e2543358aea22664d717718`, observer `82d0e4d93d4542eca86c0433e083c659`, development `f1889dcd3c9d4b4597af1e8bb6818c6a`, assets `181e112429894792bb47853bea271141`, package `516e2cd4906b409a95825aebc91f4402`. 수집기 1차 evaluation75 receipt `d1c5e1851f564b90b4e62ed6afe9acce`는 과거 후보 대조 보강 전 기록이다. evaluation76 receipt `d460870615c14e4ab0c580ea2c3522ae`는 타입 변경 경계 보강 전 기록이다. 최신 evaluation77 receipt는 `e1066af6935640e1961a82e61ccc217a`다. 새 파일의 마지막 빈 줄을 제거한 뒤 제품115검사를 다시 실행했다. 최신 제품 receipt는 `9e8bc6f5ed104493ba06a21bf5adfcf9`다. 로컬 지문/로그/작업 바인딩을 독립 reviewer가 확인한다. 처음 directory를 check input으로 넘긴 명령6건은 실제 검사 전 거절됐고 individual file로 수정해 검사했다. 과거 실패·stale receipt와 별도 source r1/r2/r3/r4는 보존한다.
 
+[제품 v0.2.1 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.2.1)을 게시하고 원격 태그/tree70개 파일·업로드 asset digest를 확인했다. 자동 Source code도 제품 스냅샷만 담는다. [배포 검증](product-v0.2.1.md)을 따른다. GitHub 원격 CI는 계정 결제/지출 한도 사유로 두 job이 step0에서 시작되지 않아 failure이며 로컬 검사와 구분한다.
+
 릴리스 대상은 공통 업무 Agent·Skill·Tool·실제 v3 자료·세 환경 adapter/설치 안내만이다. 개발 역할·평가/측정 도구·원본 로그·관찰 설정·메일·개인 인증 파일을 ZIP에 넣지 않는다. 릴리스는 시험판이며 최종 공식 제출이나 전 환경 지원 완료를 뜻하지 않는다.
 
 ## 다음 작업
@@ -74,3 +76,4 @@
 3. 정확 모델 청소 불편·내부 사용 치수/선반 간격 원문 보강. 확보 못하면 unknown/보류 유지.
 4. 실제 인증 가능한 Claude/Gemini 환경에서 native Skill 발견·첫/후속/예외 인수.
 5. 전체 청구 근거·독립 미사용 원문 평가 → 제출 지원 범위/발표 수치 확정. 별도 관찰·영상은 후속 범위.
+6. GitHub Billing & plans의 실제 결제/지출 한도 상태 확인 → 원격 CI 시작 가능 시 재검사. 이번에는 결제나 한도를 변경하지 않았다.
