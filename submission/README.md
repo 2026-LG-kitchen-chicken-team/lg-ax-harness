@@ -10,4 +10,4 @@
 
 의미 있는 출품 변경은 [제품 릴리스 계약](../docs/contracts/product-release.md)에 따라 새 버전으로 배포한다. 첨부물은 출품 하네스와 완성·검토한 실제 제출 파일만이며 개발 체계·평가·팀 결과는 제외한다. 앞선 접수 절차 문서만의 변경 단계에서는 새 릴리스를 발행하지 않았다. GitHub의 자동 전체 소스 아카이브와 별도 제품 첨부 ZIP을 구분한다.
 
-후속 Skill 지침 개선의 [제품 v0.1.0 검증](../docs/validation/s05-skill-efficiency.md)에서 최종 v5.1 원본 70파일·manifest/SHA와 새 추출·Claude/Gemini 파일 설치/doctor를 확인했다. 첫 제품 prerelease 후보를 준비했으며 실제 발행 상태는 검증 기록을 따른다. 원본 ZIP의 `submission_source_rehearsal_not_final_submission` 표시를 유지한다. 발표/영상·운영진 최종 제출은 포함하지 않는다.
+후속 Skill 지침 개선의 [제품 v0.1.0 검증](../docs/validation/s05-skill-efficiency.md)에서 최종 v5.1 원본 70파일·manifest/SHA와 새 추출·Claude/Gemini 파일 설치/doctor를 확인했다. [product-v0.1.0 prerelease](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.1.0)를 발행하고 실제 다운로드 SHA·태그/source commit `9fa81d2`를 확인했다. 제품 ZIP과 SHA 목록만 첨부했으며 원본 ZIP의 `submission_source_rehearsal_not_final_submission` 표시를 유지한다. 발표/영상·운영진 최종 제출은 포함하지 않는다.

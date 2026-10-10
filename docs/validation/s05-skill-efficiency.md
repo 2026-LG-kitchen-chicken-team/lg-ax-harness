@@ -65,6 +65,7 @@ native 수정 조건은 **v5 동결 원본**이다. 실행 중 독립 리뷰로 
 | `python .harness/run-skill-efficiency.py` | 실제 2회·구조/저장 일치, exit 0; v5 | `5842556a52e74ceda32da0dd29e8962a` |
 | `python .harness/audit-skill-efficiency.py` | 원본 hash·구조/저장 재대조, exit 0 | `e048edc9f15b42ceaa5887bbace7b2b3` |
 | `python .harness/prepare-product-release.py` | 최종 v5.1 ZIP 70파일·새 폴더 8명령, exit 0 | `91b9a9fbcd4e4819ad57e911326153a4` |
+| `python .harness/verify-product-release.py` | 원격 태그/notes/첨부2개·실제 다운로드 SHA/70파일, exit 0 | `465fc076d1c4408d837b26e9d74b35ab` |
 
 audit의 첫 호출은 디렉터리를 `--input`에 넣어 실행 전 거부됐고 exit 1이었다. 개별 파일로 수정해 위 실제 검사를 수행했다. 실패를 제품 실행 성공에 합산하지 않는다.
 
@@ -78,6 +79,8 @@ ZIP은 `lg-ax-harness-product-v0.1.0.zip`, SHA-256 `b5534ab54ef5213cf9f9adeb3d05
 
 리뷰의 최초 JSON-only 결함 지적은 실제 prompt/helper 103행 대조 후 철회했다. 계약은 한국어 설명과 JSON 객체를 **포함**하는 형태를 허용한다. 검사는 전체 답변을 기계용 JSON으로 파싱한 것이 아니라 그 안의 `{result,assessment}`를 추출해 대조한 범위다. 계약 밖 요건을 추가하지 않는다. source/실제 의미 리뷰 모두 파일 수정·추가 native/API 입력 없이 수행했다.
 
-현재는 발행 전 검증 원본이며 [릴리스 계약](../contracts/product-release.md)에 따라 제품 ZIP과 SHA 목록만 `product-v0.1.0` prerelease 후보로 준비했다. 실제 발행/다운로드 검증은 후속 기록에 연결한다. 발표·영상·최종 제출 완료를 표시하지 않는다.
+[릴리스 계약](../contracts/product-release.md)에 따라 [product-v0.1.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.1.0) **prerelease를 2026-10-10 20:47:03 KST에 발행했다**. 태그/source commit은 `9fa81d2086a72a469d4f888cd6c356e4fc10bcb4`다. 이후 이 문서의 발행 확인만 별도 commit으로 기록하며 제품 첨부물/태그를 덮어쓰지 않는다. 최종 릴리스 notes도 별도 읽기 전용 리뷰를 거쳤고 실제 Windows/Codex/모델/권한과 미검증 환경·실패·비용 제한을 포함한다.
+
+원격 조회와 새 Temp 다운로드를 실제 수행했다. draft=false/prerelease=true, 태그 commit·notes 일치, ZIP 120,130 bytes·SHA 목록 99 bytes의 **첨부 2개만** 있음을 확인했다. 다운로드 SHA는 위 ZIP 값과 같고 SHA 목록 자체의 SHA는 `9e429065145f9d2d5e75da36520a259c60e47d30c1b81ce534416a221250d03d`였다. 다운로드 ZIP 내부 70파일·manifest·각 SHA도 대조했다. 이 확인에는 모델 호출이 없었다. 발표·영상·운영진 최종 제출 완료를 표시하지 않는다. GitHub 자동 전체 소스 아카이브와 제품 첨부 ZIP은 구분한다.
 
 다음 우선순위는 팀 개별 보고서 접수/환경별 실제 인수, v5.1 자료 부족/외부 조사 상태 연결의 native 검증, J17 정상 대조 timeout과 반환 원문 공격의 paired 재검증, 제한된 반복·미사용 평가다. 사람 공수·전체 청구·시장 신규성·청소 근거/내부 치수·발표/영상은 계속 미완료다.
