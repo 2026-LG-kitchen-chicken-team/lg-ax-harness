@@ -203,6 +203,8 @@ class Store:
                 raise ValueError("Quality verdict requires a finished result")
         elif kind == "billing":
             identifier(data["transaction_id"])
+            if data.get("refund_of") is not None:
+                identifier(data["refund_of"])
             if data.get("attribution") not in ("verified", "window_only", "unverified"):
                 raise ValueError("Unknown attribution")
             if not re.fullmatch(r"[A-Z][A-Z0-9_:-]{1,39}", data.get("unit", "")):
@@ -319,12 +321,30 @@ def billing_report(events):
                 conflicts.add(key)
         else:
             transactions[key] = data
+    refunds = defaultdict(list)
+    for key, data in transactions.items():
+        original_id = data.get("refund_of")
+        if original_id is None:
+            continue
+        original = transactions.get(original_id)
+        # A refund must point directly to a positive charge, never to itself,
+        # another refund or a cycle. Resolve after collecting all records so
+        # receiving refund evidence before charge evidence is safe.
+        if (original_id == key or original is None or original_id in conflicts
+                or original["unit"] != data["unit"] or original.get("refund_of") is not None
+                or original["amount"] is None or Decimal(original["amount"]) <= 0
+                or (data["amount"] is not None and Decimal(data["amount"]) > 0)):
+            conflicts.add(key)
+        elif key not in conflicts and data["amount"] is not None:
+            refunds[original_id].append(key)
+    for original_id, refund_ids in refunds.items():
+        refunded = sum((-Decimal(transactions[key]["amount"]) for key in refund_ids), Decimal(0))
+        if refunded > Decimal(transactions[original_id]["amount"]):
+            conflicts.update(refund_ids)
     units = defaultdict(lambda: {"verified": [], "window_only": [], "unverified": [], "conflicts": 0, "unknown": 0})
     for key, data in transactions.items():
         group = units[data["unit"]]
         if key in conflicts:
-            group["conflicts"] += 1
-        elif data.get("refund_of") and (data["refund_of"] not in transactions or data["refund_of"] in conflicts or transactions[data["refund_of"]]["unit"] != data["unit"]):
             group["conflicts"] += 1
         elif data["amount"] is None:
             group["unknown"] += 1

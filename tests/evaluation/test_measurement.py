@@ -127,6 +127,57 @@ class MeasurementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "concurrent"):
             self.append({"kind": "billing", **base, "evidence_sha256": "a" * 64, "concurrent_other_usage": True})
 
+    def test_billing_self_refund_is_preserved_but_not_attributed(self):
+        self.append({"kind": "billing", "transaction_id": "self-refund", "unit": "USD", "amount": "-1",
+                     "refund_of": "self-refund", "attribution": "verified", "evidence_sha256": "a" * 64,
+                     "concurrent_other_usage": False}, eid="self-refund-event")
+        original = self.store.load("one")[1]
+        unit = report(self.store, "one")["billing"]["units"]["USD"]
+        self.assertIsNone(unit["verified_attributed_amount"])
+        self.assertEqual(unit["conflict_transactions"], 1)
+        self.assertEqual(self.store.load("one")[1], original)
+
+    def test_billing_invalid_refund_links_and_cycles_are_unknown(self):
+        base = {"unit": "USD", "attribution": "verified"}
+        cases = [
+            [event("billing", **base, transaction_id="refund", amount="-1", refund_of="missing")],
+            [event("billing", **base, transaction_id="charge", amount="2"),
+             event("billing", unit="EUR", attribution="verified", transaction_id="refund", amount="-1", refund_of="charge")],
+            [event("billing", **base, transaction_id="charge", amount="0"),
+             event("billing", **base, transaction_id="refund", amount="-1", refund_of="charge")],
+            [event("billing", **base, transaction_id="a", amount="-1", refund_of="b"),
+             event("billing", **base, transaction_id="b", amount="-1", refund_of="a")],
+            [event("billing", **base, transaction_id="charge", amount="2"),
+             event("billing", **base, transaction_id="refund", amount="-1", refund_of="charge"),
+             event("billing", **base, transaction_id="nested", amount="-0.5", refund_of="refund")],
+        ]
+        for index, observations in enumerate(cases):
+            with self.subTest(index=index):
+                units = billing_report(observations)["units"]
+                affected = units["EUR"] if "EUR" in units else units["USD"]
+                self.assertIsNone(affected["verified_attributed_amount"])
+                self.assertGreater(affected["conflict_transactions"], 0)
+
+    def test_billing_partial_refunds_match_charge_regardless_of_arrival_order(self):
+        base = {"unit": "USD", "attribution": "verified"}
+        observations = [event("billing", **base, transaction_id="charge", amount="5"),
+                        event("billing", **base, transaction_id="refund-a", amount="-1", refund_of="charge"),
+                        event("billing", **base, transaction_id="refund-b", amount="-2", refund_of="charge")]
+        original = copy.deepcopy(observations)
+        forward = billing_report(observations)
+        self.assertEqual(forward, billing_report(list(reversed(observations))))
+        self.assertEqual(forward["units"]["USD"]["verified_attributed_amount"], "2")
+        self.assertEqual(observations, original)
+
+    def test_billing_total_refunds_exceeding_charge_are_conflicting(self):
+        base = {"unit": "USD", "attribution": "verified"}
+        observations = [event("billing", **base, transaction_id="charge", amount="5"),
+                        event("billing", **base, transaction_id="refund-a", amount="-3", refund_of="charge"),
+                        event("billing", **base, transaction_id="refund-b", amount="-3", refund_of="charge")]
+        unit = billing_report(observations)["units"]["USD"]
+        self.assertIsNone(unit["verified_attributed_amount"])
+        self.assertEqual(unit["conflict_transactions"], 2)
+
     def test_usage_latest_cumulative_no_double_count_unknown(self):
         base = {"source": "native", "scope_id": "anonymous-session", "coverage": "partial", "input_tokens": 10,
                 "cached_input_tokens": 4, "output_tokens": 0, "reasoning_output_tokens": None, "snapshot_index": 1}
