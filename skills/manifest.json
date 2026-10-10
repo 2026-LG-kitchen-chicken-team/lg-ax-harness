@@ -1,0 +1,204 @@
+{
+  "version": "product-skills-v1",
+  "agent": "agents/product-planning.md",
+  "skills": [
+    {
+      "name": "evidence-retrieval",
+      "description": "선택한 냉장고 모델의 저장된 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
+      "path": "skills/evidence-retrieval/SKILL.md",
+      "operations": [
+        "doctor",
+        "open_request",
+        "open_request_bundle",
+        "current_request",
+        "prepare_planning_input",
+        "retrieve_reviews",
+        "retrieve_product_facts",
+        "select_evidence",
+        "match_product_scope"
+      ],
+      "files": [
+        {
+          "path": "skills/evidence-retrieval/scripts/run.py",
+          "sha256": "90dd55071a6e6c0fba73470709e38208ee7b24034bbf3c8e6947a7dde17f7104"
+        },
+        {
+          "path": "skills/evidence-retrieval/SKILL.md",
+          "sha256": "4b901336152ee46be5a142bd62ea66d8c753dd2038043a517dfc888fcb12e943"
+        }
+      ]
+    },
+    {
+      "name": "web-evidence-collection",
+      "description": "저장 근거 부족·자료 갱신·모델 또는 문서 연결 불명확 시 실제 고객 후기 원문과 공식 제품 자료를 외부에서 확보할 때 사용한다.",
+      "path": "skills/web-evidence-collection/SKILL.md",
+      "operations": [
+        "fetch_web_page",
+        "capture_web_page",
+        "import_web_evidence"
+      ],
+      "files": [
+        {
+          "path": "skills/web-evidence-collection/scripts/run.py",
+          "sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9"
+        },
+        {
+          "path": "skills/web-evidence-collection/SKILL.md",
+          "sha256": "d3b660ddb20c43e9d385e913cb5634e8b6769764559ca439ccb66d003e9ca338"
+        }
+      ]
+    },
+    {
+      "name": "needs-structuring",
+      "description": "확보한 실제 후기에서 현재 제품의 불편·사용 맥락·상충 의견을 원문 근거에 연결해 정리할 때 사용한다.",
+      "path": "skills/needs-structuring/SKILL.md",
+      "operations": [
+        "select_evidence",
+        "validate_source_refs"
+      ],
+      "files": [
+        {
+          "path": "skills/needs-structuring/scripts/run.py",
+          "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d"
+        },
+        {
+          "path": "skills/needs-structuring/SKILL.md",
+          "sha256": "07e442d4f2232ea5ac2e0c0fd4ce3cbf92938e7efdc9c3d911cd1dff1974c6fb"
+        }
+      ]
+    },
+    {
+      "name": "feature-comparison",
+      "description": "원문으로 확인한 불편을 같은 냉장고 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다.",
+      "path": "skills/feature-comparison/SKILL.md",
+      "operations": [
+        "match_product_scope",
+        "retrieve_product_facts",
+        "select_evidence"
+      ],
+      "files": [
+        {
+          "path": "skills/feature-comparison/scripts/run.py",
+          "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e"
+        },
+        {
+          "path": "skills/feature-comparison/SKILL.md",
+          "sha256": "94356fcbd7abd0bad7167dc4aa131ec3f81e3267d7ecad098ed89eae0d918041"
+        }
+      ]
+    },
+    {
+      "name": "concept-writing",
+      "description": "실제 근거와 기존 기능 대조로 확인된 남은 불편에 대해 조건을 지키는 상품기획 콘셉트를 작성할 때 사용한다.",
+      "path": "skills/concept-writing/SKILL.md",
+      "operations": [
+        "validate_constraints",
+        "validate_source_refs"
+      ],
+      "files": [
+        {
+          "path": "skills/concept-writing/scripts/run.py",
+          "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd"
+        },
+        {
+          "path": "skills/concept-writing/SKILL.md",
+          "sha256": "ce05339a2bfe5046a228a6148b5fc63c86693316ae2e3d4dc5d96bb715cf997c"
+        }
+      ]
+    },
+    {
+      "name": "review-and-revise",
+      "description": "상품기획 후보의 원문 의미·모델·기존 기능 중복·가정·제약을 검토하고 최초 생성과 최대2회 수정을 저장할 때 사용한다.",
+      "path": "skills/review-and-revise/SKILL.md",
+      "operations": [
+        "validate_result_contract",
+        "review_product_result",
+        "start_turn",
+        "get_turn",
+        "save_result",
+        "save_reviewed_result",
+        "save_and_export",
+        "export_session",
+        "current_request",
+        "record_usage",
+        "cancel_turn",
+        "begin_invocation",
+        "finish_invocation"
+      ],
+      "files": [
+        {
+          "path": "skills/review-and-revise/references/payload.md",
+          "sha256": "f1030e6d5c6e97b073838494d7e8f128c62f3e7dff382c205c90afa40252051e"
+        },
+        {
+          "path": "skills/review-and-revise/scripts/run.py",
+          "sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8"
+        },
+        {
+          "path": "skills/review-and-revise/SKILL.md",
+          "sha256": "cb5db79a53d6ac2b48b437fe88d9cc07cc80503b5880fbd83cfdcb2e7eede7ad"
+        }
+      ]
+    }
+  ],
+  "shared_files": [
+    {
+      "path": "agents/product-planning.md",
+      "sha256": "63f8975a9ef1d03a599c3bee621c7389e910fad26d847148a5668bfc31505fea"
+    },
+    {
+      "path": "product-tools/cli.py",
+      "sha256": "7b4ce0c37762f94612395f94f30f43f2a7a4e6b62a25aca24abe5bea94607503"
+    },
+    {
+      "path": "product-tools/product_tools/__init__.py",
+      "sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68"
+    },
+    {
+      "path": "product-tools/product_tools/contracts.py",
+      "sha256": "e90df5ba22840b6c49075e84f9027c45dd4a8b6292a36986a4a55d3435314412"
+    },
+    {
+      "path": "product-tools/product_tools/conversation.py",
+      "sha256": "47d83cafbf04332135798757bde1bedea8e0795302be0bbc3202de26c662f52a"
+    },
+    {
+      "path": "product-tools/product_tools/dataset.py",
+      "sha256": "2e63353e15b4114ad25c8468ad98e5f0ce69b34245f646a225e4090409007737"
+    },
+    {
+      "path": "product-tools/product_tools/planning.py",
+      "sha256": "f3a3d783b4a2c0e64a1e42fba194a018e547fc40613ed9e598277fe240ab8b10"
+    },
+    {
+      "path": "product-tools/product_tools/state.py",
+      "sha256": "600366d49835b9698df5ea888bcbf5eb5f53dd4b5a06bf167500280cdf9b0579"
+    },
+    {
+      "path": "product-tools/product_tools/tools.py",
+      "sha256": "e4481e8b55a526a3d430a88c853547e2ecde65c36de2a1d428cb8c1e0f25a2e3"
+    },
+    {
+      "path": "product-tools/product_tools/web_evidence.py",
+      "sha256": "5b71584dc322c184ebb05aaf1fc909483020a508d2978432a4637b27ed9e4a67"
+    },
+    {
+      "path": "docs/contracts/common-tools.md",
+      "sha256": "6d09e5d5c3d67957c2540567bc3df8eae27917bbdde34e4d2807625ee9cabd82"
+    },
+    {
+      "path": "docs/contracts/product-planning.md",
+      "sha256": "f4298607ec193d4d03804022349d099530bbdd2d02893f8c7e8980e4ceb6ea8b"
+    },
+    {
+      "path": "docs/contracts/web-evidence.md",
+      "sha256": "04c4a76017296bd847aa0eadbe0ddbed6ff268dc23c614bce41e1bdd824ea004"
+    },
+    {
+      "path": "docs/contracts/codex-product.md",
+      "sha256": "f78e1a5313c9c3121f3dfbd2126aa5db0e0fab2076d625b7be32b42413f862da"
+    }
+  ],
+  "native_installation_verified": false,
+  "native_discovery_verified": false
+}

@@ -1,0 +1,21 @@
+{
+  "data_version": "lg-observed-2026-10-10-v3",
+  "synthetic": false,
+  "purpose": "business",
+  "created_date": "2026-10-10",
+  "provenance": "Newly observed exact-model official facts plus original review excerpts; source meaning and purchase identity not automatically certified. Current storage pain exists for B502S33/T876MQQ012; cleaning pain and internal dimensions remain unconfirmed. Mixed-option mirror reviews excluded.",
+  "model_count": 3,
+  "scope_count": 3,
+  "review_count": 6,
+  "fact_count": 19,
+  "files": [
+    {
+      "path": "models.json",
+      "sha256": "e4aa21394868c61ed75e577934366eac0491f4d39b641f75c5d20b94b0c9d1fe"
+    },
+    {
+      "path": "sources.jsonl",
+      "sha256": "dafd76f0b59cfb820844fbc0c4ddcb6392af7d86e04d27bb5ffdf1c0298d3226"
+    }
+  ]
+}
