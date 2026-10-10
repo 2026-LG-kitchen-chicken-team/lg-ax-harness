@@ -256,6 +256,60 @@ class MeasurementTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertEqual(json.loads(result.stderr)["status"], "error")
 
+    def test_cli_allowed_payloads_emit_receipt_and_reject_private_extras_before_replay(self):
+        normal = {
+            "billing": {"transaction_id": "charge-safe", "unit": "USD", "amount": "1", "attribution": "window_only", "concurrent_other_usage": True, "refund_of": None},
+            "usage": {"source": "native", "scope_id": "session-safe", "snapshot_index": 1, "coverage": "partial", "input_tokens": 100, "cached_input_tokens": 40, "output_tokens": 20, "reasoning_output_tokens": None},
+            "quality": {"reviewer": "reviewer-b", "verdict": "pending"},
+        }
+        sentinel = "SYNTHETIC-PRIVATE-VALUE-DO-NOT-ECHO"
+        for kind, payload in normal.items():
+            with self.subTest(kind=kind):
+                source = Path(self.temp.name) / (kind + ".json")
+                source.write_text(json.dumps(payload), encoding="utf-8")
+                command = [sys.executable, str(ROOT / "evals/measurement/cli.py"), "--root", str(self.store.root), kind,
+                           "--run", "one", "--input", str(source), "--event-id", kind + "-event", "--human-confirmed"]
+                success = subprocess.run(command, capture_output=True, text=True)
+                self.assertEqual(success.returncode, 0, success.stderr)
+                receipt = json.loads(success.stdout)
+                self.assertEqual(set(receipt), {"status", "run_id", "event_id", "sequence", "sha256"})
+                self.assertNotIn("data", receipt)
+                original = self.store.load("one")[1]
+                for private_field in ("raw_log", "api_key", "raw_email"):
+                    source.write_text(json.dumps({**payload, private_field: sentinel}), encoding="utf-8")
+                    rejected = subprocess.run(command, capture_output=True, text=True)
+                    self.assertEqual(rejected.returncode, 2)
+                    self.assertEqual(rejected.stdout, "")
+                    self.assertNotIn(sentinel, rejected.stdout + rejected.stderr)
+                    self.assertEqual(self.store.load("one")[1], original)
+                    self.assertFalse((self.store.path("one") / "conflicts").exists())
+                for saved in self.store.path("one").rglob("*.json"):
+                    self.assertNotIn(sentinel, saved.read_text(encoding="utf-8"))
+
+    def test_store_rejects_extra_fields_and_unbounded_values_before_conflict_storage(self):
+        start = {"kind": "start", "participant": "member-a", "phase": "read"}
+        self.append(start, 1, eid="same-event")
+        original = self.store.load("one")[1]
+        for attempted in [{**start, "api_key": "SYNTHETIC-PRIVATE"}, {**start, "participant": "a" * 81},
+                          {"kind": "billing", "transaction_id": "safe", "unit": "USD", "amount": "1" * 65, "attribution": "unverified"}]:
+            with self.assertRaises(ValueError):
+                self.append(attempted, 2, eid="same-event")
+            self.assertEqual(self.store.load("one")[1], original)
+        self.assertFalse((self.store.path("one") / "conflicts").exists())
+
+    def test_metadata_settings_keys_and_label_boundaries(self):
+        for value in ("a" * 121, "model\tcontrol", "person@example.com"):
+            private = meta("harness")
+            private["model_and_settings"]["model"] = value
+            with self.assertRaises(ValueError):
+                self.store.create("rejected-settings", private, True)
+        private = meta("harness")
+        private["model_and_settings"]["api_key"] = "SYNTHETIC-PRIVATE"
+        with self.assertRaises(ValueError):
+            self.store.create("rejected-extra-key", private, True)
+        self.assertFalse(self.store.path("rejected-settings").exists())
+        self.assertFalse(self.store.path("rejected-extra-key").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -64,6 +64,8 @@ python evals/measurement/cli.py billing --run member-a-harness-01 --input .harne
 
 `--evidence`는 실제 파일 SHA만 기록하고 파일 내용·절대 경로를 공유 보고서에 싣지 않는다. 증빙이 없으면 옵션을 생략하고 `verified`를 쓰지 않는다. 환불은 새 `transaction_id`, 음수 amount, 원래 거래의 `refund_of`를 추가해 원거래를 보존한다. 동일 거래는 중복 계산하지 않고 값이 다르면 conflict로 보존해 해당 단위의 확정 합계를 막는다. 범위 전체 청구라는 증거가 없으므로 `actual_total_cost`는 항상 미확인이다.
 
+입력 JSON은 위 예시의 허용 필드만 사용한다. raw_log·api_key·이메일 같은 추가 필드는 저장 전에 거부하며 실제 원문은 `--evidence` 파일로만 보존한다. 명령 stdout은 접수 상태·ID·지문만 표시하고 원본 payload 전체를 출력하지 않는다. 공유 보고서 내용은 지정한 출력 파일에서 확인한다.
+
 native 사용량이 실제 관측된 경우에만 아래와 같은 누적 snapshot을 `.harness/usage-01.json`에 적고 `usage` 명령으로 추가한다. source/scope는 가명 ID로 만들고 같은 세션은 같은 scope, 증가하는 snapshot_index를 쓴다. 부모·자식·실패·재시도·수정이 빠졌으면 `partial`이다. 0은 관측된 0, 미관측은 null이다. 입력에 캐시를 다시 더하거나 출력에 reasoning을 더하지 않는다. 같은 scope의 마지막 유효 누적값만 사용하며 scope 간 배타성은 가정하지 않아 합계는 null이다. 역행/충돌은 미확인으로 남기고 지운 뒤 재입력하지 않는다.
 
 ```json

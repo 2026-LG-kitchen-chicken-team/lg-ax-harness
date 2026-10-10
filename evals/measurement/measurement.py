@@ -20,6 +20,14 @@ CONDITIONS = ("manual", "general_ai", "harness")
 USAGE = ("input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens")
 MODEL_FIELDS = ("model", "cli", "cli_version", "reasoning")
 META_FIELDS = ("participant", "case_id", "condition", "data_version", "product_model", "data_fingerprint", "case_file_sha256", "input_sha256", "completion_sha256", "product_sha256", "model_and_settings", "learning_order", "attempt_index")
+EVENT_FIELDS = {
+    "start": {"kind", "participant", "phase"},
+    "pause": {"kind", "participant"},
+    "finish": {"kind", "participant", "outcome", "result_sha256", "additional_inputs", "revisions"},
+    "quality": {"kind", "reviewer", "verdict", "evidence_sha256"},
+    "billing": {"kind", "transaction_id", "unit", "amount", "attribution", "concurrent_other_usage", "refund_of", "evidence_sha256"},
+    "usage": {"kind", "source", "scope_id", "snapshot_index", "coverage", "evidence_sha256", *USAGE},
+}
 SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}\Z")
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -98,13 +106,44 @@ def validate_metadata(meta):
         if set(settings) != set(MODEL_FIELDS):
             raise ValueError("model_and_settings needs only model/cli/cli_version/reasoning")
         for value in settings.values():
-            if not isinstance(value, str) or not 1 <= len(value) <= 120 or any(c in value for c in ("@", "\\", "/", ":", "\n", "\r")):
+            if not isinstance(value, str) or not 1 <= len(value) <= 120 or not value.isprintable() or any(c in value for c in ("@", "\\", "/", ":")):
                 raise ValueError("Settings must be short labels without email, path or free text")
     if meta["condition"] == "manual" and meta.get("model_and_settings") is not None:
         raise ValueError("Manual condition must have model_and_settings=null")
     if not meta.get("product_model") or not meta.get("data_version"):
         raise ValueError("Exact product model/data version required")
     return meta
+
+
+def validate_event_fields(data):
+    """Validate bounded schema before a conflict/replay path can preserve input."""
+    if not isinstance(data, dict) or not isinstance(data.get("kind"), str) or data["kind"] not in EVENT_FIELDS:
+        raise ValueError("Unknown event kind; input not stored")
+    if not set(data).issubset(EVENT_FIELDS[data["kind"]]):
+        raise ValueError("Unknown event fields; input not stored")
+    for field in ("participant", "reviewer", "transaction_id", "refund_of", "source", "scope_id"):
+        if field in data and data[field] is not None:
+            identifier(data[field])
+    for field in ("evidence_sha256", "result_sha256"):
+        if data.get(field) is not None and (not isinstance(data[field], str) or not re.fullmatch(r"[a-f0-9]{64}", data[field])):
+            raise ValueError("Evidence/result must be SHA256 or null")
+    for field in ("additional_inputs", "revisions", "snapshot_index", *USAGE):
+        if data.get(field) is not None and (type(data[field]) is not int or data[field] < 0):
+            raise ValueError("Counts/usage must be nonnegative integers or null")
+    if data.get("concurrent_other_usage") is not None and type(data["concurrent_other_usage"]) is not bool:
+        raise ValueError("Concurrent usage must be boolean or null")
+    if data.get("amount") is not None:
+        amount = data["amount"]
+        if not isinstance(amount, str) or not 1 <= len(amount) <= 64 or not re.fullmatch(r"[+-]?[0-9]+(?:\.[0-9]+)?", amount):
+            raise ValueError("Amount must be a bounded decimal string or null")
+    if "unit" in data and (not isinstance(data["unit"], str) or not re.fullmatch(r"[A-Z][A-Z0-9_:-]{1,39}", data["unit"])):
+        raise ValueError("Unit must be a bounded currency/credit label")
+    enumerations = {"phase": PHASES, "outcome": ("completed", "held", "failed", "aborted"),
+                    "verdict": ("equivalent", "not_equivalent", "pending"),
+                    "attribution": ("verified", "window_only", "unverified"),
+                    "coverage": ("partial", "all_calls_verified")}
+    if any(field in data and data[field] not in allowed for field, allowed in enumerations.items()):
+        raise ValueError("Unknown event classification; input not stored")
 
 
 class Store:
@@ -136,6 +175,7 @@ class Store:
             if digest(event) != checksum or event["sequence"] != len(events) + 1 or event["previous"] != previous:
                 raise ValueError("Event chain incomplete/modified; preserve originals and inspect")
             event["sha256"] = checksum
+            validate_event_fields(event["data"])
             previous = checksum
             events.append(event)
         return meta, events
@@ -144,6 +184,7 @@ class Store:
         if not human_confirmed:
             raise ValueError("A real participant must pass --human-confirmed")
         event_id = identifier(event_id or str(uuid.uuid4()))
+        validate_event_fields(data)
         path = self.path(run)
         lock = path / ".write-lock"
         lock.mkdir()  # concurrent/crashed writers fail visibly; no stale-lock guessing
@@ -168,6 +209,7 @@ class Store:
 
     @staticmethod
     def _validate_data(meta, events, data):
+        validate_event_fields(data)
         kind = data.get("kind")
         if kind in ("start", "pause", "finish"):
             actor = identifier(data["participant"])

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import sys
 
-from measurement import CONDITIONS, PHASES, Store, atomic_create, compare, file_sha, prepare, report
+from measurement import CONDITIONS, PHASES, Store, atomic_create, compare, file_sha, prepare, report, validate_event_fields
 
 
 def main(argv=None):
@@ -50,12 +50,15 @@ def main(argv=None):
     try:
         if args.command == "prepare":
             settings = json.loads(args.model_settings.read_text(encoding="utf-8-sig")) if args.model_settings else None
-            result = prepare(args.out, args.participant, args.condition, args.order.split(","), settings, args.attempt)
+            prepare(args.out, args.participant, args.condition, args.order.split(","), settings, args.attempt)
+            result = {"status": "prepared", "metadata_sha256": file_sha(args.out / "metadata.json"), "task_sha256": file_sha(args.out / "task.json")}
         elif args.command == "init":
-            result = store.create(args.run, json.loads(args.metadata.read_text(encoding="utf-8-sig")), args.human_confirmed)
+            store.create(args.run, json.loads(args.metadata.read_text(encoding="utf-8-sig")), args.human_confirmed)
+            result = {"status": "created", "run_id": args.run}
         elif args.command in ("report", "compare"):
             result = report(store, args.run) if args.command == "report" else compare(report(store, args.baseline), report(store, args.candidate))
             atomic_create(args.out, result)
+            result = {"status": "exported", "command": args.command, "sha256": file_sha(args.out)}
         else:
             data = {"kind": args.command}
             if args.command in ("start", "pause", "finish"):
@@ -69,11 +72,14 @@ def main(argv=None):
                 data.update(json.loads(args.input.read_text(encoding="utf-8-sig")))
                 if data.get("kind") != args.command:
                     raise ValueError("Input kind must match command")
+                validate_event_fields(data)  # reject extras before reading evidence or preserving conflicts
                 if args.evidence:
                     data["evidence_sha256"] = file_sha(args.evidence)
                 else:
                     data["evidence_sha256"] = None
-            result = store.append(args.run, data, args.event_id, args.human_confirmed)
+            event = store.append(args.run, data, args.event_id, args.human_confirmed)
+            result = {"status": "recorded", "run_id": args.run, "event_id": event["event_id"],
+                      "sequence": event["sequence"], "sha256": event["sha256"]}
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (ValueError, OSError, KeyError, TypeError, StopIteration) as exc:
