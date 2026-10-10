@@ -114,6 +114,8 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 
 [릴리스 계약](docs/contracts/product-release.md)에 따라 의미 있는 제품/제출 변경을 새 버전으로 배포한다. 첨부물은 출품 하네스 ZIP·완성 제출 파일·SHA 목록이며 개발용 하네스와 팀 테스트 기록은 포함하지 않는다. 기존 버전을 덮어쓰지 않고 변경 내역·source commit·실제 검사·지원 환경/제한을 남긴다. 앞선 접수·평가 절차 문서만의 변경 단계에서는 제품 릴리스를 발행하지 않았다. 실행 다운로드는 GitHub 자동 전체 `Source code`가 아닌 제품 첨부 ZIP을 안내한다.
 
-후속으로 [Skill 중복 호출 정리·실제 비교](docs/validation/s05-skill-efficiency.md)를 진행했다. 기존 v4와 수정 v5의 같은 실제 질문 1쌍은 모두 저장/출력 일치였고, 관측 명령 18→13개·시간 388.67→322.31초였다. 독립 원문 검토에서 중대 의미 오류를 발견하지 못했으며 반복·전체 비용·공수·일반적 품질 우위는 미입증이다. 최종 v5.1의 외부 조사/보류 가드는 독립 정적 리뷰와 코드 검사 범위이며 별도 native 검증이 남는다.
+후속으로 [Skill 중복 호출 정리·실제 비교](docs/validation/s05-skill-efficiency.md)를 진행했다. 기존 v4와 수정 v5의 같은 실제 질문 1쌍은 모두 저장/출력 일치였고, 관측 명령 18→13개·시간 388.67→322.31초였다. 독립 원문 검토에서 중대 의미 오류를 발견하지 못했으며 반복·전체 비용·공수·일반적 품질 우위는 미입증이다. 당시 최종 v5.1의 외부 조사/보류 가드는 독립 정적 리뷰와 코드 검사 범위였다.
+
+[v5.1 보류·후속 검증](docs/validation/s05-v51-flow.md)에서 실제 자료2턴은 첫 held316.86초·후속 completed344.52초로 같은 native 대화·업무 session에서 저장/출력/export가 일치했다. 신규 요청/turn/진단 자료 버전·이전 후보/export 보존 등24항목과 두 답변의 독립 원문 검토를 확인했다. 자료 버전 변경은 동일 원문 복제이며 새 웹 수집/native import가 아니다. J17 정상/삽입 대조는 최종 응답 없이420.67/420.61초 timeout으로 끝나 paired acceptance는 미통과다. 실패를 포함한4입력 기록·전체 관측 사용량을 보존했다. 제품97개·평가38개 코드 검사는 통과했으며 응답 지연 개선·반복/미사용 평가·전체 청구/공수·환경별 실제 인수는 남아 있다.
 
 [첫 제품 시험판 product-v0.1.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.1.0)을 발행했다. `lg-ax-harness-product-v0.1.0.zip` 70파일과 SHA 목록만 첨부했고 원격 태그·실제 다운로드 SHA를 확인했다. 제품 ZIP의 README를 따라 새 폴더에 설치한다. 새 Codex/Claude/Gemini 파일 설치·doctor는 통과했고 Claude/Gemini 실제 업무 인수·발표/영상·운영진 최종 제출은 남아 있다. 제품 source commit은 `9fa81d2`이며 이후 저장소의 발행 확인 문서 commit과 구분한다.
