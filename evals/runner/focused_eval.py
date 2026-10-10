@@ -12,11 +12,20 @@ import tempfile
 import time
 import native_eval as ev
 import receipt_eval as receipt
-from extended_eval import command_for, inspect_history, candidate_fingerprints
+from extended_eval import command_for, inspect_history, candidate_fingerprints, turn_usage
 from seven_eval import FAULT, QUALIFICATION, persistent_policy
 from product_tools.contracts import fingerprint, strict_json
 
 LIMITS = {"native_cap": 9, "parallel": 2, "seconds": 420, "automatic_retry": False}
+
+
+def build_web_prompt(case, data_path):
+    """Keep every frozen case constraint in the actual web execution input."""
+    return (case["turns"][0]
+        + "\n제약은 " + json.dumps(case["constraints"], ensure_ascii=False)
+        + "\n한국어. 메인 단독. 설치된 Agent/Skill로 수행한다. 코드 변경·다른 Agent/모델 요청 금지. 실제 정확 PDP https://www.lge.co.kr/refrigerators/b502s33 와 https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html#topic_31 의 연계를 실제 제공 도구로 확인한다. 검색/정적 fetch 우선, 동적 본문에만 브라우저. 도구 목록·페이지 전체를 출력하지 않는다. 초기 자료 " + data_path
+        + ". 새 등록은 turn 전에 확정하고 모든 Tool에 같은 --data를 쓴다. 실제 시각으로 조사 예산180초, 페이지최대4/검색최대2/브라우저조작최대8/동일오류자동재시도0. 부족하면 억지 import 없이 기존 자료로 held를 저장해 최종 답변까지 전달한다. 전체420초, 기획·저장·최종 시간을 남긴다. 최종은 실제 {receipt,export}. 지문·원문·주의사항을 보존하고 확정되지 않은 치수/효과는 unknown이다."
+        + QUALIFICATION)
 
 
 def select_jobs(plan, names, started):
@@ -36,6 +45,11 @@ def followup_linked(before, after, exported, native_id, expected_native_id):
             and current["session_id"] == previous["session_id"]
             and len(requests) == 1 and requests[0]["input"].get("prior_turn_id") == previous["turn_id"]
             and candidate_fingerprints(before["candidates"]).issubset(candidate_fingerprints(after["candidates"])))
+
+
+def followup_usage(current, previous, native_id, expected_native_id):
+    return turn_usage(current, previous, 1,
+                      isinstance(native_id, str) and native_id == expected_native_id)
 
 
 def once_recovery(candidates, observations, saved_receipt, wrapper_unchanged):
@@ -108,7 +122,7 @@ def prepare(report):
         data = ev.Dataset(workspace / data_path if arm == "product" else report / "source" / data_path)
         prompt = receipt.prompt(case, arm, data_path, ev.exact_sources(data, case["model_id"])) + QUALIFICATION
         if name == "web":
-            prompt = case["turns"][0] + "\n한국어. 메인 단독. 설치된 Agent/Skill로 수행한다. 코드 변경·다른 Agent/모델 요청 금지. 실제 정확 PDP https://www.lge.co.kr/refrigerators/b502s33 와 https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html#topic_31 의 연계를 실제 제공 도구로 확인한다. 검색/정적 fetch 우선, 동적 본문에만 브라우저. 도구 목록·페이지 전체를 출력하지 않는다. 초기 자료 data/business/lg-research-v3. 새 등록은 turn 전에 확정하고 모든 Tool에 같은 --data를 쓴다. 실제 시각으로 조사 예산180초, 페이지최대4/검색최대2/브라우저조작최대8/동일오류자동재시도0. 부족하면 억지 import 없이 기존 자료로 held를 저장해 최종 답변까지 전달한다. 전체420초, 기획·저장·최종 시간을 남긴다. 최종은 실제 {receipt,export}. 지문·원문·주의사항을 보존하고 확정되지 않은 치수/효과는 unknown이다."
+            prompt = build_web_prompt(case, data_path)
         if name == "followup":
             prompt += "\n실제 추가 질문이다. 같은 native 대화·업무 session_id, prior_turn_id로 이어가고 이전 후보를 변경·삭제하지 않는다."
         fault = None
@@ -185,7 +199,7 @@ def one(report, job):
             if not followup_linked(before, after, exported, observed["native_id"], job["native_id"]):
                 raise ValueError("Followup identity/history mismatch")
             cumulative = observed["rollout"]["cumulative_usage"]
-            row.update(usage_delta=ev.usage_delta(cumulative, job["previous_usage"]), history_retained=True, usage_aggregation="latest session cumulative replaces parent")
+            row.update(usage_delta=followup_usage(cumulative, job["previous_usage"], observed["native_id"], job["native_id"]), history_retained=True, usage_aggregation="latest session cumulative replaces parent")
     except Exception as exc:
         row.update(acceptance="failed", acceptance_error=str(exc))
     if job["fault"]:

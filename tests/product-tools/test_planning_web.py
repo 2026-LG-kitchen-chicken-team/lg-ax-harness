@@ -12,7 +12,7 @@ from urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
-from product_tools.contracts import ToolError, canonical
+from product_tools.contracts import ToolError, canonical, fingerprint
 from product_tools.dataset import Dataset
 from product_tools.planning import review_product_result
 from product_tools.tools import ProductTools
@@ -107,6 +107,15 @@ class PlanningWebTests(unittest.TestCase):
     def test_private_or_credential_url_and_redirect_target_rejected(self):
         for url in ("http://www.lge.co.kr/", "https://127.0.0.1/", "https://www.lge.co.kr.evil.example/", "https://user:pass@www.lge.co.kr/", "https://www.lge.co.kr:8443/"):
             self.error("unsupported_url", public_url, url)
+
+    def test_url_type_is_checked_before_manual_parser_and_reservation(self):
+        for url in (None, True, 17, {}, []):
+            for browser in (True, False):
+                payload = {**self.browser(), 'url': url}
+                if not browser:
+                    payload = {k: v for k, v in payload.items() if k not in ('observed_text', 'native_tool_name')}
+                self.error('invalid_input', self.web.collect, payload, browser)
+        self.assertEqual(self.web.db.execute('SELECT COUNT(*) FROM web_pages').fetchone()[0], 0)
 
     def test_browser_capture_does_not_claim_execution(self):
         report = self.web.collect(self.browser(), True)
@@ -229,7 +238,7 @@ class PlanningWebTests(unittest.TestCase):
         association=self.web.collect(self.browser('html-association',content='T876MQQ012 support link '+url),True)
         manual=self.web.collect({**self.browser('html-manual',content='Code fixture manual cleaning text.'),'url':url+'#topic_31'},True)
         entry={**self.observation(manual),'kind':'product_fact','feature_key':'cleaning_instructions','availability':'present',
-               'text':'Code fixture manual cleaning text.','support_quote':'Code fixture manual cleaning text.','association_snapshot_id':association['snapshot_id']}
+               'text':'Code fixture manual cleaning text.','support_quote':'Code fixture manual cleaning text.','location':'Cleaning topic_31','association_snapshot_id':association['snapshot_id']}
         self.web.import_evidence(self.data,{'data_version':'html-manual-v1','observations':[entry]})
         other=self.web.collect({**self.browser('other-manual',content='Code fixture manual cleaning text.'),'url':url.replace('69140202','71401547')+'#topic_31'},True)
         wrong={**entry,'snapshot_id':other['snapshot_id'],'source_id':'OTHER-MANUAL'}
@@ -240,7 +249,7 @@ class PlanningWebTests(unittest.TestCase):
         association=self.web.collect(self.browser('literal-http-link',content='T876MQQ012 support link '+href),True)
         manual=self.web.collect({**self.browser('https-manual',content='Code fixture manual cleaning text.'),'url':href.replace('http:','https:')+'#topic_31'},True)
         entry={**self.observation(manual),'kind':'product_fact','feature_key':'cleaning_instructions','availability':'present',
-               'text':'Code fixture manual cleaning text.','support_quote':'Code fixture manual cleaning text.','association_snapshot_id':association['snapshot_id']}
+               'text':'Code fixture manual cleaning text.','support_quote':'Code fixture manual cleaning text.','location':'Cleaning topic_31','association_snapshot_id':association['snapshot_id']}
         self.web.import_evidence(self.data,{'data_version':'literal-http-v1','observations':[entry]})
         for i,bad in enumerate((href+':80',href.replace('.com/','.com:81/'),href+'?different=true',href.replace('http://','http://user@'),href.replace('http://','http://@'),href.replace('http://','http://:@'),href.replace('.com/','.com:abc/'))):
             wrong=self.web.collect({**self.browser('bad-href-'+str(i),content='T876MQQ012 support link '+bad),'research_id':'bad-research-'+str(i)},True)
@@ -256,6 +265,60 @@ class PlanningWebTests(unittest.TestCase):
         for number in range(2, 7):
             self.web.collect(self.browser("p" + str(number)), True)
         self.error("research_limit", self.web.collect, self.browser("p7"), True)
+
+    def html_section(self, topic, page, quote):
+        url = 'https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html'
+        snapshot = self.web.collect({**self.browser(page, quote), 'url': url + '#' + topic}, True)
+        association = self.web.collect(self.browser('section-association', 'T876MQQ012 support link ' + url), True)
+        entry = {**self.observation(snapshot), 'source_id': 'MANUAL-' + topic, 'kind': 'product_fact',
+                 'feature_key': 'instructions', 'availability': 'present', 'location': 'Manual ' + topic,
+                 'text': quote, 'support_quote': quote, 'association_snapshot_id': association['snapshot_id']}
+        return snapshot, entry
+
+    def test_separate_sections_preserve_exact_origin_quote_and_location(self):
+        first, a = self.html_section('topic_29', 's29', 'Fixture topic_29 first procedure.')
+        second, b = self.html_section('topic_31', 's31', 'Fixture topic_31 second procedure.')
+        self.assertNotEqual(first['snapshot_id'], second['snapshot_id'])
+        result = self.web.import_evidence(self.data, {'data_version': 'separate-sections', 'observations': [a, b]})
+        imported = Dataset(self.workspace / result['data_path'])
+        for snapshot, entry in ((first, a), (second, b)):
+            source = imported.source(entry['source_id'])
+            self.assertEqual(source['origin']['source_url'], snapshot['url'])
+            self.assertEqual(source['location'], entry['location'])
+            self.assertEqual(source['text'], entry['support_quote'])
+        self.assertEqual(self.data.version, 'lg-observed-2026-10-10-v3')
+        self.assertFalse(result['acceptance_ready'])
+
+    def test_missing_conflicting_or_multiple_section_locations_rejected(self):
+        snapshot, entry = self.html_section('topic_31', 's31', 'Fixture procedure without topic marker.')
+        for i, location in enumerate(('Manual section', 'topic_29', 'topic_29/topic_31')):
+            version = 'wrong-section-' + str(i)
+            self.error('section_mismatch', self.web.import_evidence, self.data,
+                       {'data_version': version, 'observations': [{**entry, 'location': location}]})
+            self.assertFalse((self.workspace / 'runtime-data/catalogs' / version).exists())
+
+    def test_mixed_or_wrong_section_capture_rejected_before_reservation(self):
+        url = 'https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html#topic_31'
+        for content in ('Fixture topic_29 first; topic_31 second', 'Fixture topic_29 only'):
+            self.error('section_mismatch', self.web.collect, {**self.browser('mixed', content), 'url': url}, True)
+        self.assertEqual(self.web.db.execute('SELECT COUNT(*) FROM web_pages').fetchone()[0], 0)
+
+    def test_legacy_mixed_snapshot_cannot_bypass_import_section_check(self):
+        snapshot, entry = self.html_section('topic_31', 's31', 'Fixture procedure without topic marker.')
+        legacy = {k: v for k, v in self.web._read(snapshot['snapshot_id']).items() if k != 'snapshot_id'}
+        legacy['text'] += ' topic_29 and topic_31 legacy combined'
+        legacy['snapshot_id'] = fingerprint(legacy)
+        (self.web.base / (legacy['snapshot_id'] + '.json')).write_text(canonical(legacy), encoding='utf-8')
+        self.error('section_mismatch', self.web.import_evidence, self.data,
+                   {'data_version': 'legacy-mixed', 'observations': [{**entry, 'snapshot_id': legacy['snapshot_id']}]})
+
+    def test_http_fragment_does_not_claim_native_section_observation(self):
+        payload = {'research_id': 'http-section', 'page_id': 's31',
+                   'url': 'https://gscs-manual.lge.com/CNZ/MFL69140202/ko-kr/main.html#topic_31'}
+        with patch('product_tools.web_evidence.build_opener') as opener:
+            self.error('unsupported_content', self.web.collect, payload)
+            opener.assert_not_called()
+        self.assertEqual(self.web.db.execute('SELECT COUNT(*) FROM web_pages').fetchone()[0], 0)
 
     def test_retry_count_survives_new_process_and_nonretryable_403(self):
         payload = {k: v for k, v in self.browser().items() if k not in ("observed_text", "native_tool_name")}

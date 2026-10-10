@@ -9,6 +9,8 @@ description: "확보한 실제 후기에서 현재 제품의 불편·사용 맥�
 
 pains의 id/text/source_ids와 claim_checks를 작성한다. literal 원문 지지와 모델 귀속·대표성의 불확실성을 분리한다. qualification 양식은 review-and-revise/references/payload.md에 있다. 판단은 네이티브 모델, 코드 검사는 구조만이다.
 
+같은 후기의 문장도 실사용 관측/현재 사용 긍정/일반 선호/미래 기대를 나누어 적는다. 선호 속성의 실제 만족, 예상 기능의 실제 효과, 다른 수납부의 경험을 추론해 추가하지 않는다. 긍정이나 선호는 상충·한계 설명에 쓰며 그 자체를 pains로 채우지 않는다.
+
 정확한 bundle refs를 재조회하지 않는다. 누락/잘림/새 출처에만 select_evidence, 단독 실행·refs 변경·불일치 진단에는 validate_source_refs를 실제 실행한다. 전체 업무는 최종 저장이 검사한다.
 
 실행: `uv run python skills/needs-structuring/scripts/run.py OP --input JSON_PATH`. OP: select_evidence/validate_source_refs.

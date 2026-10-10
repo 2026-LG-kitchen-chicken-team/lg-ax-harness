@@ -1,6 +1,7 @@
 """Fixed-phase input budget, not model quality tests."""
 import sys
 import copy
+import json
 from unittest.mock import patch
 from pathlib import Path
 import unittest
@@ -10,6 +11,23 @@ import focused_eval
 
 
 class FocusedBudgetTests(unittest.TestCase):
+    def test_followup_missing_parent_or_identity_never_becomes_zero_baseline(self):
+        current = {"input_tokens": 1200, "cached_input_tokens": 900, "output_tokens": 100, "reasoning_output_tokens": 30}
+        previous = {"input_tokens": 1000, "cached_input_tokens": 800, "output_tokens": 80, "reasoning_output_tokens": 20}
+        for prior, native, expected in ((None, "n", "n"), (previous, "other", "n"), (previous, None, None)):
+            self.assertTrue(all(v is None for v in focused_eval.followup_usage(current, prior, native, expected).values()))
+        self.assertEqual(focused_eval.followup_usage(current, previous, "n", "n"),
+                         {"input_tokens": 200, "cached_input_tokens": 100, "output_tokens": 20, "reasoning_output_tokens": 10})
+
+    def test_actual_web_prompt_preserves_all_case_constraints_and_qualification(self):
+        case = {"turns": ["Actual web request"], "constraints": {"max_concepts": 1, "hardware_allowed": False, "exclude_pains": ["cleaning"]}}
+        prompt = focused_eval.build_web_prompt(case, "data/business/test-path")
+        self.assertTrue(prompt.startswith(case["turns"][0]))
+        encoded = prompt.split("\n제약은 ", 1)[1].split("\n", 1)[0]
+        self.assertEqual(json.loads(encoded), case["constraints"])
+        self.assertIn("data/business/test-path", prompt)
+        self.assertTrue(prompt.endswith(focused_eval.QUALIFICATION))
+
     def setUp(self):
         self.plan = {"jobs": [{"name": str(i)} for i in range(9)]}
 

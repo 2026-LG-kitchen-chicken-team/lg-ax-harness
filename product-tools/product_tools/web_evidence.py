@@ -16,6 +16,24 @@ ALLOWED_HOSTS = {"www.lge.co.kr", "static.lge.co.kr", "gscs-b2c.lge.com", "gscs-
 MAX_PAGE_BYTES = 2097152
 
 
+def check_manual_section(url, content, location=None):
+    """Bind explicit section markers; never infer a source URL from text."""
+    parsed = urlparse(url)
+    if (parsed.hostname != "gscs-manual.lge.com"
+            or not re.fullmatch(r"/CNZ/MFL[0-9]+/ko-kr/main\.html", parsed.path)):
+        return
+    marker = r"(?<![A-Za-z0-9_])topic_[0-9]+(?![A-Za-z0-9_])"
+    topics = set(re.findall(marker, content))
+    if location is not None:
+        text(location, "location", 500)
+        located = set(re.findall(marker, location))
+        if not parsed.fragment or located != {parsed.fragment}:
+            fail("section_mismatch", "Manual location must name only its observed URL topic; capture each section separately")
+        topics.update(located)
+    if topics and topics != {parsed.fragment}:
+        fail("section_mismatch", "Do not combine manual topics under one URL; use separate observed section snapshots")
+
+
 def public_url(value):
     text(value, "url", 2000)
     try:
@@ -108,9 +126,13 @@ class WebEvidence:
             fail("invalid_input", "preview_chars must be an integer from 256 to 4000")
         if "focus" in payload:
             text(payload["focus"], "focus", 200)
+        public_url(payload["url"])
         if browser:
             text(payload["observed_text"], "observed_text", 16000)
             text(payload["native_tool_name"], "native_tool_name", 100)
+            check_manual_section(payload["url"], payload["observed_text"])
+        elif urlparse(payload["url"]).hostname == "gscs-manual.lge.com" and urlparse(payload["url"]).fragment:
+            fail("unsupported_content", "HTTP does not select manual hash topics; capture the actual native section body")
         # Presentation size does not change the observed source or page identity.
         collection_payload = {k: v for k, v in payload.items() if k != "preview_chars"}
         cached, reused = self._reserve(collection_payload, "browser" if browser else "http")
@@ -234,6 +256,7 @@ class WebEvidence:
                 fail("invalid_dataset", "Import must add unique source IDs; existing snapshots are immutable")
             used.add(source_id)
             snapshot = self._read(entry["snapshot_id"])
+            check_manual_section(snapshot["url"], snapshot["text"], entry["location"])
             text(entry["support_quote"], "support_quote", 4000)
             text(entry["text"], "source text", 4000)
             if entry["support_quote"] not in snapshot["text"]:

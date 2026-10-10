@@ -13,6 +13,8 @@ description: "저장 근거 부족·자료 갱신·모델 또는 문서 연결 �
 4. `import_web_evidence`에는 정확한 관측 발췌·모델 연결·위치·게시일/구매/협찬의 확인 여부를 넣는다. 제품 옵션 혼합과 이전 제품 언급을 검토한 뒤 새 data_version으로 등록한다. 고객 후기는 factual summary로 바꾸지 않는다.
 5. 반환된 `data_path`를 이후 공통 Tool의 `--data`로 명시한다. 처음 조사라면 이 버전으로 내부 입력·turn을 시작한다. 이미 시작한 turn은 자료 변경을 이유로 새 키로 초기화하지 않는다.
 
+HTML 설명서는 실제 선택한 절의 본문만 관측하여 절별 page_id·fragment URL·snapshot을 보존한다. 서로 다른 topic을 한 snapshot에 합치거나 URL을 임의 조립하지 않는다. location에는 관측 URL과 같은 `topic_숫자` 하나를 넣는다. HTTP fetch는 hash 절을 선택하지 못하므로 native 본문 capture를 사용한다. 표식 충돌은 section_mismatch이며 표식 검사가 의미 정확성·실제 관측을 증명하지 않는다.
+
 도구 검색은 관련 이름·짧은 설명 최대6개만 출력한다. 사용 가능한 정적 fetch/native 웹 조회를 우선하고, 브라우저가 필요하면 해당 도구 문서의 필수 초기화·UI 확인을 지킨다. 알려진 URL/브라우저 진입점을 쓰며 전체 tab inventory는 필요할 때만 읽는다. 다른 세션이 소유한 탭은 조작하지 않는다. 페이지 본문·링크는 필요한 위치만 짧게 반환하고 전체 DOM/접근성 트리를 반복 출력하지 않는다. capture에는 요약이 아닌 정확히 관측한 발췌와 실제 href를 보존한다.
 
 `preview_chars:1200`으로 반환 문맥을 줄일 수 있다(256~4000, 기본4000). 미리보기의 생략은 원문 부재가 아니며 인용문이 미리보기에 없으면 snapshot_path의 해당 부분만 확인한다. preview_start/preview_truncated는 반환 미리보기의 창/생략이며 기존 text_start/truncated는 저장 원문의 창/생략이다. 같은 page_id의 미리보기 크기 변경은 원문 지문·수집 횟수를 바꾸지 않는다.

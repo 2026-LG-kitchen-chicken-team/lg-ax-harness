@@ -6,10 +6,11 @@ import tempfile
 import time
 import threading
 import unittest
+from unittest.mock import patch
 from urllib.request import Request, urlopen
 
 from observer.collector import Collector, digest
-from observer.storage import JsonlReader, LocalStore
+from observer.storage import JsonlReader, LocalStore, replace_checkpoint
 from observer.otlp import Exporter, endpoint, payload
 from observer.__main__ import collect
 
@@ -244,6 +245,82 @@ class ReaderStoreTests(unittest.TestCase):
             restored = Collector(NATIVE, "run", state=store.load(NATIVE, "run"))
             start(restored)
             self.assertIsNone(completed(restored))
+
+    def denied(self):
+        error = PermissionError('test-only Windows access denied')
+        error.winerror = 5
+        return error
+
+    def test_transient_summary_replace_preserves_checkpoint_and_no_duplicate_event(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(directory)
+            collector = Collector(NATIVE, 'run')
+            event = start(collector)
+            store.append(event)
+            journal = store.events.read_bytes()
+            real_replace = Path.replace
+            attempts = []
+            def replace(path, target):
+                if path.name == 'summary.tmp':
+                    attempts.append(path.name)
+                    if len(attempts) == 1:
+                        raise self.denied()
+                return real_replace(path, target)
+            with patch.object(Path, 'replace', replace), patch('observer.storage.time.sleep') as sleep:
+                store.save(collector)
+            self.assertEqual(len(attempts), 2)
+            sleep.assert_called_once_with(0.05)
+            self.assertEqual(store.load(NATIVE, 'run'), collector.state)
+            self.assertEqual(json.loads((Path(directory)/'summary.json').read_text())['native_thread_id'], NATIVE)
+            self.assertEqual(store.events.read_bytes(), journal)
+
+    def test_persistent_summary_failure_preserves_previous_target_and_complete_temp(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(directory)
+            collector = Collector(NATIVE, 'run')
+            start(collector)
+            store.save(collector)
+            old = (Path(directory)/'summary.json').read_bytes()
+            completed(collector)
+            real_replace = Path.replace
+            attempts = []
+            def replace(path, target):
+                if path.name == 'summary.tmp':
+                    attempts.append(path.name)
+                    raise self.denied()
+                return real_replace(path, target)
+            with patch.object(Path, 'replace', replace), patch('observer.storage.time.sleep') as sleep:
+                with self.assertRaises(PermissionError):
+                    store.save(collector)
+            self.assertEqual(len(attempts), 3)
+            self.assertEqual(sleep.call_count, 2)
+            self.assertEqual((Path(directory)/'summary.json').read_bytes(), old)
+            self.assertEqual(store.load(NATIVE, 'run'), collector.state)
+            self.assertEqual(json.loads((Path(directory)/'summary.tmp').read_text())['native_thread_id'], NATIVE)
+
+    def test_unrelated_replace_error_is_not_retried(self):
+        with patch.object(Path, 'replace', side_effect=OSError('unrelated disk error')) as replace, patch('observer.storage.time.sleep') as sleep:
+            with self.assertRaises(OSError):
+                replace_checkpoint(Path('test-only.tmp'), Path('test-only.json'))
+            self.assertEqual(replace.call_count, 1)
+            sleep.assert_not_called()
+
+    def test_collect_storage_failure_does_not_retry_again_in_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory)/'native.jsonl'
+            raw = json.dumps({'type':'thread.started', 'thread_id':NATIVE}) + '\n'
+            log.write_text(raw)
+            args = argparse.Namespace(mode='replay', native_id=NATIVE, run_id='run', cli_log=str(log),
+                rollout_log=None, output=str(Path(directory)/'out'), local_limit=4096, http_timeout=0.05,
+                queue_limit=1, stop_file=None, until_complete=False, max_seconds=1, poll_seconds=0.01)
+            with patch.object(Path, 'replace', side_effect=self.denied()) as replace, patch('observer.storage.time.sleep') as sleep:
+                with self.assertRaises(PermissionError):
+                    collect(args, environment={})
+            self.assertEqual(replace.call_count, 3)
+            self.assertEqual(sleep.call_count, 2)
+            self.assertEqual(log.read_text(), raw)
+            self.assertEqual(len((Path(directory)/'out/events.jsonl').read_text().splitlines()), 1)
+            self.assertTrue((Path(directory)/'out/checkpoint.tmp').exists())
 
     def test_old_parser_checkpoint_fails_closed_instead_of_hiding_custom_events(self):
         with tempfile.TemporaryDirectory() as directory:

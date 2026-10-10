@@ -1,6 +1,19 @@
 """Bounded local-first storage. Checkpoints survive log reconnect/replay."""
 import json
 from pathlib import Path
+import time
+
+
+def replace_checkpoint(temp, target):
+    """Bounded recovery for the observed Windows access-denied replacement."""
+    for attempt in range(3):
+        try:
+            temp.replace(target)
+            return
+        except PermissionError as exc:
+            if getattr(exc, "winerror", None) != 5 or attempt == 2:
+                raise
+            time.sleep((attempt + 1) * 0.05)
 
 
 class LocalStore:
@@ -48,11 +61,11 @@ class LocalStore:
         value = {"native_thread_id": collector.selected_id, "run_id": collector.run_id, "state": collector.state}
         temp = self.directory / "checkpoint.tmp"
         temp.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
-        temp.replace(self.checkpoint)
+        replace_checkpoint(temp, self.checkpoint)
         summary = {**collector.summary(), **(extra or {})}
         temp = self.directory / "summary.tmp"
         temp.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        temp.replace(self.directory / "summary.json")
+        replace_checkpoint(temp, self.directory / "summary.json")
 
     def attempted(self):
         if not self.attempts.exists():

@@ -24,6 +24,7 @@ def collect(args, environment=None):
     exporter.start()
     started, stop_reason = time.monotonic(), "replay_finished"
     reader_errors = {}
+    storage_failed = False
     try:
         while True:
             terminal = False
@@ -54,9 +55,13 @@ def collect(args, environment=None):
             time.sleep(args.poll_seconds)
     except KeyboardInterrupt:
         stop_reason = "observer_interrupted"
+    except OSError:
+        storage_failed = True
+        raise
     finally:
         exporter.close(grace=min(args.http_timeout + 0.2, 3))
-        store.save(collector, {"export": exporter.summary(), "reader_errors": reader_errors, "stop_reason": stop_reason})
+        if not storage_failed:
+            store.save(collector, {"export": exporter.summary(), "reader_errors": reader_errors, "stop_reason": stop_reason})
     return {**collector.summary(), "export": exporter.summary(), "reader_errors": reader_errors, "stop_reason": stop_reason}
 
 

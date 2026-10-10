@@ -34,6 +34,12 @@ HTTP socket timeout8초, 응답 최대2MiB, 저장 본문 최대16000자, previe
 
 ## 중단
 
+### HTML 설명서 절 보존 — v5.5
+
+실제로 선택한 절마다 별도 page_id·fragment URL·본문 snapshot을 관측한다. origin.source_url은 그 snapshot URL에서만 복사하며 location에서 새 URL을 추정하지 않는다. location에는 같은 topic_숫자 하나를 명시한다. capture 본문의 명시 topic이 여러 개이거나 URL과 다르면 section_mismatch, import의 location 누락/복수/불일치도 section_mismatch다. 기존 혼합 snapshot도 import 단계에서 거부한다. 일반 PDP/리뷰/PDF의 위치 규칙은 유지한다.
+
+HTTP 요청은 hash fragment를 서버에 보내지 않으므로 gscs-manual의 fragment URL fetch를 unsupported_content로 거부한다. native 도구에서 실제 선택한 절의 본문만 capture한다. 표식 없는 본문 의미·실제 native 관측은 자동 검증하지 않으며 semantic_status=unverified를 유지한다. 과거 catalog·실행 결과는 덮어쓰지 않고 재관측 시 새 버전을 쓴다.
+
 공식 B502S33 PDP의 HTML 설명서 링크는 현재 `http://`로 표시된다. 그 관측은 그대로 보존하고 같은 host·문서 경로·기본 포트·query/fragment 없음인 경우에 한해 실제 HTTPS로 읽은 설명서와 연결한다. 다른 문서·포트·인증정보는 거부하며 HTTP 수집이나 TLS 검증 해제는 허용하지 않는다.
 
 HTTP403/redirect/미지원 형식/빈 자료/옵션 혼합을 숨기지 않는다. 제공되는 native 브라우저/PDF로 확인하거나 한도 안에서만 재시도한다. 충분한 근거가 없으면 held/needs_input을 반환한다. 로그인·구매·후기 작성·사이트 외부 쓰기는 이 조사 범위가 아니다.

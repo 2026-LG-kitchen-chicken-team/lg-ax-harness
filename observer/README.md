@@ -1,8 +1,10 @@
-# 별도 native 사건 수집기 0.1.1
+# 별도 native 사건 수집기 0.1.2
 
 Python 표준 라이브러리만 사용하는 별도 프로세스다. 기존 Codex의 명시적으로 선택한 JSONL 파일을 읽으며 Codex·모델·업무 실행을 시작하거나 종료하지 않는다. 화면·React Flow·모델 SDK·관찰용 Agent·Skill은 추가하지 않는다. 원본 로그와 로컬 출력은 Git에 넣지 않는다.
 
 ## 로컬 기록 조회
+
+Windows에서 관측한 원자 교체 WinError5에는 완성된 임시 파일의 교체만 최초1회+재시도2회(대기50/100ms) 수행한다. 다른 오류·지속 실패는 전파하고 기존 파일·tmp·journal을 보존한다. 저장 오류 뒤 cleanup에서 다시 저장하지 않아 같은 실패의 횟수를 늘리지 않는다. 업무나 모델을 재실행하지 않으며 동시 observer 작성은 지원하지 않는다. [수정 마감 기록](../docs/validation/closure-progress-20261011.md)의 로컬 replay 검사는 Cloud 표시/새 live 인수와 구분한다.
 
 레포 루트에서 기존 `codex exec --json` 출력 경로와 **그 로그에 기록된 native UUID**를 직접 선택한다. 이 명령은 새 업무 실행을 만들지 않는다.
 
