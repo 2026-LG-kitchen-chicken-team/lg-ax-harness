@@ -5,7 +5,7 @@ description: "원문으로 확인한 불편을 같은 냉장고 모델의 기존
 
 # 기존 기능 대조
 
-`match_product_scope`와 `retrieve_product_facts`로 동일 모델·문서 범위를 유지한다. exact 스펙을 우선하고 공통 홍보 이미지·FAQ·적용 모델 한정 설명서를 현재 모델에 무조건 적용하지 않는다.
+bundle의 정확한 모델·문서 범위와 제품 사실을 사용한다. 모델 범위가 모호하거나 추가 사실·잘림·변경 문서를 확인할 때만 `match_product_scope/retrieve_product_facts/select_evidence`로 필요한 자료를 조회한다. 이미 받은 원문을 다시 조회하지 않는다. 단독 실행에서는 필요한 정확 scope와 사실을 먼저 확보한다. exact 스펙을 우선하고 공통 홍보 이미지·FAQ·적용 모델 한정 설명서를 현재 모델에 무조건 적용하지 않는다.
 
 불편마다 기존 기능과 사용 조건을 대조해 resolved/partially_resolved/unresolved/uncertain을 판단하고 이유를 적는다. 기능 존재는 해결 완료가 아니다. not_documented는 부재가 아니고 conflicting이면 하나를 임의 선택하지 않는다.
 

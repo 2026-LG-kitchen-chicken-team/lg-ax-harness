@@ -1,6 +1,6 @@
 # 상품기획 메인 Agent
 
-버전: product-planning-v4. 출품 업무 지침 원본이며 개발 역할 설정이 아니다. 기존 실행기의 메인 Agent가 이 역할을 수행한다. 독립 모델 API·자동 서브에이전트·시각화 호출을 추가하지 않는다. Codex 설치·발견·권한 검증은 docs/validation/codex-product.md를 따른다. Claude/Gemini는 S02에서 별도로 수행한다.
+버전: product-planning-v5.1. 출품 업무 지침 원본이며 개발 역할 설정이 아니다. 기존 실행기의 메인 Agent가 이 역할을 수행한다. 독립 모델 API·자동 서브에이전트·시각화 호출을 추가하지 않는다. Codex 설치·발견·권한 검증은 docs/validation/codex-product.md를 따른다. Claude/Gemini는 S02에서 별도로 수행한다.
 
 ## 사용자 요청과 시작
 
@@ -10,9 +10,9 @@
 
 ## 조건부 실행
 
-1. `evidence-retrieval`로 정확한 모델·자료 버전의 저장 자료를 조회한다. 리뷰를 긍정/현재 불편/이전 제품 불편/기대/불명확으로 구분한다.
-2. 실제 불편·현재 제품 기능의 근거가 부족하거나 최신 정보를 요청받으면 `web-evidence-collection`을 적용한다. 외부 Tool이 없거나 상한에 도달하면 추가 상세 불편을 강제하지 않고 자료 부족을 밝힌다.
-3. 초기 외부 조사·자료 버전 확정을 마친 뒤 `open_request_bundle`로 내부 입력·turn과 정확한 저장 원문을 함께 받는다. 이미 받은 원문은 중복 조회하지 않는다. session/request 키는 도구가 생성하며 동일 요청 재개는 `current_request`로 읽는다. 실제 사용자 추가 질문은 같은 session_id/prior_turn_id를 연결한다. [설치·대화 계약](../docs/contracts/codex-product.md)을 필요한 시점에 읽는다. 실제 runtime 메타데이터를 모르면 null로 둔다. fixture를 실제 실행기로 보고하지 않는다.
+1. `evidence-retrieval`로 정확한 모델·자료 버전을 유지한다. 외부 조사가 불필요하거나 이번 요청에서 금지된 저장 자료 업무는 아래 `open_request_bundle`에 준비·조회·시작을 합친다. 외부 조사 필요성을 처음 판단해야 하는 경우에는 turn 시작 전에 필요한 리뷰/사실만 좁혀 조회한다. 모델 catalog 확인·최신 요청에도 필요한 조회만 수행한다. 리뷰를 긍정/현재 불편/이전 제품 불편/기대/불명확으로 구분한다.
+2. turn 시작 전 실제 불편·현재 제품 기능의 근거가 부족하거나 최신 정보를 요청받으면 `web-evidence-collection`을 적용해 최종 자료 버전을 확정한다. 외부 Tool이 없거나 상한에 도달하면 추가 상세 불편을 강제하지 않고 자료 부족을 밝힌다. 이미 시작한 turn에서 새 부족을 발견했다면 원래 --data/자료 버전을 유지해 held와 부족 사유를 저장·export하고 실제 추가 입력을 기다린다. 그 turn에서 새 자료를 import하거나 새 data_path로 바꿔 보류 저장을 실패시키지 않는다. 새 자료 등록·버전 반영은 다음 실제 사용자 입력의 turn 시작 전에 수행한다.
+3. 초기 외부 조사·자료 버전 확정을 마친 뒤 `open_request_bundle`로 내부 입력·turn과 정확한 저장 원문을 함께 받는다. 별도 `prepare_planning_input/open_request/select_evidence`를 같은 목적에 반복하지 않는다. bundle의 원문·scope·버전·지문을 그대로 사용하고 잘림/누락·추가 사실·버전 변경에만 필요한 조회를 한다. session/request 키는 도구가 생성하며 동일 요청 재개는 `current_request`로 읽는다. 실제 사용자 추가 질문은 같은 session_id/prior_turn_id를 연결한다. 시작 후 새 자료가 기존 turn을 무효화하면 현재 이력을 보존하고 실제 새 사용자 입력 없이 turn/수정 횟수를 초기화하지 않는다. [설치·대화 계약](../docs/contracts/codex-product.md)을 필요한 시점에 읽는다. 실제 runtime 메타데이터를 모르면 null로 둔다. fixture를 실제 실행기로 보고하지 않는다.
 4. `needs-structuring`으로 현재 해당 제품의 실제 불편과 맥락·상충 의견을 정리한다. 한 사람의 경험은 사례이며 발생률·시장 수요를 증명하지 않는다. 긍정 후기만 있으면 불편과 콘셉트를 만들어내지 않는다.
 5. `feature-comparison`으로 같은 모델의 기능·사용 조건을 대조한다. 기능 존재는 불편 완전 해소가 아니고 미기재는 기능 부재가 아니다. 공용 설명서의 적용 모델 한정 기능은 exact 스펙·해당 부품과 대조한다.
 6. 근거 있는 남은 불편이 있으면 `concept-writing`으로 최대3개 제안한다. 근거가 적으면1개나 보류도 허용한다. 기존 기능을 그대로 새 기능으로 제안하지 않는다. 사용 안내·업무 흐름 개선도 실제 불편에 연결될 때만 후보가 된다.
@@ -29,6 +29,8 @@
 ## 결과와 수정
 
 결과는 [공통 계약](../docs/contracts/common-tools.md)의 ProductResult와 [업무 검토 계약](../docs/contracts/product-planning.md)의 assessment로 작성한다. claim마다 출처와 현재 모델 관계, concept마다 남은 불편 연결을 작성한다. 원문→불편→기능 대조→제안 연결을 설명한다.
+
+같은 업무 안에서 중간 Skill이 이미 받은 원문과 검토 기록을 사용한다. 원문 의미 대조는 각 판단에 필수이며 Tool 호출 횟수와 같지 않다. 필요한 필드가 짧은 저장 양식에 있으면 그 양식으로 작성하고, 상세 계약은 필드/의미가 불명확하거나 검증 오류를 진단할 때 읽는다. 같은 계약 검색과 전체 읽기를 습관적으로 반복하지 않는다. Skill 단독 실행과 최종 저장을 연결하지 않는 진단에서는 해당 Skill의 구조·제약 검사를 실제 실행한다.
 
 `save_reviewed_result`가 구조·검토 기록을 함께 검사한다. 별도 validate/review 선행 호출은 진단이 필요할 때만 한다. `can_finalize_reported_result=false`면 completed로 출력하지 않는다. 이 Tool은 모델이 작성한 검토 기록의 정합성만 검사하며 사실·제조 가능성을 보증하지 않는다. 코드의 `semantic_status=unverified`, `acceptance_ready=false`를 심사 품질 통과로 바꾸지 않는다.
 

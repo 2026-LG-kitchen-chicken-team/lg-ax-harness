@@ -24,7 +24,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "79da95a320387bda8e8dc8c7479fd6946aa20e3b5b47aef25d481b98b244a0f4"
+          "sha256": "37366671050703705780b07ec5e1e99c6600b8a11bedf29fbb47fb7d2eaf9d47"
         }
       ]
     },
@@ -63,7 +63,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "da35c05e890debe8f087c4b93bc9b02a437de55aedb6eda29bd4190dc32e018c"
+          "sha256": "9f9d62a81a8f4d38e973f360bbc7dd8525969e71dff28ebab7e533ecac520587"
         }
       ]
     },
@@ -83,7 +83,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "5ba3a4300d5469946572c51c7b3f3358cad4d85d490f4af882be4cb62e92b3a0"
+          "sha256": "bde07934454fc3e0e5768605cc8687224d5dd2f58309ac3af85ec6f905ab5ea5"
         }
       ]
     },
@@ -102,7 +102,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "6e9e076ecbf3d3fb8a0eb445f5fa257130d627a2485fe64d0a1f7c69d83f368a"
+          "sha256": "04406933fff252b5c3fd55a01bfd5717e5c0b370fb7edaeda7e58226884807f9"
         }
       ]
     },
@@ -143,7 +143,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "0dbe3a61ac3a935346eb9ea9f3e18641f6461b3d2cd3f8375d6fb5ce7129cafb"
+      "sha256": "2dd4c2984496e8d70777a956c4539cf4a45d0d646a7638bdd1fbf6364d5f2c34"
     },
     {
       "path": "product-tools/cli.py",
