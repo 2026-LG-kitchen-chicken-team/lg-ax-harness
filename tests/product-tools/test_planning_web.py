@@ -114,6 +114,46 @@ class PlanningWebTests(unittest.TestCase):
         self.assertEqual(report["semantic_status"], "unverified")
         self.assertTrue(self.web.collect(self.browser(), True)["cached"])
 
+    def test_preview_size_preserves_snapshot_and_cached_page_identity(self):
+        payload = self.browser(content="T876MQQ012 " + "x" * 1700 + "구석이 어둡다.")
+        compact = self.web.collect({**payload, "preview_chars": 256}, True)
+        snapshot = self.web._read(compact["snapshot_id"])
+        self.assertEqual(snapshot["text"], payload["observed_text"])
+        self.assertNotIn("구석이 어둡다.", compact["text_preview"])
+        self.assertTrue(compact["preview_truncated"])
+        expanded = self.web.collect({**payload, "preview_chars": 4000}, True)
+        self.assertTrue(expanded["cached"])
+        self.assertEqual(expanded["snapshot_id"], compact["snapshot_id"])
+        self.assertIn("구석이 어둡다.", expanded["text_preview"])
+        row = self.web.db.execute("SELECT attempts FROM web_pages").fetchone()
+        self.assertEqual(row[0], 1)
+        imported = self.web.import_evidence(self.data, {"data_version": "outside-preview", "observations": [self.observation(compact)]})
+        self.assertFalse(imported["acceptance_ready"])
+        self.assertEqual(imported["semantic_status"], "unverified")
+
+    def test_invalid_preview_sizes_do_not_reserve_a_page(self):
+        for value in (True, False, 0, 255, 4001, 256.0, "1200", None):
+            self.error("invalid_input", self.web.collect, {**self.browser(), "preview_chars": value}, True)
+        self.assertEqual(self.web.db.execute("SELECT COUNT(*) FROM web_pages").fetchone()[0], 0)
+
+    def test_focus_preview_includes_target_and_marks_its_separate_window(self):
+        payload = {**self.browser(content="T876MQQ012 " + "x" * 1300 + "TARGET" + "y" * 2000), "focus": "TARGET", "preview_chars": 300}
+        summary = self.web.collect(payload, True)
+        saved = self.web._read(summary["snapshot_id"])
+        self.assertIn("TARGET", summary["text_preview"])
+        self.assertEqual(summary["text_preview"], saved["text"][summary["preview_start"]:summary["preview_start"] + 300])
+        self.assertGreater(summary["text_start"], 0)
+        self.assertGreater(summary["preview_start"], 0)
+        self.assertTrue(summary["truncated"])
+        self.assertTrue(summary["preview_truncated"])
+
+    def test_minimum_preview_retains_maximum_focus_literal(self):
+        focus = "F" * 200
+        payload = {**self.browser(content="T876MQQ012 " + "x" * 1300 + focus + "y" * 2000), "focus": focus, "preview_chars": 256}
+        summary = self.web.collect(payload, True)
+        self.assertIn(focus, summary["text_preview"])
+        self.assertEqual(len(summary["text_preview"]), 256)
+
     def test_official_manual_capture_is_supported_without_http_pdf_parser(self):
         payload = {**self.browser(), "url": "https://gscs-b2c.lge.com/open/downloadFile?fileId=manual", "observed_text": "공용 설명서: 접이식 선반"}
         report = self.web.collect(payload, True)

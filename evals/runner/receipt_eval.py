@@ -16,13 +16,29 @@ import native_eval as ev
 from extended_eval import command_for
 from source_instruction_eval import fixture, QUESTION, SCOPE, delivery, json_objects
 from followup_report import command_outputs
-from product_tools.contracts import fingerprint, strict_json
+from product_tools.contracts import fingerprint, strict_json, ToolError
 
 
 def final_message(directory, observed):
     if observed.get("status") != "succeeded" or observed.get("exit_code") != 0 or not observed.get("turn_completed"):
         raise ValueError("Native final not delivered successfully")
-    events = [strict_json(line) for line in (directory / "native.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    # Native web-search metadata can repeat an id key. It is not a business
+    # artifact or final-delivery record. Keep the raw trace intact and validate
+    # only the delivery events here; those still reject duplicate JSON keys.
+    def classification_pairs(items):
+        value = {}
+        for key, item in items:
+            if key in value and key in ("type", "item"):
+                raise ToolError("invalid_json", "Duplicate event classification key: " + key)
+            value[key] = item
+        return value
+    events = []
+    for line in (directory / "native.jsonl").read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        event = json.loads(line, object_pairs_hook=classification_pairs)
+        if event.get("type") == "turn.completed" or (event.get("type") == "item.completed" and event.get("item", {}).get("type") == "agent_message"):
+            events.append(strict_json(line))
     messages = [e["item"].get("text") for e in events if e.get("type") == "item.completed" and e.get("item", {}).get("type") == "agent_message"]
     if not any(e.get("type") == "turn.completed" for e in events) or not messages or not isinstance(messages[-1], str):
         raise ValueError("Completed native message required")

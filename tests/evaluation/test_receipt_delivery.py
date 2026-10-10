@@ -12,6 +12,7 @@ sys.path.insert(0,str(ROOT / "evals/runner"))
 import receipt_eval as probe
 from product_tools.state import StateStore
 from product_tools.conversation import Conversation
+from product_tools.contracts import ToolError
 
 
 class ReceiptDeliveryTests(unittest.TestCase):
@@ -51,6 +52,32 @@ class ReceiptDeliveryTests(unittest.TestCase):
         accepted = self.check()
         self.assertTrue(accepted["stored_match"])
         self.assertEqual(accepted["answer"]["result"],self.result)
+
+    def test_unrelated_web_metadata_duplicate_does_not_replace_or_block_final(self):
+        trace = self.directory / "native.jsonl"
+        original = trace.read_text(encoding="utf-8")
+        raw = '{"type":"item.completed","item":{"type":"web_search","id":"one","id":"two"}}\n' + original
+        trace.write_text(raw, encoding="utf-8")
+        self.assertTrue(self.check()["stored_match"])
+        self.assertEqual(trace.read_text(encoding="utf-8"), raw)
+
+    def test_duplicate_delivery_fields_remain_rejected(self):
+        trace = self.directory / "native.jsonl"
+        trace.write_text('{"type":"item.completed","item":{"type":"agent_message","text":"first","text":"second"}}\n{"type":"turn.completed"}', encoding="utf-8")
+        with self.assertRaises(ToolError):
+            self.check()
+
+    def test_duplicate_classification_cannot_hide_later_final(self):
+        trace = self.directory / "native.jsonl"
+        original = trace.read_text(encoding="utf-8")
+        for hidden in (
+            '{"type":"item.completed","item":{"type":"agent_message","type":"web_search","text":"later"}}',
+            '{"type":"item.completed","type":"item.started","item":{"type":"agent_message","text":"later"}}',
+            '{"type":"item.completed","item":{"type":"agent_message","text":"later"},"item":{"type":"web_search"}}',
+        ):
+            trace.write_text(original + "\n" + hidden, encoding="utf-8")
+            with self.assertRaises(ToolError):
+                self.check()
 
     def test_actual_cli_export_envelope_and_failed_envelope(self):
         self.write_final({"receipt":self.saved["receipt"],"export":{"ok":True,"result":self.pointer["export"]}})

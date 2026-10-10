@@ -15,6 +15,10 @@
 
 ## 2026-10-11 추가 실측
 
+후속 [별도 v5.4 동결 평가](../validation/focused-progress-20261011.md)의 R01 각2회 평균은 제품 input176,747.5/cache152,128/noncache24,619.5/output9,457.5/265.13초, 일반 AI input58,744.5/cache36,608/noncache22,136.5/output13,061/355.405초다. 양쪽 독립 원문 의미 진단은 모두14/14다. 이 표본에서 제품은 input 약3.01배·noncache11.22% 증가, output27.59% 감소·경과25.40% 감소다. 같은 업무와 원문이라도 DB/이력/export 의무가 다르고 각2회·비맹검·캐시/순서 미통제이므로 비용·공수·일반 품질 우위를 입증하지 않는다. 실패/보류/후속을 포함한 이 단계의 관측 합계는 해당 기록에서 별도로 확인한다.
+
+웹의 short preview는 snapshot 원문·SHA/페이지 identity를 유지하며 반환 문맥을 줄인다. 한 새 웹 입력은365.25초에 최종 전달됐고 이전 timeout보다 input36.11%/noncache20.72% 적었으나 output14.66% 많았다. 원래 평가 조건 누락·collector 실패와 section URL 정밀도 문제를 보존하므로 이1쌍을 성공률·품질 보장이나 일반 절감률로 쓰지 않는다.
+
 [12입력/11세션 기록](../validation/seven-task-progress.md)의 R01 각2회에서 새 v5.3 혼합 버전은 이전 v5.2보다 noncache21.24%/명령 출력 bytes21.19% 감소했지만 총 input2.13%/경과12.53% 증가했다. 첫 개선 질문 저장 실패·baseline 계약 결함·캐시 미초기화·비맹검을 포함한 결과이며 전체 절감 우위는 미입증이다. 실패5/timeout1과 후속 세션 중복 제거를 포함한 관측 input3,922,702/cache3,476,864/output122,099/reasoning40,500은 전체 backend 청구가 아니다. save→final 단계 시간·사람 공수·실제 비용은 unknown이다. [사람 직접 측정 도구](team-measurement.md)를 구현하고 팀원에게 메일 발송했으며 실제 결과 회신을 기다린다.
 
 ## 발표 가능한 실측과 한계

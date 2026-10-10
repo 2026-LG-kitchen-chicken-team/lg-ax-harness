@@ -1,6 +1,6 @@
 # 출품 하네스 릴리스 계약
 
-2026-10-10 사용자 선택: 의미 있는 변경이 생기면 출품 하네스·제출 항목만 버전별 GitHub Release 첨부물로 배포한다. 개발용 체계와 팀 실행/평가 기록은 원격 저장소에서 관리하며 릴리스 첨부물에 넣지 않는다. 이번 변경은 결과 접수·평가·릴리스 절차 문서 작업이므로 새 제품 릴리스를 발행하지 않는다. 조회 시점에 기존 Release는 없었다.
+2026-10-10 사용자 선택: 의미 있는 변경이 생기면 출품 하네스·제출 항목만 버전별 GitHub Release로 배포한다. 개발용 체계와 팀 실행/평가 기록은 main에서 관리하며 제품 배포물에 넣지 않는다. 2026-10-11에 제품 v0.2.1을 제품만의 Git 스냅샷으로 발행했다. 이후 의미 있는 제품 변경의 검사·리뷰가 완료되면 새 버전을 발행한다.
 
 ## 무엇을 배포하고 언제 갱신하는가
 
@@ -20,7 +20,7 @@
 
 이전 릴리스·태그·동일 이름 첨부물을 새 내용으로 덮어쓰지 않는다. 이미 배포한 첨부물 수정은 새 버전으로 발행해 이전 결과가 어느 버전에서 나왔는지 추적한다. source commit, release/tag, 설치 manifest SHA, 자료 버전을 팀 실행 기록에 연결한다. Release 발행은 운영진에게 최종 제출한 행위나 모든 환경 품질 인수를 뜻하지 않는다.
 
-GitHub는 태그 시점 저장소 전체의 `Source code (zip/tar.gz)` 링크를 자동 제공한다. 이 자동 소스 아카이브는 개발 파일도 포함하는 저장소 사본이며 출품 패키지가 아니다. README·Release notes의 실행 다운로드는 우리가 검토해 첨부한 `lg-ax-harness-product-*.zip`으로 안내한다. 자동 링크 자체까지 출품 파일만 담도록 제한하려면 별도 제품 배포 저장소가 필요하며 이번 작업에서는 추가하지 않는다. [GitHub 공식 설명](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
+GitHub의 `Source code (zip/tar.gz)`도 제품만 담도록, 제품 태그는 main 대신 ZIP과 파일 목록·바이트가 같은 별도 Git 스냅샷 commit을 가리킨다. 스냅샷에는 개발 이력이 따라오지 않도록 부모 commit을 두지 않는다. main provenance SHA와 제품 스냅샷 SHA를 notes/검증 기록에 모두 남긴다. 새 배포 저장소는 만들지 않는다. 설치 다운로드는 검토한 `lg-ax-harness-product-*.zip`을 안내하고, 자동 아카이브도 태그 tree에 제외 파일이 없는지 확인한다. [GitHub 공식 설명](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
 
 ## 발행 순서
 
@@ -33,7 +33,7 @@ GitHub는 태그 시점 저장소 전체의 `Source code (zip/tar.gz)` 링크를
    ```
 
 4. ZIP의 실제 파일 목록·내용 SHA를 manifest와 대조하고, 개발 파일·평가·로그·인증·DB·개인정보가 없는지 확인한다. 새 폴더에 추출해 잠금 환경 설치·doctor·재설치 재현을 검사한다. 이는 새로운 native 모델 품질 통과를 대신하지 않는다. 완성 제출 파일이 있다면 공식 요구와 내용 검토 후 명시한 파일만 추가한다.
-5. 첨부물 `SHA256SUMS.txt`와 Release notes를 일반 코드/파일 도구로 작성한다. notes에는 변경/버전/source commit, 포함·제외 범위, 실제 검사 결과, 검증한 환경/미검증 환경, 알려진 문제, 새 폴더 설치·업데이트 방법을 담는다. 초안은 로컬/GitHub draft로 검토 가능하며 발행 시 새 태그를 해당 commit에 연결한다. [GitHub CLI](https://cli.github.com/manual/gh_release_create)의 `--notes-file`로 정확한 본문 파일을 전달하고 대상 commit·prerelease 여부를 명시한다. 첨부물 전체가 준비되기 전 발행하지 않는다.
+5. 첨부물 `SHA256SUMS.txt`와 Release notes를 일반 코드/파일 도구로 작성한다. notes에는 변경/버전/main provenance commit/제품 스냅샷 commit, 실제 검사 결과, 검증한 환경/미검증 환경, 알려진 문제, 새 폴더 설치·업데이트 방법을 담는다. 별도 임시 Git index로 ZIP의 정확한 파일 바이트를 제품 스냅샷에 넣고 manifest·LICENSE/NOTICE·제외 목록·부모 없는 commit을 검사한다. main 작업 index는 변경하지 않는다. 새 태그는 이 제품 스냅샷에 연결한다. [GitHub CLI](https://cli.github.com/manual/gh_release_create)의 `--notes-file`로 본문 파일을 전달하며 prerelease 여부를 명시한다. 첨부물 전체가 준비되기 전 발행하지 않는다.
 6. 발행 후 원격 태그 commit·첨부 이름/크기·다운로드 SHA를 재확인하고 그 릴리스 URL과 검사 범위를 기록한다. 팀 실행 보고서는 해당 버전을 가리킨다. 업데이트는 새 설치 폴더로 하며 이전 DB/세션/실패 이력을 자동 덮어쓰거나 삭제하지 않는다.
 
-이 계약은 수동 발행 절차다. push마다 자동 배포하는 workflow나 모델 호출·메일 발송을 추가하지 않았다. 의미 있는 제품 변경이 완료된 턴에서 위 절차를 적용하며, 현재 문서 변경을 새 제품 기능으로 릴리스하지 않는다.
+이 계약은 수동 발행 절차다. push마다 자동 배포하는 workflow나 모델 호출·메일 발송을 추가하지 않는다. 의미 있는 제품 변경이 완료된 턴에서 위 절차를 적용하며 개발/평가 문서 변경만으로 제품 버전을 올리지 않는다.

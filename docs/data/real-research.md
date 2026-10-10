@@ -1,5 +1,13 @@
 # 실제 근거 확대와 확인 한계
 
+## 2026-10-11 추가 조사
+
+[정확 T876MQQ012 공식 PDP](https://www.lge.co.kr/product/refrigerators/t876mqq012?modelId=MD10681860&pdpType=PURCHASE)에서 구매 옵션 네이처(메탈)·에센스 화이트와 의견 “기능에 충실한 기본제품이라 좋습니다. 청소도 편해요.”를 실제 관측했다. 이는 청소가 쉽다는 긍정 의견이며 청소 불편으로 바꾸지 않는다. 개별 리뷰ID·작성일·구매 인증·협찬은 미확인이다. parent의 독립 원문 관측과 코드 capture/import로 별도 Git 제외 catalog `lg-clean-positive-20261011-v1`에 등록했고 기본 v3는 변경하지 않았다. 발췌 SHA256 `23aa4a3a157d2c540ab99b95609c3babf16fe16b86e71fa46cab1d792e60f296`, snapshot `3509c6ccdf890ae1f4366ea8d76bb8d8a9e253e8b10dd61a5ba4315d06e30dd7`이다.
+
+이번3모델 조회에서 새로운 해당 모델 청소 불편·내부 유효 mm·선반 간격은0건 확보했다. 필터 시험 챔버·외형 치수·과거 다른 제조사 제품 불편·사용 기대는 이 근거로 사용할 수 없다. 조회 범위의 미확인이며 자료가 존재하지 않는다는 결론이 아니다. [이번 실행·검토](../validation/focused-progress-20261011.md)는 이 긍정 근거를 포함한 보류 판단과 실제 AI 웹 수집을 기본 자료와 분리해 기록한다.
+
+아래는 앞선 자료 확대 이력이다.
+
 2026-10-10. 이전 LG 작업물 없이 공개 원문을 새로 조회했다. 업무 snapshot은 data/business/lg-research-v3, 재생성은 scripts/create-real-research.py다. 원문 snapshot 재현용 상수이며 스크래퍼가 아니다. 실제3모델·후기6발췌·공식 사실19개를 저장했다. 검토용 합성 자료는 업무 근거로 사용하지 않는다.
 
 | 모델 | 실제 관측 불편/의견 | 정확한 제품 기능·구조 |

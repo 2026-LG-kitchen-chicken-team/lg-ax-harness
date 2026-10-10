@@ -44,7 +44,7 @@
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "d3b660ddb20c43e9d385e913cb5634e8b6769764559ca439ccb66d003e9ca338"
+          "sha256": "a5f5a4dd441dc8acef3bea81b49f9b9392547ca67b4ae7f50a6285f21e949ae4"
         }
       ]
     },
@@ -144,7 +144,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "63f8975a9ef1d03a599c3bee621c7389e910fad26d847148a5668bfc31505fea"
+      "sha256": "95008923bd34f24959addf987238a47d025ab5a01df8e1c68dfc67b283cd5240"
     },
     {
       "path": "product-tools/cli.py",
@@ -180,7 +180,7 @@
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
-      "sha256": "5b71584dc322c184ebb05aaf1fc909483020a508d2978432a4637b27ed9e4a67"
+      "sha256": "b19cb983fe8bf427f4ce141780ecb990d456db5120fc5c588bc294a5f89631ce"
     },
     {
       "path": "docs/contracts/common-tools.md",
@@ -192,7 +192,7 @@
     },
     {
       "path": "docs/contracts/web-evidence.md",
-      "sha256": "04c4a76017296bd847aa0eadbe0ddbed6ff268dc23c614bce41e1bdd824ea004"
+      "sha256": "a95943ce655219f68cd04123558112bc4705949ad4a8ce9779e965e39f3c5bb7"
     },
     {
       "path": "docs/contracts/codex-product.md",

@@ -6,6 +6,8 @@
 
 2026-10-11: [1–7번 최신 작업·실제 검사](docs/validation/seven-task-progress.md), [팀원 실제 시간 측정·회신](docs/evaluation/team-measurement.md). 실패/timeout과 미측정 사람 공수·전체 청구·Claude/Gemini native 미인수를 보존한다.
 
+후속1·2·3·6번은 [v5.4 실행·근거·비교 기록](docs/validation/focused-progress-20261011.md)과 [별도9입력 평가 계약](docs/evaluation/focused-protocol-20261011.md)을 따른다. 제품 웹 반환 preview를 원문 snapshot과 분리해 줄였다. 실제 자료 충분성·원래 평가 실패·총 청구/사람 공수의 미측정은 유지한다. 팀원 로컬 웹 작업은 이번 분석에서 제외했다.
+
 ## 시작
 
 Python 3.12와 uv, 로그인된 Codex를 사용한다. 이 레포에서:

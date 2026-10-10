@@ -102,15 +102,20 @@ class WebEvidence:
         return value
 
     def collect(self, payload, browser=False):
-        obj(payload, ("research_id", "page_id", "url") + (("observed_text", "native_tool_name") if browser else ()), ("focus",))
+        obj(payload, ("research_id", "page_id", "url") + (("observed_text", "native_tool_name") if browser else ()), ("focus", "preview_chars"))
+        preview_chars = payload.get("preview_chars", 4000)
+        if type(preview_chars) is not int or not 256 <= preview_chars <= 4000:
+            fail("invalid_input", "preview_chars must be an integer from 256 to 4000")
         if "focus" in payload:
             text(payload["focus"], "focus", 200)
         if browser:
             text(payload["observed_text"], "observed_text", 16000)
             text(payload["native_tool_name"], "native_tool_name", 100)
-        cached, reused = self._reserve(payload, "browser" if browser else "http")
+        # Presentation size does not change the observed source or page identity.
+        collection_payload = {k: v for k, v in payload.items() if k != "preview_chars"}
+        cached, reused = self._reserve(collection_payload, "browser" if browser else "http")
         if reused:
-            return self._summary(cached, True)
+            return self._summary(cached, True, preview_chars, payload.get("focus"))
         try:
             if browser:
                 content = payload["observed_text"]
@@ -152,7 +157,7 @@ class WebEvidence:
             (self.base / (snapshot_id + ".json")).write_text(canonical(value), encoding="utf-8")
             with self.db:
                 self.db.execute("UPDATE web_pages SET snapshot_id=? WHERE research_id=? AND page_id=?", (snapshot_id, payload["research_id"], payload["page_id"]))
-            return self._summary(value, False)
+            return self._summary(value, False, preview_chars, payload.get("focus"))
         except (HTTPError, URLError, TimeoutError) as exc:
             transient = isinstance(exc, (URLError, TimeoutError)) and not isinstance(exc, HTTPError) or isinstance(exc, HTTPError) and exc.code in (408, 429, 500, 502, 503, 504)
             attempts = self.db.execute("SELECT attempts FROM web_pages WHERE research_id=? AND page_id=?",
@@ -166,8 +171,13 @@ class WebEvidence:
                     "semantic_status": "unverified", "next_action": "one bounded retry" if retryable else "held or a separately authorized native browser observation; do not reset this page ID"}
 
     @staticmethod
-    def _summary(value, cached):
-        return {**{k: v for k, v in value.items() if k != "text"}, "text_preview": value["text"][:4000],
+    def _summary(value, cached, preview_chars=4000, focus=None):
+        position = value["text"].find(focus) if focus else -1
+        context_chars = min(200, preview_chars - len(focus)) if focus else 200
+        start = max(0, position - context_chars) if position >= 0 else 0
+        preview = value["text"][start:start + preview_chars]
+        return {**{k: v for k, v in value.items() if k != "text"}, "text_preview": preview,
+                "preview_start": start, "preview_truncated": start > 0 or start + len(preview) < len(value["text"]),
                 "snapshot_path": "runtime-data/web-evidence/" + value["snapshot_id"] + ".json", "cached": cached}
 
     def _check_manual_association(self, entry, snapshot, exact):

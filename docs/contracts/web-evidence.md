@@ -8,8 +8,8 @@
 
 | OP | 입력 | 결과 |
 |---|---|---|
-| fetch_web_page | research_id/page_id/url, 선택 focus | 실제 HTTPS 페이지의 가시 텍스트 관측·지문·짧은 preview·snapshot_path 또는 unavailable |
-| capture_web_page | research_id/page_id/url/observed_text/native_tool_name, 선택 focus | 호출자가 보고한 native 본문 snapshot. 실제 브라우저를 실행하지 않고 Tool 이름만으로 실행을 증명하지 않음 |
+| fetch_web_page | research_id/page_id/url, 선택 focus/preview_chars | 실제 HTTPS 페이지의 가시 텍스트 관측·지문·짧은 preview·snapshot_path 또는 unavailable |
+| capture_web_page | research_id/page_id/url/observed_text/native_tool_name, 선택 focus/preview_chars | 호출자가 보고한 native 본문 snapshot. 실제 브라우저를 실행하지 않고 Tool 이름만으로 실행을 증명하지 않음 |
 | import_web_evidence | 새 data_version, observations 배열 | 관측 snapshot의 발췌·모델 연결 구조 검사 뒤 새 catalog 경로. 원문 의미·옵션 일치 미검증 |
 
 HTTP·관측 URL 허용 host는 www.lge.co.kr/static.lge.co.kr/gscs-b2c.lge.com/gscs-manual.lge.com/min-inter.co.kr다. 새 출처가 필요하면 실제 원문과 접근 조건을 확인해 코드·검사·기록을 갱신한다. HTTPS 기본 포트만, 인증정보 없음, redirect 자동 추적 없음, proxy 자동 사용 없음. 응답은 text/html·text/plain과 identity encoding만 받는다. PDF는 native 도구로 읽으며 HTTP collector가 PDF를 지원한다고 설명하지 않는다.
@@ -19,6 +19,8 @@ HTTP socket timeout8초, 응답 최대2MiB, 저장 본문 최대16000자, previe
 같은 research_id는 최대6개 page_id, 같은 page_id는 최초+transient오류 뒤 재시도1회다. SQLite에서 원자적으로 등록하고 새 프로세스로 재개해도 유지한다. URL/내용이 바뀐 동일 키는 충돌한다. 성공 관측은 무결성 확인 후 재사용한다. 새 research_id를 내부적으로 만들어 같은 요청 상한을 우회하지 않도록 Agent 지침·실제 평가를 연결한다. native 검색/브라우저 내부 호출은 이 counter의 강제 대상이 아니다.
 
 ## observations
+
+`preview_chars`는 정수256~4000(기본4000)이며 반환 미리보기만 줄인다. 저장 snapshot·SHA·실제 발췌 검증·page_id 수집 상한은 그대로다. `focus` 주변 미리보기의 `preview_start/preview_truncated`와 저장 본문의 `text_start/truncated`를 구분한다. 미리보기 크기 변경만으로 같은 페이지를 재수집하거나 지문을 바꾸지 않는다. 인용문이 미리보기에 없으면 snapshot의 필요한 부분만 읽는다.
 
 항목마다 snapshot_id/source_id/kind/scope/location/text/support_quote/published_date/model_matching/purchase_verified/sponsorship이 필요하다. kind=product_fact이면 feature_key/availability를 추가한다. scope는 현재 catalog의 정확한3필드다. 새로운 모델 자체의 catalog 확장은 공식 사양 확인 후 별도 변경으로 처리한다.
 
