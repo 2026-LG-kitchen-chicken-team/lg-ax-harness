@@ -103,3 +103,13 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 [취소·재시도·반환 원문 시험](docs/validation/s05-hardening.md)에서는 공통 취소 저장과 재시도 경계를 추가했고 제품97개·평가29개·개발22개 코드 검사를 통과했다. 실제 J17 삽입 조건은 최종 저장 일치를 확인했으나 정상 대조가420초 시간초과여서 두 조건 비교는 미통과다. 업무 취소는 로컬 저장 차단이며 native/backend 종료를 보장하지 않는다.
 
 [시연 실행 순서와 발표 구성](submission/README.md), [준비 검증](docs/validation/s06-demo-preparation.md)을 추가했다. 14쪽·예정570초의 근거 연결과 새 소스 ZIP·환경별 파일 설치를 확인했다. 실제 발표 파일·영상·리허설·최종 제출은 남아 있다.
+
+## 팀원이 이미 실행한 결과 제출
+
+[실행 결과 Issue](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/issues/new?template=harness-test-result.md)에 환경·실제 질문/답변·관측 Skill/Tool·오류·후속 이력·사용량을 남긴다. 읽기 권한으로 접수하고 관리자가 비식별 검토 보고서를 레포에 정리한다. 이 절차를 위해 기존 테스트를 다시 실행할 필요는 없다. [접수 방법](docs/evaluation/team-test-records.md), [환경별 결과 색인](docs/validation/team-runs/index.md), [질문 범위와 미사용 평가](docs/evaluation/coverage-and-holdout.md)를 따른다.
+
+팀원들이 실행했다는 사용자 보고와 실제 결과를 접수·검토한 상태를 구분한다. 아직 개별 보고서를 받지 않았으므로 새 환경의 지원·품질 통과를 추가하지 않았다. 실행 종료·업무 상태·내용 검토를 따로 기록하고, 실패 → 수정 commit → 재시험을 연결한다. 수백 질문 후보를 마련하더라도 개발에 노출된 사례와 미사용 평가를 분리한다.
+
+## 제품 릴리스
+
+[릴리스 계약](docs/contracts/product-release.md)에 따라 의미 있는 제품/제출 변경을 새 버전으로 배포한다. 첨부물은 출품 하네스 ZIP·완성 제출 파일·SHA 목록이며 개발용 하네스와 팀 테스트 기록은 포함하지 않는다. 기존 버전을 덮어쓰지 않고 변경 내역·source commit·실제 검사·지원 환경/제한을 남긴다. 현재 작업은 접수·평가·릴리스 절차 문서이므로 새 제품 릴리스는 발행하지 않았다. 향후 실행 다운로드는 GitHub 자동 전체 `Source code`가 아닌 제품 첨부 ZIP을 안내한다.
