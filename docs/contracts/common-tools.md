@@ -40,6 +40,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 | start_turn / get_turn | input+user_submitted / session_id+turn_id | 멱등 새 요청/기존 요청·상태·이력·usage·무효화 |
 | save_result | session_id/turn_id/result_key/result/expected_result_version | 최초/수정 결과 시도·검증 실패를 함께 저장, accepted/reason·현재 상태 |
 | record_usage | session_id/turn_id/call | 알려진 subtotal과 미측정 개수, 전체성 미검증 |
+| cancel_turn | session_id/turn_id/cancel_key/reason/expected_result_version/user_submitted | 후보 없는 로컬 취소·멱등 receipt. native/backend 중단은 별도 미확인 |
 | begin_invocation / finish_invocation | 세션/turn/호출 ID/Tool·요청 지문 또는 종료 상태 | 호출자 보고 장부. Tool을 실행·취소하거나 네이티브 호출을 통제하지 않음 |
 
 문자 조회는 literal 부분 문자열 검색이다. 입력·출력 64KiB, 내부 planning 12KiB, 후보 결과 32KiB, 원문 파일 각 1MiB, 조회 최대20건, query 최대200자다. JSON 중복 키·NaN/Infinity·bool 숫자·미지 필드를 거부한다. SQLite 잠금 대기 5초, 실제 검사 명령은 부모 check의 30–120초 상한으로 실행한다. 조건부 HTTP 관측·native 본문 기록·새 버전 등록을 추가했다. 별도 [외부 조사 계약](web-evidence.md)의 지원 형식·socket timeout·native 브라우저 미포함 범위를 따른다.
@@ -59,6 +60,8 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 자료 조회 캐시는 자료·조회 조건·코드 지문을 사용한다. 다른 질문이어도 같은 자료 조회를 재사용할 수 있지만 이것은 LLM 결과 캐시나 토큰 절감 실증이 아니다. 실제 Agent가 필요한 근거만 읽는지는 후속 통합 평가에서 확인한다.
 
 등록된 invocation은 첫 시도와 재시도 가능한 실패 후 한 번의 기술 재시도를 허용하고 같은 ID 재개 시 횟수를 유지한다. turn당 등록40개 상한은 장부에 적용된다. 실제 Tool 실행 경로·네이티브 모델 호출의 강제 상한은 이 장부만으로 보장하지 않는다. 사용량은 호출 ID별 보고된 input/output/cache/reasoning/cost를 성공·실패 모두 합산한다. unknown은 null이고 실제 0과 구분한다. 전체 네이티브 호출·비용이 관측되지 않아 잔여 예산이나 절감률은 계산하지 않는다.
+
+cancel_turn은 명시적 사용자 취소의 호출자 보고를 세션·turn에 연결한다. 같은 cancel_key·사유·expected_result_version 재전송은 최초 기록을 반환하고 다른 취소 요청은 cancel_conflict다. BEGIN IMMEDIATE 안에서 버전을 확인해 취소와 후보 저장 경쟁을 직렬화한다. pending/needs_revision/held 등 미종료 업무를 cancelled로 닫고 후보·revision/result_version·이력·usage·running invocation은 변경하지 않는다. 오래된 미종료 turn도 취소할 수 있지만 valid=false를 유지한다. completed/failed/이미 결과 형식으로 cancelled인 종료 turn은 소급 변경하지 않는다. 취소 이후 신규·동일 후보 재저장과 신규/재시도 invocation을 거절하며 latest_result는 숨기고 과거 후보는 export에서 보존한다. 종료·후보3회 소진 turn도 등록 호출을 더 시작하지 않는다. 기존 호출의 늦은 finish/usage는 계속 기록하되 업무를 되살리지 않는다. 반환 scope=local_business_write_barrier, native_execution_controlled=false, backend_stop_observed=null은 실제 실행기 중단/권한 제어를 뜻하지 않는다. 직접 네이티브 Tool/HTTP 경로 우회까지 이 장부가 차단한다고 설명하지 않는다.
 
 ## 실제 사용과 재현
 

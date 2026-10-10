@@ -1,4 +1,5 @@
 """Reproduce local-only portable installation; no native inference or auth."""
+import argparse
 import importlib.util
 import json
 from pathlib import Path
@@ -10,6 +11,12 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output",type=Path,default=ROOT/".harness/portable-validation.json")
+    args=parser.parse_args()
+    output=args.output.resolve()
+    if not output.is_relative_to((ROOT/".harness").resolve()) or output.exists():
+        raise ValueError("Use a new report below .harness; existing observations are preserved")
     spec=importlib.util.spec_from_file_location("portable_validation_installer",ROOT/"adapters/common/install.py")
     installer=importlib.util.module_from_spec(spec)
     spec.loader.exec_module(installer)
@@ -26,7 +33,8 @@ def main():
                 "doctor_error":doctor.stderr[-1500:] if doctor and doctor.returncode else None}
         records.append(record)
     result={"records":records,"native_inference_executed":False,"scope":"isolated regular files, locked Python environment and auth-free local doctor only"}
-    (ROOT/".harness/portable-validation.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    output.parent.mkdir(parents=True,exist_ok=True)
+    output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(result,ensure_ascii=False))
     return 0 if all(r["uv_sync_exit_code"]==0 and r["doctor_exit_code"]==0 and not r["integrity"]["errors"] for r in records) else 1
 

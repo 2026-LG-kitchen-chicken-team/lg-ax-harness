@@ -120,6 +120,7 @@
         "export_session",
         "current_request",
         "record_usage",
+        "cancel_turn",
         "begin_invocation",
         "finish_invocation"
       ],
@@ -130,11 +131,11 @@
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
-          "sha256": "f59c290f6970e930ad127d2949a1ce1bffcbe1137f92e1b2c60e1fc20e858cf7"
+          "sha256": "9fb5a062924830cf73fe5ccb9a9ba04cff86911b731aaed6be6bb144a31f3efc"
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "6fc9bb25552e11711f099907a4bf1a7371417dd8141aedb27e5cdef296a6de96"
+          "sha256": "a75a61e42a602de57ca7206cfedbbe4309f6c904402e22dac031580dc5990e10"
         }
       ]
     }
@@ -142,11 +143,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "f64fce4e6bdb2765f4c432b534d9676dda9f9a679d4c452be283fc432fbcd782"
+      "sha256": "0dbe3a61ac3a935346eb9ea9f3e18641f6461b3d2cd3f8375d6fb5ce7129cafb"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "5768241142bd4ef46b400c83535f194affc0ff83837f5eeb8c511a7978867b01"
+      "sha256": "f43f191ded110e98aef3f43ac758b01b5f7c1707873a1f3e71c6b813ae5b1528"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -170,7 +171,7 @@
     },
     {
       "path": "product-tools/product_tools/state.py",
-      "sha256": "e6b3db9f1e80101c46f7de710b744a0996a4b9552b7a6e5876458908b6447e2a"
+      "sha256": "174d8ef009b27fe7392c36dcd6fe2533aab4f619d80a1b1a4215bea829e42194"
     },
     {
       "path": "product-tools/product_tools/tools.py",
@@ -178,15 +179,15 @@
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
-      "sha256": "151b30ffa8813278515b8442f0710da94299f11092f035dde514fbced2936803"
+      "sha256": "42d47845deffb700315e4c1e7bcd25e154172668967f6f973b7b5453b4366dd5"
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "d2732a40a16721efb9131f512ee5dffe076d0c04f24122d1bde81c3dad38137d"
+      "sha256": "bcec27b0ff5dbccb3834a54882a54f9d477e2509243938d7e523a5aa887e36f9"
     },
     {
       "path": "docs/contracts/product-planning.md",
-      "sha256": "1893e0057a0e9ca0684ba5548439f036b1a8963df6c927b7e5bfc38537f9661a"
+      "sha256": "1de5a3c3c816291018aa21e20e7c03f923d40df7fde7218651f2c510df09f76c"
     },
     {
       "path": "docs/contracts/web-evidence.md",

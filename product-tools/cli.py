@@ -58,6 +58,7 @@ def dispatch(data, store, operation, payload):
         "start_turn": ("input", "user_submitted"), "get_turn": ("session_id", "turn_id"),
         "save_result": ("session_id", "turn_id", "result_key", "result", "expected_result_version"),
         "record_usage": ("session_id", "turn_id", "call"),
+        "cancel_turn": ("session_id", "turn_id", "cancel_key", "reason", "expected_result_version", "user_submitted"),
         "begin_invocation": ("session_id", "turn_id", "invocation_id", "tool_name", "request_fingerprint"),
         "finish_invocation": ("session_id", "turn_id", "invocation_id", "status", "retryable"),
     }
@@ -72,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / "data/business/lg-research-v3")
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("doctor", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "open_request", "open_request_bundle", "current_request", "export_session", "save_reviewed_result", "start_turn", "get_turn", "save_result", "record_usage", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("doctor", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "open_request", "open_request_bundle", "current_request", "export_session", "save_reviewed_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None

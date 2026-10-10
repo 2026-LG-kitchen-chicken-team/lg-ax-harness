@@ -4,7 +4,7 @@
 
 최신 선택: 출품은 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결한다. [실행 결정](../decisions/product-runtime.md)을 따른다. 자체 모델 API 프로그램과 Codex 내부 호출 실행기는 초기 경로로 채택하지 않는다. 구조·실행 시각화는 후순위의 [별도 관찰 프로그램](observability-viewer.md)에서 제공한다.
 
-현재 우선순위는 D01-D06 개발 체계 구축이다. 시각화는 후순위이며 해당 도구 선택·설치·수집·UI 작업을 D01-D06의 선행 조건으로 두지 않는다. Codex/Claude 실행에 우리 React Flow UI를 연결하는 후보도 기술적으로 검토할 수 있으나 현재 채택하지 않는다. 실행 방식과 화면 선택은 구분한다.
+Codex 개발 체계 D01-D05는 검증했으며 현재 우선순위는 S05 품질·효과 평가와 실제 자료 보강이다. D06b Claude 개발 인수는 팀원 환경에서 별도로 진행해야 한다. 시각화는 후순위이며 도구 선택·설치·수집·UI를 개발 체계나 S05의 선행 조건으로 두지 않는다. Codex/Claude 실행에 React Flow UI를 연결하는 후보는 현재 채택하지 않았다.
 
 ## 목표와 현재 상태
 
@@ -192,9 +192,12 @@ runtime-data/                 # 출품 SQLite·로그; Git 제외
     - [x] S05c2 나머지4사례·native 재개와 조건 변경/이력·명시한 단일 Agent 선호의 실제 관측·독립 원문 검토. 제품 저장 일치, 일반2건 unused_evidence 구조 실패도 보존.
     - [x] S05c3 test_only 지시문 파일·일회성 wrapper 장애·owned CLI deadline 시험. 실제 전달/복구/프로세스 종료 범위이며 반환 근거 속 공격·업무 cancelled 지원·전체 재시도 한도는 별도 미완료.
     - [ ] S05c4 전체 Agent/backend 실패 포함 청구 및 실제 사람 활동 시간·요구 충족률·반복 일반화 검증. [공수 측정 절차](../evaluation/human-effect-protocol.md).
+    - [x] S05c5 로컬 업무 `cancel_turn`·영수증/이력·멱등성·terminal/오래된 turn·재접속·늦은 관측·저장 경합, 웹 수집 최초+재시도1회 경계를 일반 코드 검사. native/backend 중단·재시도 강제 제어 검증은 아님. [취소·재시도 검증](../validation/s05-hardening.md).
+    - [ ] S05c6 정상 반환 원문과 지시문 삽입을 같은 질문으로 실제2회 비교. 실제 전달은 두 조건 확인, 삽입 조건 구조/저장 일치 확인, 정상 대조420초 timeout으로 paired acceptance 미통과. 최초 수집 오류와 실패를 보존하고 native 추가 입력 없이 완료 trace를 재검사.
 - [ ] S06 README를 따라 새 환경에서 실행·Skill 재실행·ZIP 재현을 확인하고 실제 실행으로 발표·영상 작성. 발표자료 20페이지·발표 10분/질의응답 5분을 검사하고 제출 직전 영상 규격·실제 마감 시각·제출 경로·파일명·변경 공지를 확인.
   - [x] S06a 업무 source ZIP70파일 manifest·새 Temp 추출·uv 잠금 환경·공통 Skill doctor·ZIP 내부 소스의 새 Claude 사본 설치를 실증. [재현 연습](../validation/submission-rehearsal.md). native 신규 환경·영상·최종 제출 완료가 아님.
   - [ ] S06b 발표/영상·최종 지원 환경 재현·운영진 제출 규격/마감/공지 대조.
+  - [x] S06c 시연 실행 순서·14쪽/예정570초 발표 구성·요구/근거 연결과 구조 검사, 최신 업무 소스 ZIP70파일 및 Claude/Gemini 새 폴더 설치/doctor 재확인. [준비 기록](../validation/s06-demo-preparation.md). 실제 발표/영상/리허설·native 환경 인수 완료는 아님.
 
 개발용 하네스의 완료 기준은 D01-D05 실증이다. Claude native 지원 검증 완료는 D06b 실제 팀원 검증을 추가로 요구한다. D06a는 adapter 파일 제공·정적 동기화 완료다. 출품 완료는 S01-S06 및 공식 제출 요구를 실제로 충족해야 한다. 계획·정적 검사·라이브러리 smoke test만으로 어느 완료도 주장하지 않는다.
 
@@ -214,3 +217,5 @@ runtime-data/                 # 출품 SQLite·로그; Git 제외
 [인수 기록](../validation/codex-product.md)에 따라 Codex 전용 별도 설치, 자동 Skill 발견, 정상/후속/보류/미확인 모델·실제 오류와 저장/export를 실증했다. 공통 도구75검사·독립 리뷰를 연결했다. 설치 프로그램은 모델을 호출하지 않으며 실제 모델은 실행자가 연 Codex다. 샌드박스 지원 제한·미측정 비용·품질/토큰 효과 미평가를 유지한다.
 
 후속으로 [S05 비교/예외](../validation/s05-followup.md), [Claude/Gemini 로컬 준비](../validation/portable-product.md), [소스 ZIP 재현](../validation/submission-rehearsal.md)을 추가했다. 과거75검사 시점과 현재82검사를 구분한다. 청소 불편·내부 치수의 [추가 조사](../data/s01d2-followup.md)도 확보 실패로 보존했다. native portability·전체 비용·사람 공수·시장 신규성·최종 제출을 완료로 바꾸지 않는다.
+
+이번 취소/재시도 보강 이후의 최신 코드 검사는 제품97개·평가29개·개발22개다. 이전82/18 검사 기록은 당시 결과로 보존한다. J17 실제2회 관측과 실패, 시연 준비를 추가했지만 정상 대조의 시간초과로 S05 전체는 미완료다. 다음 개발 우선순위는 원문 전달량·호출 수·긴 수행 시간의 분석/개선과 새 평가 계획이며, 팀원의 Claude/Gemini native 인수·사람 공수 측정·실제 발표/영상 작업은 병행 가능한 별도 항목이다.

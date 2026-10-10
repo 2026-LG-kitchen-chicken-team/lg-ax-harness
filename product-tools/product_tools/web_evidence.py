@@ -150,11 +150,16 @@ class WebEvidence:
                 self.db.execute("UPDATE web_pages SET snapshot_id=? WHERE research_id=? AND page_id=?", (snapshot_id, payload["research_id"], payload["page_id"]))
             return self._summary(value, False)
         except (HTTPError, URLError, TimeoutError) as exc:
-            retryable = isinstance(exc, (URLError, TimeoutError)) and not isinstance(exc, HTTPError) or isinstance(exc, HTTPError) and exc.code in (408, 429, 500, 502, 503, 504)
+            transient = isinstance(exc, (URLError, TimeoutError)) and not isinstance(exc, HTTPError) or isinstance(exc, HTTPError) and exc.code in (408, 429, 500, 502, 503, 504)
+            attempts = self.db.execute("SELECT attempts FROM web_pages WHERE research_id=? AND page_id=?",
+                                       (payload["research_id"], payload["page_id"])).fetchone()[0]
+            retryable = bool(transient and attempts < 2)
             with self.db:
                 self.db.execute("UPDATE web_pages SET retryable=? WHERE research_id=? AND page_id=?", (int(retryable), payload["research_id"], payload["page_id"]))
-            return {"status": "unavailable", "retryable": retryable, "reason": "http_" + str(exc.code) if isinstance(exc, HTTPError) else "network_error",
-                    "semantic_status": "unverified", "next_action": "one bounded retry, available native browser, or held"}
+            return {"status": "unavailable", "retryable": retryable, "attempts": attempts,
+                    "technical_retries_remaining": 1 if retryable else 0,
+                    "reason": "http_" + str(exc.code) if isinstance(exc, HTTPError) else "network_error",
+                    "semantic_status": "unverified", "next_action": "one bounded retry" if retryable else "held or a separately authorized native browser observation; do not reset this page ID"}
 
     @staticmethod
     def _summary(value, cached):

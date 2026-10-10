@@ -1,0 +1,24 @@
+{
+  "status": "preparation_only",
+  "theme": "Theme A: 실제 고객 불편·기존 기능 대조 기반 키친 상품기획 Agent",
+  "planned_seconds": 570,
+  "recorded_video": false,
+  "actual_rehearsal": false,
+  "slides": [
+    {"page":1,"title":"근거와 기존 기능을 대조하는 상품기획 Agent","seconds":15,"requirements":["C01"],"evidence":["docs/competition-requirements.md"]},
+    {"page":2,"title":"리뷰에서 상품기획으로 연결하는 업무","seconds":35,"requirements":["C01"],"evidence":["docs/contracts/product-planning.md"]},
+    {"page":3,"title":"사용자 입력과 AI의 역할","seconds":25,"requirements":["C01","C02"],"evidence":["docs/consultation/2026-10-10.md","agents/product-planning.md"]},
+    {"page":4,"title":"실제 자료와 확인 범위","seconds":35,"requirements":["C01"],"evidence":["docs/data/real-research.md","docs/data/s01d2-followup.md"]},
+    {"page":5,"title":"메인 Agent와 업무 Skill","seconds":40,"requirements":["C02","C04"],"evidence":["docs/plans/product-harness.md","skills/manifest.json"]},
+    {"page":6,"title":"근거 조회부터 검토·저장까지","seconds":30,"requirements":["C02","C04"],"evidence":["docs/contracts/common-tools.md","docs/contracts/codex-product.md"]},
+    {"page":7,"title":"실제 정상 업무 시연","seconds":140,"requirements":["C03","C04"],"evidence":["docs/validation/s05-followup.md","evals/judge/s05-cases.json"]},
+    {"page":8,"title":"자료 부족과 조건 변경","seconds":80,"requirements":["C03","C04"],"evidence":["docs/validation/s05-followup.md"]},
+    {"page":9,"title":"실제 입력 평가와 보존한 실패","seconds":45,"requirements":["C03","C04"],"evidence":["docs/validation/s05-followup.md","docs/validation/s05-hardening.md"]},
+    {"page":10,"title":"토큰 사용량 비교의 결과와 한계","seconds":40,"requirements":["C06"],"evidence":["docs/validation/s05-followup.md"]},
+    {"page":11,"title":"업무 적용과 효과 측정","seconds":30,"requirements":["C05"],"evidence":["docs/evaluation/human-effect-protocol.md"]},
+    {"page":12,"title":"실행 환경별 지원 상태","seconds":20,"requirements":["C05"],"evidence":["docs/validation/codex-product.md","docs/validation/portable-product.md"]},
+    {"page":13,"title":"Skill 재실행과 소스 재현","seconds":15,"requirements":["C07","C08"],"evidence":["README.md","docs/validation/submission-rehearsal.md"]},
+    {"page":14,"title":"현재 한계와 제출 전 확인","seconds":20,"requirements":["C05","C09"],"evidence":["docs/competition-requirements.md","docs/plans/development-harness.md"]}
+  ],
+  "pending": ["발표 파일 제작", "실제 입력·판단·Skill/Tool·결과 영상 촬영", "실제 시간 리허설", "Claude/Gemini native 인수", "사람 공수·전체 청구 측정", "청소 불편·내부 치수 자료", "영상 규격·최종 마감·제출 경로·파일명·변경 공지 확인"]
+}

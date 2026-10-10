@@ -1,4 +1,5 @@
 """Fresh ZIP extraction and locked local Tool reproduction, no native inference."""
+import argparse
 import hashlib
 import importlib.util
 import json
@@ -11,6 +12,12 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output",type=Path,default=ROOT/".harness/submission-rehearsal.json")
+    args=parser.parse_args()
+    output=args.output.resolve()
+    if not output.is_relative_to((ROOT/".harness").resolve()) or output.exists():
+        raise ValueError("Use a new report below .harness; existing observations are preserved")
     spec=importlib.util.spec_from_file_location("source_packager",ROOT/"adapters/common/package.py")
     package=importlib.util.module_from_spec(spec)
     spec.loader.exec_module(package)
@@ -34,7 +41,8 @@ def main():
     value={**result,"manifest_integrity":integrity,"extracted":str(extracted),"uv_sync_exit_code":sync.returncode,"common_skill_doctor_exit_code":doctor.returncode,
            "portable_reinstall_exit_code":reinstall.returncode,"errors":[p.stderr[-1500:] for p in (sync,doctor,reinstall) if p.returncode],
            "native_inference_executed":False,"scope":"source archive, fresh extraction, locked common Tool and portable source reinstallation only"}
-    (ROOT/".harness/submission-rehearsal.json").write_text(json.dumps(value,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    output.parent.mkdir(parents=True,exist_ok=True)
+    output.write_text(json.dumps(value,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(value,ensure_ascii=False))
     return 0 if integrity and all(p.returncode==0 for p in (sync,doctor,reinstall)) else 1
 

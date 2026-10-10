@@ -7,7 +7,7 @@ import hashlib
 import re
 import sqlite3
 import uuid
-from .contracts import MAX_RESULT_BYTES, ToolError, canonical, fail, fingerprint, identifier, integer, obj, planning_input, strict_json
+from .contracts import MAX_RESULT_BYTES, ToolError, canonical, fail, fingerprint, identifier, integer, obj, planning_input, strict_json, text
 from .tools import ProductTools
 
 def now():
@@ -51,6 +51,9 @@ class StateStore:
                 PRIMARY KEY(turn_id, invocation_id));
             CREATE TABLE IF NOT EXISTS retrieval_cache(
                 cache_key TEXT PRIMARY KEY, payload TEXT NOT NULL, payload_hash TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS cancellations(
+                turn_id TEXT PRIMARY KEY REFERENCES turns(turn_id), cancel_key TEXT NOT NULL,
+                request_json TEXT NOT NULL, prior_status TEXT NOT NULL, created_at TEXT NOT NULL);
         """)
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(results)")}
         if "validation_json" not in columns:
@@ -149,11 +152,52 @@ class StateStore:
                 "context_fingerprint": row["context_hash"], "valid": valid,
                 "business_reuse_eligible": valid and structurally_valid and known_runtime and known_workflow and row["status"] == "completed",
                 "invalidation_reason": row["invalidation_reason"] or (None if valid else "dataset_or_code_changed"),
-                "latest_result": candidate if valid and structurally_valid else None,
+                "latest_result": candidate if valid and structurally_valid and row["status"] != "cancelled" else None,
+                "cancellation": self.cancellation(turn_id),
                 "last_validation": self.compact_validation(validation),
                 "result_history": [{**{k: r[k] for k in ("result_key", "payload_hash", "result_version", "created_at")}, "validation": self.compact_validation(strict_json(r["validation_json"]))} for r in history],
                 "usage_summary": self.usage_summary(session_id, turn_id),
                 "semantic_status": "unverified", "acceptance_ready": False, "native_execution_controlled": False}
+
+    def cancellation(self, turn_id):
+        row = self.db.execute("SELECT * FROM cancellations WHERE turn_id=?", (turn_id,)).fetchone()
+        if row is None:
+            return None
+        return {"cancel_key": row["cancel_key"], "reason": strict_json(row["request_json"])["reason"],
+                "prior_status": row["prior_status"], "recorded_at": row["created_at"],
+                "scope": "local_business_write_barrier", "native_execution_controlled": False,
+                "backend_stop_observed": None}
+
+    def cancel_turn(self, session_id, turn_id, cancel_key, reason, expected_result_version, user_submitted):
+        """Close business writes atomically; never infer native/backend termination."""
+        identifier(cancel_key, "cancel_key")
+        text(reason, "reason", 1000)
+        integer(expected_result_version, "expected_result_version", 0, 3)
+        if user_submitted is not True:
+            fail("user_input_required", "Business cancellation requires explicit user input")
+        request = canonical({"cancel_key": cancel_key, "reason": reason,
+                             "expected_result_version": expected_result_version, "user_submitted": True})
+        with self.transaction():
+            row = self.row(session_id, turn_id)
+            prior = self.db.execute("SELECT request_json FROM cancellations WHERE turn_id=?", (turn_id,)).fetchone()
+            if prior:
+                if prior[0] != request:
+                    fail("cancel_conflict", "Turn already has a different cancellation request")
+                reused = True
+            else:
+                if row["status"] in ("completed", "failed", "cancelled"):
+                    fail("terminal_turn", "A finished turn cannot be cancelled retroactively")
+                if row["result_version"] != expected_result_version:
+                    fail("state_conflict", "Result version changed; reread turn before cancelling")
+                # No freshness requirement: even a stale unfinished turn needs a
+                # write barrier. Candidates, counters, usage and invocations stay intact.
+                self.db.execute("INSERT INTO cancellations VALUES(?,?,?,?,?)",
+                                (turn_id, cancel_key, request, row["status"], now()))
+                self.db.execute("UPDATE turns SET status='cancelled' WHERE turn_id=?", (turn_id,))
+                reused = False
+        return {"reused_cancellation": reused, "turn": self.get_turn(session_id, turn_id),
+                "scope": "local_business_write_barrier", "native_execution_controlled": False,
+                "backend_stop_observed": None}
 
     @staticmethod
     def compact_validation(value):
@@ -174,6 +218,8 @@ class StateStore:
         report = None
         with self.transaction():
             row = self.row(session_id, turn_id)
+            if row["status"] == "cancelled":
+                fail("terminal_turn", "A cancelled turn cannot accept candidate writes or replays")
             if not self.fresh(row):
                 fail("stale_context", "Cannot store result for invalidated turn")
             duplicate = self.db.execute("SELECT payload,payload_hash,validation_json FROM results WHERE turn_id=? AND result_key=?", (turn_id, result_key)).fetchone()
@@ -222,7 +268,6 @@ class StateStore:
         return {"accepted": accepted, "reason": reason, "validation": self.compact_validation(report), "turn": self.get_turn(session_id, turn_id)}
 
     def record_usage(self, session_id, turn_id, call):
-        self.row(session_id, turn_id)
         obj(call, ("call_id", "status", "input_tokens", "output_tokens", "cache_tokens", "reasoning_tokens", "cost_usd"))
         identifier(call["call_id"], "call_id")
         if call["status"] not in ("succeeded", "failed", "cancelled"):
@@ -241,6 +286,7 @@ class StateStore:
                 fail("invalid_input", "cost_usd must be nonnegative finite decimal string or null")
         payload = canonical(call)
         with self.transaction():
+            self.row(session_id, turn_id)
             duplicate = self.db.execute("SELECT payload FROM usage WHERE turn_id=? AND call_id=?", (turn_id, call["call_id"])).fetchone()
             if duplicate and duplicate[0] != payload:
                 fail("usage_conflict", "Call ID already has a different observation")
@@ -254,6 +300,8 @@ class StateStore:
             fail("invalid_input", "request_fingerprint must be SHA256 hex")
         with self.transaction():
             row = self.row(session_id, turn_id)
+            if row["status"] in ("completed", "failed", "cancelled") or row["result_version"] >= 3:
+                fail("terminal_turn", "A finished/exhausted turn cannot begin new Tool invocations")
             if not self.fresh(row):
                 fail("stale_context", "Invocation belongs to invalidated turn")
             previous = self.db.execute("SELECT * FROM invocations WHERE turn_id=? AND invocation_id=?", (turn_id, invocation_id)).fetchone()
@@ -272,11 +320,11 @@ class StateStore:
         return {**result, "scope": "caller-reported invocation registry; does not execute Tools"}
 
     def finish_invocation(self, session_id, turn_id, invocation_id, status, retryable):
-        self.row(session_id, turn_id)
         identifier(invocation_id, "invocation_id")
         if status not in ("succeeded", "failed", "cancelled") or type(retryable) is not bool or (status != "failed" and retryable):
             fail("invalid_input", "Invalid Tool completion/retry flag")
         with self.transaction():
+            self.row(session_id, turn_id)
             row = self.db.execute("SELECT * FROM invocations WHERE turn_id=? AND invocation_id=?", (turn_id, invocation_id)).fetchone()
             if not row or row["status"] != "running":
                 fail("invocation_not_running", "Tool invocation must already be running")

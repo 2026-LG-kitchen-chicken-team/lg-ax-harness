@@ -198,13 +198,36 @@ class PlanningWebTests(unittest.TestCase):
             self.assertTrue(self.web.collect(payload)["retryable"])
             self.web.close()
             self.web = WebEvidence(self.workspace / "web.sqlite", self.workspace)
-            self.web.collect(payload)
+            exhausted = self.web.collect(payload)
+            self.assertFalse(exhausted["retryable"])
+            self.assertEqual(exhausted["technical_retries_remaining"], 0)
+            self.assertEqual(exhausted["attempts"], 2)
             self.error("research_limit", self.web.collect, payload)
+            self.assertEqual(opener.return_value.open.call_count, 2)
         payload["page_id"] = "403"
         with patch("product_tools.web_evidence.build_opener") as opener:
             opener.return_value.open.side_effect = HTTPError(payload["url"], 403, "Forbidden", {}, None)
             self.assertFalse(self.web.collect(payload)["retryable"])
             self.error("research_limit", self.web.collect, payload)
+            self.assertEqual(opener.return_value.open.call_count, 1)
+
+    def test_transient_retry_success_caches_without_new_network_calls(self):
+        payload = {k: v for k, v in self.browser().items() if k not in ("observed_text", "native_tool_name")}
+        headers = Message()
+        headers["Content-Type"] = "text/plain; charset=utf-8"
+        response = io.BytesIO(b"T876MQQ012 bounded collector response")
+        response.headers = headers
+        with patch("product_tools.web_evidence.build_opener") as opener:
+            opener.return_value.open.side_effect = [URLError("temporary network fault"), response]
+            first = self.web.collect(payload)
+            self.assertEqual(first["technical_retries_remaining"], 1)
+            succeeded = self.web.collect(payload)
+            self.web.close()
+            self.web = WebEvidence(self.workspace / "web.sqlite", self.workspace)
+            cached = self.web.collect(payload)
+            self.assertTrue(cached["cached"])
+            self.assertEqual(cached["snapshot_id"], succeeded["snapshot_id"])
+            self.assertEqual(opener.return_value.open.call_count, 2)
 
     def observation(self, snapshot):
         return {"snapshot_id": snapshot["snapshot_id"], "source_id": "NEW-REVIEW-01", "kind": "review", "scope": self.scope,
