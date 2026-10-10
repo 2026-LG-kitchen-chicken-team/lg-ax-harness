@@ -55,6 +55,7 @@ uv run python -m unittest discover -s tests/product-tools -v
 - [실제 검증과 제한](docs/validation/development-harness.md): 정적 검사, 네이티브 위임, 구현·검사·통합의 근거.
 - [개발 절차](docs/development.md): 장부·task-bound 검사·완료·인수인계.
 - [작업 상태](docs/plans/development-harness.md): D 구축과 S 출품 작업의 완료 범위.
+- [팀원 웹 작업공간](web/README.md): 황대겸을 웹 PM 한 명으로 지정했다. 웹 설계·기술 선택·작업 배분·리뷰는 PM이 지휘하며, 영상 분석과 연결 제안은 [착수 문서](docs/plans/team-web-workspace.md)를 따른다. 현재 웹 앱은 미구현이다.
 - [대회 요구](docs/competition-requirements.md), [AI 직접 입력 평가](docs/evaluation/judge-input-cases.md).
 
 OpenSpec은 제거했다. 기존 LG 작업물은 재사용하지 않았다. OSS 원본은 [third-party notice](THIRD_PARTY_NOTICES.md)를 따른다. API key·개인 설정·원문 실행 로그·의존성 환경은 Git에 넣지 않는다.
