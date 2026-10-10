@@ -123,3 +123,5 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 [첫 제품 시험판 product-v0.1.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.1.0)을 발행했다. `lg-ax-harness-product-v0.1.0.zip` 70파일과 SHA 목록만 첨부했고 원격 태그·실제 다운로드 SHA를 확인했다. 제품 ZIP의 README를 따라 새 폴더에 설치한다. 새 Codex/Claude/Gemini 파일 설치·doctor는 통과했고 Claude/Gemini 실제 업무 인수·발표/영상·운영진 최종 제출은 남아 있다. 제품 source commit은 `9fa81d2`이며 이후 저장소의 발행 확인 문서 commit과 구분한다.
 
 2026-10-10 후속: [v5.2 실제8입력/제한](docs/validation/s05-v52-flow.md), [별도 observer·Langfuse 연결](docs/validation/observer-langfuse.md), [Claude/Gemini 실제 인증 실패 범위](docs/validation/native-access-20261010.md), [실제 browser 등록](docs/data/browser-import-20261010.md), [팀 Issue 접수](docs/validation/team-runs/index.md). 제품102·평가47·observer34·개발22검사와70파일 새 ZIP 재현을 통과했다. 일반 대비 토큰/전체 비용 절감·모든 환경·사람 공수·최종 발표/영상·제출 완료는 미입증/미완료다.
+
+[product-v0.2.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.2.0)에 제품 ZIP70파일과 SHA 목록만 첨부했다. 실제 다운로드·지문 대조와 지원 한계는 [발행 기록](docs/validation/product-v020-release.md)을 따른다.
