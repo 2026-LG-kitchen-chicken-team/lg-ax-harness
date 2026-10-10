@@ -39,6 +39,8 @@ python -m observer tail --native-id 0199abcd-1234-7000-8000-123456789abc --run-i
 
 `OBSERVER_OTLP_ENDPOINT`는 해당 계정의 정확한 HTTPS URL, 예를 들어 `https://cloud.langfuse.com/api/public/otel/v1/traces`다. 사용자정보·query·fragment·다른 경로·HTTP·redirect를 거부한다. Basic Auth와 `x-langfuse-ingestion-version: 4`, `application/json`으로 보낸다. 기본 HTTP timeout은2초(0.05~10초), 제한 큐가 찼으면 drop을 기록한다. 전송은 별도 daemon thread이며 실패/timeout/부분 수락을 카운터로 기록한다. observer 오류는 업무 stdin/stdout·프롬프트·Tool 결과에 되돌리지 않는다.
 
+전송 경계에서 두 token snapshot만 정확한 정수/null field 객체를 허용한다. 나머지 metadata는 문자열 또는 null이어야 하며 Tool·Skill·상태·source·basis는 허용 enum만 받는다. 식별자·native UUID·버전도 각각의 형식을 검사한다. 변조된 journal의 `mapped_skill` 등에 dict/list/숫자/bool이 있으면 payload 생성 단계에서 실패로 처리해 큐·전송 시도 장부·HTTP로 보내지 않는다.
+
 완료 사건만 완성된 span으로 구성하고 **동일 span의 전송 시도는1회**다. 시작/중간 사건과 사용량은 로컬에서만 갱신한다. 실패·drop·프로세스 종료 시 불확실하게 전송된 span을 재시도하지 않아 서버 중복을 피한다. durable 전송 시도 기록과 같은 output 폴더를 재사용하면 재접속에서 동일 span을 다시 보내지 않는다. 네트워크 ACK의 불확실성과 수집 중 crash에서 서버의 exactly-once 저장까지 보장하지 않는다. HTTP2xx도 부분 수락이 없음을 확인한 경우에만 `exported`로 기록하며 실제 UI 조회를 증명하지 않는다.
 
 native 집계는 `langfuse.observation.metadata.native_usage_snapshot` 등 metadata에 둔다. `generation`, 모델별 usage/cost 속성은 보내지 않아 세션 집계를 한 모델 호출처럼 과금 계산하지 않는다. 관측된 원문 parent가 없으면 각 완료 사건은 같은 trace의 독립 span이다. 원문 전체 input/output은 의도적으로 제외하며 Langfuse의 업무 평가용 완전 canary/Agent Graph 인수를 주장하지 않는다.

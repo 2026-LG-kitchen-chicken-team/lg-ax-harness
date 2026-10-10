@@ -349,6 +349,39 @@ class ExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             payload(event)
 
+    def test_all_non_snapshot_metadata_reject_nested_objects_and_non_strings(self):
+        event = self.event()
+        fields = ("mapped_skill", "run_id", "native_thread_id", "turn_id", "invocation_id", "parent_id", "status",
+            "entity_name", "event_kind", "source_kind", "mode", "coverage", "usage_scope", "skill_mapping_basis",
+            "timing_basis", "native_usage_status", "cli_version", "correlation_id", "correlation_basis",
+            "observation_layer", "tool_type", "result_status_basis", "error_code")
+        for key in fields:
+            for bad in ({"account": "private", "path": "C:/Users/Private"}, ["sk-secret"], 7, True):
+                with self.subTest(key=key, bad_type=type(bad).__name__):
+                    tampered = dict(event, **{key: bad})
+                    with self.assertRaises(ValueError):
+                        payload(tampered)
+
+    def test_metadata_enums_reject_unrecognized_strings(self):
+        for key in ("mapped_skill", "entity_name", "event_kind", "source_kind", "mode", "coverage", "usage_scope",
+                    "skill_mapping_basis", "timing_basis", "native_usage_status", "correlation_basis", "observation_layer",
+                    "tool_type", "result_status_basis", "error_code"):
+            with self.subTest(key=key):
+                with self.assertRaises(ValueError):
+                    payload(dict(self.event(), **{key: "private_account_name"}))
+
+    def test_nested_skill_is_dropped_before_queue_attempt_or_transport(self):
+        with tempfile.TemporaryDirectory() as directory:
+            opener = FakeOpener()
+            store = LocalStore(directory)
+            ex = Exporter(store, environment=ENV, opener=opener)
+            event = dict(self.event(), mapped_skill={"account": "private", "path": "C:/Users/Private"})
+            ex.submit(event)
+            self.assertEqual(ex.counters["failed"], 1)
+            self.assertEqual(ex.queue.qsize(), 0)
+            self.assertFalse(store.attempts.exists())
+            self.assertEqual(opener.calls, [])
+
     def test_endpoint_validation_and_no_configuration(self):
         for value in ("http://host/api/public/otel/v1/traces", "https://user:secret@host/api/public/otel/v1/traces",
                       "https://host/api/public/otel/v1/traces?secret=1", "https://host/other", "https://host:xyz/api/public/otel/v1/traces"):

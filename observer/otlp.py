@@ -14,6 +14,27 @@ import threading
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
+from .collector import ITEMS, SKILLS, TOOLS, native_id
+
+METADATA_ENUMS = {
+    "status": {"completed", "failed", "cancelled"},
+    "entity_name": ITEMS | {"codex", "custom_tool_call"},
+    "event_kind": {"session_identity", "turn.started", "turn.completed", "turn.failed", "error",
+        "item.started", "item.updated", "item.completed", "usage_snapshot", "task_complete", "task_started",
+        "turn_aborted", "function_call", "function_call_output", "custom_tool_call", "custom_tool_call_output"},
+    "source_kind": {"cli", "rollout"}, "mode": {"replay", "tail"},
+    "coverage": {"selected_native_log_partial"},
+    "usage_scope": {"cli_turn_reported", "native_session_cumulative"},
+    "skill_mapping_basis": {"instruction_loaded", "command_based_mapping"},
+    "mapped_skill": set(SKILLS), "timing_basis": {"source", "observer_receipt"},
+    "native_usage_status": {"partial", "completed_observation"},
+    "correlation_basis": {"explicit_call_id"}, "observation_layer": {"cli_item", "rollout_tool"},
+    "tool_type": TOOLS | {"custom_tool_call"},
+    "result_status_basis": {"structured_exit_code", "structured_error_flag", "output_observed",
+        "native_output_error_marker", "native_output_exit_marker", "structured_output_error"},
+    "error_code": {"tool_nonzero_exit", "tool_reported_error", "tool_verification_failed"},
+}
+
 
 def endpoint(value):
     parsed = urlsplit(value)
@@ -55,17 +76,38 @@ def payload(event):
     if event.get("entity_kind") not in ("agent", "tool", "runtime", "turn"):
         raise ValueError("invalid_entity_kind")
     for key in ("event_id", "source_log_ref"):
-        if not re.fullmatch(r"[a-f0-9]{64}", event.get(key, "")):
+        if type(event.get(key)) is not str or not re.fullmatch(r"[a-f0-9]{64}", event[key]):
             raise ValueError("invalid_event_reference")
     allowed = {"run_id", "native_thread_id", "turn_id", "invocation_id", "parent_id", "status", "entity_name",
         "event_kind", "source_kind", "mode", "coverage", "usage_scope", "usage_snapshot",
         "skill_mapping_basis", "mapped_skill", "timing_basis", "native_usage_snapshot", "native_usage_status", "cli_version",
         "correlation_id", "correlation_basis", "observation_layer", "tool_type", "result_status_basis", "error_code"}
     metadata = {key: event.get(key) for key in allowed}
-    # Validate metadata strings rather than allowing private paths/keys from a tampered journal.
+    # Only the two token snapshots may be objects. Fail closed on every other
+    # dict/list/number/bool rather than serializing arbitrary nested content.
     for key, value in metadata.items():
-        if isinstance(value, str) and (len(value) > 80 or not re.fullmatch(r"[A-Za-z0-9_.-]+", value) or value.startswith(("sk-", "pk-"))):
+        if key in ("usage_snapshot", "native_usage_snapshot"):
+            continue
+        if value is not None and type(value) is not str:
+            raise ValueError("invalid_metadata_type")
+        if value is not None and (len(value) > 80 or not re.fullmatch(r"[A-Za-z0-9_.-]+", value) or value.startswith(("sk-", "pk-"))):
             raise ValueError("invalid_metadata")
+        if value is not None and key in METADATA_ENUMS and value not in METADATA_ENUMS[key]:
+            raise ValueError("invalid_metadata_enum")
+    for key in ("run_id", "native_thread_id", "status", "entity_name", "event_kind", "source_kind", "mode", "coverage", "timing_basis"):
+        if metadata[key] is None:
+            raise ValueError("missing_required_metadata")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", metadata["run_id"]):
+        raise ValueError("invalid_run_id")
+    if native_id(metadata["native_thread_id"]) != metadata["native_thread_id"]:
+        raise ValueError("invalid_native_id")
+    for key in ("turn_id", "invocation_id", "parent_id", "correlation_id"):
+        value = metadata[key]
+        if value is not None and not (native_id(value) == value or re.fullmatch(r"(?:item_[0-9]{1,12}|id-[a-f0-9]{24})", value)):
+            raise ValueError("invalid_observation_id")
+    version = metadata["cli_version"]
+    if version is not None and not re.fullmatch(r"[0-9]{1,4}(?:\.[0-9]{1,4}){1,3}", version):
+        raise ValueError("invalid_cli_version")
     fields = {"input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens"}
     for key in ("usage_snapshot", "native_usage_snapshot"):
         snapshot = metadata.get(key)

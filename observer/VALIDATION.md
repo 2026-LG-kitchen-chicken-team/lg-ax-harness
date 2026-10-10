@@ -32,3 +32,9 @@ rollout 오류는34행 `structured_output_error`와106행 `tool_verification_fai
 누적 사용량의 부분 snapshot 사이에서 cache/reasoning이 null이 된 뒤 역행하는 사례를 별도 highwater로 거부한다. 최신 partial 표시는 null을 유지한다. 0.1.0 checkpoint는 예전 생략 offset을 지니므로 재사용을 거부하고 새 output에 원본을 재생한다.
 
 최종 `python -m unittest discover -s tests/observer -v`는31개, exit0, 0.514초, OK였다. `git diff --check`도 exit0이다. 추가 native/model 입력0·cloud 요청0·설치0이며 실제 Langfuse 수락/UI 인수는 여전히 미실행이다.
+
+## 전송 metadata 타입 경계 보강
+
+추가 독립 리뷰에서 문자열 검사만 적용된 `mapped_skill` 등에 dict/list를 넣으면 metadata JSON으로 직렬화되는 우회를 발견했다. OTLP payload에서 snapshot 이외 metadata의 str/null 타입, 고정 enum, ID/UUID/CLI 버전 형식을 강제한다. nested 객체·배열·숫자·bool과 알 수 없는 enum은 전송 전에 거부한다. `mapped_skill` 객체의 개인정보/path를 담은 입력을 큐·시도 장부·transport 호출 전에 drop하는 시험을 추가했다. 외부 endpoint POST0, 모델 입력0이며 fake opener·기존 loopback 시험만 사용한다.
+
+최종 실제 검사 `python -m unittest discover -s tests/observer -v`:34개, exit0, 0.510초, OK. `git diff --check`:exit0. snapshot외 모든metadata에 dict/list/int/bool을 주입하는 subtest와 미등록 enum·nested Skill의 전송 전 차단을 포함한다.
