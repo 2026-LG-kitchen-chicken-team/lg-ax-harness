@@ -2,7 +2,7 @@
 
 출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. Codex 출품 설치와 실제 업무 연결을 검증했으며 Claude/Gemini와 시각화는 별도 작업이다.
 
-[제품 v0.2.2 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.2.2) · [제품 파일만 포함한 배포 검증](docs/validation/product-v0.2.2.md). 원격 CI는 결제/지출 한도 사유로 job이 시작되지 않아 미실행이며 이번 관련 로컬205검사 통과와 구분한다. 이전 v0.2.1과 당시248검사 기록은 보존한다.
+[제품 v0.2.3 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.2.3) · [제품 파일만 포함한 배포 검증](docs/validation/product-v0.2.3.md). 이번 관련 로컬253검사와4입력 실제 실행을 확인했다. 원격 CI 상태는 배포 기록을 따르며 로컬 통과와 구분한다. 이전 v0.2.2/205검사와 v0.2.1/248검사 기록은 보존한다.
 
 2026-10-11: [1–7번 최신 작업·실제 검사](docs/validation/seven-task-progress.md), [팀원 실제 시간 측정·회신](docs/evaluation/team-measurement.md). 실패/timeout과 미측정 사람 공수·전체 청구·Claude/Gemini native 미인수를 보존한다.
 
@@ -63,7 +63,7 @@ uv run python -m unittest discover -s tests/product-tools -v
 - [실제 검증과 제한](docs/validation/development-harness.md): 정적 검사, 네이티브 위임, 구현·검사·통합의 근거.
 - [개발 절차](docs/development.md): 장부·task-bound 검사·완료·인수인계.
 - [작업 상태](docs/plans/development-harness.md): D 구축과 S 출품 작업의 완료 범위.
-- [토큰 절감 반영·실측·표시 기준](docs/evaluation/token-measurement.md), [별도 시연 관찰 대책](docs/plans/observability-viewer.md): 계획·기존 근거와 아직 구현/인수하지 않은 collector·화면을 구분.
+- [토큰 절감 반영·실측·표시 기준](docs/evaluation/token-measurement.md), [별도 시연 관찰 대책](docs/plans/observability-viewer.md): 실제 collector/Langfuse 연결·저장 재생과 아직 남은 화면/녹화 인수를 구분.
 - [팀원 웹 작업공간](web/README.md): 황대겸을 웹 PM 한 명으로 지정했다. 웹 설계·기술 선택·작업 배분·리뷰는 PM이 지휘하며, 영상 분석과 연결 제안은 [착수 문서](docs/plans/team-web-workspace.md)를 따른다. 현재 웹 앱은 미구현이다.
 - [대회 요구](docs/competition-requirements.md), [AI 직접 입력 평가](docs/evaluation/judge-input-cases.md).
 
