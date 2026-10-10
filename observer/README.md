@@ -1,4 +1,4 @@
-# 별도 native 사건 수집기 0.1.0
+# 별도 native 사건 수집기 0.1.1
 
 Python 표준 라이브러리만 사용하는 별도 프로세스다. 기존 Codex의 명시적으로 선택한 JSONL 파일을 읽으며 Codex·모델·업무 실행을 시작하거나 종료하지 않는다. 화면·React Flow·모델 SDK·관찰용 Agent·Skill은 추가하지 않는다. 원본 로그와 로컬 출력은 Git에 넣지 않는다.
 
@@ -10,7 +10,7 @@ Python 표준 라이브러리만 사용하는 별도 프로세스다. 기존 Cod
 python -m observer replay --native-id 0199abcd-1234-7000-8000-123456789abc --run-id demo-replay --cli-log C:/private/native.jsonl --output .harness/observer/demo-replay
 ```
 
-선택 ID의 rollout 경로를 이미 알고 있으면 `--rollout-log C:/private/rollout-ID.jsonl`을 추가한다. 디렉터리를 훑거나 가장 최근 세션을 임의 선택하지 않는다. 원본의 `thread.started.thread_id` 또는 `session_meta.payload.id`가 선택 UUID와 일치하기 전에는 사건을 수집하지 않는다. CLI와 rollout을 같이 선택하면 Tool 사건은 CLI에서, 누적 사용량은 rollout에서 얻어 동일 호출의 두 로그를 두 Tool로 늘리지 않는다. CLI가 `thread.started`를 포함하지 않는 resume 출력은 수집하지 않으며, ID가 있는 rollout을 선택한다.
+선택 ID의 rollout 경로를 이미 알고 있으면 `--rollout-log C:/private/rollout-ID.jsonl`을 추가한다. 디렉터리를 훑거나 가장 최근 세션을 임의 선택하지 않는다. 원본의 `thread.started.thread_id` 또는 `session_meta.payload.id`가 선택 UUID와 일치하기 전에는 사건을 수집하지 않는다. CLI와 rollout을 같이 선택하면 **두 원본의 사건을 모두 보존**한다. CLI item과 rollout function/custom Tool wrapper는 서로 다른 `observation_layer`·`tool_type`이며 source별 반환/실패 카운터만 제공한다. CLI에 없는 wrapper 오류를 버리지 않는다. CLI가 `thread.started`를 포함하지 않는 resume 출력은 수집하지 않으며, ID가 있는 rollout을 선택한다.
 
 ```powershell
 python -m observer tail --native-id 0199abcd-1234-7000-8000-123456789abc --run-id demo-live --cli-log C:/private/native.jsonl --rollout-log C:/private/rollout-ID.jsonl --output .harness/observer/demo-live --until-complete --max-seconds 600
@@ -26,7 +26,12 @@ python -m observer tail --native-id 0199abcd-1234-7000-8000-123456789abc --run-i
 - CLI `turn.completed.usage`는 `cli_turn_reported`, rollout `token_count.info.total_token_usage`는 `native_session_cumulative`로 분리한다. 두 값을 더하지 않는다. 세션 누적 snapshot은 역행 없는 최신값으로 교체하고 snapshot들을 합산하지 않는다. 캐시는 입력의 일부, reasoning은 출력의 일부다. 비캐시 입력은 입력-캐시이며 둘 중 하나가 없으면 null이다.
 - 부분 snapshot은 `partial`, 종료 사건 관측 시 `completed_observation`이다. 두 경우 모두 **선택한 native 로그의 부분 관측**이다. 미관측 turn ID·parent ID·CLI 버전·backend 호출 수·비용은 null이다. turn별 차이·부모/자식 전체 청구·가격·크레딧 환산은 만들지 않는다.
 - source에 명시된 parent만 보존한다. 호출 순서·같은 세션·시간 중첩으로 메시지 전달이나 위임 관계를 만들지 않는다. 실제 Agent Graph/Skill 그래프·데스크톱 자동 구독·Claude/Gemini 수집은 미구현이다.
+- 실제 `call_id`가 있을 때만 가명 correlation ID를 붙인다. CLI의 `item_N`을 rollout call ID로 간주하거나 명령 내용·순서로 일대일 연결하지 않는다. 동일 source/layer/type/call ID/phase/status의 중복은 제거하되 두 source 관측을 임의 병합하지 않는다. 따라서 `merged_tool_execution_count`는 null이며 source별 결과 수를 합쳐 고유 호출·고유 업무 실패 수로 표시하지 않는다. custom `exec`의 JavaScript 입력/결과에서 내부 `apply_patch` 등 자식 Tool 사건을 만들어내지 않는다.
+- `function_call_output`·`custom_tool_call_output`의 반환을 관측하고, structured error/exit와 고정 native 출력 오류 marker를 코드로만 분류한다. `result_status_basis=output_observed`는 결과 반환 관측이며 실행 성공 인증이 아니다. wrapper output 안의 오류가 관측되면 wrapper 반환에 `failed`·고정 `error_code`를 붙이되 명령 원문·오류 본문은 저장하지 않는다.
+- 누적 usage의 field별 마지막 알려진 최댓값은 내부 highwater에 보존한다. 최신 부분 snapshot의 누락 field는 계속 null로 표시하지만 다음 full snapshot이 그 field를 역행하면 거부한다.
 - checkpoint의 파일별 행 번호가 중복/오래된 재접속을 막는다. 원본 파일이 잘리거나 교체되면 오류가 기록되며 같은 출력 폴더에서 새 원본을 자동 이어 붙이지 않는다. 새 명시적 run/output을 사용한다. 같은 native ID에 여러 CLI 로그가 Tool ID를 재사용한 경우 source별로 구분한다. 입력 파일의 in-place 수정·동시 observer 작성은 지원하지 않는다.
+
+0.1.0 checkpoint는 custom Tool을 생략한 뒤 행 번호를 진행했으므로 0.1.1에서 재사용을 거부한다. **새 run/output으로 기존 원본을 다시 replay**한다. 원본을 삭제하거나 예전 cloud trace와 같은 span을 다시 업로드하지 않는다. cloud0 로컬 재인수를 먼저 수행한다.
 
 ## Langfuse v4 연결
 

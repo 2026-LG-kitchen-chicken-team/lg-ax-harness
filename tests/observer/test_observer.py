@@ -38,6 +38,63 @@ def completed(collector, seq=2, item="item_0"):
 
 
 class CollectorTests(unittest.TestCase):
+    def test_custom_call_output_list_failure_and_no_nested_tool_invention(self):
+        c = Collector(NATIVE, "run")
+        start(c, "rollout")
+        call = c.feed({"type": "response_item", "payload": {"type": "custom_tool_call", "call_id": "call_secret",
+            "name": "exec", "input": "await tools.apply_patch('private raw patch sk-secret');", "status": "completed"}}, REF, 2, "rollout")
+        event = c.feed({"type": "response_item", "payload": {"type": "custom_tool_call_output", "call_id": "call_secret",
+            "output": [{"type": "input_text", "text": "Script failed\napply_patch verification failed: C:/Users/Private sk-secret"}]}}, REF, 3, "rollout")
+        self.assertEqual(event["status"], "failed")
+        self.assertEqual(event["error_code"], "tool_verification_failed")
+        self.assertEqual(event["entity_name"], "exec")
+        self.assertEqual(event["tool_type"], "custom_tool_call")
+        self.assertEqual(call["invocation_id"], event["invocation_id"])
+        self.assertEqual(event["observation_layer"], "rollout_tool")
+        self.assertIsNone(event["parent_id"])
+        self.assertIsNone(event["mapped_skill"])
+        self.assertNotIn("apply_patch", json.dumps(event))
+        self.assertNotIn("C:/Users", json.dumps(event))
+        self.assertNotIn("sk-secret", json.dumps(event))
+
+    def test_function_output_nonzero_exit_and_output_is_not_success_evidence(self):
+        c = Collector(NATIVE, "run")
+        start(c, "rollout")
+        c.feed({"type": "response_item", "payload": {"type": "function_call", "call_id": "call_1", "name": "exec_command", "arguments": "{}"}}, REF, 2, "rollout")
+        event = c.feed({"type": "response_item", "payload": {"type": "function_call_output", "call_id": "call_1", "output": "Process exited with code 1\nFile not found"}}, REF, 3, "rollout")
+        self.assertEqual(event["status"], "failed")
+        self.assertEqual(event["entity_name"], "exec_command")
+        self.assertEqual(payload(event)["resourceSpans"][0]["scopeSpans"][0]["spans"][0]["status"]["code"], 2)
+        neutral = c.feed({"type": "response_item", "payload": {"type": "function_call_output", "call_id": "call_2", "output": "unstructured response"}}, REF, 4, "rollout")
+        self.assertEqual(neutral["result_status_basis"], "output_observed")
+
+    def test_explicit_call_id_dedup_keeps_unpaired_cli_layer(self):
+        c = Collector(NATIVE, "run")
+        start(c)
+        cli = completed(c)
+        ref2 = digest("rollout")
+        c.feed({"type": "session_meta", "payload": {"id": NATIVE}}, ref2, 1, "rollout")
+        raw = {"type": "response_item", "payload": {"type": "custom_tool_call_output", "call_id": "item_0", "output": "result"}}
+        roll = c.feed(raw, ref2, 2, "rollout")
+        self.assertIsNone(cli["correlation_id"])
+        self.assertEqual(roll["correlation_id"], "item_0")
+        self.assertNotEqual(cli["observation_layer"], roll["observation_layer"])
+        self.assertIsNone(c.feed(raw, ref2, 3, "rollout"))
+        self.assertEqual(c.state["counts"]["duplicate_tool_phase"], 1)
+        self.assertIsNone(c.summary()["merged_tool_execution_count"])
+        self.assertEqual(len(c.summary()["source_tool_results"]), 2)
+
+    def test_cached_and_reasoning_highwater_survive_partial_nulls(self):
+        c = Collector(NATIVE, "run")
+        start(c, "rollout")
+        snapshot(c, 2, tokens(100, 80, 50, 40))
+        snapshot(c, 3, {"input_tokens": 150, "output_tokens": 60})
+        self.assertIsNone(c.summary()["native_usage"]["snapshot"]["cached_input_tokens"])
+        rejected = snapshot(c, 4, tokens(160, 10, 65, 5))
+        self.assertIsNone(rejected["usage_snapshot"]["input_tokens"])
+        self.assertEqual(c.summary()["native_usage"]["snapshot"]["input_tokens"], 150)
+        self.assertIsNone(c.summary()["native_usage"]["snapshot"]["reasoning_output_tokens"])
+
     def test_missing_values_are_null(self):
         c = Collector(NATIVE, "run")
         self.assertIsNone(c.summary()["native_usage"])
@@ -138,6 +195,22 @@ class CollectorTests(unittest.TestCase):
 
 
 class ReaderStoreTests(unittest.TestCase):
+    def test_dual_sources_preserve_custom_failure_missing_from_cli(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cli, rollout = Path(directory)/"cli", Path(directory)/"rollout"
+            cli.write_text(json.dumps({"type": "thread.started", "thread_id": NATIVE}) + "\n" + json.dumps({"type": "item.completed", "item": {"type": "command_execution", "id": "item_0", "exit_code": 0}}) + "\n")
+            rollout.write_text(json.dumps({"type": "session_meta", "payload": {"id": NATIVE}}) + "\n" + json.dumps({"type": "response_item", "payload": {"type": "custom_tool_call_output", "call_id": "call_missing_in_cli", "output": [{"type": "input_text", "text": "apply_patch verification failed: private"}]}}) + "\n")
+            args = argparse.Namespace(output=Path(directory)/"out", local_limit=4096, native_id=NATIVE, run_id="run", mode="replay",
+                cli_log=cli, rollout_log=rollout, http_timeout=0.05, queue_limit=1,
+                stop_file=None, until_complete=False, max_seconds=0.02, poll_seconds=0.01)
+            value = collect(args, environment={})
+            totals = value["source_tool_results"]
+            self.assertEqual(totals["cli:cli_item:command_execution"]["returned"], 1)
+            self.assertEqual(totals["rollout:rollout_tool:custom_tool_call"]["failed"], 1)
+            lines = (Path(directory)/"out/events.jsonl").read_text()
+            self.assertIn("tool_verification_failed", lines)
+            self.assertNotIn("verification failed: private", lines)
+
     def test_unterminated_json_tail_waits_replay_accepts(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "log"
@@ -171,6 +244,18 @@ class ReaderStoreTests(unittest.TestCase):
             restored = Collector(NATIVE, "run", state=store.load(NATIVE, "run"))
             start(restored)
             self.assertIsNone(completed(restored))
+
+    def test_old_parser_checkpoint_fails_closed_instead_of_hiding_custom_events(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(directory)
+            c = Collector(NATIVE, "run")
+            start(c)
+            store.save(c)
+            old = json.loads(store.checkpoint.read_text())
+            old["state"].pop("parser_version")
+            store.checkpoint.write_text(json.dumps(old))
+            with self.assertRaisesRegex(ValueError, "checkpoint_parser_version_mismatch"):
+                store.load(NATIVE, "run")
 
     def test_tail_stop_file_and_source_failure_isolation(self):
         with tempfile.TemporaryDirectory() as directory:

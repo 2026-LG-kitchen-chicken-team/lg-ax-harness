@@ -29,9 +29,6 @@ def collect(args, environment=None):
             terminal = False
             for kind, reader, reference in readers:
                 for seq, raw in reader.poll(final=args.mode == "replay"):
-                    # With both logs, CLI owns item observations; rollout supplies cumulative usage.
-                    if len(readers) > 1 and kind == "rollout" and raw.get("type") == "response_item":
-                        continue
                     event = collector.feed(raw, reference, seq, kind)
                     if event is None:
                         continue

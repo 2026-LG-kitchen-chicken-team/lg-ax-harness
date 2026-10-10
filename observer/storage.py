@@ -22,6 +22,10 @@ class LocalStore:
         value = json.loads(self.checkpoint.read_text(encoding="utf-8"))
         if value.get("native_thread_id") != native_id or value.get("run_id") != run_id:
             raise ValueError("checkpoint_identity_mismatch")
+        if value.get("state", {}).get("parser_version") != 2:
+            # Earlier parsers skipped custom Tool records but advanced offsets.
+            # Silent reuse would permanently hide those events; use a new output.
+            raise ValueError("checkpoint_parser_version_mismatch")
         return value["state"]
 
     def append(self, event):

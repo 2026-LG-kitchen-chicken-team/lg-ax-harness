@@ -9,7 +9,7 @@ FIELDS = ("input_tokens", "cached_input_tokens", "output_tokens", "reasoning_out
 SKILLS = ("evidence-retrieval", "needs-structuring", "feature-comparison", "concept-writing",
           "review-and-revise", "web-evidence-collection")
 TOOLS = {"command_execution", "mcp_tool_call", "web_search", "file_change", "function_call",
-         "exec_command", "write_stdin", "read_file", "shell", "shell_command", "apply_patch"}
+         "exec", "exec_command", "write_stdin", "read_file", "shell", "shell_command", "apply_patch"}
 ITEMS = TOOLS | {"agent_message", "reasoning", "plan", "collab_tool_call"}
 
 
@@ -84,6 +84,41 @@ def command_mapping(command):
     return None, None
 
 
+def tool_output_status(value):
+    """Recognize native wrapper error markers locally, forwarding codes only.
+
+    An output record proves a returned result, not successful Tool execution.
+    Custom exec output blocks may contain several nested command results; we do
+    not invent child Tool events or relationships from their text.
+    """
+    if isinstance(value, str):
+        texts = [value]
+    elif isinstance(value, list):
+        texts = [v["text"] for v in value if isinstance(v, dict) and v.get("type") in ("text", "input_text") and isinstance(v.get("text"), str)]
+    elif isinstance(value, dict):
+        if type(value.get("exit_code")) is int and value["exit_code"] != 0:
+            return "failed", "structured_exit_code", "tool_nonzero_exit"
+        if value.get("is_error") is True or value.get("isError") is True:
+            return "failed", "structured_error_flag", "tool_reported_error"
+        return "completed", "output_observed", None
+    else:
+        return "completed", "output_observed", None
+    for text in texts:
+        if re.search(r"(?mi)^apply_patch verification failed(?:\s|:|$)", text):
+            return "failed", "native_output_error_marker", "tool_verification_failed"
+        match = re.search(r"(?m)^Process exited with code ([0-9]+)(?:\s|$)", text)
+        if match and int(match.group(1)) != 0:
+            return "failed", "native_output_exit_marker", "tool_nonzero_exit"
+        try:
+            parsed = json.loads(text)
+        except ValueError:
+            parsed = None
+        if isinstance(parsed, dict) and (parsed.get("is_error") is True or parsed.get("isError") is True or
+                (type(parsed.get("exit_code")) is int and parsed["exit_code"] != 0)):
+            return "failed", "structured_output_error", "tool_reported_error"
+    return "completed", "output_observed", None
+
+
 class Collector:
     """One selected native ID; snapshots replace, never add to previous snapshots."""
     def __init__(self, selected_id, run_id, mode="replay", state=None):
@@ -97,6 +132,17 @@ class Collector:
         self.state = state or {"identity": {}, "sequence": {}, "usage": {}, "counts": {}, "starts": {}}
         self.state.setdefault("starts", {})
         self.state.setdefault("cli_version", None)
+        self.state.setdefault("usage_highwater", {})
+        self.state.setdefault("tool_calls", {})
+        self.state.setdefault("tool_phases", {})
+        self.state.setdefault("source_tool_results", {})
+        self.state.setdefault("parser_version", 2)
+        # Upgrade earlier checkpoints while retaining the last-known fields.
+        previous_usage = self.state["usage"].get("native_session_cumulative")
+        if previous_usage:
+            for key, value in previous_usage["snapshot"].items():
+                if value is not None:
+                    self.state["usage_highwater"][key] = max(value, self.state["usage_highwater"].get(key, 0))
         self.last_observed = None
 
     def count(self, name):
@@ -132,10 +178,13 @@ class Collector:
         item = raw.get("item") if isinstance(raw.get("item"), dict) else {}
         event_kind, entity_kind, entity_name, status = None, "runtime", "codex", "observed"
         invocation_id = safe_id(item.get("id") or payload.get("call_id"))
+        correlation_id = safe_id(item.get("call_id") or payload.get("call_id"))
         turn_id = safe_id(raw.get("turn_id") or payload.get("turn_id"))
         parent_id = safe_id(item.get("parent_id") or payload.get("parent_id"))
         mapping, skill = None, None
         raw_usage, scope = None, None
+        observation_layer, tool_type = None, None
+        result_status_basis, error_code = None, None
         if kind == "thread.started" or kind == "session_meta":
             event_kind, entity_kind, status = "session_identity", "agent", "observed"
         elif kind in ("turn.started", "turn.completed", "turn.failed", "error"):
@@ -151,12 +200,15 @@ class Collector:
                 return None
             entity_name = item_kind
             entity_kind = "tool" if item_kind in TOOLS else "agent" if item_kind == "collab_tool_call" else "runtime"
+            if entity_kind == "tool":
+                observation_layer, tool_type = "cli_item", item_kind
             event_kind = kind
             status = "started" if kind == "item.started" else "completed" if kind == "item.completed" else "partial"
             if item.get("status") in ("failed", "cancelled"):
                 status = item["status"]
             if item_kind == "command_execution" and type(item.get("exit_code")) is int and item["exit_code"] != 0:
                 status = "failed"
+                result_status_basis, error_code = "structured_exit_code", "tool_nonzero_exit"
             mapping, skill = command_mapping(item.get("command"))
         elif kind == "event_msg" and payload.get("type") == "token_count":
             event_kind, status = "usage_snapshot", "partial"
@@ -166,11 +218,22 @@ class Collector:
             event_kind = payload["type"]
             status = {"task_complete": "completed", "task_started": "started", "turn_aborted": "cancelled"}[event_kind]
             entity_kind = "turn"
-        elif kind == "response_item" and payload.get("type") in ("function_call", "function_call_output"):
+        elif kind == "response_item" and payload.get("type") in ("function_call", "function_call_output", "custom_tool_call", "custom_tool_call_output"):
             event_kind = payload["type"]
-            status = "started" if event_kind == "function_call" else "completed"
+            is_call = event_kind in ("function_call", "custom_tool_call")
+            status = "started" if is_call else "completed"
             entity_kind = "tool"
-            entity_name = payload.get("name") if payload.get("name") in TOOLS else "function_call"
+            observation_layer, tool_type = "rollout_tool", "custom_tool_call" if event_kind.startswith("custom_") else "function_call"
+            call_key = source_ref + ":" + correlation_id if correlation_id else None
+            details = self.state["tool_calls"].get(call_key, {}) if call_key else {}
+            entity_name = payload.get("name") if payload.get("name") in TOOLS else details.get("entity_name", tool_type)
+            if is_call and call_key:
+                self.state["tool_calls"][call_key] = {"entity_name": entity_name, "tool_type": tool_type}
+                if len(self.state["tool_calls"]) > 512:
+                    self.state["tool_calls"].pop(next(iter(self.state["tool_calls"])))
+                    self.count("tool_call_state_dropped")
+            elif not is_call:
+                status, result_status_basis, error_code = tool_output_status(payload.get("output"))
             if event_kind == "function_call":
                 arguments = payload.get("arguments")
                 try:
@@ -182,16 +245,29 @@ class Collector:
         else:
             self.count("unobserved_record_types")
             return None
+        # Dedup only an explicit call ID in the same observation layer/source.
+        # A CLI item ID and a rollout wrapper call ID are not interchangeable.
+        if entity_kind == "tool" and correlation_id:
+            phase = "started" if status == "started" else "returned" if status in ("completed", "failed", "cancelled") else "partial"
+            phase_key = digest(source_ref + ":" + observation_layer + ":" + tool_type + ":" + correlation_id + ":" + phase + ":" + status)
+            if phase_key in self.state["tool_phases"]:
+                self.count("duplicate_tool_phase")
+                return None
+            self.state["tool_phases"][phase_key] = True
+            if len(self.state["tool_phases"]) > 4096:
+                self.state["tool_phases"].pop(next(iter(self.state["tool_phases"])))
+                self.count("tool_phase_state_dropped")
         snapshot = usage(raw_usage)
         if scope and raw_usage is not None:
-            previous = self.state["usage"].get(scope)
             # CLI usage is reported per turn. Only rollout totals are cumulative.
-            regression = scope == "native_session_cumulative" and previous and any(
-                snapshot[k] is not None and previous["snapshot"].get(k) is not None and snapshot[k] < previous["snapshot"][k] for k in FIELDS)
+            regression = scope == "native_session_cumulative" and any(
+                snapshot[k] is not None and self.state["usage_highwater"].get(k) is not None and snapshot[k] < self.state["usage_highwater"][k] for k in FIELDS)
             if not valid_usage(snapshot) or regression:
                 self.count("regressing_or_invalid_usage")
                 snapshot = usage(None)
             else:
+                if scope == "native_session_cumulative":
+                    self.state["usage_highwater"].update({k: v for k, v in snapshot.items() if v is not None})
                 self.state["usage"][scope] = {"snapshot": snapshot, "status": status,
                     "observed_timestamp": observed_time, "turn_id": turn_id}
         if event_kind in ("task_complete", "turn.completed"):
@@ -211,6 +287,11 @@ class Collector:
             self.state["starts"].pop(start_key, None)
         event_id = digest(source_ref + ":" + str(seq) + ":" + json.dumps(raw, sort_keys=True, ensure_ascii=False))
         self.count("accepted_events")
+        if entity_kind == "tool" and status in ("completed", "failed", "cancelled"):
+            count_key = source_kind + ":" + observation_layer + ":" + tool_type
+            totals = self.state["source_tool_results"].setdefault(count_key, {"returned": 0, "failed": 0})
+            totals["returned"] += 1
+            totals["failed"] += int(status == "failed")
         native_usage = self.state["usage"].get("native_session_cumulative")
         return {"schema_version": 1, "run_id": self.run_id, "native_thread_id": self.selected_id,
             "session_id": self.selected_id, "turn_id": turn_id, "agent_id": self.selected_id,
@@ -219,6 +300,9 @@ class Collector:
             "timing_basis": "source" if source_time and start_time else "observer_receipt",
             "entity_kind": entity_kind, "entity_name": entity_name, "event_kind": event_kind,
             "invocation_id": invocation_id, "parent_id": parent_id, "status": status,
+            "correlation_id": correlation_id, "correlation_basis": "explicit_call_id" if correlation_id else None,
+            "observation_layer": observation_layer, "tool_type": tool_type,
+            "result_status_basis": result_status_basis, "error_code": error_code,
             "source_log_ref": source_ref, "source_kind": source_kind, "mode": self.mode,
             "coverage": "selected_native_log_partial", "usage_scope": scope,
             "usage_snapshot": snapshot, "skill_mapping_basis": mapping, "mapped_skill": skill,
@@ -237,5 +321,7 @@ class Collector:
             "last_cli_turn_usage": cli, "noncached_input_tokens": noncached,
             "last_observed_timestamp": self.last_observed, "counters": self.state["counts"],
             "cli_version": self.state["cli_version"],
+            "source_tool_results": self.state["source_tool_results"],
+            "merged_tool_execution_count": None,
             "backend_call_count": None, "cost_usd": None,
             "observer_created_model_requests": 0, "observer_added_model_context": 0}

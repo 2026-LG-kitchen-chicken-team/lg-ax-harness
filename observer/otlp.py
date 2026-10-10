@@ -57,9 +57,10 @@ def payload(event):
     for key in ("event_id", "source_log_ref"):
         if not re.fullmatch(r"[a-f0-9]{64}", event.get(key, "")):
             raise ValueError("invalid_event_reference")
-    allowed = {"run_id", "native_thread_id", "turn_id", "invocation_id", "parent_id", "status",
+    allowed = {"run_id", "native_thread_id", "turn_id", "invocation_id", "parent_id", "status", "entity_name",
         "event_kind", "source_kind", "mode", "coverage", "usage_scope", "usage_snapshot",
-        "skill_mapping_basis", "mapped_skill", "timing_basis", "native_usage_snapshot", "native_usage_status", "cli_version"}
+        "skill_mapping_basis", "mapped_skill", "timing_basis", "native_usage_snapshot", "native_usage_status", "cli_version",
+        "correlation_id", "correlation_basis", "observation_layer", "tool_type", "result_status_basis", "error_code"}
     metadata = {key: event.get(key) for key in allowed}
     # Validate metadata strings rather than allowing private paths/keys from a tampered journal.
     for key, value in metadata.items():
@@ -81,13 +82,16 @@ def payload(event):
         attr("langfuse.session.id", event["native_thread_id"]), attr("langfuse.trace.name", "native-observer"),
         attr("langfuse.environment", "development")]
     attributes.extend(attr("langfuse.observation.metadata." + key, value) for key, value in sorted(metadata.items()))
-    span = {"traceId": trace_id, "spanId": span_id, "name": "native-observer." + event["entity_kind"],
+    span_name = "native-observer." + event["entity_kind"]
+    if event["entity_kind"] == "tool" and event.get("tool_type"):
+        span_name = "native-observer." + event["source_kind"] + "." + event["tool_type"]
+    span = {"traceId": trace_id, "spanId": span_id, "name": span_name,
         "kind": 1, "startTimeUnixNano": nanos(start), "endTimeUnixNano": nanos(end),
         "attributes": attributes, "status": {"code": 2 if event["status"] == "failed" else 0}}
     if event.get("parent_id"):
         span["parentSpanId"] = hash_id(event["native_thread_id"] + ":" + event["source_log_ref"] + ":" + event["parent_id"], 16)
     return {"resourceSpans": [{"resource": {"attributes": [attr("service.name", "lg-native-observer")]},
-        "scopeSpans": [{"scope": {"name": "observer", "version": "0.1.0"}, "spans": [span]}]}]}
+        "scopeSpans": [{"scope": {"name": "observer", "version": "0.1.1"}, "spans": [span]}]}]}
 
 
 class NoRedirect(HTTPRedirectHandler):
