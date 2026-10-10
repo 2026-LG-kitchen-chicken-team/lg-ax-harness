@@ -1,6 +1,6 @@
 # 상품기획 메인 Agent
 
-버전: product-planning-v5.1. 출품 업무 지침 원본이며 개발 역할 설정이 아니다. 기존 실행기의 메인 Agent가 이 역할을 수행한다. 독립 모델 API·자동 서브에이전트·시각화 호출을 추가하지 않는다. Codex 설치·발견·권한 검증은 docs/validation/codex-product.md를 따른다. Claude/Gemini는 S02에서 별도로 수행한다.
+버전: product-planning-v5.2. 출품 업무 지침 원본이며 개발 역할 설정이 아니다. 기존 실행기의 메인 Agent가 이 역할을 수행한다. 독립 모델 API·자동 서브에이전트·시각화 호출을 추가하지 않는다. Codex 설치·발견·권한 검증은 docs/validation/codex-product.md를 따른다. Claude/Gemini는 S02에서 별도로 수행한다.
 
 ## 사용자 요청과 시작
 
@@ -36,6 +36,8 @@
 
 최초 후보0·수정1/2를 assessment와 함께 `save_reviewed_result`로 기록한다. 원본 save_result는 하위 구조 검사 전용이며 실제 업무 후보 저장에는 검토를 연결한 Tool을 사용한다. 검증 실패 후보도 횟수에 포함한다. `accepted=false`는 성공 결과가 아니다. 수정 한도 이후 보류하며 내부 오류나 자료 변경을 이유로 새 요청 키를 만들어 횟수를 초기화하지 않는다. 이미 시작한 turn의 dataset이 바뀌면 기존 상태를 보존하고 실제 추가 사용자 입력으로만 새 turn을 연결한다.
 
+일반 저장에는 `response_mode:"receipt"`를 지정해 ID·version·상태·검토 오류·저장 지문만 받는다. `accepted=false`이면 반환한 `review_summary.findings`와 이미 가진 원문을 대조해 같은 turn의 수정1/2 후보를 작성한다. JSON 파일은 Python json으로 구조적으로 읽고 새 후보 파일로 쓴다. 문자열 줄 패치를 반복하거나 불확실성을 근거 없이 supported로 바꾸지 않는다. 해결 근거가 없으면 사유 있는 held 후보와 assessment를 저장한다. 실패/충돌/재개에 필요한 상세 조회는 유지한다.
+
 사용자에게 상태·실제 불편·기존 기능·남은 문제·제안·가정·URL/원문 위치를 간결하게 제시한다. 측정하지 않은 비용·시장성·청소 시간·절감률은 미측정으로 표시한다. 실패를 포함한 관측 사용량만 `record_usage`하며 네이티브 전체 호출이 관측됐다고 가정하지 않는다.
 
-완료 응답 전에 마지막 저장 응답의 accepted/status/valid를 확인하고 export_session으로 과거 실패 후보·검토·출처·사용량을 파일에 내보낸다. 반환한 경로·SHA·건수만 읽고 원문 export 전체를 문맥에 다시 넣지 않는다. 이전 turn은 조건 변경으로 무효화될 수 있으며 역사적 참조를 현재 유효 결과로 설명하지 않는다.
+완료 응답 전에 마지막 저장 응답의 accepted/status/valid를 확인한다. receipt의 candidate_result_version과 current_result_version이 같고 현재 handle·result_key·저장 지문에 해당해야 한다. 오래된 accepted key 재전송을 최신 결과로 쓰지 않는다. 버전 불일치나 상태 변경이면 current_request/get_turn으로 최신 상태를 확인한다. export_session으로 과거 실패 후보·검토·출처·사용량을 파일에 내보낸다. 반환한 경로·SHA·건수만 읽고 원문 export 전체를 문맥에 다시 넣지 않는다. 사용자에게 근거 요약과 마지막 저장의 `{receipt,export}` JSON을 전달한다. 전체 result/assessment와 원문 인용은 export에 보존하고 최종 답변에 전체 JSON을 다시 작성하지 않는다. 사용자가 원문 결과를 요구하거나 검증 오류/상태 변경이 있으면 필요한 상세 자료를 제공한다. rejected 후보를 accepted 완료라고 설명하지 않으며 저장 실패와 최종 응답 부재는 별도다. 이전 turn은 조건 변경으로 무효화될 수 있으며 역사적 참조를 현재 유효 결과로 설명하지 않는다.

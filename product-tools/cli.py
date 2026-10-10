@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import sqlite3
 import sys
-from product_tools.contracts import MAX_BYTES, ToolError, fail, obj, strict_json
+from product_tools.contracts import MAX_BYTES, ToolError, decode_json_bytes, fail, obj, strict_json
 from product_tools.dataset import Dataset
 from product_tools.state import StateStore
 from product_tools.tools import ProductTools
@@ -19,7 +19,7 @@ def dispatch(data, store, operation, payload):
     if operation in ("open_request", "open_request_bundle", "current_request", "export_session"):
         return getattr(Conversation(store, ROOT), operation)(payload)
     if operation == "save_reviewed_result":
-        obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment",))
+        obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment", "response_mode"))
         payload = {**payload, "assessment": payload.get("assessment")}
         return store.save_result(**payload, require_review=True)
     if operation == "review_product_result":
@@ -85,12 +85,12 @@ def main():
         if args.operation == "doctor" and args.input == "-":
             raw = "{}"
         elif args.input == "-":
-            raw = sys.stdin.buffer.read(MAX_BYTES + 1).decode("utf-8")
+            raw = decode_json_bytes(sys.stdin.buffer.read(MAX_BYTES + 1))
         else:
             path = Path(args.input)
             if path.stat().st_size > MAX_BYTES:
                 fail("input_limit", "Input exceeds 64 KiB")
-            raw = path.read_text(encoding="utf-8")
+            raw = decode_json_bytes(path.read_bytes())
         if len(raw.encode("utf-8")) > MAX_BYTES:
             fail("input_limit", "Input exceeds 64 KiB")
         payload = strict_json(raw)

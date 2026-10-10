@@ -45,7 +45,7 @@ python -m observer tail --native-id 0199abcd-1234-7000-8000-123456789abc --run-i
 
 native 집계는 `langfuse.observation.metadata.native_usage_snapshot` 등 metadata에 둔다. `generation`, 모델별 usage/cost 속성은 보내지 않아 세션 집계를 한 모델 호출처럼 과금 계산하지 않는다. 관측된 원문 parent가 없으면 각 완료 사건은 같은 trace의 독립 span이다. 원문 전체 input/output은 의도적으로 제외하며 Langfuse의 업무 평가용 완전 canary/Agent Graph 인수를 주장하지 않는다.
 
-2026-10-10 공식 문서를 확인했다. [OTLP endpoint·HTTP JSON](https://langfuse.com/integrations/native/opentelemetry), [v4 완료 span과1회 export](https://langfuse.com/integrations/native/opentelemetry/migration-to-v4) 계약을 구현했다. 공식 문서는 Python에 SDK를 권장하지만 이 어댑터는 승인된 모델 SDK/설치0 조건에서 직접 OTLP JSON만 사용한다. OSS 소스를 vendor하지 않았으며 설치 SDK 버전·서버 버전·유료 플랜·클라우드 화면 연결은 검증하지 않았다. [Codex --json](https://learn.chatgpt.com/docs/non-interactive-mode)의 사건 형식과 로컬 rollout 형식은 구분하며 rollout의 버전별 호환은 실제 기록 인수가 추가로 필요하다.
+2026-10-10 공식 문서를 확인했다. [OTLP endpoint·HTTP JSON](https://langfuse.com/integrations/native/opentelemetry), [v4 완료 span과1회 export](https://langfuse.com/integrations/native/opentelemetry/migration-to-v4) 계약을 구현했다. 공식 문서는 Python에 SDK를 권장하지만 이 어댑터는 승인된 모델 SDK/설치0 조건에서 직접 OTLP JSON만 사용한다. OSS 소스를 vendor하지 않았다. 이후 사용자 승인하에 실제 Codex 본 실행 tail→Cloud v4.56.0/Hobby의25건 수락과 화면 표시를 [검증](../docs/validation/observer-langfuse.md)했다. SDK·유료 플랜·전체 graph/청구 검증은 아니다. [Codex --json](https://learn.chatgpt.com/docs/non-interactive-mode)의 사건 형식과 로컬 rollout 형식은 구분하며 rollout의 버전별 호환은 실제 기록 인수가 추가로 필요하다.
 
 ## 검사
 

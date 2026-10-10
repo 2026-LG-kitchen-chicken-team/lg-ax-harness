@@ -25,13 +25,13 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## 호출·크기·오류 계약
 
-실행: `uv run python product-tools/cli.py OPERATION --input UTF8_JSON_FILE`. 기본 자료는 실제 lg-research-v3이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
+실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각64KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는 실제 lg-research-v3이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
 
 | Tool | JSON 입력 | 출력/오류 |
 |---|---|---|
 | doctor | 없음 또는 `{}` | 지문·모델·수량·business/test_only·검사 범위 |
 | open_request / current_request / export_session | [Codex 대화 계약](codex-product.md) | 자동 handle·실제 추가 질문·동일 요청 재개·전체 이력 export |
-| save_reviewed_result | session_id/turn_id/result_key/result/assessment/expected_result_version | 구조와 검토 정합성·실패 시도 기록; 의미 품질 미검증 |
+| save_reviewed_result | session_id/turn_id/result_key/result/assessment/expected_result_version, 선택 response_mode | 구조와 검토 정합성·실패 시도 기록; full(기본) 또는 receipt 응답; 의미 품질 미검증 |
 | prepare_planning_input | 모델·세션·요청 키, 선택 질문/조건 | 내부 입력·공식 모델 정보; unknown_model/unknown_scope/needs_input |
 | retrieve_reviews / retrieve_product_facts | 정확한 scope, 선택 query/limit/feature_key | 원문·origin·지문·조회 범위·빈 조회/잘림·캐시 여부. 리뷰에는 feature_key 없음 |
 | select_evidence / match_product_scope | scope와 source_ids / scope | 정확한 근거 또는 scope_mismatch/source_not_found |

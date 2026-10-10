@@ -206,9 +206,14 @@ class StateStore:
         result = {k: v for k, v in value.items() if k not in ("assessment", "review")}
         if "review" in value:
             result["review_summary"] = {k: v for k, v in value["review"].items() if k in ("can_finalize_reported_result", "reported_reasoning_consistent", "semantic_status", "acceptance_ready")}
+            findings = value["review"].get("findings", [])
+            result["review_summary"]["findings"] = findings[:20]
+            result["review_summary"]["findings_omitted"] = max(0, len(findings) - 20)
         return result
 
-    def save_result(self, session_id, turn_id, result_key, result, expected_result_version, assessment=None, require_review=False):
+    def save_result(self, session_id, turn_id, result_key, result, expected_result_version, assessment=None, require_review=False, response_mode="full"):
+        if response_mode not in ("full", "receipt"):
+            fail("invalid_input", "response_mode must be full or receipt")
         identifier(result_key, "result_key")
         integer(expected_result_version, "expected_result_version", 0, 3)
         payload = canonical(result)
@@ -265,7 +270,20 @@ class StateStore:
                                     (turn_id, result_key, payload, fingerprint(result), version, now(), canonical(report)))
                     status = result["status"] if accepted else "held" if revision == 2 else "needs_revision"
                     self.db.execute("UPDATE turns SET status=?, revision_count=?, result_version=? WHERE turn_id=?", (status, revision, version, turn_id))
-        return {"accepted": accepted, "reason": reason, "validation": self.compact_validation(report), "turn": self.get_turn(session_id, turn_id)}
+        turn = self.get_turn(session_id, turn_id)
+        if response_mode == "receipt":
+            turn = {k: turn[k] for k in ("session_id", "turn_id", "request_key", "status", "revision_count", "result_version", "context_fingerprint", "valid", "invalidation_reason", "cancellation", "semantic_status", "acceptance_ready")}
+        response = {"accepted": accepted, "reason": reason, "validation": self.compact_validation(report), "turn": turn}
+        if response_mode == "receipt":
+            saved = self.db.execute("SELECT payload,payload_hash,result_version,validation_json FROM results WHERE turn_id=? AND result_key=?", (turn_id, result_key)).fetchone()
+            response["receipt"] = {"schema_version": 1, "session_id": session_id, "turn_id": turn_id, "result_key": result_key,
+                "candidate_result_version": saved[2] if saved else None, "current_result_version": turn["result_version"],
+                "result_sha256": saved[1] if saved else None,
+                "assessment_sha256": fingerprint(strict_json(saved[3]).get("assessment")) if saved else None,
+                "accepted": accepted, "status": turn["status"], "valid": turn["valid"],
+                "semantic_status": "unverified", "acceptance_ready": False,
+                "detail_operation": "current_request/get_turn; complete candidate and assessment in export_session"}
+        return response
 
     def record_usage(self, session_id, turn_id, call):
         obj(call, ("call_id", "status", "input_tokens", "output_tokens", "cache_tokens", "reasoning_tokens", "cost_usd"))

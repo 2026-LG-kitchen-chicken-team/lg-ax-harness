@@ -127,7 +127,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "93e888c1b9f0e5b92f56c66992ccbee8f277430c8589d670df9024e5d8a99c71"
+          "sha256": "433d1ddf801879b956faec492fe0dff057d0b1fcd4a23d0db412282bbf1363d3"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -135,7 +135,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "a75a61e42a602de57ca7206cfedbbe4309f6c904402e22dac031580dc5990e10"
+          "sha256": "13ab790a27babae746e6295ce3ac5932447afc754eb3005938baa6ff5da8e499"
         }
       ]
     }
@@ -143,11 +143,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "2dd4c2984496e8d70777a956c4539cf4a45d0d646a7638bdd1fbf6364d5f2c34"
+      "sha256": "b2b51bdd35a62852159cc19d96a8097ae91ed6634729bb892fc1917957996e2b"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "f43f191ded110e98aef3f43ac758b01b5f7c1707873a1f3e71c6b813ae5b1528"
+      "sha256": "101aebc093b2ca65cfb4f138f3f943d7c7fef0b47d1fcaf48c9027c59efb5014"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -155,7 +155,7 @@
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "8f95fbec82d657269e85c787ea7df41ce39ff016c3ed4c8193c703e405a0e43d"
+      "sha256": "e90df5ba22840b6c49075e84f9027c45dd4a8b6292a36986a4a55d3435314412"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
@@ -171,7 +171,7 @@
     },
     {
       "path": "product-tools/product_tools/state.py",
-      "sha256": "174d8ef009b27fe7392c36dcd6fe2533aab4f619d80a1b1a4215bea829e42194"
+      "sha256": "600366d49835b9698df5ea888bcbf5eb5f53dd4b5a06bf167500280cdf9b0579"
     },
     {
       "path": "product-tools/product_tools/tools.py",
@@ -183,7 +183,7 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "bcec27b0ff5dbccb3834a54882a54f9d477e2509243938d7e523a5aa887e36f9"
+      "sha256": "6d09e5d5c3d67957c2540567bc3df8eae27917bbdde34e4d2807625ee9cabd82"
     },
     {
       "path": "docs/contracts/product-planning.md",

@@ -37,6 +37,19 @@ def strict_json(text):
     except (json.JSONDecodeError, RecursionError) as exc:
         fail("invalid_json", str(exc))
 
+def decode_json_bytes(raw):
+    """Accept explicit Windows Unicode BOMs, never guess an ANSI encoding."""
+    if len(raw) > MAX_BYTES:
+        fail("input_limit", "Input exceeds 64 KiB")
+    encoding = "utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"
+    try:
+        value = raw.decode(encoding)
+    except UnicodeError as exc:
+        fail("invalid_json", "Expected UTF-8 or BOM-marked UTF-16 JSON: " + str(exc))
+    if len(value.encode("utf-8")) > MAX_BYTES:
+        fail("input_limit", "Decoded input exceeds 64 KiB")
+    return value
+
 def obj(value, required, optional=()):
     if not isinstance(value, dict):
         fail("invalid_input", "Expected JSON object")

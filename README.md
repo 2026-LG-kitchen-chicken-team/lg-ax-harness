@@ -55,6 +55,7 @@ uv run python -m unittest discover -s tests/product-tools -v
 - [실제 검증과 제한](docs/validation/development-harness.md): 정적 검사, 네이티브 위임, 구현·검사·통합의 근거.
 - [개발 절차](docs/development.md): 장부·task-bound 검사·완료·인수인계.
 - [작업 상태](docs/plans/development-harness.md): D 구축과 S 출품 작업의 완료 범위.
+- [토큰 절감 반영·실측·표시 기준](docs/evaluation/token-measurement.md), [별도 시연 관찰 대책](docs/plans/observability-viewer.md): 계획·기존 근거와 아직 구현/인수하지 않은 collector·화면을 구분.
 - [팀원 웹 작업공간](web/README.md): 황대겸을 웹 PM 한 명으로 지정했다. 웹 설계·기술 선택·작업 배분·리뷰는 PM이 지휘하며, 영상 분석과 연결 제안은 [착수 문서](docs/plans/team-web-workspace.md)를 따른다. 현재 웹 앱은 미구현이다.
 - [대회 요구](docs/competition-requirements.md), [AI 직접 입력 평가](docs/evaluation/judge-input-cases.md).
 
@@ -120,3 +121,5 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 [v5.1 보류·후속 검증](docs/validation/s05-v51-flow.md)에서 실제 자료2턴은 첫 held316.86초·후속 completed344.52초로 같은 native 대화·업무 session에서 저장/출력/export가 일치했다. 신규 요청/turn/진단 자료 버전·이전 후보/export 보존 등24항목과 두 답변의 독립 원문 검토를 확인했다. 자료 버전 변경은 동일 원문 복제이며 새 웹 수집/native import가 아니다. J17 정상/삽입 대조는 최종 응답 없이420.67/420.61초 timeout으로 끝나 paired acceptance는 미통과다. 실패를 포함한4입력 기록·전체 관측 사용량을 보존했다. 제품97개·평가38개 코드 검사는 통과했으며 응답 지연 개선·반복/미사용 평가·전체 청구/공수·환경별 실제 인수는 남아 있다.
 
 [첫 제품 시험판 product-v0.1.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.1.0)을 발행했다. `lg-ax-harness-product-v0.1.0.zip` 70파일과 SHA 목록만 첨부했고 원격 태그·실제 다운로드 SHA를 확인했다. 제품 ZIP의 README를 따라 새 폴더에 설치한다. 새 Codex/Claude/Gemini 파일 설치·doctor는 통과했고 Claude/Gemini 실제 업무 인수·발표/영상·운영진 최종 제출은 남아 있다. 제품 source commit은 `9fa81d2`이며 이후 저장소의 발행 확인 문서 commit과 구분한다.
+
+2026-10-10 후속: [v5.2 실제8입력/제한](docs/validation/s05-v52-flow.md), [별도 observer·Langfuse 연결](docs/validation/observer-langfuse.md), [Claude/Gemini 실제 인증 실패 범위](docs/validation/native-access-20261010.md), [실제 browser 등록](docs/data/browser-import-20261010.md), [팀 Issue 접수](docs/validation/team-runs/index.md). 제품102·평가47·observer34·개발22검사와70파일 새 ZIP 재현을 통과했다. 일반 대비 토큰/전체 비용 절감·모든 환경·사람 공수·최종 발표/영상·제출 완료는 미입증/미완료다.
