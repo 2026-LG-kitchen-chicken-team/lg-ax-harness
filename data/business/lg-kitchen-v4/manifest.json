@@ -1,0 +1,21 @@
+{
+  "data_version": "lg-observed-2026-10-11-kitchen-v4",
+  "synthetic": false,
+  "purpose": "business",
+  "created_date": "2026-10-11",
+  "provenance": "New-project v3 refrigerator sources preserved; new exact LG MWJ25E/DUBJ2EA official factual summaries and observed short public personal review excerpts. Same reviewer for the two added appliances; purchase/sponsorship unverified. DUBJ2EA discontinued. No old LG project data. No full-page snapshot or live crawl in this script.",
+  "model_count": 5,
+  "scope_count": 5,
+  "review_count": 8,
+  "fact_count": 26,
+  "files": [
+    {
+      "path": "models.json",
+      "sha256": "377b938f071d7311deb66e5598589c554468ca3224b299432ace3398a4488fc6"
+    },
+    {
+      "path": "sources.jsonl",
+      "sha256": "fcea884a514a8578322fa5de40021c6ecc69d831231fedd149d7fd960ad25e2f"
+    }
+  ]
+}
