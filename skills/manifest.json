@@ -162,7 +162,7 @@
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "e024673debdacf7df17fe3a74635cbc81a844ab3543b16c53eca77ad51b9ac94"
+      "sha256": "19d82f47065a6ac0cc4d96a74f8ac53857fc3fe81097826849753c31218afba1"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -174,11 +174,15 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "a9a28b98fd5fa94aa117c22bdcd7dcb706b39f1e822b2efebd1519f4b9fd6ed2"
+      "sha256": "1bdb147b54ccf324ff904b22c39f788b643b24353e166cbbaac3f2dfc348c9a4"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
       "sha256": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e"
+    },
+    {
+      "path": "product-tools/product_tools/delivery.py",
+      "sha256": "1e111e37cbb48e4483a83b05e2a47bda72553f504c4f6c06ac653fac4476f4c2"
     },
     {
       "path": "product-tools/product_tools/payload.py",
@@ -187,6 +191,10 @@
     {
       "path": "product-tools/product_tools/planning.py",
       "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd"
+    },
+    {
+      "path": "product-tools/product_tools/reporting.py",
+      "sha256": "fba6d50bc3d383ac3caa9a42afc11e76230d0ef3ee5bc71492f67f25b3124257"
     },
     {
       "path": "product-tools/product_tools/state.py",
