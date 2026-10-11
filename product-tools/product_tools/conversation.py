@@ -2,6 +2,7 @@
 import hashlib
 import os
 from pathlib import Path
+import sqlite3
 import subprocess
 import uuid
 from .contracts import canonical, fail, identifier, integer, obj, strict_json, text
@@ -367,6 +368,25 @@ class Conversation:
             fail("report_failed", "Renderer returned ready without reader files")
         return hashes
 
+    def _report_plan_hash(self, authored):
+        assets = []
+        if isinstance(authored, dict):
+            for section in authored.get("sections", []):
+                for block in section.get("blocks", []):
+                    if block.get("type") != "image":
+                        continue
+                    name = block.get("path")
+                    if not isinstance(name, str):
+                        fail("invalid_report_plan", "Image path must be a local absolute file")
+                    path = Path(name)
+                    if not path.is_absolute() or ".." in path.parts or name.startswith(("\\\\", "//")) or "://" in name:
+                        fail("invalid_report_plan", "Image path must be a local absolute file without traversal")
+                    path = path.resolve(strict=True)
+                    if not path.is_file() or path.suffix.lower() not in (".png", ".jpg", ".jpeg"):
+                        fail("invalid_report_plan", "Image must be an existing PNG/JPEG file")
+                    assets.append({"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+        return hashlib.sha256(canonical({"plan": authored, "assets": assets}).encode("utf-8")).hexdigest()
+
     def _deliver_current(self, session, turn, version, options):
         """Bind files to a valid saved version and reuse intact output on replay.
 
@@ -377,7 +397,7 @@ class Conversation:
         try:
             from .delivery import create_deliverables
             authored = self._read_report_plan(options["report_plan_path"])
-            plan_hash = hashlib.sha256(canonical(authored).encode("utf-8")).hexdigest()
+            plan_hash = self._report_plan_hash(authored)
             reused = False
             with self.store.transaction():
                 current = self.store.get_turn(session, turn)
@@ -414,9 +434,10 @@ class Conversation:
                 except OSError as exc:
                     response["folder_open_error"] = str(exc)[:512]
             return response
-        except (ImportError, OSError, ValueError, TypeError, KeyError) as exc:
+        except (ImportError, OSError, ValueError, TypeError, KeyError, sqlite3.Error) as exc:
             return {"ready": False, "directory": None, "files": [], "checks": {"errors": [str(exc)[:512]]},
-                    "error": {"code": getattr(exc, "code", "report_failed"), "message": str(exc)[:512]}}
+                    "error": {"code": "report_storage_error" if isinstance(exc, sqlite3.Error) else getattr(exc, "code", "report_failed"),
+                              "message": str(exc)[:512], "retryable": isinstance(exc, sqlite3.OperationalError) and "locked" in str(exc).lower()}}
 
     def deliver_result(self, payload):
         """Recover reader files from a reviewed stored result without resaving it."""

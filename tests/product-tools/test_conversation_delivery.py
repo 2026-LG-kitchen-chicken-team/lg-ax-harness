@@ -1,5 +1,6 @@
 """Saved-version, failure recovery and replay boundaries for reader delivery."""
 import json
+import sqlite3
 from pathlib import Path
 import sys
 import tempfile
@@ -108,6 +109,32 @@ class ReaderConversationTests(unittest.TestCase):
         response = self.conv.save_and_export(old_api)
         self.assertTrue(response["delivery_ready"])
         self.assertNotIn("report", response)
+
+    def test_database_report_error_keeps_successful_save_and_export_in_response(self):
+        with patch("product_tools.delivery.create_deliverables", side_effect=sqlite3.OperationalError("fixture report database locked")):
+            response = self.conv.save_and_export(self.payload)
+        self.assertTrue(response["save"]["accepted"])
+        self.assertIsNotNone(response["export"])
+        self.assertFalse(response["report_ready"])
+        self.assertEqual(response["report_error"]["code"], "report_storage_error")
+        self.assertTrue(response["report_error"]["retryable"])
+        self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
+
+    def test_changed_image_bytes_regenerate_report_without_overwriting_prior_files(self):
+        image = self.root / "runtime-data/concept.png"
+        image.write_bytes(b"fixture image bytes one")
+        plan = {"title": "컨셉", "summary": [], "sources": [], "sections": [
+            {"title": "컨셉 모습", "blocks": [{"type": "image", "path": str(image), "caption": "테스트 이미지"}]}]}
+        path = self.root / "runtime-data/authored.json"
+        path.write_text(json.dumps(plan, ensure_ascii=False), encoding="utf-8")
+        payload = {**self.payload, "report_plan_path": "runtime-data/authored.json"}
+        with patch("product_tools.delivery.create_deliverables", side_effect=self.create):
+            first = self.conv.save_and_export(payload)["report"]
+            image.write_bytes(b"fixture image bytes two")
+            second = self.conv.deliver_result(self.recovery_payload(report_plan_path="runtime-data/authored.json"))
+        self.assertFalse(second["reused"])
+        self.assertNotEqual(first["directory"], second["directory"])
+        self.assertTrue(Path(first["directory"]).is_dir())
 
 
 if __name__ == "__main__":
