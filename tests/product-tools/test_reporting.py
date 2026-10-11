@@ -165,6 +165,24 @@ class ReportingValidationTests(unittest.TestCase):
 
 
 class ReportingRenderTests(unittest.TestCase):
+    def test_short_figure_caption_and_provenance_stay_together(self):
+        from PIL import Image
+        from docx import Document
+        with tempfile.TemporaryDirectory() as temporary:
+            supplied = Path(temporary)/"supplied-test-fixture.png"
+            Image.new("RGB",(20,20),"white").save(supplied)
+            plan = {"title":"제공 이미지 계약 시험","summary":["시험 입력의 이미지를 삽입한다."],
+                    "sources":[],"sections":[{"title":"제공 이미지","blocks":[
+                        {"type":"image","path":str(supplied),"caption":"시험 이미지 설명",
+                         "generated":True,"provenance":"계약 시험에서 생성해 제공한 합성 이미지"}]}]}
+            result = reporting.render_report(plan,Path(temporary)/"reader")
+            self.assertTrue(result["ready"],result)
+            doc = Document(Path(result["directory"])/"02_최종 보고서"/"보고서.docx")
+            caption_index = next(i for i,p in enumerate(doc.paragraphs) if p.text == "시험 이미지 설명")
+            self.assertTrue(doc.paragraphs[caption_index-1].paragraph_format.keep_with_next)
+            self.assertTrue(doc.paragraphs[caption_index].paragraph_format.keep_with_next)
+            self.assertFalse(bool(doc.paragraphs[caption_index+1].paragraph_format.keep_with_next))
+
     def test_literal_citation_titles_caption_and_chart_do_not_overlap(self):
         from openpyxl import load_workbook
         from openpyxl.utils.cell import range_boundaries

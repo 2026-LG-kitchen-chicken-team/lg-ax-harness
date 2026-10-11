@@ -766,8 +766,14 @@ def _write_docx(doc, target, sources, links, temp):
                     factor = min(6.4/image.width, 5.4/image.height)
                     width = image.width*factor
                 document.add_picture(block["path"], width=Inches(width))
-                document.add_paragraph(block["caption"])
+                picture_paragraph = document.paragraphs[-1]
+                caption_paragraph = document.add_paragraph(block["caption"])
+                # Bounded figure groups keep captions/provenance with the image;
+                # long prose and multi-source citations remain free to paginate.
+                picture_paragraph.paragraph_format.keep_with_next = len(block["caption"]) <= 500
                 if block.get("generated"):
+                    caption_paragraph.paragraph_format.keep_with_next = (
+                        len(block["caption"]) <= 300 and len(block["provenance"]) <= 300)
                     document.add_paragraph("이미지 생성 "+block["provenance"])
             else:
                 heading = document.add_paragraph(block["title"])
