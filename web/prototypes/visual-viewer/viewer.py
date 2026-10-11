@@ -46,8 +46,32 @@ _CODE = ("import hashlib,os,time;d={base};p=os.path.join(d,'web','prototypes','v
          "else os.path.isdir(os.path.dirname(l)) and open(l,'a').write("
          "time.ctime()+' hook.py is missing or differs from the installed fingerprint. Run viewer.py install again.'+chr(10))")
 LOG_POSIX = "runtime-data/visual-viewer"
-LOG_WINDOWS = r"runtime-data\visual-viewer"
 START_LOG = "hook-start-error.log"  # Codex 셸이 쓰는 uv·Python 시작 오류(마지막 실행분만)
+# Codex는 Windows에서 commandWindows를 버전·설정에 따라 cmd(`COMSPEC /C "<명령>"`, 0.146) 또는 사용자 셸인 PowerShell
+# (`powershell.exe|pwsh.exe -NoProfile -Command <명령>`, 0.162)로 실행한다. 두 셸에서 똑같이 해석되는 명령은
+# "상대 경로 실행 파일 + 16진수 인자"뿐이라, 셸 문법이 필요한 일(작업 폴더 실행 파일 검색 끄기, 출력 버리기, 시작 오류
+# 기록, 항상 exit 0)은 하네스 `.codex\`의 실행기(.cmd)가 한다. `.codex\`는 Codex 샌드박스가 쓰기를 막는 폴더다.
+LAUNCHER_REL = (".codex", "visual-viewer-hook.cmd")
+_LAUNCHER_CODE = ("import hashlib,os,sys,time;d=os.getcwd();h=sys.argv.pop(2);"
+                  "p=os.path.join(d,'web','prototypes','visual-viewer','hook.py');"
+                  "l=os.path.join(d,'runtime-data','visual-viewer','hook-error.log');"
+                  "b=open(p,'rb').read() if os.path.isfile(p) else b'';"
+                  "exec(compile(b,p,'exec'),{'__name__':'__main__','__file__':p}) if hashlib.sha256(b).hexdigest()==h "
+                  "else os.path.isdir(os.path.dirname(l)) and open(l,'a').write("
+                  "time.ctime()+' hook.py is missing or differs from the installed fingerprint. Run viewer.py install again.'+chr(10))")
+LAUNCHER_TEXT = "\r\n".join([
+    "@echo off",
+    "rem LG AX visual viewer - Codex hook launcher written by viewer.py install. Do not edit, reinstall instead.",
+    "rem Arguments: codex, then SHA-256 of hook.py, build_view.py, index.html and this file. Always exits 0 silently.",
+    "setlocal",
+    "set NoDefaultCurrentDirectoryInExePath=1",
+    'cd /d "%~dp0.."',
+    'if not exist "runtime-data\\visual-viewer\\" md "runtime-data\\visual-viewer" 2>nul',
+    # call: uv가 .cmd·.bat 껍데기여도 제어가 돌아와 아래 exit /b 0이 실행된다(call 없이 부르면 돌아오지 않는다).
+    f'call {UV_PREFIX} "{_LAUNCHER_CODE}" codex %2 %3 %4 1>nul 2>"runtime-data\\visual-viewer\\{START_LOG}"',
+    "exit /b 0",
+    "",
+])
 TARGETS = {
     "claude": {"file": (".claude", "settings.local.json"), "event": "PostToolUse", "matcher": "Bash|PowerShell",
                "name": "Claude Code", "async": True, "timeout": 60, "keep_positions": False},
@@ -81,20 +105,45 @@ def hook_command(source: str, digests: dict) -> str:
     return f'{UV_PREFIX} "{hook_code(source, digests)}" {source} {digests["build_view"]} {digests["index"]}'
 
 
+def launcher_digest() -> str:
+    return hashlib.sha256(LAUNCHER_TEXT.encode("ascii")).hexdigest()
+
+
+def write_launcher(harness: Path) -> bool:
+    """하네스 `.codex\\`에 Windows용 실행기를 쓴다. 내용이 같으면 그대로 둔다. 바꿨으면 True."""
+    path = harness.joinpath(*LAUNCHER_REL)
+    raw = LAUNCHER_TEXT.encode("ascii")
+    if path.is_file() and path.read_bytes() == raw:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_bytes(raw)
+    os.replace(tmp, path)
+    return True
+
+
+def remove_launcher(harness: Path) -> bool:
+    path = harness.joinpath(*LAUNCHER_REL)
+    if path.is_file() and path.read_bytes().startswith(b"@echo off\r\nrem LG AX visual viewer"):
+        path.unlink()
+        return True
+    return False
+
+
 def codex_commands(digests: dict) -> dict:
     """Codex는 동기 훅이라 uv·Python이 시작조차 못 해도 exit 0·무출력이어야 한다(exit 2면 셸 결과를 바꿔 버린다).
 
     셸의 stderr(uv·Python 시작 오류)는 hook-error.log가 아닌 hook-start-error.log에 매번 덮어쓴다. Windows cmd의
     리다이렉트는 파일을 쓰기 공유 없이 열어 두므로, 같은 파일이면 hook.py의 로그 쓰기가 막힌다.
     - command(macOS·Linux, sh -c): 출력은 버리고 시작 오류만 남긴 뒤 exit 0.
-    - commandWindows(COMSPEC /C, 작업 폴더 = 하네스): cmd는 작업 폴더의 uv.cmd·uv.bat을 PATH보다 먼저 찾으므로
-      NoDefaultCurrentDirectoryInExePath를 켜서 막는다. 출력은 버리고 시작 오류만 남긴 뒤 exit /b 0.
+    - commandWindows: `.codex\\visual-viewer-hook.cmd codex <지문 4개>`. cmd·Windows PowerShell 5.1·pwsh 7이 같게
+      읽는다. 지문이 명령에 있으니 뷰어 파일이나 실행기가 바뀌면 Codex가 다시 신뢰를 요구한다.
     """
     core = hook_command("codex", digests)
     return {
         "command": f"mkdir -p {LOG_POSIX} 2>/dev/null; {core} >/dev/null 2>{LOG_POSIX}/{START_LOG}; exit 0",
-        "commandWindows": (f"set NoDefaultCurrentDirectoryInExePath=1&& (if not exist {LOG_WINDOWS}\\ md {LOG_WINDOWS}) & "
-                           f"{core} 1>nul 2>{LOG_WINDOWS}\\{START_LOG} & exit /b 0"),
+        "commandWindows": (f"{LAUNCHER_REL[0]}\\{LAUNCHER_REL[1]} codex {digests['hook']} {digests['build_view']} "
+                           f"{digests['index']} {launcher_digest()}"),
     }
 
 
@@ -113,7 +162,7 @@ def is_ours(item) -> bool:
     if not isinstance(item, dict):
         return False
     text = " ".join(v for v in (item.get("command"), item.get("commandWindows")) if isinstance(v, str))
-    return "visual-viewer" in text and "hook.py" in text
+    return ("visual-viewer" in text and "hook.py" in text) or LAUNCHER_REL[1] in text
 
 
 def is_placeholder(item) -> bool:
@@ -276,7 +325,8 @@ def registered(config: dict, source: str) -> dict:
     for key in ("command", "commandWindows"):
         hexes = HEX64.findall(item.get(key) or "")
         if hexes:
-            digests.append(dict(zip(("hook", "build_view", "index"), hexes)) if len(hexes) == 3 else None)
+            names = ("hook", "build_view", "index") + (("launcher",) if LAUNCHER_REL[1] in (item.get(key) or "") else ())
+            digests.append(dict(zip(names, hexes)) if len(hexes) == len(names) else None)
     return {"registered": bool(placed), "misplaced": len(found) - len(placed), "event": event, "matcher": matcher,
             "async": bool(item.get("async")), "timeout": item.get("timeout"), "digests": digests}
 
@@ -427,6 +477,8 @@ def cmd_install(args) -> int:
     for source in sources:
         path, config = configs[source]
         target = TARGETS[source]
+        if source == "codex" and write_launcher(harness):
+            print(f"Windows용 Codex 실행기: {harness.joinpath(*LAUNCHER_REL)}")
         how, notes = place_ours(config, path, source, handler(source, digests))
         save_config(path, config)
         rel = "/".join(target["file"])
@@ -451,7 +503,10 @@ def cmd_install(args) -> int:
             info = registered(config, source)
             if not (info["registered"] or info.get("misplaced")):
                 continue
-            if all(d == digests for d in info.get("digests") or [None]):
+            wanted = {**digests, "launcher": launcher_digest()}
+            if source == "codex":
+                write_launcher(harness)
+            if info.get("registered") and all(d is not None and all(d[k] == wanted[k] for k in d) for d in info.get("digests") or [None]):
                 continue
             how, notes = place_ours(config, path, source, handler(source, digests))
             save_config(path, config)
@@ -486,6 +541,8 @@ def cmd_uninstall(args) -> int:
         else:
             save_config(path, config)
             print(f"[{target['name']}] 훅 {removed}개를 지웠습니다. 다른 훅의 내용과 위치는 그대로 둡니다.")
+        if source == "codex" and remove_launcher(harness):
+            print(f"[{target['name']}] Windows용 실행기 {'/'.join(LAUNCHER_REL)}를 지웠습니다.")
         for note in notes:
             print(f"  {note}")
     print("뷰어 파일과 runtime-data/visual-viewer의 화면·insights는 남겨 둡니다(필요 없으면 직접 지우세요).")
@@ -540,6 +597,9 @@ def cmd_status(args) -> int:
     app = harness.joinpath(*APP_REL)
     report = {"harness": str(harness), "app_files": {n: (app / n).is_file() for n in APP_FILES}}
     current = app_digests(app) if all((app / n).is_file() for n in ("hook.py", "build_view.py", "index.html")) else None
+    launcher = harness.joinpath(*LAUNCHER_REL)
+    if current is not None:
+        current["launcher"] = digest(launcher) if launcher.is_file() else None
     for source, target in TARGETS.items():
         path = harness.joinpath(*target["file"])
         try:
@@ -548,10 +608,12 @@ def cmd_status(args) -> int:
             info = {"registered": False, "error": str(exc)}
         info["file"] = "/".join(target["file"])
         if "digests" in info:
-            info["files_match_command"] = bool(current) and bool(info["digests"]) and all(d == current for d in info["digests"])
+            info["files_match_command"] = bool(current) and bool(info["digests"]) and all(
+                d is not None and all(d[k] == current.get(k) for k in d) for d in info["digests"])
             del info["digests"]
         report[source] = info
     layers = codex_feature_layers(harness)
+    report["codex"]["launcher"] = "/".join(LAUNCHER_REL) if launcher.is_file() else None
     report["codex_features"] = layers
     report["codex_hooks_disabled"] = not codex_hooks_effective(layers)
     report["codex_features_note"] = "프로젝트 설정이 사용자 설정보다 우선합니다. 관리자 requirements.toml·managed 설정은 확인하지 않았습니다."

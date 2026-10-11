@@ -808,10 +808,27 @@ class HookTests(TempCase):
 
 # ---------------------------------------------------------------- installed hook process
 
-def codex_runner(command: str, cwd: Path, stdin: bytes, env: dict) -> subprocess.CompletedProcess:
-    """codex-cli 0.146의 Windows 실행 방식: COMSPEC /C "<commandWindows>" (raw 인자), 작업 폴더 = 하네스."""
-    return subprocess.run(f'{os.environ.get("COMSPEC", "cmd.exe")} /C "{command}"', input=stdin, capture_output=True,
-                          cwd=cwd, env=env, timeout=120)
+def windows_shell(name: str) -> str | None:
+    """Codex가 Windows에서 훅을 실행하는 셸. cmd: 0.146(또는 세션 셸이 없을 때), powershell·pwsh: 0.162의 사용자 셸."""
+    if os.name != "nt":
+        return None
+    system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
+    found = {"cmd": os.environ.get("COMSPEC") or os.path.join(system, "cmd.exe"),
+             "powershell": os.path.join(system, "WindowsPowerShell", "v1.0", "powershell.exe"),
+             "pwsh": shutil.which("pwsh") or r"C:\Program Files\PowerShell\7\pwsh.exe"}[name]
+    return found if os.path.isfile(found) else None
+
+
+def codex_runner(command: str, cwd: Path, stdin: bytes, env: dict, shell: str = "cmd") -> subprocess.CompletedProcess:
+    """openai/codex의 hooks command_runner와 같은 방식으로 commandWindows를 실행한다(작업 폴더 = 하네스).
+
+    - cmd: `COMSPEC /C "<명령>"`를 raw 인자로(0.146, 0.162에서 세션 셸이 없거나 cmd일 때).
+    - powershell·pwsh: `<셸> -NoProfile -Command <명령>`, 명령은 보통 인자 하나(0.162.1의 Windows 기본 사용자 셸).
+    """
+    exe = windows_shell(shell)
+    if shell == "cmd":
+        return subprocess.run(f'{exe} /C "{command}"', input=stdin, capture_output=True, cwd=cwd, env=env, timeout=120)
+    return subprocess.run([exe, "-NoProfile", "-Command", command], input=stdin, capture_output=True, cwd=cwd, env=env, timeout=120)
 
 
 class InstalledHookProcessTests(TempCase):
@@ -854,17 +871,26 @@ class InstalledHookProcessTests(TempCase):
         self.assertNotIn("async", self.codex)
         self.assertEqual(self.codex["timeout"], 30)
         self.assertEqual((self.claude.get("async"), self.claude["timeout"]), (True, 60))
+        # Windows: cmd·PowerShell 5.1·pwsh가 같게 읽는 "상대 경로 실행기 + 16진수 인자"만 둔다(셸 연산자 없음)
         windows = self.codex["commandWindows"]
-        self.assertTrue(windows.startswith("set NoDefaultCurrentDirectoryInExePath=1&& "))
-        self.assertTrue(windows.endswith(" & exit /b 0"))
-        self.assertIn(r" 1>nul 2>runtime-data\visual-viewer\hook-start-error.log", windows)
+        self.assertRegex(windows, r"^\.codex\\visual-viewer-hook\.cmd codex( [0-9a-f]{64}){4}$")
+        launcher = self.h.root / ".codex" / "visual-viewer-hook.cmd"
+        text = launcher.read_bytes().decode("ascii")
+        self.assertEqual(windows.split()[-1], hashlib.sha256(launcher.read_bytes()).hexdigest())
+        digests = viewer.app_digests(self.h.root / "web/prototypes/visual-viewer")
+        self.assertEqual(windows.split()[2:5], [digests["hook"], digests["build_view"], digests["index"]])
+        for line in ("set NoDefaultCurrentDirectoryInExePath=1", 'cd /d "%~dp0.."', "exit /b 0",
+                     ' codex %2 %3 %4 1>nul 2>"runtime-data\\visual-viewer\\hook-start-error.log"'):
+            self.assertIn(line, text)
+        self.assertLess(text.index("set NoDefaultCurrentDirectoryInExePath=1"), text.index("uv run "))
+        self.assertTrue(text.rstrip().endswith("exit /b 0"))
         self.assertIn(" >/dev/null 2>runtime-data/visual-viewer/hook-start-error.log; exit 0", self.codex["command"])
-        for command in (windows, self.codex["command"]):  # 셸 리다이렉트가 hook.py의 로그 파일을 잡지 않는다
-            self.assertNotIn("hook-error.log", command.split(" python -I -B -c ")[0] + command.rsplit('" codex ', 1)[1])
         self.assertTrue(self.codex["command"].endswith("; exit 0"))
-        for command in (self.claude["command"], self.codex["command"], windows):
-            for flag in ("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c",):
-                self.assertIn(flag, command)
+        for redirecting in (text.split(" -I -B -c ")[1].split('" codex ')[1], self.codex["command"].rsplit('" codex ', 1)[1]):
+            self.assertNotIn("hook-error.log", redirecting)  # 셸 리다이렉트가 hook.py의 로그 파일을 잡지 않는다
+        for command in (self.claude["command"], self.codex["command"], text):
+            self.assertIn("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c", command)
+        for command in (self.claude["command"], self.codex["command"]):
             self.assertEqual(len(set(re.findall(r"[0-9a-f]{64}", command))), 3)
 
     def test_codex_post_tool_use_payload_triggers_rebuild(self):  # codex-hook-01
@@ -939,76 +965,67 @@ class InstalledHookProcessTests(TempCase):
             self.skipTest("Windows PowerShell not available")
         self.claude_run("powershell", lambda c: ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", c])
 
-    def test_codex_windows_command_like_codex_runner(self):  # hooks-new-01, codex-hook-02
+    def check_codex_windows(self, shell):  # E2E 0.162.1 PowerShell, hooks-new-01, codex-hook-02, round 3 logging
+        """정확한 commandWindows를 Codex처럼 실행: exit 0·무출력, 새 export 재생성, 심은 uv.cmd 무시, 오류가 status 로그에 남음."""
         if os.name != "nt":
             self.skipTest("commandWindows runs only on Windows")
-        self.need_uv()
-        self.h.add("microwave")
-        proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps({"session_id": "w1", "turn_id": "t"}).encode(), self.env())
-        self.assertSilentZero(proc)
-        self.assertIn("codex:w1", self.h.state()["opened_sessions"])
-        marker = self.h.root / "planted-ran.txt"
-        (self.h.root / "uv.cmd").write_text(f'@echo off\r\necho planted> "{marker}"\r\n', encoding="ascii")
-        control = subprocess.run(f'{os.environ.get("COMSPEC", "cmd.exe")} /C "uv --version"', capture_output=True, cwd=self.h.root, env=self.env())
-        if not marker.exists():
-            self.skipTest("this cmd.exe does not search the current folder (NoDefaultCurrentDirectoryInExePath set system-wide)")
-        self.assertEqual(control.returncode, 0)
-        marker.unlink()
-        self.h.add("dishwasher")
-        proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps({"session_id": "w2", "turn_id": "t"}).encode(), self.env())
-        self.assertSilentZero(proc)
-        self.assertFalse(marker.exists())
-        self.assertEqual(self.h.state()["last_export"], EXPORTS["dishwasher"].name)
-
-    def test_codex_windows_command_exits_zero_when_uv_fails_or_is_missing(self):  # hooks-new-01
-        if os.name != "nt":
-            self.skipTest("commandWindows runs only on Windows")
-        fake = Path(self.tmp.name) / "fakeuv"
-        fake.mkdir()
-        (fake / "uv.cmd").write_text("@echo off\r\necho error: No interpreter found for Python 3.12 1>&2\r\nexit /b 2\r\n", encoding="ascii")
-        system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
-        for label, path in (("failing", f"{fake};{system}"), ("missing", system)):
-            with self.subTest(uv=label):
-                proc = codex_runner(self.codex["commandWindows"], self.h.root, b'{"session_id": "x"}', self.env(PATH=path))
-                self.assertSilentZero(proc)
-                self.assertGreater(self.start_log.stat().st_size, 0)
-                report = json.loads(run_viewer("status", str(self.h.root))[1])
-                self.assertEqual(report["last_error_file"], viewer.START_LOG)
-                if label == "failing":
-                    self.assertIn("No interpreter found", report["last_error"])
-
-    def test_codex_windows_command_failures_reach_the_log_status_reads(self):  # installer-new-pinned-other-cli-silent (round 3)
-        if os.name != "nt":
-            self.skipTest("commandWindows runs only on Windows")
+        if not windows_shell(shell):
+            self.skipTest(f"{shell} is not installed on this machine")
         self.need_uv()
         app = self.h.root / "web/prototypes/visual-viewer"
 
-        def run_codex(session):
-            proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps({"session_id": session, "turn_id": "t"}).encode(), self.env())
+        def run(session, **env):
+            proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps({"session_id": session, "turn_id": "t"}).encode(),
+                                self.env(**env), shell)
             self.assertSilentZero(proc)
             return json.loads(run_viewer("status", str(self.h.root))[1])
 
         self.h.add("microwave")
+        run(f"{shell}-1")
+        self.assertIn(f"codex:{shell}-1", self.h.state()["opened_sessions"])
+        self.assertEqual(self.h.state()["last_export"], EXPORTS["microwave"].name)
+        marker = self.h.root / "planted-ran.txt"
+        (self.h.root / "uv.cmd").write_text(f'@echo off\r\necho planted> "{marker}"\r\n', encoding="ascii")
+        self.h.add("dishwasher")
+        run(f"{shell}-2")
+        self.assertFalse(marker.exists(), "uv.cmd in the harness root ran")
+        self.assertEqual(self.h.state()["last_export"], EXPORTS["dishwasher"].name)
+        (self.h.root / "uv.cmd").unlink()
         original = (app / "hook.py").read_bytes()
         (app / "hook.py").write_bytes(original + b"\n# tampered\n")
-        report = run_codex("m1")
-        self.assertIn("hook.py is missing or differs", self.log.read_text(encoding="utf-8"))
+        self.h.add("refrigerator")
+        report = run(f"{shell}-3")
         self.assertIn("hook.py is missing or differs", report["last_error"])
         self.assertEqual(report["last_error_file"], "hook-error.log")
         (app / "hook.py").write_bytes(original)
         original = (app / "build_view.py").read_bytes()
         (app / "build_view.py").write_bytes(original + b"\nTAMPERED = True\n")
-        report = run_codex("m2")
-        self.assertIn("build_view.py가 설치 때와 다릅니다", report["last_error"])
-        self.assertFalse((self.h.out / "view-data.js").exists())
+        self.assertIn("build_view.py가 설치 때와 다릅니다", run(f"{shell}-4")["last_error"])
         (app / "build_view.py").write_bytes(original)
         broken = self.h.exports / "export-zz-broken.json"
         broken.write_text("{", encoding="utf-8")
         os.utime(broken, (time.time() + 100, time.time() + 100))
-        report = run_codex("m3")
-        self.assertIn("view 생성 실패 export-zz-broken.json", report["last_error"])
+        self.assertIn("view 생성 실패 export-zz-broken.json", run(f"{shell}-5")["last_error"])
         self.assertNotIn("PermissionError", self.log.read_text(encoding="utf-8"))
         self.assertEqual(self.start_log.stat().st_size, 0)  # 정상 시작이면 시작 오류 파일은 비어 있다
+        fake = Path(self.tmp.name) / f"fakeuv-{shell}"
+        fake.mkdir()
+        (fake / "uv.cmd").write_text("@echo off\r\necho error: No interpreter found for Python 3.12 1>&2\r\nexit /b 2\r\n", encoding="ascii")
+        system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
+        report = run(f"{shell}-6", PATH=f"{fake};{system}")
+        self.assertIn("No interpreter found", report["last_error"])
+        self.assertEqual(report["last_error_file"], viewer.START_LOG)
+        run(f"{shell}-7", PATH=system)  # uv 없음
+        self.assertGreater(self.start_log.stat().st_size, 0)
+
+    def test_codex_windows_command_under_cmd(self):
+        self.check_codex_windows("cmd")
+
+    def test_codex_windows_command_under_windows_powershell(self):
+        self.check_codex_windows("powershell")
+
+    def test_codex_windows_command_under_pwsh(self):
+        self.check_codex_windows("pwsh")
 
     def test_codex_posix_command_in_sh(self):  # hooks-new-01 (macOS·Linux form; checked with Git Bash on Windows)
         bash = git_bash()
@@ -1143,8 +1160,11 @@ class InstallTests(TempCase):
         before = toml.read_bytes()
         run_viewer("install", "--codex", str(self.h.root))
         self.assertIn('" codex ', self.load(".codex/hooks.json")["hooks"]["PostToolUse"][0]["hooks"][0]["command"])
+        self.assertTrue((self.h.root / ".codex/visual-viewer-hook.cmd").is_file())
+        self.assertEqual(json.loads(run_viewer("status", str(self.h.root))[1])["codex"]["launcher"], ".codex/visual-viewer-hook.cmd")
         run_viewer("uninstall", "--codex", str(self.h.root))
         self.assertFalse((self.h.root / ".codex/hooks.json").exists())
+        self.assertFalse((self.h.root / ".codex/visual-viewer-hook.cmd").exists())
         self.assertEqual(toml.read_bytes(), before)
         self.assertTrue((self.h.root / "web/prototypes/visual-viewer/hook.py").is_file())
 

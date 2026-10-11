@@ -6,7 +6,8 @@
 
 - 등록된 명령은 이 파일의 SHA-256이 설치 때와 같을 때만 이 파일을 실행하고(다르면 명령이 로그에 한 줄 남긴다),
   인자로 받은 build_view.py·index.html의 SHA-256이 맞을 때만 그 파일을 쓴다(다르면 실행하지 않고 로그만 남긴다).
-- Codex용 명령은 uv·Python이 시작하지 못해도 exit 0·무출력이 되도록 셸에서 감싸고 오류를 같은 로그에 붙인다.
+- Codex용 명령은 uv·Python이 시작하지 못해도 exit 0·무출력이 되도록 감싸고(Windows는 `.codex\visual-viewer-hook.cmd`
+  실행기, macOS·Linux는 sh) 그 시작 오류는 hook-start-error.log에 남긴다.
 - 표준 라이브러리만 쓴다. 항상 exit 0이며 stdout·stderr에 쓰지 않는다(모델 문맥에 아무것도 넣지 않음).
   오류는 `runtime-data/visual-viewer/hook-error.log`에만 남긴다.
 - 업무·모델·Tool을 실행하지 않는다. `runtime-data/exports`에 아직 그리지 않은 export가 있을 때만
