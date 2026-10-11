@@ -370,9 +370,15 @@ class Conversation:
 
     def _report_plan_hash(self, authored):
         assets = []
-        if isinstance(authored, dict):
-            for section in authored.get("sections", []):
-                for block in section.get("blocks", []):
+        if authored is not None:
+            if not isinstance(authored, dict) or not isinstance(authored.get("sections"), list):
+                fail("invalid_report_plan", "Authored report must contain a sections array")
+            for section in authored["sections"]:
+                if not isinstance(section, dict) or not isinstance(section.get("blocks"), list):
+                    fail("invalid_report_plan", "Report sections must contain block arrays")
+                for block in section["blocks"]:
+                    if not isinstance(block, dict):
+                        fail("invalid_report_plan", "Report blocks must be objects")
                     if block.get("type") != "image":
                         continue
                     name = block.get("path")

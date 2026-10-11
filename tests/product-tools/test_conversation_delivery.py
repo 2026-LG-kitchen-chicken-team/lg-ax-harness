@@ -136,6 +136,16 @@ class ReaderConversationTests(unittest.TestCase):
         self.assertNotEqual(first["directory"], second["directory"])
         self.assertTrue(Path(first["directory"]).is_dir())
 
+    def test_malformed_report_elements_return_separate_error_after_save(self):
+        path = self.root / "runtime-data/bad-plan.json"
+        for sections in ([42], [{"title": "절", "blocks": [None]}]):
+            path.write_text(json.dumps({"title": "잘못된 계획", "summary": [], "sources": [], "sections": sections}), encoding="utf-8")
+            response = self.conv.save_and_export({**self.payload, "report_plan_path": "runtime-data/bad-plan.json"})
+            self.assertTrue(response["save"]["accepted"])
+            self.assertFalse(response["report_ready"])
+            self.assertEqual(response["report_error"]["code"], "invalid_report_plan")
+        self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
