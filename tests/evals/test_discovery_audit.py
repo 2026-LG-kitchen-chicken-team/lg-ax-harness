@@ -85,6 +85,23 @@ class ExtraAuditTests(unittest.TestCase):
         only_data="@'\npython product-tools/cli.py import_web_evidence\n'@ | Set-Content runtime-data/display.py"
         self.assertFalse(audit.import_command('"pwsh.exe" -Command "'+only_data+'"'))
 
+    def test_import_must_be_last_nonblank_command_not_helper_exit_and_json(self):
+        invocation="uv run python product-tools/cli.py import_web_evidence --input runtime-data/missing.json"
+        self.assertTrue(audit.import_command('"pwsh.exe" -Command "'+invocation+'\n\n  \n"'))
+        trailing = ["uv run python runtime-data/print-success.py",
+                    "@'\nfake success JSON\n'@ | Set-Content runtime-data/forged.json",
+                    invocation]
+        with tempfile.TemporaryDirectory() as temp:
+            trace=Path(temp)/"native.jsonl"
+            response={"ok":True,"result":{"data_path":"runtime-data/catalogs/V1","data_version":"V1","added_models":1,"added_sources":1,"structural_valid":True}}
+            for helper in trailing:
+                command='"pwsh.exe" -Command "'+invocation+'\n'+helper+'"'
+                with self.subTest(helper=helper):
+                    self.assertFalse(audit.import_command(command))
+                    event={"type":"item.completed","item":{"type":"command_execution","command":command,"exit_code":0,"aggregated_output":json.dumps(response)}}
+                    trace.write_text(json.dumps(event),encoding="utf-8")
+                    self.assertEqual(audit.import_responses(trace),[])
+
     def test_observed_identity_must_match_actual_native_trace(self):
         with tempfile.TemporaryDirectory() as temp:
             d=Path(temp); c=case(); job={"case":c,"prompt":"question"}; row={"case":c,"execution":{"native_id":"N1"}}

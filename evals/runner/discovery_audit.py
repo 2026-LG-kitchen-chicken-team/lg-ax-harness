@@ -130,6 +130,11 @@ def import_command(command):
     body = wrapper.group(1) if wrapper else command
     here, found = None, False
     for line in body.splitlines():
+        if found:
+            # The command's final exit/stdout must not come from a later helper.
+            if line.strip():
+                return False
+            continue
         if here:
             close = re.fullmatch(r"\s*"+re.escape(here)+r"@\s*\|\s*Set-Content\s+(.+)",line,re.I)
             if close:
