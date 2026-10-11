@@ -1,8 +1,8 @@
-"""Integrity-checked synthetic catalog and exact version-scoped lookup."""
+"""Integrity-checked business/fixture catalogs and exact version-scoped lookup."""
 import copy
 import hashlib
 from pathlib import Path
-from .contracts import PRODUCT_FAMILIES, canonical, fail, identifier, integer, obj, origin, scope, strict_json, text
+from .contracts import canonical, fail, identifier, integer, obj, origin, product_family, scope, strict_json, text
 
 class Dataset:
     def __init__(self, root):
@@ -28,14 +28,15 @@ class Dataset:
             fail("invalid_dataset", "Both catalog files are required")
         self.fingerprint = hashlib.sha256(raw_manifest + b"\0" + self.files["models.json"] + b"\0" + self.files["sources.jsonl"]).hexdigest()
         self.models = strict_json(self.files["models.json"].decode("utf-8"))
-        if not isinstance(self.models, list) or not 1 <= len(self.models) <= 20:
+        if not isinstance(self.models, list) or not 0 <= len(self.models) <= 20:
             fail("invalid_dataset", "Invalid model catalog")
         self.scopes = set()
         for model in self.models:
-            obj(model, ("model_id", "model_version", "document_version", "name", "product_family", "synthetic"), ("dimensions_mm", "capacity_l", "layout", "spec_source_id"))
+            obj(model, ("model_id", "model_version", "document_version", "name", "product_family", "synthetic"), ("dimensions_mm", "capacity_l", "layout", "spec_source_id", "identity_review"))
             exact = {k: model[k] for k in ("model_id", "model_version", "document_version")}
             scope(exact)
-            if model["synthetic"] is not self.synthetic or model["product_family"] not in PRODUCT_FAMILIES:
+            product_family(model["product_family"])
+            if model["synthetic"] is not self.synthetic:
                 fail("invalid_dataset", "Invalid model provenance/family")
             text(model["name"], "model name", 200)
             key = canonical(exact)
@@ -84,15 +85,21 @@ class Dataset:
                     from .contracts import items
                     for spacing in items(layout["shelf_spacing_mm"], "shelf spacing", 20):
                         integer(spacing, "shelf spacing", 1, 10000)
-            if any(k in model for k in ("dimensions_mm", "capacity_l", "layout")):
+            if any(k in model for k in ("dimensions_mm", "capacity_l", "layout", "spec_source_id", "identity_review")):
                 source = self.source(model.get("spec_source_id"))
                 if source["kind"] != "product_fact" or any(source[k] != model[k] for k in ("model_id", "model_version", "document_version")):
                     fail("invalid_dataset", "Model specification source must match exact scope")
+            if "identity_review" in model:
+                review = obj(model["identity_review"], ("source_id", "manufacturer", "authority", "rationale"))
+                if review["source_id"] != model["spec_source_id"] or review["authority"] != "manufacturer":
+                    fail("invalid_dataset", "Identity review must declare its matching manufacturer source")
+                text(review["manufacturer"], "manufacturer", 200)
+                text(review["rationale"], "identity rationale", 2000)
         counts = {"model_count": len({m["model_id"] for m in self.models}), "scope_count": len(self.models),
                   "review_count": sum(s["kind"] == "review" for s in self.sources.values()),
                   "fact_count": sum(s["kind"] == "product_fact" for s in self.sources.values())}
         for key, count in counts.items():
-            integer(self.manifest[key], key, 1, 1000)
+            integer(self.manifest[key], key, 0, 1000)
             if self.manifest[key] != count:
                 fail("invalid_dataset", f"Manifest count mismatch: {key}")
 
