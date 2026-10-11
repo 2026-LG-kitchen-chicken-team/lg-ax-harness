@@ -42,6 +42,7 @@ class KitchenFamilyTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError,"Planning family"):
             self.data.check_input(planning)
         planning=self.prepared("MWJ25E")
+        planning.pop("scope_mode")  # Legacy multi-scope input still enforces family isolation.
         planning["model_scope"].append(self.prepared("B502S33")["model_scope"][0])
         with self.assertRaises(ToolError) as caught:
             self.tools.validate_result_contract(planning,{})

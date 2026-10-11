@@ -5,10 +5,11 @@
   "skills": [
     {
       "name": "evidence-retrieval",
-      "description": "선택한 냉장고·전자레인지·식기세척기 모델의 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
+      "description": "냉장고·전자레인지·식기세척기 제품군 또는 선택 모델의 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
       "path": "skills/evidence-retrieval/SKILL.md",
       "operations": [
         "doctor",
+        "list_models",
         "open_request",
         "open_request_bundle",
         "current_request",
@@ -21,11 +22,11 @@
       "files": [
         {
           "path": "skills/evidence-retrieval/scripts/run.py",
-          "sha256": "90dd55071a6e6c0fba73470709e38208ee7b24034bbf3c8e6947a7dde17f7104"
+          "sha256": "68e4fbe2f30544bc434b0c48aa718bbfb0d0912606d2d518a24e0b46dd41a5ca"
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "3b466b9ea83bc8075496d07c4fc1277b28690157078a75ce648c3eb078af4c81"
+          "sha256": "16e18c630a0154de93af70219019d614bec4ba4989d38b9f7a087cb6ae640078"
         }
       ]
     },
@@ -145,11 +146,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "0acad81bc070d65c45d7e00d0da116d132f3227a5b968beef382f05578b7c1f2"
+      "sha256": "e9ec4ac77793dbb16e6a0f23fa4a542a09a403b79b70436da7f68f25de1650fa"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "67a25795dd461bf2256bda071cfc4013f4a5a75e98a930eadd3bbc8166fe4d38"
+      "sha256": "02874625d00e443f3cc7fdbd6d9677b2f77696f3f16f315c5d3043ac3687e3ff"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -157,11 +158,11 @@
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "f50117f5c868344ef1c36985ef8753a51557ac55a1f3e723170cfa3b272f5506"
+      "sha256": "19f2ad44f345f6ee385db96c9d5ab41d0cfe2be352b9b8640bbf845c476ab705"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "69904fc0f4b3c0086ee6cc9a7ba3bea56448f96405c230945abc46ff690180e1"
+      "sha256": "65b06bf23d91d4c40dabae470cd2b122adf6054264e928e94df669a25033ce18"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -169,7 +170,7 @@
     },
     {
       "path": "product-tools/product_tools/planning.py",
-      "sha256": "f3a3d783b4a2c0e64a1e42fba194a018e547fc40613ed9e598277fe240ab8b10"
+      "sha256": "e7beefa202a358b0e1d46baa71309fc659a237422c95e66b1817ea9d254028a2"
     },
     {
       "path": "product-tools/product_tools/state.py",
@@ -177,7 +178,7 @@
     },
     {
       "path": "product-tools/product_tools/tools.py",
-      "sha256": "eec15a36fdd5fcd53a1604a890180eb4c9a39ccfeeeb2bc3da8e22a68c4a2408"
+      "sha256": "de033dc4a704baea0eda70b0e2fee1644aaee4871c8d3e09fdb05774f104341c"
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
@@ -185,7 +186,7 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "3f4f59d1d307b1301d01e46abbf930fc493cb70f6de066230eb861a085c933d7"
+      "sha256": "8c8b2d425342cccbb6110ad90c01ec7907d07a8be07db6dabf9139c8c42a443a"
     },
     {
       "path": "docs/contracts/product-planning.md",
@@ -197,7 +198,7 @@
     },
     {
       "path": "docs/contracts/codex-product.md",
-      "sha256": "f78e1a5313c9c3121f3dfbd2126aa5db0e0fab2076d625b7be32b42413f862da"
+      "sha256": "4fb10a174ab3a21ff5ef5e67efd7dbc94886f148a4061448d3a85bbb3302fef1"
     }
   ],
   "native_installation_verified": false,

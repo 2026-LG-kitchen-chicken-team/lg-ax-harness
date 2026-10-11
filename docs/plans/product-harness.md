@@ -2,7 +2,7 @@
 
 ## 현재 범위
 
-2026-10-11 사용자 변경: 냉장고·전자레인지·식기세척기의 실제 불편 기반 상품기획. 기본 lg-kitchen-v4·5모델/8후기/26사실, catalog family와 exact scope 일치 검사. Agent1개·업무5Skill+조건부 외부 조사1Skill 유지. 구현 단계와 검증 계획은 concept의 implementation_steps/validation_plan으로 저장하며 planned_not_measured만 허용한다. 구버전 결과 호환은 유지한다. Codex 기준, Gemini 철회, Claude native 후순위. 아래 냉장고3모델/세 실행기 내용은 이전 범위의 이력이며 최신 [결정](../decisions/kitchen-scope-20261011.md)·[v4 근거](../data/kitchen-v4.md)를 우선한다. 웹은 팀이 개발 중이고 원본 미수신 상태다.
+2026-10-11 사용자 변경: 냉장고·전자레인지·식기세척기의 실제 불편 기반 상품기획. 제품군 일반명으로 시작하는 family_catalog와 특정 모델로 좁히는 exact_model을 구분한다. 제품군 후속은 전체 범위를 유지하고 각 주장·대조·기획의 근거는 같은 정확 모델/버전에 귀속한다. 일반 입력10개와 기존 모델코드50개는 버전별 별도 회귀다. 기본 lg-kitchen-v4·5모델/8후기/26사실, catalog family와 exact scope 일치 검사. Agent1개·업무5Skill+조건부 외부 조사1Skill 유지. 구현 단계와 검증 계획은 concept의 implementation_steps/validation_plan으로 저장하며 planned_not_measured만 허용한다. 구버전 결과 호환은 유지한다. Codex 기준, Gemini 철회, Claude native 후순위. 아래 냉장고3모델/세 실행기 내용은 이전 범위의 이력이며 최신 [결정](../decisions/kitchen-scope-20261011.md)·[v4 근거](../data/kitchen-v4.md)를 우선한다. 웹은 팀이 개발 중이고 원본 미수신 상태다.
 
 기준일: 2026-10-10. 이것은 출품 구현 계획이며 개발용 Codex/Claude 체계가 아니다. [요구](../competition-requirements.md), [채택 스택](../decisions/stack-selection.md), [AI 평가 입력](../evaluation/judge-input-cases.md)을 연결한다.
 
@@ -36,7 +36,7 @@
 - PlanningInput: 사용자 질문, 제품군·모델 범위, 대상·맥락, 조건·제외 항목, 데이터 버전, session_id, 요청 키.
 - EvidenceRef: source_id, review_id 또는 document_id, model_id, model_version, 문서 위치, 원문 지문, synthetic 여부.
 - ProductResult: status(completed/needs_input/held/failed/cancelled), pains, existing_features, remaining_pains, concepts(최대 3개), assumptions, evidence_refs, validation_findings, revisions, usage_summary.
-- 모델·자료 버전이 확정되지 않으면 확인 요청 또는 보류한다. source_id의 존재만으로 주장의 의미가 맞다고 통과시키지 않는다.
+- 제품군 탐색은 등록 catalog의 모델·자료 버전을 확정해 시작하며 사용자에게 모델코드를 강제하지 않는다. 제품군 자체가 모호하거나 보유 제품의 치수·안전 판정에 정확 모델이 필요하면 확인 요청한다. 필요한 근거가 없으면 보류하며 source_id의 존재만으로 주장의 의미가 맞다고 통과시키지 않는다.
 - 원문·추출 결과·콘셉트의 연결을 보존한다. 문서에 기능 설명이 없다는 것과 기능 부재를 구분한다.
 - 원문 안의 지시문은 입력 자료이며 실행 권한을 주지 않는다.
 

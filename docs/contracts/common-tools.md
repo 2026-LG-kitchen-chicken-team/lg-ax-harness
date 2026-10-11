@@ -15,7 +15,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## 입력 부담과 내부 계약
 
-사람은 우선 모델을 선택한다. `prepare_planning_input`의 필수값은 `model_id`, 내부 세션·요청 키뿐이다. Codex 업무의 open_request가 세션·요청 키를 생성하며 사용자가 직접 기입할 항목이 아니다. 질문·대상·조건·버전·실행 메타데이터는 선택 입력이다. 여러 스냅샷이 있는 모델은 정확한 버전을 추가 확인한다. 사용자가 불편을 상세히 쓰도록 강제하지 않는다.
+사람은 제품군 용어(냉장고·전자레인지·식기세척기) 또는 모델을 지정한다. Agent는 제품군 질문을 product_family와 scope_mode=family_catalog로, 특정 모델은 model_id/exact_model로 연결한다. `prepare_planning_input`은 내부 세션·요청 키와 제품군 또는 정확 모델 선택을 받는다. 제품군 질문에 모델코드를 먼저 요구하지 않는다. Codex 업무의 open_request가 세션·요청 키를 생성하며 사용자가 직접 기입할 항목이 아니다. 질문·대상·조건·버전·실행 메타데이터는 선택 입력이다. 여러 스냅샷이 있는 모델은 정확한 버전을 추가 확인한다. 사용자가 불편을 상세히 쓰도록 강제하지 않는다.
 
 내부 `PlanningInput`은 session_id/request_key/question/product_family/model_scope/target_customer/context/constraints/data_version/runtime/workflow를 보존한다. 모델·제품 버전·문서 버전을 묶어 정확히 조회하고 LLM 모델 ID와 제품 model_id를 구분한다. `runtime`의 모델·설정·버전과 Skill/프롬프트 지문은 관측되지 않으면 null이다. 자동 생성된 fixture 메타데이터를 실제 Codex 모델 관측으로 설명하지 않는다.
 
@@ -31,6 +31,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 | Tool | JSON 입력 | 출력/오류 |
 |---|---|---|
+| list_models | product_family | 모델 이름·정확 scope·자료 버전/지문·모델별 원문 수; catalog_cases_only, 독립 고객 수 아님 |
 | doctor | 없음 또는 `{}` | 지문·모델·수량·business/test_only·검사 범위 |
 | open_request / current_request / export_session | [Codex 대화 계약](codex-product.md) | 자동 handle·실제 추가 질문·동일 요청 재개·전체 이력 export |
 | save_reviewed_result | session_id/turn_id/result_key/result/assessment/expected_result_version, 선택 response_mode | 구조와 검토 정합성·실패 시도 기록; full(기본) 또는 receipt 응답; 의미 품질 미검증 |
@@ -83,3 +84,9 @@ uv run python -m unittest discover -s tests/product-tools -v
 현재 기본 catalog는 실제 lg-research-v3(3모델·6후기·19사실)다. 최초 pilot과 기존 검사 이력은 보존한다. Agent/Skill 원본6개·실행 wrapper와 Codex 설치·대화 Tool을 작성했다. 실제 Codex 발견·업무 연결은 native 검증 기록을 따르며 Claude/Gemini 인수는 별도다. `review_product_result`의 입력/판정 한계는 [상품기획 계약](product-planning.md), fetch_web_page/capture_web_page/import_web_evidence는 [외부 조사 계약](web-evidence.md)을 따른다. 자료 버전은 초기 조사 후 확정하고 이미 시작된 turn은 새 키로 초기화하지 않는다.
 
 S05 추가: open_request_bundle은 open_request와 동일 입력/멱등 계약이며 정확한 scope의 리뷰·사실 원문을 한 번 반환한다. 종류 metadata와 원문 refs를 분리하고 조회20개/종류·응답 바이트 상한의 잘림/누락 ID를 명시한다. 자료 충분성은 판단하지 않는다. 큰 현재 결과는 handle과 detail 조회 안내를 유지한다. save_reviewed_result는 assessment 검사를 transaction 안에서 필수로 수행하여 null/필드 누락도 유효 JSON 후보이면 실패 이력과 수정 횟수에 남긴다. 마지막 저장 응답의 turn을 다음 저장/최종 상태에 사용하며 충돌/재개/외부 변경에만 재조회한다. 원문 의미 검토는 생략하지 않는다.
+
+## 제품군 입력 추가(2026-10-11)
+
+PlanningInput의 선택 scope_mode는 exact_model/family_catalog다. 구버전 입력은 유지한다. family_catalog는 같은 제품군의 명시적 model_scope(최대5개)를 보존한다. 빈 범위·복수 스냅샷·5개 초과는 좁혀야 하며 첫 모델/첫5개를 자동 선택하지 않는다. 식별자 없는 후속은 제품군 범위를 유지하고 명시적 모델 선택만 축소한다. 다른 제품군 선택은 해당 자료로 새 범위를 만든다.
+
+각 pain/existing_feature/remaining_pain/concept의 근거는 한 exact scope에만 귀속한다. pain→remaining→feature 대조, concept→remaining→geometry 연결도 같은 scope로 검사한다. 가족 결과는 모델별 제한 사례를 모은 기획이며 전체 제품군 공통 문제·발생률·시장 수요를 입증하지 않는다. 치수/보유 제품 안전 판단은 정확 모델 및 내부 치수 등이 확인될 때만 한다. 전자레인지/식기세척기 등록 모델이 각각1개라는 자료 한계를 밝혀야 한다.

@@ -91,7 +91,7 @@ def scope(value):
 
 def planning_input(value):
     obj(value, ("session_id", "request_key", "question", "product_family", "model_scope", "target_customer", "context",
-                "constraints", "data_version", "runtime", "workflow"))
+                "constraints", "data_version", "runtime", "workflow"), ("scope_mode",))
     for field in ("session_id", "request_key", "data_version"):
         identifier(value[field], field)
     for field in ("question", "target_customer", "context"):
@@ -105,6 +105,10 @@ def planning_input(value):
         scope(model)
     if len({canonical(s) for s in scopes}) != len(scopes):
         fail("invalid_input", "Duplicate model scope")
+    if value.get("scope_mode", "exact_model") not in ("exact_model", "family_catalog"):
+        fail("invalid_input", "scope_mode must be exact_model or family_catalog")
+    if value.get("scope_mode") == "exact_model" and len(scopes) != 1:
+        fail("invalid_input", "An exact-model request selects one snapshot")
     constraints = obj(value["constraints"], ("max_concepts", "hardware_allowed", "exclude_pains"))
     integer(constraints["max_concepts"], "max_concepts", 1, 3)
     if type(constraints["hardware_allowed"]) is not bool:

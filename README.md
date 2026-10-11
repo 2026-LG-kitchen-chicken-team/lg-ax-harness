@@ -1,5 +1,7 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+2026-10-11 추가 검증: [공개 AI 직접 입력50개 실제 회귀 결과](docs/validation/regression50-20261011.md). v6.0의50입력/40대화는 최종 전달·저장·독립 의미 판정을 통과했고 결과는 completed18/held27/needs_input5다. 모델코드 없는 냉장고·전자레인지·식기세척기와 축약명은 v6.1에 반영하고 [별도10입력/8대화](docs/validation/family10-20261011.md)로 검증했다(completed4/held3/needs_input3). 두 버전을 최신60개 통과로 합산하지 않는다. 제품147·평가117개 코드 검사는 실제 exit0다. 공개된 알려진 자료 평가이며 모든 업무 해결·미사용 평가·토큰 절감·효과 실증으로 해석하지 않는다. [팀 웹·기본 자료 논의](docs/validation/web-data-analysis-20261011.md)는 확인 사실과 미채택 제안을 구분한다. 현재 저장 자료 우선·등록5모델 범위이며 임의 새 모델 자동 조사/등록은 미구현이다.
+
 최신 완료: [제품 v0.3.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.3.0) · [배포·다음 인수](docs/validation/product-v0.3.0.md) · [세 제품군/평가항목 보고](docs/validation/kitchen-progress-20261011.md). 제품135·평가90개 로컬 검사와 실제4입력/3세션,12쪽 발표 검토 초안을 확인했다. 최길웅에게 Claude 검증 요청 메일을 승인받아 발송했다. 영상·리허설·실제 효과·Claude native·최종 접수는 남아 있다. 원격 CI는 계정 결제/지출 제한으로 steps0 실패이며 로컬 검사와 구분한다.
 
 2026-10-11 새 범위: **냉장고·전자레인지·식기세척기** 실제 불편과 기존 기능을 대조하는 상품기획 Agent. 기본 자료5모델·8후기·26사실, 구현 단계/효과 검증 계획을 저장한다. [최신 결정](docs/decisions/kitchen-scope-20261011.md)·[실제 자료와 한계](docs/data/kitchen-v4.md). Gemini 신규 지원을 제거하고 Claude는 하네스 보완 후 최길웅의 환경 검증/정이량 메일 회신으로 진행한다. 웹팀은 개발 중이며 구현 원본 접수·연결 검토는 별도다. 아래 릴리스/검사 숫자는 해당 과거 버전의 이력이다.
@@ -52,7 +54,7 @@ Claude 팀원은 로그인된 Claude Code로 이 레포를 열고 `/harness`를 
 
 ## 상태와 원본
 
-공통 업무 도구도 구현했다. [자료·입출력·상태 계약](docs/contracts/common-tools.md)에 따라 실제 모델 선택·리뷰 조회·근거/결과 구조 검사·SQLite 상태를 제공한다. 기본 자료는 실제 제품3종의 후기6발췌·공식 사실19개다. 현재 제품의 수납·적재 그림자 불편은 확보했고 청소 불편·내부 치수는 미확인이다. [Agent 지침](agents/product-planning.md), [업무 Skill 목록](skills/manifest.json), [실제 근거 확대](docs/data/real-research.md)를 따른다. 합성 자료는 시험 전용이다. 아래 명령은 일반 코드 도구 검사이며 업무 Agent 실행이나 시연 완료가 아니다.
+공통 업무 도구도 구현했다. [자료·입출력·상태 계약](docs/contracts/common-tools.md)에 따라 실제 모델 선택·리뷰 조회·근거/결과 구조 검사·SQLite 상태를 제공한다. 현재 기본 자료v4는 실제5모델의 후기8발췌·공식 사실26개다. 이전 v3의3냉장고/6후기/19사실은 이력으로 보존한다. 냉장고의 청소 불편·내부 유효 치수와 식기세척기 내부 치수는 미확인이다. [Agent 지침](agents/product-planning.md), [업무 Skill 목록](skills/manifest.json), [세 제품군 근거와 한계](docs/data/kitchen-v4.md)를 따른다. 합성 자료는 시험 전용이다. 아래 명령은 일반 코드 도구 검사이며 업무 Agent 실행이나 시연 완료가 아니다.
 
 ```powershell
 uv run python product-tools/cli.py doctor
@@ -68,7 +70,7 @@ uv run python -m unittest discover -s tests/product-tools -v
 - [개발 절차](docs/development.md): 장부·task-bound 검사·완료·인수인계.
 - [작업 상태](docs/plans/development-harness.md): D 구축과 S 출품 작업의 완료 범위.
 - [토큰 절감 반영·실측·표시 기준](docs/evaluation/token-measurement.md), [별도 시연 관찰 대책](docs/plans/observability-viewer.md): 실제 collector/Langfuse 연결·저장 재생과 아직 남은 화면/녹화 인수를 구분.
-- [팀원 웹 작업공간](web/README.md): 황대겸을 웹 PM 한 명으로 지정했다. 웹 설계·기술 선택·작업 배분·리뷰는 PM이 지휘하며, 영상 분석과 연결 제안은 [착수 문서](docs/plans/team-web-workspace.md)를 따른다. 현재 웹 앱은 미구현이다.
+- [팀원 웹 작업공간](web/README.md): 황대겸을 웹 PM 한 명으로 지정했다. 웹 설계·기술 선택·작업 배분·리뷰는 PM이 지휘하며, 영상 분석과 연결 제안은 [착수 문서](docs/plans/team-web-workspace.md)를 따른다. 웹팀은 개발 중이며 원격 구현 원본은 미업로드·미검토다.
 - [대회 요구](docs/competition-requirements.md), [AI 직접 입력 평가](docs/evaluation/judge-input-cases.md).
 
 OpenSpec은 제거했다. 기존 LG 작업물은 재사용하지 않았다. OSS 원본은 [third-party notice](THIRD_PARTY_NOTICES.md)를 따른다. API key·개인 설정·원문 실행 로그·의존성 환경은 Git에 넣지 않는다.

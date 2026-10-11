@@ -1,0 +1,435 @@
+{
+  "planned_inputs": 10,
+  "conversations": 8,
+  "native_attempts": 10,
+  "source_prepared_sha256": "7eb3d72a6fcfeeda36c6c66b3ff8e48b7b789fefeb6762b5de5bec05324d8965",
+  "raw_aggregate_sha256": "af2b700dc8992c8b164629219c310dc0e31f90aabf8bbb50e643e01728358bfb",
+  "review_sha256": "f0598bf52bb0a804ffd7330ac4bfb677526accb9ff1d39b51b2457cec34148dd",
+  "collector_sha256": "ed9c66bd5d9e8938a2815e7056e431a6a81a2322e348f4358e9389725d115cf9",
+  "prompt_recording": "Raw SHA preserved; only CRLF-to-LF normalized for frozen prompt and per-row JSON representation equality",
+  "execution_counts": {
+    "succeeded": 10
+  },
+  "delivery_counts": {
+    "contract_and_delivery_passed": 10
+  },
+  "terminal_counts": {
+    "completed": 4,
+    "held": 3,
+    "needs_input": 3
+  },
+  "semantically_reviewed": 10,
+  "overall_passed": 10,
+  "critical_error_inputs": 0,
+  "outcomes": [
+    {
+      "id": "G10-01",
+      "category": "family",
+      "model_id": null,
+      "product_family": "refrigerator",
+      "scope_mode": "family_catalog",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 247.11,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "모델코드 강제 없이 family_catalog로 냉장고3모델 전체 scope를 저장했다. 후기6건 중 긍정·기대·협소 체감·2인 수용·그림자 경험을 정확 모델별로 구분했다.",
+        "그림자·상단 조명·조건부 위치 메모 기획은 T876MQQ012에 귀속한다. 제품군 전체 불편·발생률로 확대하지 않고 탐색 부담·수요·기존 앱 중복·갱신 부담·실제 효과를 미확인으로 유지한다.",
+        "제품 사실 최초 잘림은 정확 scope 추가 조회8/8건으로 보강했다. 시제품·실제 부담·동일 과업 비교에서 찾기 정확도·등록/갱신 포함 총시간을 평가하며 planned_not_measured다.",
+        "UTF-16 읽기 exit1 후 UTF-8 보정이 기록됐다. receipt turn_id로 제한한 최초 export/SQLite 후보와 raw/final 의미·저장 일치."
+      ],
+      "raw_result_sha256": "d1f45f20cf6e194b3e3b9346c3344ac90f4e463af37855b4b8cd6aea4704cce3"
+    },
+    {
+      "id": "G10-02",
+      "category": "family",
+      "model_id": null,
+      "product_family": "microwave",
+      "scope_mode": "family_catalog",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 320.94,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "전자레인지 일반 입력에 모델코드를 강제하지 않고 전체 등록 MWJ25E scope를 사용했다. 자기 수령품 링 흔들림1건을 제품군 공통·발생률·현재 생산품 상태로 확대하지 않았다.",
+        "기존 터치·팝업 다이얼과 링 증상 해소를 구분하며 구매·협찬·원인·허용 범위·지원 기능 중복을 미확인으로 유지한다. 접수 불편은 미관측 가설이고 같은 지원 기능이 있으면 신규 개발 중단이다.",
+        "접수 카드는 조건부 안내 기획이며 직접 고정·분해·물리 해결을 승인하지 않는다. 동일 증상·완료 품질에서 현재 경로/클릭 시안의 순서·시간·재설명·누락·오접수를 평가하고 효과는 실측 전이다.",
+        "허용되지 않은 usage 필드와 limitations 상한으로 최초 후보2건이 거절됐다. 후보0/1/2와 실패 사유가 export/SQLite에 보존되고 최종 revision_count2/result_version3이다. 최종 조건부 초안과 저장 일치."
+      ],
+      "raw_result_sha256": "f328d7d8bba0209ef806a26dc4b5041a50e443a8eec7c1e8982fd5f168398644"
+    },
+    {
+      "id": "G10-03",
+      "category": "family",
+      "model_id": null,
+      "product_family": "dishwasher",
+      "scope_mode": "family_catalog",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 218.06,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "식기세척기 일반 입력을 모델코드 강제 없이 family_catalog 전체 등록 DUBJ2EA 범위로 처리했다. 현재 LG의 눌어붙은 계란 사전 긁기 경험을 이전 제품이나 제품군 공통 불편으로 전이하지 않았다.",
+        "트루스팀과 사전 작업 제거를 구분하고 단종·스펙 기준일·후기1건 한계를 표시했다. 체크카드는 조건부 콘텐츠로 공식 허용 방법·기존 안내 중복 확인 전 공개를 보류한다.",
+        "동일 모델·코스·식기·오염·완료 품질에서 순서 균형·전처리/보완 포함 총시간·잔여물·오류를 계획하며 실측 전이다. 기획 초안 completed와 저장/최종 일치."
+      ],
+      "raw_result_sha256": "a9390e494a77491233571f43bd06ef83966cc14d4bab54f90a493b9db5fba93b"
+    },
+    {
+      "id": "G10-04",
+      "category": "followup",
+      "model_id": null,
+      "product_family": "refrigerator",
+      "scope_mode": "family_catalog",
+      "parent_id": "G10-01",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 221.81,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "G10-01 prior_turn/session과 전체 냉장고3모델 scope를 유지하고 냉동실 제외를 저장했다. B502S33 협소 사례를 제외하고 S836GBB122 긍정·청소 기대를 불편으로 바꾸지 않았다.",
+        "T876MQQ012 그림자 원문에 구획이 명시되지 않아 제외 조건을 확정하지 않고 held했다. 기존 조명·접이선반과 공용 설명서 범위·수치 미확인을 유지한다.",
+        "당시 export 유효 결과와 이후 G10-05에 따른 정상 무효화를 구분하며 후보/근거/검토를 보존한다. 별도 검증 계획 요청 없이 기획 근거 부족 보류라 implementation_validation N/A."
+      ],
+      "raw_result_sha256": "d4ec667d597cb2a664e16353de3f2223d82b28564c613595a77f51c2727bd045"
+    },
+    {
+      "id": "G10-05",
+      "category": "narrow",
+      "model_id": "B502S33",
+      "product_family": "refrigerator",
+      "scope_mode": "exact_model",
+      "parent_id": "G10-04",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 114.7,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "사용자가 B502S33을 명시한 뒤 exact_model 하나로 좁히며 기존 문서 버전·냉동실 제외를 유지했다. G10-04 turn과 같은 세션이며 다른 모델 기능/기획 전이 없음.",
+        "냉동실 협소를 제외하고 긍정·넉넉함 선호를 냉장실 불편이나 불편 부재로 바꾸지 않았다. 기존 강화유리선반·야채실·치수/조작 미확인을 유지한다.",
+        "현재 G10-05 held/valid=true와 과거 G10-01/04 valid=false가 마지막 export/SQLite에 일치하며 후보 이력 보존. 조건 재판단 요청의 근거 부족 보류라 implementation_validation N/A."
+      ],
+      "raw_result_sha256": "c993bc896acb706b2b8c593ccee4993ab693a458d90bd01cfb241c65c2f86627"
+    },
+    {
+      "id": "G10-06",
+      "category": "generalization",
+      "model_id": null,
+      "product_family": "refrigerator",
+      "scope_mode": "family_catalog",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 317.1,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "냉장고3모델/6후기 범위를 유지하고 모든 냉장고의 청소 불편이나 청소 용이성을 확정하지 않는다. 기대·수납·적재 그림자를 실제 청소 불편으로 바꾸지 않았다.",
+        "공용 설명서 적용 확인과 기존 청소 절차를 구분한다. 청소 후 점검 화면은 조건부 가설이며 식품 제거 후 잔여 시야 불편의 실제 관측을 선행하고 없거나 기존 서비스와 중복이면 중단한다.",
+        "정확 모델·공식 적용·비중복 확인 후 동일 과업에서 누락/총시간/품질/안전 오안내/기록 부담을 계획한다. 원문이 청소 불편·안전·효과를 입증한다고 설명하지 않으며 조건부 초안 completed·저장/최종 일치."
+      ],
+      "raw_result_sha256": "8e26c0e7162e6877869122fb63d103db8c941e13f3fd9a8aabf02ed53d1f3f14"
+    },
+    {
+      "id": "G10-07",
+      "category": "alias",
+      "model_id": null,
+      "product_family": "dishwasher",
+      "scope_mode": "family_catalog",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 167.11,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "식세기 축약명을 모델코드 강제 없이 식기세척기 family_catalog 전체 등록 DUBJ2EA로 처리한다. 계란 사전 긁기를 건조 불편으로 전용하지 않았다.",
+        "자동 문열림 건조의 존재와 완전 해소를 구분한다. 단종1모델·미확인 증상/재질/적재/코스/종료 시점을 표시하고 근거 부족 held·콘셉트0개를 저장했다.",
+        "별도 검증계획 요청 없는 근거 부족 보류라 implementation_validation N/A. native rg runtime-data 미존재 exit1 보존; 최종/저장 일치."
+      ],
+      "raw_result_sha256": "eef53f914f7bbbc206f5170cdb083a525eb4f550857fdc3ef6971c04fa9f5f70"
+    },
+    {
+      "id": "G10-08",
+      "category": "owned_unknown",
+      "model_id": null,
+      "product_family": null,
+      "scope_mode": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 95.41,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        null,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "보유 전자레인지 모델 미확인을 exact_model/needs_input으로 저장했다. MWJ25E 임의 대입·25cm만으로 출입/회전/가열 안전 승인을 하지 않고 모델/라벨·높이·재질·손잡이 포함 외곽 치수를 묻는다.",
+        "SQLite conversation_requests1·turns0·results0·retrieval_cache0, 요청 turn_id=null·export requests1/turns0로 가짜 turn 없음. 질문/추가정보응답/최종/저장 일치.",
+        "확인된 제품의 불편/기능/출처/기획 없이 모델 확인 종료라 pain_feature_concept/source_meaning/implementation_validation N/A. native rg runtime-data 미존재 exit1 보존."
+      ],
+      "raw_result_sha256": "aae4128b816256762a65a1cf4ceafa0c6b03e9e2a2fcc25ac5bc1bb30c091fa9"
+    },
+    {
+      "id": "G10-09",
+      "category": "owned_unknown",
+      "model_id": null,
+      "product_family": null,
+      "scope_mode": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 133.18,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "외형·용량을 내부 치수로 환산하거나 등록 냉장고를 보유 모델로 임의 선택하지 않는다. 뚜껑/손잡이 포함 용기와 실제 선반 공간의 가로/깊이/높이를 cm로 묻고 모델 확인도 안내한다.",
+        "등록3냉장고 내부 치수/선반 간격 미확인은 실제 models.json null과 일치하며 보유 모델 측정값으로 전이하지 않았다. 실제 refrigerator/exact_model 미확인 요청 needs_input, export/SQLite 요청1·turn0·결과0로 가짜 후보 없음.",
+        "불편/기획 없는 확인 질문이라 pain_feature_concept/implementation_validation N/A, 실제 catalog 설명은 source_meaning 적용2. native runtime-data 검색 exit1 원본 보존; 최종/clarification/저장 일치."
+      ],
+      "raw_result_sha256": "b26478619dfafdb5d43c5af13d1bce7de59bca8a78c9e17b7e4fe67a2041fe06"
+    },
+    {
+      "id": "G10-10",
+      "category": "ambiguous",
+      "model_id": null,
+      "product_family": null,
+      "scope_mode": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 76.17,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        null,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "주방가전 모호 요청에 제품군3가지 중 선택을 묻고 모델코드 없어도 됨을 안내한다. 제품/불편/근거 없는 아이디어를 임의 생성하지 않는다.",
+        "실제 질문 보존·needs_input/turn_id=null, export/SQLite 요청1·turn0·결과0로 가짜 turn 없음. 제품 사실/기획 없는 범위 확인이라 pain_feature_concept/source_meaning/implementation_validation N/A.",
+        "native runtime-data 디렉터리 조회 exit1 보존; 이를 기획 완료로 바꾸지 않았다. clarification/raw/export/SQLite/final 일치."
+      ],
+      "raw_result_sha256": "b0c7fb9f21777b5e190882209bfaf2a9838f9fc2aa6609ab21dae21c06f1777a"
+    }
+  ],
+  "official_questions": false,
+  "independent_holdout": false,
+  "baseline_comparison": false,
+  "fault_injection": false,
+  "billing": null,
+  "human_time": null,
+  "limitations": [
+    "AI independent review of known short sources and hinted public questions",
+    "Single Codex environment / max1concept / nohardware; no Claude, browser or fault validation",
+    "Native attempts/sessions/token events are not full backend calls or cash billing",
+    "Scores use this suite rubric; not directly comparable to previous14-point rubrics"
+  ],
+  "usage": {
+    "observed_session_totals": {
+      "input_tokens": {
+        "known_sum": 2925546,
+        "unknown_runs": 0
+      },
+      "cached_input_tokens": {
+        "known_sum": 2651136,
+        "unknown_runs": 0
+      },
+      "output_tokens": {
+        "known_sum": 61590,
+        "unknown_runs": 0
+      },
+      "reasoning_output_tokens": {
+        "known_sum": 22088,
+        "unknown_runs": 0
+      }
+    },
+    "attempts_without_native_id": [],
+    "complete_native_usage": true,
+    "backend_call_count": null,
+    "billing": null,
+    "human_time": null,
+    "observed_native_sessions": 8,
+    "known_non_cached_input_tokens": 274410,
+    "cache_share_of_known_input": 0.9062,
+    "subset_rule": "cached input is included in input; reasoning output is included in output; do not add them again"
+  },
+  "product_agent_version": "6.1",
+  "review_kind": "independent_AI_read_review_of_known_sources_not_human_expert",
+  "runtime_observations": [
+    {
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "inputs": 10
+    }
+  ],
+  "latency_seconds": {
+    "observed_inputs": 10,
+    "median": 192.59,
+    "p95_nearest_rank": 320.94,
+    "max": 320.94,
+    "scope": "per_native_input_including_evaluation_delivery_protocol; not human work time or parallel wall duration"
+  },
+  "observed_command_items": 120,
+  "candidate_history": {
+    "revised_inputs": [
+      "G10-02"
+    ],
+    "rejection_inputs": [
+      "G10-02"
+    ],
+    "rows": [
+      {
+        "id": "G10-01",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "G10-02",
+        "candidate_count_at_delivery": 3,
+        "rejected_versions": [
+          1,
+          2
+        ]
+      },
+      {
+        "id": "G10-03",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "G10-04",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "G10-05",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "G10-06",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "G10-07",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      }
+    ],
+    "scope": "Recorded save candidates at delivery; accepted held is not counted as a rejection"
+  }
+}

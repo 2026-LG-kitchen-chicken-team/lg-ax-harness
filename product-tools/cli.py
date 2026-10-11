@@ -32,6 +32,8 @@ def dispatch(data, store, operation, payload):
             web.close()
     if operation == "prepare_planning_input":
         return tools.prepare_planning_input(payload)
+    if operation == "list_models":
+        return tools.list_models(payload)
     if operation == "doctor":
         obj(payload, ())
         return {"data_version": data.version, "dataset_fingerprint": data.fingerprint, "models": data.models,
@@ -73,7 +75,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / DEFAULT_DATA_PATH)
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("doctor", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "open_request", "open_request_bundle", "current_request", "export_session", "save_reviewed_result", "save_and_export", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "open_request", "open_request_bundle", "current_request", "export_session", "save_reviewed_result", "save_and_export", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None

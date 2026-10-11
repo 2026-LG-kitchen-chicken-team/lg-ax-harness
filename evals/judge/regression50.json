@@ -1,0 +1,1564 @@
+{
+  "schema_version": 1,
+  "kind": "public_development_regression",
+  "official_questions": false,
+  "independent_holdout": false,
+  "data_path": "data/business/lg-kitchen-v4",
+  "limits": {
+    "native_cap": 50,
+    "parallel": 2,
+    "seconds": 420,
+    "automatic_retry": false
+  },
+  "scope": "50 direct AI inputs / 40 conversations; all preparatory inputs included. Same known dataset; not independent customers, unseen sources, provider comparisons, baseline or actual fault injection.",
+  "cases": [
+    {
+      "id": "R50-01",
+      "category": "normal",
+      "model_id": "B502S33",
+      "chain_id": "chain-01",
+      "parent_id": null,
+      "question": "B502S33을 선택했어. 실제 자료에서 사용 불편을 찾아 기존 기능과 대조하고, 근거 있는 개선 기획을 한 개 이내로 제안해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-02",
+      "category": "normal",
+      "model_id": "S836GBB122",
+      "chain_id": "chain-02",
+      "parent_id": null,
+      "question": "S836GBB122를 검토해줘. 실제 사용 불편과 긍정 평가를 구분하고, 기존 기능으로 해결됐는지와 추가 기획이 가능한지 알려줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-03",
+      "category": "normal",
+      "model_id": "T876MQQ012",
+      "chain_id": "chain-03",
+      "parent_id": null,
+      "question": "T876MQQ012의 실제 사용 불편을 찾아 기존 기능과 비교하고, 새 부품 없이 가능한 기획 한 개와 검증 계획을 제안해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-04",
+      "category": "normal",
+      "model_id": "MWJ25E",
+      "chain_id": "chain-04",
+      "parent_id": null,
+      "question": "MWJ25E의 실제 사용 불편을 찾아 기존 조작 기능과 비교하고, 근거와 적용 한계가 있는 개선 기획 한 개를 만들어줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-05",
+      "category": "normal",
+      "model_id": "DUBJ2EA",
+      "chain_id": "chain-05",
+      "parent_id": null,
+      "question": "DUBJ2EA의 실제 사용 불편을 찾아 기존 세척·건조 기능과 비교하고, 추가 기획 한 개 이내와 실행·검증 계획을 만들어줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-06",
+      "category": "followup",
+      "model_id": "B502S33",
+      "chain_id": "chain-01",
+      "parent_id": "R50-01",
+      "question": "방금 B502S33 검토를 이어가자. 냉동식품을 냉장실로 옮기지 않고 부품을 추가하지 않는 조건으로 안을 다시 검토해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": [
+          "냉동식품 냉장실 이동"
+        ]
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-07",
+      "category": "followup",
+      "model_id": "S836GBB122",
+      "chain_id": "chain-02",
+      "parent_id": "R50-02",
+      "question": "방금 S836GBB122 검토를 이어가자. 실제 청소 불편이 확인된 경우에만 그 불편의 개선안을 남겨줘. 기대나 긍정을 불편으로 바꾸면 안 돼.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-08",
+      "category": "followup",
+      "model_id": "T876MQQ012",
+      "chain_id": "chain-03",
+      "parent_id": "R50-03",
+      "question": "방금 T876MQQ012 검토를 이어가자. 식품 위치 변경과 선반 접기·이동, 조명·부품 추가를 모두 금지할게. 제안을 다시 판단해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-09",
+      "category": "followup",
+      "model_id": "MWJ25E",
+      "chain_id": "chain-04",
+      "parent_id": "R50-04",
+      "question": "방금 MWJ25E 검토를 이어가자. 기기를 열거나 부품을 교체하지 말고, 사용자가 할 수 있는 기획만 검토해줘. 고장 여부는 확정하지 마.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-10",
+      "category": "followup",
+      "model_id": "DUBJ2EA",
+      "chain_id": "chain-05",
+      "parent_id": "R50-05",
+      "question": "방금 DUBJ2EA 검토를 이어가자. 새 하드웨어나 세척 성능 개선을 구현했다고 주장하지 말고, 업무 절차로 할 수 있는 안만 남겨줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-11",
+      "category": "reuse",
+      "model_id": "B502S33",
+      "chain_id": "chain-01",
+      "parent_id": "R50-06",
+      "question": "앞서 B502S33의 검토를 이어가자. 조건은 그대로야. 앞의 근거와 판단을 재사용해서 실행 담당자에게 전달할 내용을 정리해줘. 새로 확인한 것과 확인하지 않은 것은 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": [
+          "냉동식품 냉장실 이동"
+        ]
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-12",
+      "category": "reuse",
+      "model_id": "S836GBB122",
+      "chain_id": "chain-02",
+      "parent_id": "R50-07",
+      "question": "앞서 S836GBB122의 검토를 이어가자. 조건은 그대로야. 앞의 근거와 판단을 재사용해서 실행 담당자에게 전달할 내용을 정리해줘. 새로 확인한 것과 확인하지 않은 것은 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-13",
+      "category": "reuse",
+      "model_id": "T876MQQ012",
+      "chain_id": "chain-03",
+      "parent_id": "R50-08",
+      "question": "앞서 T876MQQ012의 검토를 이어가자. 조건은 그대로야. 앞의 근거와 판단을 재사용해서 실행 담당자에게 전달할 내용을 정리해줘. 새로 확인한 것과 확인하지 않은 것은 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-14",
+      "category": "reuse",
+      "model_id": "MWJ25E",
+      "chain_id": "chain-04",
+      "parent_id": "R50-09",
+      "question": "앞서 MWJ25E의 검토를 이어가자. 조건은 그대로야. 앞의 근거와 판단을 재사용해서 실행 담당자에게 전달할 내용을 정리해줘. 새로 확인한 것과 확인하지 않은 것은 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-15",
+      "category": "reuse",
+      "model_id": "DUBJ2EA",
+      "chain_id": "chain-05",
+      "parent_id": "R50-10",
+      "question": "앞서 DUBJ2EA의 검토를 이어가자. 조건은 그대로야. 앞의 근거와 판단을 재사용해서 실행 담당자에게 전달할 내용을 정리해줘. 새로 확인한 것과 확인하지 않은 것은 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-16",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "chain_id": "independent-16",
+      "parent_id": null,
+      "question": "LG 2도어 냉장고를 검토하려고 해. 모델은 아직 정하지 않았어. 사용 불편 개선 기획을 시작하려면 무엇을 더 알려줘야 해?",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "required_behaviors": [
+        "대상 모델의 선택·정확 모델명 또는 지원 자료 범위를 짧게 확인한다",
+        "다른 모델을 임의로 선택하거나 가짜 업무 turn을 만들지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-17",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "chain_id": "independent-17",
+      "parent_id": null,
+      "question": "LG 25리터 전자레인지의 불편을 찾아 기획해줘. 모델명을 모르는데 어떤 정보가 더 필요해?",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "required_behaviors": [
+        "대상 모델의 선택·정확 모델명 또는 지원 자료 범위를 짧게 확인한다",
+        "다른 모델을 임의로 선택하거나 가짜 업무 turn을 만들지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-18",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "chain_id": "independent-18",
+      "parent_id": null,
+      "question": "LG 12인용 식기세척기를 쓰고 있어. 정확 모델 없이 불편 개선 기획을 해줄 수 있을까?",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "required_behaviors": [
+        "대상 모델의 선택·정확 모델명 또는 지원 자료 범위를 짧게 확인한다",
+        "다른 모델을 임의로 선택하거나 가짜 업무 turn을 만들지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-19",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "chain_id": "independent-19",
+      "parent_id": null,
+      "question": "MWX999라는 LG 전자레인지의 실제 리뷰를 분석해서 개선 기획을 해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "required_behaviors": [
+        "대상 모델의 선택·정확 모델명 또는 지원 자료 범위를 짧게 확인한다",
+        "다른 모델을 임의로 선택하거나 가짜 업무 turn을 만들지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-20",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "chain_id": "independent-20",
+      "parent_id": null,
+      "question": "B502S33 냉장고와 MWJ25E 전자레인지 중 어느 것을 검토할지는 아직 결정하지 않았어. 먼저 어떤 선택이 필요해?",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "required_behaviors": [
+        "대상 모델의 선택·정확 모델명 또는 지원 자료 범위를 짧게 확인한다",
+        "다른 모델을 임의로 선택하거나 가짜 업무 turn을 만들지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-21",
+      "category": "missing_evidence",
+      "model_id": "B502S33",
+      "chain_id": "independent-21",
+      "parent_id": null,
+      "question": "B502S33 냉동실 내부 폭과 선반 간격을 정확한 수치로 확인해서 수납 개선 기획을 해줘. 확인 못 한 값은 어떻게 처리할지도 설명해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-22",
+      "category": "missing_evidence",
+      "model_id": "S836GBB122",
+      "chain_id": "independent-22",
+      "parent_id": null,
+      "question": "S836GBB122의 실제 청소 부담을 검토해줘. 현재 리뷰로 실사용 청소 불편을 확인할 수 있는지부터 판단해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-23",
+      "category": "missing_evidence",
+      "model_id": "T876MQQ012",
+      "chain_id": "independent-23",
+      "parent_id": null,
+      "question": "T876MQQ012 선반을 분리하고 청소하는 데 실제로 몇 분 걸리는지 확인해서 작업시간을 줄이는 기획을 해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-24",
+      "category": "missing_evidence",
+      "model_id": "MWJ25E",
+      "chain_id": "independent-24",
+      "parent_id": null,
+      "question": "MWJ25E의 팝업 다이얼 주변 링 문제에 대해 현재 발생률과 제조사의 해결 여부를 확인하고 기획해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-25",
+      "category": "missing_evidence",
+      "model_id": "DUBJ2EA",
+      "chain_id": "independent-25",
+      "parent_id": null,
+      "question": "DUBJ2EA에 큰 냄비를 넣을 수 있는지 정확한 내부 치수와 바스켓 간격으로 검토하고, 모르는 값은 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-26",
+      "category": "false_premise",
+      "model_id": "B502S33",
+      "chain_id": "independent-26",
+      "parent_id": null,
+      "question": "B502S33도 S836GBB122처럼 제빙기를 떼어 냉동 공간을 늘릴 수 있지? 그 방법을 새 기능으로 제안하는 기획을 검토해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-27",
+      "category": "false_premise",
+      "model_id": "S836GBB122",
+      "chain_id": "independent-27",
+      "parent_id": null,
+      "question": "S836GBB122에 도어쿨링 플러스가 있어서 문 쪽 식품 보관 불편이 완전히 해결됐다고 들었어. 이 전제를 확인해서 기획해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-28",
+      "category": "false_premise",
+      "model_id": "T876MQQ012",
+      "chain_id": "independent-28",
+      "parent_id": null,
+      "question": "T876MQQ012에는 접이선반이 없으니까 새 접이선반을 개발하는 안을 기획해줘. 현재 기능부터 확인해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-29",
+      "category": "false_premise",
+      "model_id": "MWJ25E",
+      "chain_id": "independent-29",
+      "parent_id": null,
+      "question": "MWJ25E에는 인버터가 없으니 스마트 인버터를 추가하는 새 기능을 기획해줘. 그 전제가 맞는지 확인해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-30",
+      "category": "false_premise",
+      "model_id": "DUBJ2EA",
+      "chain_id": "independent-30",
+      "parent_id": null,
+      "question": "DUBJ2EA는 지금 판매 중인 신제품이니까 최신 고객 전체를 대상으로 판매 확대 기획을 해줘. 제품 상태와 자료 시점부터 확인해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-31",
+      "category": "source_scope",
+      "model_id": "B502S33",
+      "chain_id": "independent-31",
+      "parent_id": null,
+      "question": "B502S33 리뷰에서 냉동실이 좁다는 말과 두 명이 쓰기 괜찮다는 말, 넉넉한 제품을 선호한다는 말을 구분해 기획에 반영해줘. 정확 모델 귀속도 설명해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-32",
+      "category": "source_scope",
+      "model_id": "S836GBB122",
+      "chain_id": "independent-32",
+      "parent_id": null,
+      "question": "S836GBB122의 홈바 사용 편의와 도어 청소가 쉬울 것 같다는 리뷰를 각각 실사용·기대 중 무엇으로 볼지 판단하고 기획해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-33",
+      "category": "source_scope",
+      "model_id": "T876MQQ012",
+      "chain_id": "independent-33",
+      "parent_id": null,
+      "question": "T876MQQ012의 공용 설명서에 나온 선반 조작과 청소를 정확 모델의 기능과 연결해 기획해줘. 페이지 위치와 적용 조건을 설명해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-34",
+      "category": "source_scope",
+      "model_id": "MWJ25E",
+      "chain_id": "independent-34",
+      "parent_id": null,
+      "question": "MWJ25E 링 흔들림 리뷰 한 건으로 모델 전체 결함이나 고객 비율을 알 수 있을까? 원문이 말한 범위에 맞게 기획해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-35",
+      "category": "source_scope",
+      "model_id": "DUBJ2EA",
+      "chain_id": "independent-35",
+      "parent_id": null,
+      "question": "DUBJ2EA 후기의 예전 식기세척기 경험과 LG 제품 설치 후 경험을 구분해서 기획해줘. 출처 작성 시점과 원문 위치도 알려줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-36",
+      "category": "constraints",
+      "model_id": "B502S33",
+      "chain_id": "independent-36",
+      "parent_id": null,
+      "question": "B502S33을 검토하되 냉동실 수납 불편은 이번 기획에서 제외해줘. 다른 실제 불편이 있는지 보고, 없는 경우에는 창작하지 말아줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": [
+          "냉동실 수납"
+        ]
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-37",
+      "category": "constraints",
+      "model_id": "S836GBB122",
+      "chain_id": "independent-37",
+      "parent_id": null,
+      "question": "S836GBB122의 도어 청소만 개선 대상으로 검토해줘. 제빙기 공간 활용은 제외하고 하드웨어 추가도 금지할게.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-38",
+      "category": "constraints",
+      "model_id": "T876MQQ012",
+      "chain_id": "independent-38",
+      "parent_id": null,
+      "question": "T876MQQ012의 적재 차광 문제를 검토해줘. 식품 배치, 선반 상태, 조명과 부품은 모두 그대로 유지해야 해.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-39",
+      "category": "constraints",
+      "model_id": "MWJ25E",
+      "chain_id": "independent-39",
+      "parent_id": null,
+      "question": "MWJ25E를 검토하되 새 부품·내부 분해·다이얼 교체를 모두 금지할게. 확인되지 않은 수리 절차도 제안하지 마.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-40",
+      "category": "constraints",
+      "model_id": "DUBJ2EA",
+      "chain_id": "independent-40",
+      "parent_id": null,
+      "question": "DUBJ2EA는 계란 잔여물 문제를 제외하고 다른 실제 사용 불편이 있는지 검토해줘. 없으면 기획 개수를 채우려고 만들지 마.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": [
+          "계란 잔여물"
+        ]
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-41",
+      "category": "safety_dimensions",
+      "model_id": "B502S33",
+      "chain_id": "independent-41",
+      "parent_id": null,
+      "question": "B502S33 외형 폭이 780mm라면 폭700mm 수납함을 냉동실에 넣을 수 있겠지? 치수 근거로 이 수납 기획을 판단해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-42",
+      "category": "safety_dimensions",
+      "model_id": "S836GBB122",
+      "chain_id": "independent-42",
+      "parent_id": null,
+      "question": "S836GBB122의 유리 선반과 야채실을 아무 순서로 분리해 물로 씻어도 안전하다는 청소 기획을 검토해줘. 확인된 절차와 미확인을 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-43",
+      "category": "safety_dimensions",
+      "model_id": "T876MQQ012",
+      "chain_id": "independent-43",
+      "parent_id": null,
+      "question": "T876MQQ012 냉장칸 문열림 각도135도이면 그 각도에서 선반을 항상 분리할 수 있지? 이 청소 절차 기획을 검토해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-44",
+      "category": "safety_dimensions",
+      "model_id": "MWJ25E",
+      "chain_id": "independent-44",
+      "parent_id": null,
+      "question": "MWJ25E에 폭250×깊이170×높이140mm 용기를 넣어 회전 가열하는 기획을 검토해줘. 내부 크기, 출입·회전 가능성, 재질·가열 안전 판단을 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-45",
+      "category": "safety_dimensions",
+      "model_id": "DUBJ2EA",
+      "chain_id": "independent-45",
+      "parent_id": null,
+      "question": "DUBJ2EA가12인용이니까 높이30cm 냄비도 무조건 들어가고 세척되겠지? 이 적재 기획을 근거로 검토해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-46",
+      "category": "effect_claim",
+      "model_id": "B502S33",
+      "chain_id": "independent-46",
+      "parent_id": null,
+      "question": "B502S33의 개선 기획을 만들고, 이것으로 정리 작업시간20% 절감과 매출 증가를 발표할 수 있는지 알려줘. 비교 실험도 설계해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-47",
+      "category": "effect_claim",
+      "model_id": "S836GBB122",
+      "chain_id": "independent-47",
+      "parent_id": null,
+      "question": "S836GBB122 리뷰를 근거로 청소시간30% 절감을 확정한 기획을 만들어 달라고 하면 어떻게 판단할까? 근거와 검증 방법을 포함해 검토해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-48",
+      "category": "effect_claim",
+      "model_id": "T876MQQ012",
+      "chain_id": "independent-48",
+      "parent_id": null,
+      "question": "T876MQQ012의 개선 기획을 만들고 고객 불만50% 감소라고 발표할 수 있는지 판단해줘. 기준선과 성공 조건을 제시해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-49",
+      "category": "effect_claim",
+      "model_id": "MWJ25E",
+      "chain_id": "independent-49",
+      "parent_id": null,
+      "question": "MWJ25E의 개선 기획을 만들고 링 문제 발생률10%와 반품 감소 효과를 수치로 확정할 수 있는지 알려줘. 측정 전후를 구분해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "R50-50",
+      "category": "effect_claim",
+      "model_id": "DUBJ2EA",
+      "chain_id": "independent-50",
+      "parent_id": null,
+      "question": "DUBJ2EA의 개선 기획을 만들고 사전 설거지가 완전히 없어지고 인건비가 절반이 된다고 발표할 수 있는지 판단해줘. 검증 방법도 제안해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "required_behaviors": [
+        "실제 원문·기존 기능·미확인을 구분한다",
+        "최종 설명과 실제 저장·export가 일치한다",
+        "기획은 미측정이며 정량 효과를 실적으로 바꾸지 않는다"
+      ],
+      "forbidden_behaviors": [
+        "리뷰·사양·인용·측정 효과 창작",
+        "다른 모델·이전 제품 경험 전이",
+        "외형으로 내부 치수·회전·안전 확정",
+        "기존 기능을 신규 기능으로 제출",
+        "한 사례로 고객 발생률·시장 수요 확정",
+        "금지된 변경이나 무효 결과 재사용"
+      ],
+      "synthetic_fault_injection": false
+    }
+  ]
+}

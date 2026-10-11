@@ -30,17 +30,23 @@ class Conversation:
         if previous:
             previous = {k: previous[k] for k in ("turn_id", "status", "use", "valid_for_current_context") if k in previous}
             previous["detail_operation"] = "get_turn/export_session; historical only"
-        scope = turn["input"]["model_scope"][0]
+        scopes = turn["input"]["model_scope"]
+        scope = scopes[0] if len(scopes) == 1 else None
         bundle = {"data_version": self.store.dataset.version, "dataset_fingerprint": self.store.dataset.fingerprint,
-                  "scope": scope, "synthetic": self.store.dataset.synthetic, "purpose": self.store.dataset.manifest["purpose"],
+                  "scope": scope, "model_scope": scopes, "scope_mode": turn["input"].get("scope_mode", "exact_model"),
+                  "coverage": "catalog_cases_only", "synthetic": self.store.dataset.synthetic, "purpose": self.store.dataset.manifest["purpose"],
                   "semantic_status": "unverified", "content_trust": "untrusted_source_data",
                   "records": [], "evidence_refs": [], "retrieval": {}, "byte_truncated": False}
         for kind in ("review", "product_fact"):
-            found = self.store.retrieve(kind, scope, limit=20)
-            bundle["retrieval"][kind] = {k: found[k] for k in ("status", "total", "truncated", "cache_hit")}
-            for record in found["records"]:
-                bundle["records"].append({k: record[k] for k in ("source_id", "kind", "feature_key", "availability") if k in record})
-                bundle["evidence_refs"].append(self.store.dataset.reference(record))
+            found_by_scope = [self.store.retrieve(kind, exact, limit=max(1, 20 // len(scopes))) for exact in scopes]
+            bundle["retrieval"][kind] = ({k: found_by_scope[0][k] for k in ("status", "total", "truncated", "cache_hit")}
+                if len(scopes) == 1 else {"per_scope": [{"scope": found["scope"], **{k: found[k] for k in ("status", "total", "truncated", "cache_hit")}} for found in found_by_scope],
+                    "total": sum(f["total"] for f in found_by_scope), "truncated": any(f["truncated"] for f in found_by_scope),
+                    "counts_are": "source records, not independent customers"})
+            for found in found_by_scope:
+                for record in found["records"]:
+                    bundle["records"].append({k: record[k] for k in ("source_id", "kind", "model_id", "model_version", "document_version", "feature_key", "availability") if k in record})
+                    bundle["evidence_refs"].append(self.store.dataset.reference(record))
         value = {"reused_request": response["reused_request"], "turn": turn, "previous": previous, "bundle": bundle}
         # Leave headroom for the CLI envelope; never hide a committed handle due
         # to large sources. The omitted IDs remain visible for targeted retrieval.
@@ -69,7 +75,7 @@ class Conversation:
                 "validation": {k: v for k, v in strict_json(latest[1]).items() if k not in ("assessment", "review")} if latest else None}
 
     def open_request(self, payload):
-        obj(payload, ("question", "user_submitted"), ("model_id", "model_version", "document_version", "session_id", "request_key", "prior_turn_id", "constraints", "runtime"))
+        obj(payload, ("question", "user_submitted"), ("model_id", "product_family", "scope_mode", "model_version", "document_version", "session_id", "request_key", "prior_turn_id", "constraints", "runtime"))
         text(payload["question"], "question")
         if payload["user_submitted"] is not True:
             fail("user_input_required", "Only a real user question creates a request; resume with current_request")
@@ -95,18 +101,38 @@ class Conversation:
         if old and old[2]:
             return strict_json(old[2])
         prior_input = previous["input"] if previous else {}
-        model = payload.get("model_id", prior_input.get("model_scope", [{}])[0].get("model_id"))
-        if not model:
-            return self._pending(session, key, "needs_input", "model_required", "Ask for an exact refrigerator, microwave or dishwasher model; do not request internal IDs")
-        prepared = {"model_id": model, "session_id": session, "request_key": key, "question": payload["question"]}
+        family = payload.get("product_family", prior_input.get("product_family"))
+        prior_family_mode = prior_input.get("scope_mode") == "family_catalog"
+        family_mode = (payload["scope_mode"] == "family_catalog" if "scope_mode" in payload else
+                       "model_id" not in payload and ("product_family" in payload or prior_family_mode))
+        if payload.get("scope_mode") not in (None, "family_catalog", "exact_model"):
+            fail("invalid_input", "Unknown scope_mode")
+        model = payload.get("model_id")
+        if not family_mode and model is None and "product_family" not in payload:
+            model = prior_input.get("model_scope", [{}])[0].get("model_id") if not prior_family_mode else None
+        prepared = {"session_id": session, "request_key": key, "question": payload["question"]}
+        if family_mode:
+            prepared.update(product_family=family, scope_mode="family_catalog")
+            if "model_id" in payload or any(k in payload for k in ("model_version", "document_version")):
+                fail("invalid_input", "Family range and exact model/version selection conflict")
+            if previous and prior_family_mode and family == prior_input["product_family"]:
+                prepared["model_scope"] = prior_input["model_scope"]
+        elif model:
+            prepared.update(model_id=model, scope_mode="exact_model")
+            if "product_family" in payload:
+                prepared["product_family"] = family
+        else:
+            return self._pending(session, key, "needs_input", "product_required", "Ask which product family or exact model is meant; a family request does not require a model code")
         if "constraints" in payload or "constraints" in prior_input:
             prepared["constraints"] = payload.get("constraints", prior_input.get("constraints"))
         if "runtime" in payload:
             prepared["runtime"] = payload["runtime"]
         version_keys = ("model_version", "document_version")
         prepared.update({k: payload[k] for k in version_keys if k in payload})
-        if previous and model == prior_input["model_scope"][0]["model_id"] and not any(k in payload for k in version_keys):
-            prepared.update({k: prior_input["model_scope"][0][k] for k in ("model_version", "document_version")})
+        if previous and not family_mode and not any(k in payload for k in version_keys):
+            matching_scopes = [s for s in prior_input["model_scope"] if s["model_id"] == model]
+            if len(matching_scopes) == 1:
+                prepared.update({k: matching_scopes[0][k] for k in version_keys})
         # Hash maintained workflow files, never fill unknown model/settings with guesses.
         root = self.workspace
         workflow_files = [root / "skills/manifest.json", root / "agents/product-planning.md"]
@@ -116,7 +142,7 @@ class Conversation:
             planning = self.store.tools.prepare_planning_input(prepared)["input"]
         except Exception as exc:
             from .contracts import ToolError
-            if not isinstance(exc, ToolError) or exc.code not in ("unknown_model", "unknown_scope", "needs_input"):
+            if not isinstance(exc, ToolError) or exc.code not in ("unknown_model", "unknown_scope", "needs_input", "unsupported_family"):
                 raise
             return self._pending(session, key, "needs_input", exc.code, str(exc))
         if previous:

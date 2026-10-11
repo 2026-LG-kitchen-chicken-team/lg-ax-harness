@@ -1,0 +1,1759 @@
+{
+  "planned_inputs": 50,
+  "conversations": 40,
+  "native_attempts": 50,
+  "source_prepared_sha256": "504755ddb5dd15ff60abe20992bc875aff44d854b6ce9a3ad51449f2c16cc685",
+  "raw_aggregate_sha256": "75050dd2f3eb1f15cd42727efb17e6c44fe3d1f71c08c0d25de781e3fc147e8e",
+  "review_sha256": "c3ae74413761652c2c33fe82ace294f9aa3195d9424547128659edf6af3ed04a",
+  "collector_sha256": "4c593df45a511c9502ea4fb28a14a898c6a131a624c45c88d697fa01d595e7c9",
+  "prompt_recording": "Raw SHA preserved; only CRLF-to-LF normalized for frozen prompt and per-row JSON representation equality",
+  "execution_counts": {
+    "succeeded": 50
+  },
+  "delivery_counts": {
+    "contract_and_delivery_passed": 50
+  },
+  "terminal_counts": {
+    "completed": 18,
+    "held": 27,
+    "needs_input": 5
+  },
+  "semantically_reviewed": 50,
+  "overall_passed": 50,
+  "critical_error_inputs": 0,
+  "outcomes": [
+    {
+      "id": "R50-01",
+      "category": "normal",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 277.83,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "좁음과2인 사용 수용, 별도 후기의 긍정과 일반 선호를 구분하고 모델 귀속 한계를 유지했다.",
+        "재고·소진 과업은 조건부 가설로 실측 효과·내부 치수·탈착·물리 용량 개선을 주장하지 않는다.",
+        "구현 담당·단계, 동일 과업 교차 비교, 정확도·시간·입력 부담과 사전 기준이 연결되며 planned_not_measured다.",
+        "원문·출처·최종 응답·저장 내용의 정합을 확인했다."
+      ],
+      "raw_result_sha256": "c3294ee6bf92c9daf67273a939ed00f6d86f3c8747f16f2f7d6af4799aaefa19"
+    },
+    {
+      "id": "R50-02",
+      "category": "normal",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 195.45,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "후기3건의 사용 긍정·청소 기대와 실사용 불편 미관측을 구분한다.",
+        "공식 기능7건을 답하고 기존 매직스페이스·제빙기 탈착을 신규 기능으로 바꾸지 않는다.",
+        "구조 evidence_refs 밖 후기 인용도 validation_findings에 원문·ID·위치·URL·SHA·한계가 보존된다.",
+        "계획 요청이 없고 근거 있는 기획을 만들지 않은 정당한 held으로 계획 축만N/A다."
+      ],
+      "raw_result_sha256": "725dbdd562d717a81f4248bf4319a50ee0a292afed63e1fd76a5bf77be3b5ed4"
+    },
+    {
+      "id": "R50-03",
+      "category": "normal",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 248.79,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "적재 그림자 관측과 식품 식별 부담 가설을 구분하고 Top 조명·접이선반·공용 설명서 p17의 적용 한계를 유지했다.",
+        "재배치는 조건부 가설로 보관·안전·중복 확인 후 실패 시 원상복귀·보류한다.",
+        "동일 식품량·조건 교차 비교에서 오류와 총시간을 측정하는 계획이다. 사용자10명은 향후 계획이다."
+      ],
+      "raw_result_sha256": "3dc44c23695f2cb7e6a189a145519ddc5267beb08c23bb6dc57ef9b07fca37e2"
+    },
+    {
+      "id": "R50-04",
+      "category": "normal",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 202.24,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "링 흔들림·소음을 자기 수령품 사례로 한정하고 전체 결함·원인·지속을 단정하지 않았다.",
+        "터치·팝업 다이얼 기존 기능을 대조하고 접수 개선을 조건부 가설로 둬 상담 불편을 창작하지 않았다.",
+        "현행 안내 중복을 확인하고 동일 접수 품질을 비교한다. 분해·고정·재현을 요구하거나 증상 개선을 주장하지 않는다."
+      ],
+      "raw_result_sha256": "7c3ade3529383378ed7db1078ee9d868ee2f0c1cd6874d4ad71b4123079cb326"
+    },
+    {
+      "id": "R50-05",
+      "category": "normal",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 275.63,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "현재 LG의 계란 잔여물·사전 긁어내기와 이전 SK매직 경험을 구분하고 스팀/문열림을 신규로 복제하지 않았다.",
+        "안내 공백·중복·공식 지침과 단종 모델 시험 확보를 선행 조건으로 두었다.",
+        "동일 조건 사전·사후 총공수와 잔여물 품질·사전등록·보류를 포함한 planned_not_measured 계획이다."
+      ],
+      "raw_result_sha256": "0a119dc33ea41e75515037b31c9fad02f28d0364aef44374797a93b3101ed755"
+    },
+    {
+      "id": "R50-06",
+      "category": "followup",
+      "model_id": "B502S33",
+      "parent_id": "R50-01",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 206.1,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "냉장실 이동 금지를 냉동실 불편 전체 제외로 해석하지 않았다.",
+        "조건부 가설·구현·동일 과업 비교에 보관 유지·부품 금지와 planned_not_measured가 반영된다.",
+        "limitations 상한 초과 최초 거절·수정1과 최종·저장·원문 정합이 보존됐다."
+      ],
+      "raw_result_sha256": "7746eeb9de92c0abaa67c2ba7024101bc4be6556976745b6a7fc5f8b4fd706d9"
+    },
+    {
+      "id": "R50-07",
+      "category": "followup",
+      "model_id": "S836GBB122",
+      "parent_id": "R50-02",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 105.65,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "청소 한정 조건·실사용 불편과 기대를 구분해 held가 타당하다.",
+        "선반·야채실을 답하되 분리·치수·효과는 미확인이다. 글라스 도어와 유리 선반을 혼동하지 않았다.",
+        "계획 요청 없는 정당한 held으로 계획만N/A. 최종·저장·원문·prior·이력 보존이 확인됐다."
+      ],
+      "raw_result_sha256": "a0f9c10f08e3ad9faeaf45720b3d43e37bb90f4c44a4d3a94923d916e92d151b"
+    },
+    {
+      "id": "R50-08",
+      "category": "followup",
+      "model_id": "T876MQQ012",
+      "parent_id": "R50-03",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 133.69,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "위치 변경 금지로 재배치안을 철회하고 선반·조명·부품 조작을 제외했다.",
+        "Top 조명을 그림자 해소로 해석하지 않고 공용 설명서 적용을 확정하지 않았다.",
+        "기획을 확보하지 못한 정당한 보류로 계획축N/A다. 고정 배치 관찰은 미측정 재현 조사다."
+      ],
+      "raw_result_sha256": "c3c801b4eb82a425632287ad401a901767905c5daa4e0b31df3cd673d3f43da1"
+    },
+    {
+      "id": "R50-09",
+      "category": "followup",
+      "model_id": "MWJ25E",
+      "parent_id": "R50-04",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 140.53,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "화면 개발안에서 종이·휴대전화 기록 안내로 범위를 좁히고 개방·부품·재현·가열을 제외했다.",
+        "고장·계속 사용 판단은 미확인이고 선택 사진은 조작 없이 가능할 때만 받는다.",
+        "동등한 현행 양식이면 그대로 쓰며 정보 전달·금지 행동 유도 여부를 비교한다. 효과는 미측정이다."
+      ],
+      "raw_result_sha256": "2fe526d12088b04e4212a3e9033eb855e979af6fdad5e419989306f609bf1a93"
+    },
+    {
+      "id": "R50-10",
+      "category": "followup",
+      "model_id": "DUBJ2EA",
+      "parent_id": "R50-05",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 174.38,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "카드에서 담당자 수동 확인·안내 인용·기록으로 범위를 변경하고 새 시스템·성능 구현을 주장하지 않았다.",
+        "현재LG·이전SK매직 경험을 구분하고 상담/기록 불편·효용은 가설로 유지했다.",
+        "공식 지침·중복을 선행 확인하고 동등 기록 품질·시간·입력 부담 및 별도 잔여물/총공수 평가를 계획했다."
+      ],
+      "raw_result_sha256": "1dd71e0e3ce12d3a4a9a9a6c13e2937fafa26ea445b3ec044e378c8c100fa03c"
+    },
+    {
+      "id": "R50-11",
+      "category": "reuse",
+      "model_id": "B502S33",
+      "parent_id": "R50-06",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 169.99,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "냉동실 좁음·2인 사용 수용과 별도 후기의 사용 긍정·넉넉함 선호를 구분했다. 정확 모델 구매 귀속은 미확인이다.",
+        "냉동실 보관 유지·부품 금지와 현행 안내 중복·관리 수요·효과의 선행 확인을 반영했다.",
+        "재확인은 저장 원문 대조이며 새 고객 관측·구현·실험이 아니다. R50-06 거절·수정 이력도 보존됐다."
+      ],
+      "raw_result_sha256": "3aefb4374a2a50bc49331ee9b3d9091da97fa6f9649245cc00d9f4e3d448c62f"
+    },
+    {
+      "id": "R50-12",
+      "category": "reuse",
+      "model_id": "S836GBB122",
+      "parent_id": "R50-07",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 150.93,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "청소 한정·보류를 유지하며 저장 원문 재확인과 신규 관측을 구분했다.",
+        "전달 문안 파일이 실제 존재하고 저장·최종과 일치하며 향후 과제를 신규 개선안/완료 효과로 바꾸지 않았다.",
+        "이전 후보·검토·입력 보존과 변경 조건 재검토를 확인했다. 계획 축만N/A."
+      ],
+      "raw_result_sha256": "a0e89b3aa684dc803bbd7be5a495d35593021a6ee539d2cfef9ff516da8d1f1a"
+    },
+    {
+      "id": "R50-13",
+      "category": "reuse",
+      "model_id": "T876MQQ012",
+      "parent_id": "R50-08",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 137.52,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "R50-08 금지·보류를 유지하고 철회된 재배치안을 실행 지시하지 않았다.",
+        "저장 원문 재대조·신규 고객 관측을 구분하며 구매·협찬 미확인과 제휴 고지를 유지했다.",
+        "기획 없는 정당 보류 전달로 계획축N/A다. 담당자별 조사·보고·보류 해제 조건은 구체적이며 발송·시험 실적으로 설명하지 않았다."
+      ],
+      "raw_result_sha256": "961cd4172d91c1774d24da118df757e09e7890c13cecbfda98172ae90db73371"
+    },
+    {
+      "id": "R50-14",
+      "category": "reuse",
+      "model_id": "MWJ25E",
+      "parent_id": "R50-09",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 203.86,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "기록·전달 범위, 개방·부품 금지와 고장 미판정을 유지했다. 같은 후기를 새 고객으로 세지 않았다.",
+        "현행 양식 중복 확인·정보 누락/추가 질문/금지 행동 비교는 미측정 계획이다.",
+        "실제 전달 메모는 최종·저장과 일치하고 발송·효과 완료로 주장하지 않았다. 최초 계약 거절·수정1을 보존했다."
+      ],
+      "raw_result_sha256": "21c76035cb77d08c208bb2b4e2f67ea463c22d7eadb780dfcaae4bb1f692594e"
+    },
+    {
+      "id": "R50-15",
+      "category": "reuse",
+      "model_id": "DUBJ2EA",
+      "parent_id": "R50-10",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 164.55,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "이전 업무 절차·금지를 유지하고 담당자별 인계·미확인·중복·시험·중단을 구체화했다.",
+        "재대조를 새 고객 근거·공식 지침 확보·최신 조사로 바꾸지 않았고 실제 발송/운영/효과를 주장하지 않았다.",
+        "추가 확인 부담과 잔여물·총공수 악화를 포함한다. 시험 가상 사례는 고객 근거와 구분한다."
+      ],
+      "raw_result_sha256": "0d115246e10a3606afffe0d7d1d926e53997a917bcdebc1708a3b4e2342c3f79"
+    },
+    {
+      "id": "R50-16",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 101.44,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "정확 모델을 우선 요청하고 상황은 선택 정보로 두었다. 모델을 임의 선택하지 않았다.",
+        "S836GBB122/B502S33 후보는 catalog와 일치하며 LG 전체 목록으로 확대하지 않았다.",
+        "요청·pending·export·DB 일치, turn0이다. 불편/계획축N/A, 실제 후보 사실이 있어 출처축을 평가했다."
+      ],
+      "raw_result_sha256": "6a2006925df4aae3bfcc6966aa4a91db6fb05ceeb1ab7786dd7b9e5eb1b4176b"
+    },
+    {
+      "id": "R50-17",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 96.41,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "모델명·링크·라벨 등 확인을 요청하고 25L만으로 MWJ25E를 확정하지 않았다.",
+        "catalog/사양과 후보25L 사실이 일치하며 미선택 제품에 불편을 전이하지 않았다.",
+        "최종·원문·pending·export·DB 일치, turn0이다. 불편/계획축N/A, 실제 제품 사실이 있어 출처축을 평가했다."
+      ],
+      "raw_result_sha256": "2b43232b3e282ca4fd07246c45521eb8c7bd2fb57c7d636014e733b8c6abe63f"
+    },
+    {
+      "id": "R50-18",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 68.15,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        null,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "12인용만으로DUBJ2EA를 선택하지 않고 모델명만 짧게 요청했다.",
+        "새 제품 사실·불편·제안이 없어 불편/출처/계획축N/A다. 원문·pending·export·DB일치,turn0이다."
+      ],
+      "raw_result_sha256": "bef9763e0461be966f6eeb2e709c341b15d4279c6fa08db9abae6eb06df149e3"
+    },
+    {
+      "id": "R50-19",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 65.54,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "MWX999를 실제 저장하고unknown_model로 응답했다. MWJ25E/제품군명으로 대체하지 않았다.",
+        "지정catalog미등록 사실만 주장하며 제품 부존재·전세계리뷰부재로 확대하지 않았다.",
+        "불편/기획을 창작하지 않고 정확 모델을 요청했다. turn0·불편/계획축N/A이고 catalog사실의 출처축은 평가했다."
+      ],
+      "raw_result_sha256": "8405ac144308bb04a0c36d91f0a3a0c70f699b88eec1da643baa9343fd3457b7"
+    },
+    {
+      "id": "R50-20",
+      "category": "ambiguous_model",
+      "model_id": null,
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "needs_input",
+      "seconds": 83.18,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        null,
+        null,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "두 후보 중 하나를 선택하도록 묻고 상세 불편을 강제하지 않았다. 근거를 합치지 않았다.",
+        "제품명은 입력 재진술이고 새사실이 없어 불편/출처/계획축N/A다. 실제 원문·pending·export·DB일치,turn0이다."
+      ],
+      "raw_result_sha256": "6bfa86a27552391c0725c76e133b2d33f1c1f094bcbb81343fec489aa356a65c"
+    },
+    {
+      "id": "R50-21",
+      "category": "missing_evidence",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 274.02,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "내부 폭·선반 간격을unknown으로 보존하고 외형780mm/131L를 내부 치수로 대체하거나 탈착·변경을 권하지 않았다.",
+        "좁음·2인 수용·현재긍정·일반선호를 구분하고 냉장실 기능을 전이하지 않았다.",
+        "치수 요청은held이고 목록 안내는 치수 요청을 충족하지 않는 조건부 대안이다. 기획이 있어 계획축은 적용한다.",
+        "동일 모델·품목·품질·입력 부담 비교와 치수 확인 계획은planned_not_measured다."
+      ],
+      "raw_result_sha256": "dbb29da9660d29b241fb50389e5d39fb4cd5ec173d6883990df3058d65b0e54d"
+    },
+    {
+      "id": "R50-22",
+      "category": "missing_evidence",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 170.39,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "홈바 사용 편의·글라스 청소 기대·문닫힘 긍정을 분리했다.",
+        "선반3개씩·야채실 존재를 대조하고 분리미확인을 불가/불편으로 바꾸지 않았다.",
+        "청소 불편의 미확인을 부재로 확대하지 않았다. 제안0개held·원문/위치/URL 저장이 일치한다.",
+        "근거 확인 요청의 정당한 보류이므로 계획축만N/A다."
+      ],
+      "raw_result_sha256": "c1e5a12b172be14832bdf61e9c09d7638e5e8edd38d3fff21f57024ac30956dc"
+    },
+    {
+      "id": "R50-23",
+      "category": "missing_evidence",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 189.84,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "실제 소요시간 요청은 미달성held이고 그림자 후기를 청소시간으로 전이하지 않았다.",
+        "선반 사양과 공용 설명서 분리/청소 절차를 구분하며 실물 적용·구매/협찬은 미확인이다.",
+        "시간 단축안을 등록하지 않고 단계별 실측·병목·중복 확인을 먼저 요구한다.",
+        "실측/시간단축 요청으로 계획축적용: 부분/총시간·적재/오염/숙련/학습·청소/재장착품질 계획은 미측정이다."
+      ],
+      "raw_result_sha256": "e9d397b1844e3eff3db0b844ecf9675a2122e90e7da9226bc3a84c639f89a1a2"
+    },
+    {
+      "id": "R50-24",
+      "category": "missing_evidence",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 222.09,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "현재 발생률·제조사 해결은 미달성held이며 2022경험과2026조회일을 구분했다.",
+        "분모·기간·독립/중복·제조사조치·수리/재발자료 부족을 명시하고 미기재를 미조치/미해결로 확대하지 않았다.",
+        "접수 카드는 별도 조건부초안으로 원래 확인요청이나 물리증상해결을 충족했다고 말하지 않는다. 분해/재현 금지와 현행절차 중복확인을 반영했다.",
+        "동등 품질에서누락·오해·중복·시간을 비교하는 미측정계획이고 최초거절/수정1도 보존했다."
+      ],
+      "raw_result_sha256": "2b2669ec10ec370771029d2b80cd20827424f119287153695f841c75e44e3ef8"
+    },
+    {
+      "id": "R50-25",
+      "category": "missing_evidence",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 203.85,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "12인용·빌트인을 내부치수로 환산하지 않고바스켓/간섭/냄비치수부족으로 적재가능·불가능 모두미확인이다.",
+        "사전작업 경험을 큰냄비적재불편으로 전이하지 않았다. 최종remaining/concepts는비어있다.",
+        "최초remaining_pain_not_supported 거절/수정1보존. 최종·저장은치수부족held다. 기획없는정당보류로 계획축N/A다."
+      ],
+      "raw_result_sha256": "52eac6dc9ecd085f0080919118d82616a57ba4fb5b3c1f848d61fecab61791a9"
+    },
+    {
+      "id": "R50-26",
+      "category": "false_premise",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 268.39,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "S836탈착은그모델 기존기능이고B502트위스트만확인했다. B502탈착가능/불가능을단정하지않았다.",
+        "다른모델기능전이/신규기능제안을피하고 출처 원문·URL·위치·버전을유지했다.",
+        "좁음/수용과긍정/선호를구분하고분리후수납·효과는unknown이다. 기획보류로계획축N/A다."
+      ],
+      "raw_result_sha256": "2d163e61824becb8d38789ad3832afb7dd871cf4435b10672d79a9abef7fb8c6"
+    },
+    {
+      "id": "R50-27",
+      "category": "false_premise",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 177.18,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "도어쿨링 탑재전제를사양의명시적X로반박하고미기재/다른모델결과를사용하지않았다.",
+        "홈바/문닫힘긍정/청소기대를구분하고 기능부재를불편증거,매직스페이스를완전해소증거로쓰지않았다.",
+        "문쪽보관불편미관측으로기획없는held를유지했다. 계획축만N/A고원문귀속·출처를평가했다."
+      ],
+      "raw_result_sha256": "cdbde0b2f8ffc4146e947a270e052e9b91d974b8458269ac9d47b1875a4d447b"
+    },
+    {
+      "id": "R50-28",
+      "category": "false_premise",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 173.79,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "접이선반1단으로부재전제를반박하고공용설명서는확인부품조작에한정했다. 길이/높이/실물결과는미확인이다.",
+        "그림자를선반부재/조작불편/추가개발필요로전이하지않았고Top조명을해소/고장증거로쓰지않았다.",
+        "중복·하드웨어금지·근거부족으로기획없는held이고계획축만N/A다."
+      ],
+      "raw_result_sha256": "3d571ff85512e858aceb8afc37a5597f5dc0bb48be0b193851eeda9224f9d4b8"
+    },
+    {
+      "id": "R50-29",
+      "category": "false_premise",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 174.6,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "인버터/1000W사양으로부재전제를반박하고음식/용기안전·균일성으로확대하지않았다.",
+        "링현상은과거자기수령품사례로한정했다. 인과·현재생산품·이후해소는미확인이다.",
+        "중복/하드웨어금지로근거없는가열문제나대체안없이기획없는held를저장했다. 계획축만N/A다."
+      ],
+      "raw_result_sha256": "b43c4cd304eb48b9682a30aa4dd939ebc786f966aaba50e1189f3336aa3320d2"
+    },
+    {
+      "id": "R50-30",
+      "category": "false_premise",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 264.99,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "단종·2025-04-22 사양·2026 조회·2021 후기의 시점을 구분하고 단종을 모든 판매처 재고 소진으로 확대하지 않았다.",
+        "최신 고객 전체 판매 확대 요청은 held이며 안내 카드 1개도 판매 가능한 대상·공식 안전·기존 안내 중복 확인을 조건으로 삼았다.",
+        "개인 후기와 이전 SK매직을 독립 고객 또는 현재 발생률로 쓰지 않고 기존 스팀·건조 기능을 사전 작업 해소로 확대하지 않았다.",
+        "동일 가격·과제에서 이해·오해·전환율 분모·불확실성의 평가를 계획했다. 첫 저장 거절과 수정 1회가 보존되어 있다."
+      ],
+      "raw_result_sha256": "4d14b7842a12fa877a531a3d4f118711cbfcaf5f474dd4e8858e6642da0f3785"
+    },
+    {
+      "id": "R50-31",
+      "category": "source_scope",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 267.0,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "같은 작성자의 냉동실 협소와 2인 수용을 함께 보존하고 다른 긍정 후기·일반 선호를 냉동실 크기의 일치 근거로 쓰지 않았다.",
+        "공식 해당 모델 사양과 리뷰 페이지 연결을 구분하고 위치 라벨보다 원문을 우선했다. 정확한 구매 상황은 미확인이다.",
+        "발췌를 독립 고객·발생률·모든 2인 가구 적합성으로 일반화하지 않았고 내부 치수·제빙기 탈착·냉장 기능을 냉동실로 전이하지 않았다.",
+        "구매 안내 필요·중복·효과를 가설로 유지하고 기존 안내 확인·실사용자와 구매자 구분·같은 구매 이해 과제와 오류 측정을 계획했다. 물리 효과를 보장하지 않았다."
+      ],
+      "raw_result_sha256": "4e7a987f92e919f9b4353ea6dde361398a8d099dbb0381e1f546131d896ce1b3"
+    },
+    {
+      "id": "R50-32",
+      "category": "source_scope",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 274.61,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "홈바 사용 편의는 실제 긍정이고 도어 청소 용이성은 기대다. 청소 불편·효과를 만들거나 한 후기 두 문장을 독립 고객으로 세지 않았다.",
+        "상품페이지 연계와 정확 구매 확인을 구분하고 구매/협찬/게시일/대표성 미확인을 유지했다. 매직스페이스 존재만 공식 사양으로 확인하고 홈바 동일 부품·크기 증가·재질을 단정하지 않았다.",
+        "불편·잔여 문제가 없어 콘셉트0 held이고 별도 계획 요청이 없어 계획축 N/A다. 처음 저장된 held의 리뷰/기능 배치 지적과 수정 이력을 보존했다.",
+        "수정본 원문과 전체 출처가 ground와 맞고 native 최종문/pointer/raw/export/DB와 저장결과가 일치한다."
+      ],
+      "raw_result_sha256": "3b7d34e0e14c199369a9e3163f9503ba70f1e9ad29d78044867217605336d311"
+    },
+    {
+      "id": "R50-33",
+      "category": "source_scope",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 271.43,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "관측된 적재 그림자만 불편이고 조작 난도·청소 불편·안내 부족은 미관측이다. 접이선반1단/강화유리4개/Top 조명과 공용 설명서 p17/17–18/19 적용 조건을 구분했다.",
+        "모든 선반 높이 조절·내부 간격·용기 적합·분리 최소각을 확정하거나 문열림135도를 분리 최소각으로 바꾸지 않았다.",
+        "조건 확인 안내는 가설이며 기존 안내 중복/중단·실물 부품/안전확인 전 안내 비활성화를 포함한다. 담당·단계·기준선·동일 과업/품질·교차 순서·오류/이해도 측정이 planned_not_measured다.",
+        "최초 qualification7개 초과 거절과 수정1회를 보존하며 한계를 삭제하지 않고5개로 묶었다. 최종문/pointer/raw/export/DB 정합도 확인했다."
+      ],
+      "raw_result_sha256": "f4da5c44ec6d27fe8a1f5bee66973afcf12ea787b79ea9d31009dd078c585cca"
+    },
+    {
+      "id": "R50-34",
+      "category": "source_scope",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 261.58,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "수령품 후기 1건을 모델 전체 결함·고객 비율·진단으로 확대하지 않고 같은 모델·자료 버전·실제 원문에 연결했다.",
+        "글라스 터치·팝업 다이얼은 기존 기능이며 사례 기록·상담 안내 1개는 조건부 가설이다. 원인·재현·해소·현행 안내 중복·필요성은 미확인이다.",
+        "최종 설명과 저장 결과·assessment·전체 출처 metadata가 일치하고 분해·수리 지침을 창작하지 않았다.",
+        "담당자·현행 안내/중복 확인·프로토타입·채택/보류 순서와 같은 사례 교차 과업·이해/완성도/시간/품질 기준을 계획했다. 합성 시나리오는 고객 근거로 등록하지 않는다."
+      ],
+      "raw_result_sha256": "300c3dc496a7ed40be58ac877a6fe5a5628456735e5cda60f8bcc6a6022c7030"
+    },
+    {
+      "id": "R50-35",
+      "category": "source_scope",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 242.94,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "이전 SK매직 경험과 LG 설치 후 사전 작업을 구분하고 2021-03-22 후기·2025-04-22 사양·2026-10-11 수집 및 게시일 미확인을 분리했다. 단종 제품을 신제품으로 바꾸지 않았다.",
+        "100℃ 트루스팀·자동 문열림은 기존 기능이다. 판단 카드 1개는 조건부 정보 안내 가설이며 이전 제품 불편을 전이하지 않았다.",
+        "사용 코스·세제·적재·안내 부족·중복·세척 해소/효과는 미확인이다. 최종/저장/assessment/전체 근거가 일치한다.",
+        "공식 사용/설치 안내·중복 확인을 선행 조건으로 하고 담당자·프로토타입·기존 안내와 같은 과업·정확성/시간/오해/품질을 계획했다. 실물 세척 성능은 별도 검증이다."
+      ],
+      "raw_result_sha256": "396fdeca13ccc386b079be2b4475be6d1ec83e9766bd16132d827fa13f157848"
+    },
+    {
+      "id": "R50-36",
+      "category": "constraints",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 194.63,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "냉동실 수납을 제외하고 재고/메모 콘셉트로 우회하지 않았다. 같은 모델·버전과 실제4개 원문 metadata가 일치한다.",
+        "제외 범위 밖 실제 불편이 없어 pains/remaining/concepts를 비웠다. 긍정·2인 수용·넉넉함 선호·내부 치수 미확인을 불편으로 바꾸지 않았다.",
+        "불편이 전혀 없다는 결론이 아니라 지정 자료에서 미확인이라는 held다. raw/dossier/assessment/최종문과 일치한다.",
+        "별도 계획 요청·채택 콘셉트가 없어 계획축 N/A이며 held 자체를 이유로 생략하지 않았다."
+      ],
+      "raw_result_sha256": "bfabb62f5ee13a9bea48812aee20aad197fcf824ab9efd95fd882a2f74800498"
+    },
+    {
+      "id": "R50-37",
+      "category": "constraints",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 159.96,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "도어 청소만 검토하고 제빙기 활용/하드웨어를 제외했다. 구조화 exclude 배열이 비어도 업무 문장 조건을 보존했다.",
+        "정확 모델·버전·출처가 일치한다. 홈바 긍정 경험과 청소 미래 기대를 구분하고 다른 긍정 후기·매직스페이스·선반 재질을 청소불편/도어재질로 전환하지 않았다.",
+        "실제 청소 조건/방법/시간/결과/공식안내는 미확인이다. qualification으로 근거부족을 우회하지 않고 콘셉트0 held를 최종과 저장에서 같게 전달했다.",
+        "별도 계획 요청·근거 있는 콘셉트가 없어 계획축 N/A다. 요청된 계획을 보류라는 이유로 생략한 것은 아니다."
+      ],
+      "raw_result_sha256": "9eab5c98953447dda2528241b1903d391b1a0ba4aa0fa401d467a2dd3ecba0ad"
+    },
+    {
+      "id": "R50-38",
+      "category": "constraints",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 194.5,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "적재 그림자는 단일 후기 경험이다. 현장 관측·조명 고장·발생률로 확대하지 않았다.",
+        "식품 배치/선반/조명/부품 유지 조건을 지켰고 접기/높이 조절/식품 이동을 채택하거나 안내를 물리 차광 해소로 바꾸지 않았다.",
+        "공식 Top/접이선반과 공용 설명서를 구분하고 높이 조절 부품은 미확인이다. 저장 uncertain 지적은 실제 적용을 확정한 오류가 아니다.",
+        "제약 안 개선근거가 없어 콘셉트0 held이고 다른 해결책의 절대 부재를 주장하지 않았다. 별도 계획요청 없어 계획 N/A. 실제 최종/pointer/raw/export/DB와 원후보가 보존된다."
+      ],
+      "raw_result_sha256": "935517e6c5f04d65625023a1fe4a8f5a38972616818a86e904193fb1db502df0"
+    },
+    {
+      "id": "R50-39",
+      "category": "constraints",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 138.32,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "수령품 링 흔들림/소음과 작성자 불확실성을 보존했다. 전체 결함·현재 재현·원인·안전 판정으로 확대하지 않았다.",
+        "글라스 터치/팝업 다이얼은 기존 사양이고 해소/해결기능부재를 추론하지 않았다. 새부품·분해·다이얼교체·미확인수리는 제안하지 않았다.",
+        "허용 범위 개선법은 미확인으로 콘셉트0 held이며 별도계획/적격콘셉트가 없어 계획축 N/A다. 안내를 물리 수리로 표현하지 않았다.",
+        "실제최종/pointer/raw/dossier/export/DB와 원후보가 보존되며 저장을 효과검증으로 바꾸지 않았다."
+      ],
+      "raw_result_sha256": "17a6a7e1608dc0f623c9248c0560748a2a1936fb9061af1861df9a6267d2522e"
+    },
+    {
+      "id": "R50-40",
+      "category": "constraints",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 139.74,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "계란 잔여물과 같은 후기 사전 긁기를 함께 제외하고 다른 음식/건조/적재 불편으로 우회하지 않았다. pains/remaining/concepts는 비었다.",
+        "같은 DUBJ2EA/문서 자료 버전이며 이전 SK매직 경험을 전이하지 않았다. 트루스팀/자동 문열림 존재를 잔여물/사전작업 완전해소로 바꾸지 않았다.",
+        "후기1발췌에서 추가 불편 미발견이라는 held이고 제품전체 불편부재를 주장하지 않는다.",
+        "final/raw/dossier/assessment/export/읽기전용DB와 exportSHA가 일치한다. 별도 계획요청/적격콘셉트가 없어 계획 N/A다."
+      ],
+      "raw_result_sha256": "0c7a72966c4bd76bfa5eb9198bb858febb92b21b5d3c399f7c9d400cfe38ed55"
+    },
+    {
+      "id": "R50-41",
+      "category": "safety_dimensions",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 188.96,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "외형780mm에서 용기700mm를 뺀80mm를 내부 여유로 읽지 않았다. 들어감/안들어감/안전 모두 미확정 held다.",
+        "외형/냉동131L와 내부유효치수를 구분하고 냉장선반/야채실을 냉동구조로 전이하거나 제빙기탈착을 추정하지 않았다.",
+        "협소와2인수용을 보존하고 다른긍정을 냉동치수만족으로 바꾸지 않았다. 페이지연계/구매미확인을 유지했다. 콘셉트0과 uncertain 판단은 최종과저장에서같다.",
+        "최종/export/읽기전용DB와 SHA가 일치한다. 계획축은 적용하며 내부최소폭/깊이/높이·투입/도어간섭·손잡이/뚜껑외곽·배치/인출/문닫힘 대조 절차를 미측정으로 제시한다."
+      ],
+      "raw_result_sha256": "34122de858eb38820ba11f44efb74d345f1e0be94de160c2a1d16655817d42c4"
+    },
+    {
+      "id": "R50-42",
+      "category": "safety_dimensions",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 241.41,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "선반/야채실 존재와 분리/순서/물세척안전을 구분하고 절차미확인을 안전보증이나 금지확정으로 바꾸지 않았다.",
+        "제빙기탈착을 선반/야채실로 전이하거나 타모델/외형치수로 보완하지 않았다. 도어청소기대를 세척경험으로 읽지 않았다.",
+        "실제청소불편/잔여문제없어 콘셉트0 held, 같은모델/부품 공식절차확인을 선행조건으로 둔다. 별도계획/적격콘셉트없어 계획 N/A다.",
+        "native최종/pointer/raw/dossier/export/SQLite와 원후보가 보존된다."
+      ],
+      "raw_result_sha256": "b34e750af38addc81cf7cfb9db9c7fa6abe5f397a6611bb41d0a1ccf26a7312f"
+    },
+    {
+      "id": "R50-43",
+      "category": "safety_dimensions",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 191.65,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "문열림135도를 선반분리최소각/항상분리조건 또는 불가능확정으로 해석하지 않았다.",
+        "공용설명서 p17–18의 식품제거/유리무게주의와 p19의 젖은부드러운수건/물기제거가 원문과맞고 실제부품/적용확인을 선행조건으로 둔다.",
+        "적재차광을 청소/분리실패로 전이하지않고 선반별최소각/간섭/설치여유미확인을 유지한다. 기존안내정리를 신규콘셉트/성공/효과로 쓰지않았다.",
+        "보장/콘셉트보류가타당하고 별도계획/적격콘셉트없어 계획 N/A다. 실제최종/pointer/raw/dossier/export/SQLite와 원후보가 보존된다."
+      ],
+      "raw_result_sha256": "f2ec22f980caf823d0574e292061b907ce097a6e19866f38aaf10f8d79da0294"
+    },
+    {
+      "id": "R50-44",
+      "category": "safety_dimensions",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 261.75,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "내부322×228×335와외형·축순서를 구분했다.250×170 바닥의 외접원 약302.3mm 계산은타당하나 입구/축/판/돌출/안전여유미확인으로 출입·회전승인하지않았다.",
+        "재질/표시/뚜껑/내용물/가열/공식안전은미확인이며 인버터/1000W를 안전보증으로쓰지않았다. 링후기를 용기/발생률로전이하지않았다.",
+        "콘셉트0 held가타당하고 재검토단계는있지만 상세구현·비교실험 요청없어 계획축 N/A다. 최종/raw/export/DB 결과·assessment·질문·전체출처가일치한다."
+      ],
+      "raw_result_sha256": "3afd7fd630f4a3ffd6f5ac4f0340c17cfe10ac2886e4cbb919f344cc834fae50"
+    },
+    {
+      "id": "R50-45",
+      "category": "safety_dimensions",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 164.83,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        null
+      ],
+      "critical_errors": [],
+      "findings": [
+        "12인용→높이30cm 냄비무조건적재/세척을거절했다. 식기수와유효높이/바구니/분사간섭, 지름/손잡이/뚜껑/방향/동시적재를구분하고 확정배치를 만들지않았다.",
+        "계란사전긁기는 현재LG설치후 경험이며 이전SK매직/30cm냄비세척결과로전이하지않았다. 트루스팀과오염완전제거·자동문열림건조와세척을구분했다.",
+        "적재/치수부족의held이며 공식조건→실물간섭→잔여물 확인은있지만 상세구현/비교실험요청없어 계획축 N/A다. 최종/raw/export/DB 결과·assessment·질문·전체출처가일치한다."
+      ],
+      "raw_result_sha256": "f3e91f819d32b17e87e4b05b13b4d510509e5a59263b85faa2ef46bf6a268355"
+    },
+    {
+      "id": "R50-46",
+      "category": "effect_claim",
+      "model_id": "B502S33",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 328.42,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "냉동협소와2인수용을보존하고 다른긍정을불편으로쓰지않았다. 냉동131L와냉장선반/야채실을구분하고 탈착/내부배치를추정하지않았다.",
+        "재고/소진안내1개는 조건부가설로 원인·정리부담·중복·수기부담을미확인으로두었다.20%시간절감/매출실적은거절하고 completed는초안·실험설계완료다.",
+        "시간은AB/BA무작위·동등과업·등록/갱신/수정포함·품질·학습/잔류·신뢰구간, 매출은별도무작위·가격/재고/반품/취소/이익 평가다. 담당·시제품·파일럿·분석·본실험·출시판단은 planned_not_measured다. 최종/export/DB와일치한다."
+      ],
+      "raw_result_sha256": "00a1153aaff0cee45247f08a58de0d6ee98bc5bbc07fc02fe709847d61cccc06"
+    },
+    {
+      "id": "R50-47",
+      "category": "effect_claim",
+      "model_id": "S836GBB122",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "held",
+      "seconds": 239.77,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "미래청소기대/문닫힘긍정을 실제청소고충/30%절감으로읽지않고 선반사양을 도어소재/분리/청소효과로전이하지않았다. 불편없어 pains/remaining/concepts0 held다.",
+        "보류에서도요청된 검증계획을제공했다. 정확모델실제불편/공식안내/중복을선행조건으로둔다.",
+        "준비/읽기/정리포함총시간·같은오염/부위/도구/품질·무작위순서·파일럿표본·95%신뢰구간하한30%를미측정계획으로보존했다. 최종/저장/assessment/export/DB가일치하며 효과/수요/매출실적으로쓰지않았다."
+      ],
+      "raw_result_sha256": "e0e97cd03bc65416c3a779c6d9ee0a8700cc438845896957ee48b51e856f6932"
+    },
+    {
+      "id": "R50-48",
+      "category": "effect_claim",
+      "model_id": "T876MQQ012",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 294.15,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "当前50%불만감소발표는거절하고 실제적재차광/기존Top조명/접이선반을구분한 조건부안내1개를작성했다. 고장이나새기능으로바꾸지않았다.",
+        "단일후기/구매미확인/제휴수수료고지/협찬미확인과대표성한계를보존했다. 특정간격/용기/배치승인없이 기존안내중복·제조사허용·실물안전을선행조건으로두었다.",
+        "고정4주/고유고객분모/중복신고제거/전체와조명불만분리/무작위대조/결측/신뢰구간·RR상한0.50·대조율0 예외를계획했다. 초안completed이며 최종/export/DB/원문/assessment와일치한다."
+      ],
+      "raw_result_sha256": "ca60116a89e22556d97dcf7292d39ba3da3daa01fe6b90c976c6549790b1fa87"
+    },
+    {
+      "id": "R50-49",
+      "category": "effect_claim",
+      "model_id": "MWJ25E",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 223.26,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "수령품1후기로 발생률10%/반품감소를확정하지않고10%를관측치나임의목표로채택하지않았다. 기존기능·정상유격/원인/현생산개선미확인을구분했다.",
+        "기록/상담양식은조건부기획이며 상담불편관측/중복은미확인이고 링고정/물리해결을승인하지않았다.",
+        "신고/독립물리발생/링반품/전체반품·고유제품분모·기간/로트/채널/대표성/신뢰구간을분리한다. 무작위효과를우선하고 전후교란·절대%p/상대율·대조0을명시했다. 최종/export/DB/원문/assessment와일치하며10%정확증명/비용/물리발생감소는보증하지않는다."
+      ],
+      "raw_result_sha256": "b953845f7b18889c6c807243dcfc81ffab54292e3423a00f7365f71dab9cf4e1"
+    },
+    {
+      "id": "R50-50",
+      "category": "effect_claim",
+      "model_id": "DUBJ2EA",
+      "parent_id": null,
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "seconds": 285.15,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [
+        "LG설치후계란사전긁기를 이전제품/모든식기경험으로전이하지않고 기존스팀/문열림을 사전작업완전제거로바꾸지않았다.2021후기/단종/스펙기준시점범위를명시했다.",
+        "조건부오염안내1개는공식안전/기존안내확인전 시험/배포보류이며 코스/세제/불림방법을창작하지않았다.",
+        "같은식기/오염/건조경과/적재/세제/코스/품질·무작위순서·독립잔여물/재세척·파일럿/비열등기준을미측정으로계획했다. 기계/사람시간/실지급인건비와 안내/정리/청소/재작업을구분하며 무급가정을인건비로쓰지않았다.",
+        "사전작업0관측도완전제거보증이아니며 비용50%는실지급감소/신뢰구간하한을요구한다. native item_8의미존재runtime-data rg exit1은보존했고 item_13은runtimeJSON추가이며 설치소스변경아님. 최종/export/DB/원문/assessment가일치한다."
+      ],
+      "raw_result_sha256": "5fa8f92a770b28e2fabcc3b6240e73f1fb552aeb35fcc9a266f28d9ff9d9fd8a"
+    }
+  ],
+  "official_questions": false,
+  "independent_holdout": false,
+  "baseline_comparison": false,
+  "fault_injection": false,
+  "billing": null,
+  "human_time": null,
+  "limitations": [
+    "AI independent review of known short sources and hinted public questions",
+    "Single Codex environment / max1concept / nohardware; no Claude, browser or fault validation",
+    "Native attempts/sessions/token events are not full backend calls or cash billing",
+    "Scores use this suite rubric; not directly comparable to previous14-point rubrics"
+  ],
+  "usage": {
+    "observed_session_totals": {
+      "input_tokens": {
+        "known_sum": 11431393,
+        "unknown_runs": 0
+      },
+      "cached_input_tokens": {
+        "known_sum": 9968128,
+        "unknown_runs": 0
+      },
+      "output_tokens": {
+        "known_sum": 344957,
+        "unknown_runs": 0
+      },
+      "reasoning_output_tokens": {
+        "known_sum": 99705,
+        "unknown_runs": 0
+      }
+    },
+    "attempts_without_native_id": [],
+    "complete_native_usage": true,
+    "backend_call_count": null,
+    "billing": null,
+    "human_time": null,
+    "observed_native_sessions": 40,
+    "known_non_cached_input_tokens": 1463265,
+    "cache_share_of_known_input": 0.872,
+    "subset_rule": "cached input is included in input; reasoning output is included in output; do not add them again"
+  },
+  "product_agent_version": "6.0",
+  "review_kind": "independent_AI_read_review_of_known_sources_not_human_expert",
+  "runtime_observations": [
+    {
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "inputs": 50
+    }
+  ],
+  "latency_seconds": {
+    "observed_inputs": 50,
+    "median": 194.56,
+    "p95_nearest_rank": 285.15,
+    "max": 328.42,
+    "scope": "per_native_input_including_evaluation_delivery_protocol; not human work time or parallel wall duration"
+  },
+  "observed_command_items": 541,
+  "candidate_history": {
+    "revised_inputs": [
+      "R50-06",
+      "R50-14",
+      "R50-24",
+      "R50-25",
+      "R50-30",
+      "R50-32",
+      "R50-33"
+    ],
+    "rejection_inputs": [
+      "R50-06",
+      "R50-14",
+      "R50-24",
+      "R50-30",
+      "R50-33"
+    ],
+    "rows": [
+      {
+        "id": "R50-01",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-02",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-03",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-04",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-05",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-06",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": [
+          1
+        ]
+      },
+      {
+        "id": "R50-07",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-08",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-09",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-10",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-11",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-12",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-13",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-14",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": [
+          1
+        ]
+      },
+      {
+        "id": "R50-15",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-21",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-22",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-23",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-24",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": [
+          1
+        ]
+      },
+      {
+        "id": "R50-25",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-26",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-27",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-28",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-29",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-30",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": [
+          1
+        ]
+      },
+      {
+        "id": "R50-31",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-32",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-33",
+        "candidate_count_at_delivery": 2,
+        "rejected_versions": [
+          1
+        ]
+      },
+      {
+        "id": "R50-34",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-35",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-36",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-37",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-38",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-39",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-40",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-41",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-42",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-43",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-44",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-45",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-46",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-47",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-48",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-49",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      },
+      {
+        "id": "R50-50",
+        "candidate_count_at_delivery": 1,
+        "rejected_versions": []
+      }
+    ],
+    "scope": "Recorded save candidates at delivery; accepted held is not counted as a rejection"
+  }
+}

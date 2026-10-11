@@ -62,6 +62,11 @@ def review_product_result(dataset, payload):
         fail("invalid_assessment", "Every claim requires a support assessment")
     pain_ids = {p["id"] for p in result["pains"]}
     remaining_ids = {p["id"] for p in result["remaining_pains"]}
+    def source_scope(source_id):
+        record = dataset.source(source_id)
+        return tuple(record[k] for k in ("model_id", "model_version", "document_version"))
+    def claim_scope(claim_id):
+        return source_scope(claims[claim_id]["source_ids"][0])
     for section, required_kind in (("pains", "review"), ("existing_features", "product_fact")):
         for claim in result[section]:
             if not any(dataset.source(s)["kind"] == required_kind for s in claim["source_ids"]):
@@ -78,6 +83,9 @@ def review_product_result(dataset, payload):
             fail("invalid_assessment", "Feature comparison sources must be cited and unique")
         if any(dataset.source(s)["kind"] != "product_fact" for s in refs):
             fail("invalid_assessment", "Feature comparison needs product facts")
+        exact = claim_scope(match["pain_id"])
+        if claim_scope(rid) != exact or any(source_scope(s) != exact for s in refs):
+            fail("scope_mismatch", "Pain, remaining pain and feature comparison must share one exact model snapshot")
         if match["resolution"] not in ("resolved", "partially_resolved", "unresolved", "uncertain"):
             fail("invalid_assessment", "Unknown feature resolution")
         text(match["rationale"], "rationale")
@@ -106,6 +114,9 @@ def review_product_result(dataset, payload):
             fail("invalid_assessment", "Geometry sources must be unique cited sources")
         if any(dataset.source(s)["kind"] != "product_fact" for s in geometry):
             fail("invalid_assessment", "Geometry support requires product facts")
+        exact = claim_scope(cid)
+        if any(claim_scope(r) != exact for r in needs) or any(source_scope(s) != exact for s in geometry):
+            fail("scope_mismatch", "Concept, linked remaining pains and dimensions must share one exact model snapshot")
         text(link["rationale"], "rationale")
         if link["duplicates_existing"] is True or (link["duplicates_existing"] is None and qualified.get(cid, {}).get("basis") != "conditional_draft"):
             findings.append("duplicate_or_unchecked:" + cid)

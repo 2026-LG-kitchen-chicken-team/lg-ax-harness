@@ -7,7 +7,7 @@ import sys
 ROOT = next((p for p in Path(__file__).resolve().parents if (p / 'skills/manifest.json').is_file() and (p / 'product-tools/cli.py').is_file()), None)
 if ROOT is None:
     raise SystemExit('Cannot locate the product bundle root')
-OPERATIONS = ['doctor', 'open_request', 'open_request_bundle', 'current_request', 'prepare_planning_input', 'retrieve_reviews', 'retrieve_product_facts', 'select_evidence', 'match_product_scope']
+OPERATIONS = ['doctor', 'list_models', 'open_request', 'open_request_bundle', 'current_request', 'prepare_planning_input', 'retrieve_reviews', 'retrieve_product_facts', 'select_evidence', 'match_product_scope']
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

@@ -36,3 +36,9 @@
 모델/문서 버전이 복수이면 실제 사용자 확인 뒤 새 요청에서 명시할 수 있다. 같은 모델의 두 버전을 모두 생략하면 이전 정확한 scope를 유지하고, 하나라도 지정하면 해당 선택으로 재조회한다. 중복 후속 요청 응답은 현재 결과와 이전 turn의 handle만 반환해 두 큰 결과를 중복하지 않는다.
 
 S05 추가: open_request_bundle은 open_request와 동일 입력/멱등 계약이며 정확한 scope의 리뷰·사실 원문을 한 번 반환한다. 종류 metadata와 원문 refs를 분리하고 조회20개/종류·응답 바이트 상한의 잘림/누락 ID를 명시한다. 자료 충분성은 판단하지 않는다. 큰 현재 결과는 handle과 detail 조회 안내를 유지한다. save_reviewed_result는 assessment 검사를 transaction 안에서 필수로 수행하여 null/필드 누락도 유효 JSON 후보이면 실패 이력과 수정 횟수에 남긴다. 마지막 저장 응답의 turn을 다음 저장/최종 상태에 사용하며 충돌/재개/외부 변경에만 재조회한다. 원문 의미 검토는 생략하지 않는다.
+
+## 제품군 대화 범위(2026-10-11)
+
+open_request/open_request_bundle은 선택 product_family와 scope_mode를 받는다. family_catalog 후속에서 모델 선택이 없으면 이전 전체 scope를 유지한다. 제품군을 바꾸면 새 catalog 범위를 사용한다. model_id를 명시하면 exact_model로 좁히며 product_family도 지정했다면 실제 귀속을 검사한다. 불명확한 제품 자체만 needs_input이고 제품군 요청은 코드 없이 시작할 수 있다.
+
+제품군 bundle.scope는 여러 모델일 때 null, model_scope에는 전체 목록이 있다. 한 모델인 제품군도 scope_mode=family_catalog/coverage=catalog_cases_only를 유지한다. 조회는 각 종류마다 20/모델수(내림)개로 분배하고 전체40개 이하, scope별 total/truncated/cache_hit를 보존한다. 잘린 자료는 해당 exact scope로 좁혀 추가 조회한다. 원문 수를 고객 수로 읽지 않는다. 영구 입력/export의 model_scope가 범위 원본이며 중복 모델 목록은 저장하지 않는다.

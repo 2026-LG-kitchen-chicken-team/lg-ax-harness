@@ -1,0 +1,215 @@
+{
+  "kind": "public_family_input_regression",
+  "official_questions": false,
+  "independent_holdout": false,
+  "data_path": "data/business/lg-kitchen-v4",
+  "limits": {
+    "native_cap": 10,
+    "parallel": 2,
+    "seconds": 420,
+    "automatic_retry": false
+  },
+  "cases": [
+    {
+      "id": "G10-01",
+      "category": "family",
+      "product_family": "refrigerator",
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-01",
+      "question": "냉장고에서 사용자가 불편해하는 점을 찾아서 개선 아이디어 한 개만 제안해 줘.",
+      "scope_mode": "family_catalog",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-02",
+      "category": "family",
+      "product_family": "microwave",
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-02",
+      "question": "전자레인지 사용 불편을 실제 리뷰에서 찾아서 개선 아이디어 한 개만 제안해 줘.",
+      "scope_mode": "family_catalog",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-03",
+      "category": "family",
+      "product_family": "dishwasher",
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-03",
+      "question": "식기세척기를 쓰면서 불편한 점을 찾아서 개선 아이디어 한 개만 제안해 줘.",
+      "scope_mode": "family_catalog",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-04",
+      "category": "followup",
+      "product_family": "refrigerator",
+      "model_id": null,
+      "parent_id": "G10-01",
+      "chain_id": "G10-01",
+      "question": "냉동실 문제는 빼고, 같은 냉장고 자료에서 다른 개선 아이디어 한 개를 찾아 줘.",
+      "scope_mode": "family_catalog",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": [
+          "냉동실 문제"
+        ]
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-05",
+      "category": "narrow",
+      "product_family": "refrigerator",
+      "model_id": "B502S33",
+      "parent_id": "G10-04",
+      "chain_id": "G10-01",
+      "question": "그중 B502S33만 보자. 냉동실 문제를 제외한 조건은 유지해서 다시 판단해 줘.",
+      "scope_mode": "exact_model",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": [
+          "냉동실 문제"
+        ]
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-06",
+      "category": "generalization",
+      "product_family": "refrigerator",
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-06",
+      "question": "냉장고들은 다 청소가 불편하다는 얘기를 들었어. 실제 근거로 확인하고 개선안을 제안해 줘.",
+      "scope_mode": "family_catalog",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-07",
+      "category": "alias",
+      "product_family": "dishwasher",
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-07",
+      "question": "식세기 건조가 불편한 사람들을 위해 어떻게 개선하면 좋을까?",
+      "scope_mode": "family_catalog",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "completed",
+        "held"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-08",
+      "category": "owned_unknown",
+      "product_family": null,
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-08",
+      "question": "우리 집 전자레인지에 25cm짜리 그릇이 들어가고 안전하게 돌아가는지 알려줘. 모델명은 지금 몰라.",
+      "scope_mode": null,
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-09",
+      "category": "owned_unknown",
+      "product_family": null,
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-09",
+      "question": "우리 집 냉장고 선반에 큰 용기가 들어갈지 계산해줘. 냉장고 외형 폭만 알면 되지? 모델명과 내부 치수는 몰라.",
+      "scope_mode": null,
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "synthetic_fault_injection": false
+    },
+    {
+      "id": "G10-10",
+      "category": "ambiguous",
+      "product_family": null,
+      "model_id": null,
+      "parent_id": null,
+      "chain_id": "G10-10",
+      "question": "주방 가전 사용 불편을 줄이는 아이디어를 만들어 줘.",
+      "scope_mode": null,
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      },
+      "expected_terminal_states": [
+        "needs_input"
+      ],
+      "synthetic_fault_injection": false
+    }
+  ]
+}
