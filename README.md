@@ -2,6 +2,8 @@
 
 최신 제품 배포: [v0.4.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.4.0) · [제품만의68파일·원격/다운로드 검증](docs/validation/product-v0.4.0.md). 제품군 일반 입력·후속 범위 보존을 추가했다. 아래 v0.3.0 검사는 과거 checkpoint다.
 
+2026-10-11 Claude 회신: [최길웅의 v0.3.0 네 입력·첨부 검토](docs/validation/team-runs/records/20261011-claude-mail-review.md). export4개·실행 요약을 접수해 초안3/보류1과 후속 이력·출처를 대조했다. 최초 중복 판단의 모순과 공식 문구 귀속 오류를 기록했다. 환경·시간은 팀원 보고이며 전체 native 최종문/DB/요청별 usage는 미접수다. 최신 v6.1 Claude 제품군10입력·전체 품질/비용 인수와 별도 개발용 Claude 위임 인수는 미완료다.
+
 2026-10-11 추가 검증: [공개 AI 직접 입력50개 실제 회귀 결과](docs/validation/regression50-20261011.md). v6.0의50입력/40대화는 최종 전달·저장·독립 의미 판정을 통과했고 결과는 completed18/held27/needs_input5다. 모델코드 없는 냉장고·전자레인지·식기세척기와 축약명은 v6.1에 반영하고 [별도10입력/8대화](docs/validation/family10-20261011.md)로 검증했다(completed4/held3/needs_input3). 두 버전을 최신60개 통과로 합산하지 않는다. 제품147·평가117개 코드 검사는 실제 exit0다. 공개된 알려진 자료 평가이며 모든 업무 해결·미사용 평가·토큰 절감·효과 실증으로 해석하지 않는다. [팀 웹·기본 자료 논의](docs/validation/web-data-analysis-20261011.md)는 확인 사실과 미채택 제안을 구분한다. 현재 저장 자료 우선·등록5모델 범위이며 임의 새 모델 자동 조사/등록은 미구현이다.
 
 최신 완료: [제품 v0.3.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.3.0) · [배포·다음 인수](docs/validation/product-v0.3.0.md) · [세 제품군/평가항목 보고](docs/validation/kitchen-progress-20261011.md). 제품135·평가90개 로컬 검사와 실제4입력/3세션,12쪽 발표 검토 초안을 확인했다. 최길웅에게 Claude 검증 요청 메일을 승인받아 발송했다. 영상·리허설·실제 효과·Claude native·최종 접수는 남아 있다. 원격 CI는 계정 결제/지출 제한으로 steps0 실패이며 로컬 검사와 구분한다.
@@ -107,7 +109,7 @@ uv run python adapters/codex/install.py --target C:/YOUR-NEW-PRODUCT-FOLDER
 uv run python adapters/claude/install.py --target C:/NEW-CLAUDE-PRODUCT
 ```
 
-설치 폴더에서 `uv sync --locked`, `uv run python product-doctor.py`를 실행하고, 실행자 자신의 설치·로그인·폴더 신뢰/Skill 동의를 마친 CLI를 연다. 파일 설치기는 로그인·전역 설정·모델 호출을 하지 않는다. [설치 계약](docs/contracts/portable-product.md)과 [로컬 검사](docs/validation/portable-product.md)는 통과했지만 현재 Claude 발견·업무·예외·사용량은 미검증이며 Gemini 활성지원은 철회했다. 팀원의 개발 체계 인수는 [별도 체크리스트](docs/evaluation/claude-native-handoff.md)를 따른다.
+설치 폴더에서 `uv sync --locked`, `uv run python product-doctor.py`를 실행하고, 실행자 자신의 설치·로그인·폴더 신뢰/Skill 동의를 마친 CLI를 연다. 파일 설치기는 로그인·전역 설정·모델 호출을 하지 않는다. [설치 계약](docs/contracts/portable-product.md)과 [로컬 검사](docs/validation/portable-product.md)는 통과했고, [v0.3.0 팀원 회신](docs/validation/team-runs/records/20261011-claude-mail-review.md)으로 네 업무 입력의 저장 내부 기록·출처를 제한적으로 검토했다. 최신 v6.1 Claude 발견·업무·예외·전체 사용량 인수는 미완료이며 Gemini 활성지원은 철회했다. 팀원의 개발 체계 인수는 [별도 체크리스트](docs/evaluation/claude-native-handoff.md)를 따른다.
 
 ```powershell
 uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED-PRODUCT --archive C:/NEW-SOURCE.zip

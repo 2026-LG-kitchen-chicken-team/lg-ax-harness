@@ -2,6 +2,8 @@
 
 ## 최신 변경 — 2026-10-11
 
+최길웅의 Claude v0.3.0 네 입력 회신·export4개·실행 요약을 접수했다. `docs/validation/team-runs/records/20261011-claude-mail-review.md`의 지문·저장 내부·출처 제한 검토와 최초 중복 판단/공식 문구 귀속 오류를 따른다. 아래 회신 대기는 접수 전 이력이다. 최신 v6.1 Claude 제품군10입력·전체 native 전달/품질/요청별 usage·별도 개발용 Claude 위임은 미완료다. 보고상 recorded_calls0/unknown을 실제 호출0으로 바꾸거나 구버전 네 입력을 최신 회귀와 합산하지 않는다.
+
 일반 제품명 입력은 product-planning-v6.1에 구현했다. `docs/validation/family10-20261011.md`의 실제10입력/8대화는 초안4/보류3/확인3이며 정의한 판정10개를 통과했다. 이전 v6.0의50입력/40대화는 `docs/validation/regression50-20261011.md`를 따른다. 최신 버전60개 통과로 합산하지 않는다. 제품147·평가117개 코드 검사는 실제 exit0다. 등록5모델 범위·모델별 근거 귀속·보유 모델 미확인 적합/안전 확인을 유지한다. baseline/미사용 평가/효과/Claude native/최종 제출의 완료로 바꾸지 않는다.
 
 세 제품군 내부 구현/4입력 인수/독립 검토·제품 v0.3.0 배포와12쪽 발표 초안을 완료했다. 현재 근거는 `docs/validation/kitchen-progress-20261011.md`, 배포·다음 작업은 `docs/validation/product-v0.3.0.md`다. 최길웅 Claude 환경 검증 요청은 사용자 초안 승인 후 발송했고 결과 회신을 기다린다. 영상/리허설/사람 효과/Claude native/최종 접수는 미완료다.

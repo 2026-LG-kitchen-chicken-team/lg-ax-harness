@@ -2,6 +2,10 @@
 
 2026-10-11. [제품 v0.4.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.4.0)을 prerelease로 발행했다. 모델코드 없는 제품군·축약명 입력과 후속 전체 범위/제외 조건 유지, 명시 모델 선택 시 좁히기가 제품 변경이다. 등록5모델 사례 범위이며 임의 새 모델 자동 조사/등록·매 요청 최신 조사·팀 웹 실행 연결은 추가하지 않았다.
 
+배포 후 [Claude v0.3.0 회신의 제한적 검토](team-runs/records/20261011-claude-mail-review.md)를 추가했다. 아래 Claude 미검증은 이 배포본 v6.1의 native 인수 상태다. 구버전 네 입력 첨부 접수는 최신 버전 통과나 배포 ZIP 변경이 아니다.
+
+회신 접수 때 v0.4.0 ZIP/SHA 목록을 별도로 다시 내려받아 ZIP SHA·CRC·67개 파일 지문·원격 tag/tree를 대조했다. SHA 목록 원본은 CRLF였다. ZIP/목록의 해시 일치와 Unix 계열 `sha256sum -c`의 줄바꿈 호환은 별개다. 첨부 파일은 변경하지 않았다. Windows에서는 `Get-FileHash -Algorithm SHA256 .\lg-ax-product-v0.4.0-codex-source.zip`의 Hash를 아래 값과 비교한다. GNU 도구에서는 `tr -d '\r' < SHA256SUMS.txt | sha256sum -c -`로 입력의 CR만 제거해 확인할 수 있다. 이 두 명령의 사용자 환경 실행을 native 업무 검증으로 세지 않는다.
+
 | 식별 | 실제 값 |
 |---|---|
 | main provenance | `ca16e2b3db63e19c64102c9c00da94b4fce01121` |
