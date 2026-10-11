@@ -26,7 +26,7 @@ uv run python web/prototypes/visual-viewer/viewer.py install --codex C:/내-하�
 **3. Codex** — 하네스 폴더에서 `codex --search`를 연다. 처음 한 번 프로젝트 신뢰를 허용하고, `/hooks`에서 `visual-viewer` 훅 명령을 확인한 뒤 신뢰(trust)한다. 신뢰 전에는 실행되지 않는다. 뷰어 파일이 바뀌면(어느 CLI로 다시 설치했든) 명령의 지문이 바뀌므로 `/hooks`에서 다시 신뢰해야 한다. 신뢰 우회 옵션(`--dangerously-bypass-hook-trust`)은 쓰지 않는다. Codex는 반드시 하네스 폴더에서 시작한다.
 
 - codex-cli 0.146은 async 훅을 지원하지 않아 Codex용 훅은 **동기**다. 셸 명령마다 약 0.65초, 새 export를 그릴 때 약 1초가 더 걸린다(아래 실제 검사). 부담되면 `/hooks`에서 끄거나 5번으로 해제한다.
-- uv나 Python 3.12를 시작하지 못해도 Codex 훅은 exit 0·무출력으로 끝나고 오류는 `hook-error.log`에 붙는다(셸 결과를 가로채지 않는다).
+- uv나 Python 3.12를 시작하지 못해도 Codex 훅은 exit 0·무출력으로 끝나고(셸 결과를 가로채지 않는다) 그 오류는 `hook-start-error.log`에 남는다(마지막 실행분만, 정상 시작이면 빈 파일).
 
 **4. 안 열릴 때 직접 열기·상태 확인** — 하네스 폴더에서:
 
@@ -35,7 +35,7 @@ uv run python web/prototypes/visual-viewer/viewer.py open --latest
 uv run python web/prototypes/visual-viewer/viewer.py status
 ```
 
-- status: CLI마다 `registered`(올바른 이벤트·matcher에 등록), `misplaced`(엉뚱한 자리에 남은 항목 수), `files_match_command`(설치 파일이 명령의 지문과 같음), 그리고 `view_built`·`up_to_date`(화면을 실제로 만들었는지·최신 export인지), `last_built`, `baseline_only`(설치 때 본 것으로만 표시하고 아직 그리지 않음), `codex_features`·`codex_hooks_disabled`(`[features] hooks`: 하네스 설정이 사용자 설정보다 우선), `last_error`(hook-error.log 마지막 줄).
+- status: CLI마다 `registered`(올바른 이벤트·matcher에 등록), `misplaced`(엉뚱한 자리에 남은 항목 수), `files_match_command`(설치 파일이 명령의 지문과 같음), 그리고 `view_built`·`up_to_date`(화면을 실제로 만들었는지·최신 export인지), `last_built`, `baseline_only`(설치 때 본 것으로만 표시하고 아직 그리지 않음), `codex_features`·`codex_hooks_disabled`(`[features] hooks`: 하네스 설정이 사용자 설정보다 우선), `last_error`·`last_error_file`(`hook-error.log`와 `hook-start-error.log` 중 최근에 쓴 파일의 마지막 줄).
 
 **5. 끄기** — 하네스 폴더에서 `uninstall --claude`, `--codex`, `--both` 중 하나. 이 뷰어의 훅만 지우고 다른 설정·화면·insights 파일은 남긴다. Codex는 신뢰가 위치(`이벤트:묶음:처리기` 번호)에 묶여 있어서, 뒤에 다른 훅이 있으면 그 번호를 지키는 자리표시를 남긴다: 묶음이면 `{"matcher": "Bash", "hooks": []}`, 같은 묶음 안 처리기면 `{"type": "command", "command": ""}`(Codex 시작 때 "skipping empty hook command" 경고가 보일 수 있다). 다시 설치하면 그 자리를 쓴다. Codex는 `/hooks`에서 잠시 끌 수도 있다.
 
@@ -45,7 +45,7 @@ uv run python web/prototypes/visual-viewer/viewer.py uninstall --both
 
 알아 둘 점
 
-- 훅은 업무·모델·Tool을 호출하지 않고 출력이 없다. Codex 훅은 항상 exit 0이다. 오류는 `runtime-data/visual-viewer/hook-error.log`에만 남는다.
+- 훅은 업무·모델·Tool을 호출하지 않고 출력이 없다. Codex 훅은 항상 exit 0이다. 훅의 오류는 `runtime-data/visual-viewer/hook-error.log`에, Codex에서 uv·Python이 시작조차 못 한 오류는 같은 폴더의 `hook-start-error.log`에만 남는다.
 - 화면(`index.html`, `view-data.js`)·훅 상태·로그·insights는 모두 `<하네스>/runtime-data/visual-viewer/`에 생긴다. 실제 결과이므로 Git·공개 자료에 넣지 않는다.
 - 의견 묶음 도넛·구분별 막대·후기 원문 비교는 export에 없는 모델 해석이라 insights 파일(`runtime-data/visual-viewer/insights-<이름>.json`)이 있어야 그린다. 없거나 맞지 않으면 근거 대시보드 맨 위에 이유가 나온다.
 
@@ -60,7 +60,7 @@ uv run python web/prototypes/visual-viewer/viewer.py uninstall --both
 
 - 두 CLI 모두 PostToolUse 훅 입력 JSON을 stdin으로 준다. Claude는 `Bash|PowerShell`(async, 60초), Codex는 `Bash`(동기, 30초)에 등록한다. 세션 구분은 `claude:<session_id>`·`codex:<session_id>`다. 형식은 2026-10-12에 공식 문서([Codex hooks](https://learn.chatgpt.com/docs/hooks), [Claude Code hooks](https://code.claude.com/docs/en/hooks))로 확인했다. 문서는 Codex async 훅을 설명하지만 로컬 codex-cli 0.146.0은 "async hooks are not supported yet"로 건너뛰어서 Codex는 동기로 둔다.
 - 핵심 명령: `uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c "<hook.py 찾기·지문 확인·실행>" <claude|codex> <build_view.py 지문> <index.html 지문>`. Claude는 `CLAUDE_PROJECT_DIR`, Codex는 세션 폴더(하네스 폴더)에서 `web/prototypes/visual-viewer/hook.py`를 찾는다. hook.py는 SHA-256이 설치 때와 같을 때만 읽은 바이트 그대로 실행되고, 다르거나 없으면 실행하지 않고 로그에 한 줄 남긴다. build_view.py·index.html도 지문이 맞을 때만 쓴다. 작업 폴더의 `.python-version`·`uv.toml`은 따르지 않는다. Python 코드 부분에는 셸 특수문자를 쓰지 않는다.
-- Claude 항목은 핵심 명령 그대로다(Git Bash·PowerShell은 작업 폴더의 실행 파일을 찾지 않는다). Codex 항목은 핵심 명령을 감싼다. `commandWindows`(0.146이 Windows에서 `COMSPEC /C`로 실행)는 `set NoDefaultCurrentDirectoryInExePath=1&& …`로 작업 폴더의 `uv.cmd`·`uv.bat`을 무시하고, 출력은 버리고 오류는 로그에 붙인 뒤 `exit /b 0`으로 끝난다. `command`(macOS·Linux의 sh)도 같은 일을 하고 `exit 0`으로 끝난다.
+- Claude 항목은 핵심 명령 그대로다(Git Bash·PowerShell은 작업 폴더의 실행 파일을 찾지 않는다). Codex 항목은 핵심 명령을 감싼다. `commandWindows`(0.146이 Windows에서 `COMSPEC /C`로 실행)는 `set NoDefaultCurrentDirectoryInExePath=1&& …`로 작업 폴더의 `uv.cmd`·`uv.bat`을 무시하고, 출력은 버리고 셸의 stderr(uv·Python 시작 오류)는 `hook-start-error.log`에 덮어쓴 뒤 `exit /b 0`으로 끝난다. `command`(macOS·Linux의 sh)도 같은 일을 하고 `exit 0`으로 끝난다. 셸 리다이렉트를 `hook-error.log`와 나눈 까닭: Windows cmd는 리다이렉트한 파일을 쓰기 공유 없이 열어 두어, 같은 파일이면 hook.py가 로그를 쓰지 못한다.
 - `hook.py`는 표준 라이브러리만 쓰고 stdout·stderr를 버린다. 새 export만 그리고, 두 번 읽지 못한 export는 로그에 한 번 남긴 뒤 export나 insights 파일이 바뀔 때까지 다시 시도하지 않는다(지문 불일치는 실패로 묶지 않는다). 여러 훅이 동시에 돌면 OS 파일 잠금(프로세스가 끝나면 저절로 풀림)으로 한 번만 만들고, `open`·`install`의 상태 기록도 같은 잠금을 쓴다. 브라우저를 열기 전에 세션 기록부터 저장해 한 세션에서 두 번 열리지 않게 한다. 출력 폴더의 index.html은 그릴 때마다 지문을 확인한 원본으로 되돌린다.
 - 승인된 유효 완료 결과이고 turn 없이 멈춘 요청이 없으면 근거 대시보드, 그 밖에는 요청·개요 화면을 먼저 보여준다.
 
@@ -117,8 +117,8 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 ## 실제 검사 (2026-10-12, Windows 11, Python 3.12)
 
 - origin/main `99576f0`(제품 v0.7.0 기록)을 이 브랜치에 로컬 병합한 상태에서 실행했다.
-- `tests/web/test_visual_viewer.py` 49개: 실제 product-tools 저장·export 경로로 테스트 시점에 만든 **합성 시험 export**(`[합성 시험 자료]` 표시)로 세 제품군 완료, 보류, 거절 1회·3회, 승인 뒤 거절, 완료 뒤 turn 없는 후속(prior=마지막 turn·이전 turn·없음), turn 없는 요청 2건(상태 섞임), 사용량 미측정·일부 측정, 제품군 카탈로그, 제외 조건·취소·진행 중 turn, 거절 뒤 취소, 보류 뒤 취소, 모델이 쓴 취소 결과, 무효 처리, 입력 필요, 합성 카탈로그(승인·거절)를 확인했다. 훅의 새 export 판별·세션당 한 번 열기·BOM·형식이 틀린 insights·turn_id 없는 insights·실패 뒤 insights 수정 시 재시도·상태 읽기/쓰기 재시도·OS 잠금·지문이 다른 파일(hook.py·build_view.py·index.html) 미실행과 로그, 설치의 위치 보존(묶음·처리기)·엉뚱한 자리 항목 이동·다른 CLI 재고정·재설치 기준점·개발 레포 사본(.git 없음) 거부·UTF-16/cp949 거부·Codex `[features] hooks` 우선순위도 포함한다.
-- 설치된 정확한 명령: Claude 명령을 cmd·Git Bash·Windows PowerShell 5.1로, Codex `commandWindows`를 codex-cli 0.146과 같은 `COMSPEC /C "<명령>"`(작업 폴더 = 하네스)로, Codex `command`를 Git Bash의 sh로 실행해 exit 0·stdout/stderr 0바이트를 확인했다. 하네스에 심은 `uv.cmd`는 일반 `cmd /C uv`에서는 실행되지만 Codex 명령에서는 실행되지 않았다. 가짜로 실패하는 uv(exit 2)와 uv가 없는 경우에도 exit 0·무출력이고 오류가 로그에 남았다. 셸이나 uv가 없으면 해당 시험은 이유를 적고 건너뛴다.
+- `tests/web/test_visual_viewer.py` 50개: 실제 product-tools 저장·export 경로로 테스트 시점에 만든 **합성 시험 export**(`[합성 시험 자료]` 표시)로 세 제품군 완료, 보류, 거절 1회·3회, 승인 뒤 거절, 완료 뒤 turn 없는 후속(prior=마지막 turn·이전 turn·없음), turn 없는 요청 2건(상태 섞임), 사용량 미측정·일부 측정, 제품군 카탈로그, 제외 조건·취소·진행 중 turn, 거절 뒤 취소, 보류 뒤 취소, 모델이 쓴 취소 결과, 무효 처리, 입력 필요, 합성 카탈로그(승인·거절)를 확인했다. 훅의 새 export 판별·세션당 한 번 열기·BOM·형식이 틀린 insights·turn_id 없는 insights·실패 뒤 insights 수정 시 재시도·상태 읽기/쓰기 재시도·OS 잠금·지문이 다른 파일(hook.py·build_view.py·index.html) 미실행과 로그, 설치의 위치 보존(묶음·처리기)·엉뚱한 자리 항목 이동·다른 CLI 재고정·재설치 기준점·개발 레포 사본(.git 없음) 거부·UTF-16/cp949 거부·Codex `[features] hooks` 우선순위도 포함한다.
+- 설치된 정확한 명령: Claude 명령을 cmd·Git Bash·Windows PowerShell 5.1로, Codex `commandWindows`를 codex-cli 0.146과 같은 `COMSPEC /C "<명령>"`(작업 폴더 = 하네스)로, Codex `command`를 Git Bash의 sh로 실행해 exit 0·stdout/stderr 0바이트를 확인했다. 하네스에 심은 `uv.cmd`는 일반 `cmd /C uv`에서는 실행되지만 Codex 명령에서는 실행되지 않았다. 가짜로 실패하는 uv(exit 2)와 uv가 없는 경우에도 exit 0·무출력이고 오류가 `hook-start-error.log`와 status `last_error`에 남았다. 같은 Windows 실행 방식에서 hook.py 지문 불일치·build_view.py 지문 불일치·깨진 export가 각각 `hook-error.log`와 status `last_error`에 남는 것도 확인했다. 셸이나 uv가 없으면 해당 시험은 이유를 적고 건너뛴다.
 - 로컬 codex-cli 0.146.0에 `codex app-server`의 `hooks/list`만 보내(임시 폴더, 격리한 CODEX_HOME, 모델 호출 없음) 다음을 확인했다: 동기 항목과 `commandWindows`가 경고 없이 발견되고 Windows에서는 `commandWindows`가 쓰인다. 해제·재설치 뒤 다른 묶음의 훅과 같은 묶음 뒤쪽 처리기의 신뢰가 유지된다(빈 명령 자리표시는 "skipping empty hook command" 경고만 낸다). 뷰어 파일을 바꿔 재설치하면 `modified`(다시 신뢰 필요)가 된다. 사용자 설정 `[features] hooks=false`만 있으면 훅이 발견되지 않고, 프로젝트 설정 `hooks=true`가 있으면 발견된다(프로젝트 우선).
 - 동기 Codex 훅 명령 전체 시간(셸 포함): 새 export가 없을 때 약 0.65초, 165KB export를 다시 그릴 때 약 1.0초.
 - 실제 Claude Code·Codex 대화 세션에서 훅이 불리고 브라우저가 열리는지는 **아직 확인하지 않았다**(Codex·Claude 대화 실행과 실제 업무 질문은 이 작업 범위 밖). 확인 절차는 [결정 요청 메모](RELEASE-MEMO.md)에 있다.

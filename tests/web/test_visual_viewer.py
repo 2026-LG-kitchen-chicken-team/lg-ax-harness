@@ -824,6 +824,7 @@ class InstalledHookProcessTests(TempCase):
         self.claude = self.entry(".claude/settings.local.json")
         self.codex = self.entry(".codex/hooks.json")
         self.log = self.h.out / "hook-error.log"
+        self.start_log = self.h.out / viewer.START_LOG
 
     def entry(self, rel):
         config = json.loads((self.h.root / rel).read_text(encoding="utf-8"))
@@ -856,7 +857,10 @@ class InstalledHookProcessTests(TempCase):
         windows = self.codex["commandWindows"]
         self.assertTrue(windows.startswith("set NoDefaultCurrentDirectoryInExePath=1&& "))
         self.assertTrue(windows.endswith(" & exit /b 0"))
-        self.assertIn(r" 1>nul 2>>runtime-data\visual-viewer\hook-error.log", windows)
+        self.assertIn(r" 1>nul 2>runtime-data\visual-viewer\hook-start-error.log", windows)
+        self.assertIn(" >/dev/null 2>runtime-data/visual-viewer/hook-start-error.log; exit 0", self.codex["command"])
+        for command in (windows, self.codex["command"]):  # 셸 리다이렉트가 hook.py의 로그 파일을 잡지 않는다
+            self.assertNotIn("hook-error.log", command.split(" python -I -B -c ")[0] + command.rsplit('" codex ', 1)[1])
         self.assertTrue(self.codex["command"].endswith("; exit 0"))
         for command in (self.claude["command"], self.codex["command"], windows):
             for flag in ("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c",):
@@ -965,11 +969,46 @@ class InstalledHookProcessTests(TempCase):
         system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
         for label, path in (("failing", f"{fake};{system}"), ("missing", system)):
             with self.subTest(uv=label):
-                before = self.log_size()
                 proc = codex_runner(self.codex["commandWindows"], self.h.root, b'{"session_id": "x"}', self.env(PATH=path))
                 self.assertSilentZero(proc)
-                self.assertGreater(self.log_size(), before)
-        self.assertIn("No interpreter found", self.log.read_text(encoding="utf-8", errors="replace"))
+                self.assertGreater(self.start_log.stat().st_size, 0)
+                report = json.loads(run_viewer("status", str(self.h.root))[1])
+                self.assertEqual(report["last_error_file"], viewer.START_LOG)
+                if label == "failing":
+                    self.assertIn("No interpreter found", report["last_error"])
+
+    def test_codex_windows_command_failures_reach_the_log_status_reads(self):  # installer-new-pinned-other-cli-silent (round 3)
+        if os.name != "nt":
+            self.skipTest("commandWindows runs only on Windows")
+        self.need_uv()
+        app = self.h.root / "web/prototypes/visual-viewer"
+
+        def run_codex(session):
+            proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps({"session_id": session, "turn_id": "t"}).encode(), self.env())
+            self.assertSilentZero(proc)
+            return json.loads(run_viewer("status", str(self.h.root))[1])
+
+        self.h.add("microwave")
+        original = (app / "hook.py").read_bytes()
+        (app / "hook.py").write_bytes(original + b"\n# tampered\n")
+        report = run_codex("m1")
+        self.assertIn("hook.py is missing or differs", self.log.read_text(encoding="utf-8"))
+        self.assertIn("hook.py is missing or differs", report["last_error"])
+        self.assertEqual(report["last_error_file"], "hook-error.log")
+        (app / "hook.py").write_bytes(original)
+        original = (app / "build_view.py").read_bytes()
+        (app / "build_view.py").write_bytes(original + b"\nTAMPERED = True\n")
+        report = run_codex("m2")
+        self.assertIn("build_view.py가 설치 때와 다릅니다", report["last_error"])
+        self.assertFalse((self.h.out / "view-data.js").exists())
+        (app / "build_view.py").write_bytes(original)
+        broken = self.h.exports / "export-zz-broken.json"
+        broken.write_text("{", encoding="utf-8")
+        os.utime(broken, (time.time() + 100, time.time() + 100))
+        report = run_codex("m3")
+        self.assertIn("view 생성 실패 export-zz-broken.json", report["last_error"])
+        self.assertNotIn("PermissionError", self.log.read_text(encoding="utf-8"))
+        self.assertEqual(self.start_log.stat().st_size, 0)  # 정상 시작이면 시작 오류 파일은 비어 있다
 
     def test_codex_posix_command_in_sh(self):  # hooks-new-01 (macOS·Linux form; checked with Git Bash on Windows)
         bash = git_bash()
@@ -981,11 +1020,11 @@ class InstalledHookProcessTests(TempCase):
         script.write_text("#!/bin/sh\necho 'error: fake uv failure' >&2\nexit 2\n", encoding="ascii", newline="\n")
         script.chmod(0o755)
         tools = Path(bash).resolve().parents[1] / "usr" / "bin" if os.name == "nt" else Path("/usr/bin")
-        before = self.log_size()
         proc = self.call([bash, "-c", self.codex["command"]], {"session_id": "p"}, self.h.root,
                          env={"PATH": os.pathsep.join([str(fake), str(tools), os.path.dirname(bash)])})
         self.assertSilentZero(proc)
-        self.assertIn("fake uv failure", self.log.read_bytes()[before:].decode("utf-8", "replace"))
+        self.assertIn("fake uv failure", self.start_log.read_text(encoding="utf-8", errors="replace"))
+        self.assertIn("fake uv failure", json.loads(run_viewer("status", str(self.h.root))[1])["last_error"])
         self.need_uv()
         self.h.add("microwave")
         self.assertSilentZero(self.call([bash, "-c", self.codex["command"]], {"session_id": "p2", "turn_id": "t"}, self.h.root))

@@ -47,6 +47,7 @@ _CODE = ("import hashlib,os,time;d={base};p=os.path.join(d,'web','prototypes','v
          "time.ctime()+' hook.py is missing or differs from the installed fingerprint. Run viewer.py install again.'+chr(10))")
 LOG_POSIX = "runtime-data/visual-viewer"
 LOG_WINDOWS = r"runtime-data\visual-viewer"
+START_LOG = "hook-start-error.log"  # Codex 셸이 쓰는 uv·Python 시작 오류(마지막 실행분만)
 TARGETS = {
     "claude": {"file": (".claude", "settings.local.json"), "event": "PostToolUse", "matcher": "Bash|PowerShell",
                "name": "Claude Code", "async": True, "timeout": 60, "keep_positions": False},
@@ -83,15 +84,17 @@ def hook_command(source: str, digests: dict) -> str:
 def codex_commands(digests: dict) -> dict:
     """Codex는 동기 훅이라 uv·Python이 시작조차 못 해도 exit 0·무출력이어야 한다(exit 2면 셸 결과를 바꿔 버린다).
 
-    - command(macOS·Linux, sh -c): 출력은 버리고 오류는 hook-error.log에 붙인 뒤 exit 0.
+    셸의 stderr(uv·Python 시작 오류)는 hook-error.log가 아닌 hook-start-error.log에 매번 덮어쓴다. Windows cmd의
+    리다이렉트는 파일을 쓰기 공유 없이 열어 두므로, 같은 파일이면 hook.py의 로그 쓰기가 막힌다.
+    - command(macOS·Linux, sh -c): 출력은 버리고 시작 오류만 남긴 뒤 exit 0.
     - commandWindows(COMSPEC /C, 작업 폴더 = 하네스): cmd는 작업 폴더의 uv.cmd·uv.bat을 PATH보다 먼저 찾으므로
-      NoDefaultCurrentDirectoryInExePath를 켜서 막는다. 출력은 버리고 오류는 로그에 붙인 뒤 exit /b 0.
+      NoDefaultCurrentDirectoryInExePath를 켜서 막는다. 출력은 버리고 시작 오류만 남긴 뒤 exit /b 0.
     """
     core = hook_command("codex", digests)
     return {
-        "command": f"mkdir -p {LOG_POSIX} 2>/dev/null; {core} >/dev/null 2>>{LOG_POSIX}/hook-error.log; exit 0",
+        "command": f"mkdir -p {LOG_POSIX} 2>/dev/null; {core} >/dev/null 2>{LOG_POSIX}/{START_LOG}; exit 0",
         "commandWindows": (f"set NoDefaultCurrentDirectoryInExePath=1&& (if not exist {LOG_WINDOWS}\\ md {LOG_WINDOWS}) & "
-                           f"{core} 1>nul 2>>{LOG_WINDOWS}\\hook-error.log & exit /b 0"),
+                           f"{core} 1>nul 2>{LOG_WINDOWS}\\{START_LOG} & exit /b 0"),
     }
 
 
@@ -563,11 +566,18 @@ def cmd_status(args) -> int:
     report["insights"] = state.get("insights") if built else None
     report["view_warnings"] = len(state.get("warnings") or []) if built else 0
     report["opened_sessions"] = len(state.get("opened_sessions") or [])
-    try:
-        lines = [line for line in Path(paths.error_log).read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
-        report["last_error"] = lines[-1] if lines else None
-    except OSError:
-        report["last_error"] = None
+    # hook-error.log(훅 자신)과 hook-start-error.log(Codex 셸이 남긴 uv·Python 시작 오류) 중 더 최근에 쓴 쪽의 마지막 줄.
+    latest_line = None
+    for path in (Path(paths.error_log), Path(paths.out, START_LOG)):
+        try:
+            lines = [line for line in path.read_bytes().decode("utf-8", errors="replace").splitlines() if line.strip()]
+            stamp = path.stat().st_mtime_ns
+        except OSError:
+            continue
+        if lines and (latest_line is None or stamp >= latest_line[0]):
+            latest_line = (stamp, lines[-1], path.name)
+    report["last_error"] = latest_line[1] if latest_line else None
+    report["last_error_file"] = latest_line[2] if latest_line else None
     report["uv_on_path"] = bool(shutil.which("uv"))
     print(json.dumps(report, ensure_ascii=False, indent=1))
     return 0
