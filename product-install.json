@@ -1,0 +1,393 @@
+{
+  "format": "codex-product-install-v1",
+  "source_manifest_sha256": "ab7c93d3158558c4bafe59330aaf3fb52c78789179cbd203e0eae1a96608f26b",
+  "files": [
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "f7f438d5c43e1e54115fb5cc99fcd18aea6283c5913b2729ef68812c9bdffc6e",
+      "source": "THIRD_PARTY_NOTICES.md",
+      "source_sha256": "f7f438d5c43e1e54115fb5cc99fcd18aea6283c5913b2729ef68812c9bdffc6e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "agents/product-planning.md",
+      "sha256": "6face0ef2d8e8155d1b3850307d4786e912dda74e00b8a7a73ebc62e03b5f83e",
+      "source": "agents/product-planning.md",
+      "source_sha256": "6face0ef2d8e8155d1b3850307d4786e912dda74e00b8a7a73ebc62e03b5f83e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "data/business/empty/manifest.json",
+      "sha256": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a",
+      "source": "data/business/empty/manifest.json",
+      "source_sha256": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "data/business/empty/models.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "source": "data/business/empty/models.json",
+      "source_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "data/business/empty/sources.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "data/business/empty/sources.jsonl",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/codex-product.md",
+      "sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54",
+      "source": "docs/contracts/codex-product.md",
+      "source_sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/common-tools.md",
+      "sha256": "9ddb014647f0fdf66acc8351afbf953d7b581b436564dd68bdc53ab721ab0f8f",
+      "source": "docs/contracts/common-tools.md",
+      "source_sha256": "9ddb014647f0fdf66acc8351afbf953d7b581b436564dd68bdc53ab721ab0f8f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/product-planning.md",
+      "sha256": "9de2ca730c0a281993ec5e971a0398da0f56e979fe30867977a6ff3b71d638e8",
+      "source": "docs/contracts/product-planning.md",
+      "source_sha256": "9de2ca730c0a281993ec5e971a0398da0f56e979fe30867977a6ff3b71d638e8",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/web-evidence.md",
+      "sha256": "d7cb56d4ac8c24e758ebacb4bc292964685dc4b389718480043be32fd34538dd",
+      "source": "docs/contracts/web-evidence.md",
+      "source_sha256": "d7cb56d4ac8c24e758ebacb4bc292964685dc4b389718480043be32fd34538dd",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/cli.py",
+      "sha256": "e024673debdacf7df17fe3a74635cbc81a844ab3543b16c53eca77ad51b9ac94",
+      "source": "product-tools/cli.py",
+      "source_sha256": "e024673debdacf7df17fe3a74635cbc81a844ab3543b16c53eca77ad51b9ac94",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/__init__.py",
+      "sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68",
+      "source": "product-tools/product_tools/__init__.py",
+      "source_sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/contracts.py",
+      "sha256": "91ccbdb108d5bab6156eba78c4cb70f7fddbf6a86ef9ee17630120bb9a20e3ca",
+      "source": "product-tools/product_tools/contracts.py",
+      "source_sha256": "91ccbdb108d5bab6156eba78c4cb70f7fddbf6a86ef9ee17630120bb9a20e3ca",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/conversation.py",
+      "sha256": "a1860c3f575aabc40c9a78ca6f39c84c8fa7b7ae7fe4ea342337cda6a522c681",
+      "source": "product-tools/product_tools/conversation.py",
+      "source_sha256": "a1860c3f575aabc40c9a78ca6f39c84c8fa7b7ae7fe4ea342337cda6a522c681",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/dataset.py",
+      "sha256": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e",
+      "source": "product-tools/product_tools/dataset.py",
+      "source_sha256": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/payload.py",
+      "sha256": "f74811c989b99e87d9cad7bd66903f5726ef5d2ad3922a52df708654f1ccd804",
+      "source": "product-tools/product_tools/payload.py",
+      "source_sha256": "f74811c989b99e87d9cad7bd66903f5726ef5d2ad3922a52df708654f1ccd804",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/planning.py",
+      "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd",
+      "source": "product-tools/product_tools/planning.py",
+      "source_sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/state.py",
+      "sha256": "85511f482eec4698f0d62960ffeab893f926b18cfde8556349a02b1245ed1766",
+      "source": "product-tools/product_tools/state.py",
+      "source_sha256": "85511f482eec4698f0d62960ffeab893f926b18cfde8556349a02b1245ed1766",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/tools.py",
+      "sha256": "9e57660751c3df371cdf247f2895fab40690e3af642043f9964ea73b76064444",
+      "source": "product-tools/product_tools/tools.py",
+      "source_sha256": "9e57660751c3df371cdf247f2895fab40690e3af642043f9964ea73b76064444",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/web_evidence.py",
+      "sha256": "f09778ad71a9405122d2be14e4bbd578d3daf25c2232d6457dc5dfb978b4c4f4",
+      "source": "product-tools/product_tools/web_evidence.py",
+      "source_sha256": "f09778ad71a9405122d2be14e4bbd578d3daf25c2232d6457dc5dfb978b4c4f4",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/concept-writing/SKILL.md",
+      "sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174",
+      "source": "skills/concept-writing/SKILL.md",
+      "source_sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/concept-writing/scripts/run.py",
+      "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "source": "skills/concept-writing/scripts/run.py",
+      "source_sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/evidence-retrieval/SKILL.md",
+      "sha256": "df55583cac12d2d49b198e545a2e7934e5ad0747b1fae19526933370e7894766",
+      "source": "skills/evidence-retrieval/SKILL.md",
+      "source_sha256": "df55583cac12d2d49b198e545a2e7934e5ad0747b1fae19526933370e7894766",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/evidence-retrieval/scripts/run.py",
+      "sha256": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28",
+      "source": "skills/evidence-retrieval/scripts/run.py",
+      "source_sha256": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/feature-comparison/SKILL.md",
+      "sha256": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d",
+      "source": "skills/feature-comparison/SKILL.md",
+      "source_sha256": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/feature-comparison/scripts/run.py",
+      "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "source": "skills/feature-comparison/scripts/run.py",
+      "source_sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/manifest.json",
+      "sha256": "ab7c93d3158558c4bafe59330aaf3fb52c78789179cbd203e0eae1a96608f26b",
+      "source": "skills/manifest.json",
+      "source_sha256": "ab7c93d3158558c4bafe59330aaf3fb52c78789179cbd203e0eae1a96608f26b",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/needs-structuring/SKILL.md",
+      "sha256": "8b4dafb9a7640c2974de992e218da9e39c5800f51b9b2b16fc2e88676ec75b61",
+      "source": "skills/needs-structuring/SKILL.md",
+      "source_sha256": "8b4dafb9a7640c2974de992e218da9e39c5800f51b9b2b16fc2e88676ec75b61",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/needs-structuring/scripts/run.py",
+      "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "source": "skills/needs-structuring/scripts/run.py",
+      "source_sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/SKILL.md",
+      "sha256": "60e9973abf9630005c7c4bb01fd9062721aa780fbeca0a5406beb40007502a70",
+      "source": "skills/review-and-revise/SKILL.md",
+      "source_sha256": "60e9973abf9630005c7c4bb01fd9062721aa780fbeca0a5406beb40007502a70",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/references/payload.md",
+      "sha256": "8b5898e15e6060353cb817dd1dd29d0a99a8bf98c22238f9e5a9c70caf91f915",
+      "source": "skills/review-and-revise/references/payload.md",
+      "source_sha256": "8b5898e15e6060353cb817dd1dd29d0a99a8bf98c22238f9e5a9c70caf91f915",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/scripts/run.py",
+      "sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8",
+      "source": "skills/review-and-revise/scripts/run.py",
+      "source_sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/web-evidence-collection/SKILL.md",
+      "sha256": "c0f418643cb82f7dcebbe319e758f76d0a41c923dc90dedbdd8f4ca0e4b7ab9f",
+      "source": "skills/web-evidence-collection/SKILL.md",
+      "source_sha256": "c0f418643cb82f7dcebbe319e758f76d0a41c923dc90dedbdd8f4ca0e4b7ab9f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/web-evidence-collection/scripts/run.py",
+      "sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9",
+      "source": "skills/web-evidence-collection/scripts/run.py",
+      "source_sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "vendor/codex-harness/LICENSE",
+      "sha256": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b",
+      "source": "vendor/codex-harness/LICENSE",
+      "source_sha256": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "vendor/codex-harness/NOTICE",
+      "sha256": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37",
+      "source": "vendor/codex-harness/NOTICE",
+      "source_sha256": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/evidence-retrieval/scripts/run.py",
+      "sha256": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28",
+      "source": "skills/evidence-retrieval/scripts/run.py",
+      "source_sha256": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/evidence-retrieval/SKILL.md",
+      "sha256": "b2a7299327e4f5bc368e7b1956154b1b643e71d0b41034866c60e181f1b041e6",
+      "source": "skills/evidence-retrieval/SKILL.md",
+      "source_sha256": "df55583cac12d2d49b198e545a2e7934e5ad0747b1fae19526933370e7894766",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/web-evidence-collection/scripts/run.py",
+      "sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9",
+      "source": "skills/web-evidence-collection/scripts/run.py",
+      "source_sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/web-evidence-collection/SKILL.md",
+      "sha256": "c1718ee1827e74146686d4f3fe320b4a0c6acf949ac41c65c5741b06a975c0d0",
+      "source": "skills/web-evidence-collection/SKILL.md",
+      "source_sha256": "c0f418643cb82f7dcebbe319e758f76d0a41c923dc90dedbdd8f4ca0e4b7ab9f",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/needs-structuring/scripts/run.py",
+      "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "source": "skills/needs-structuring/scripts/run.py",
+      "source_sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/needs-structuring/SKILL.md",
+      "sha256": "9ddb680570376a154ec17d557de95f43c038a250e0518d471f7b23afacbe7342",
+      "source": "skills/needs-structuring/SKILL.md",
+      "source_sha256": "8b4dafb9a7640c2974de992e218da9e39c5800f51b9b2b16fc2e88676ec75b61",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/feature-comparison/scripts/run.py",
+      "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "source": "skills/feature-comparison/scripts/run.py",
+      "source_sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/feature-comparison/SKILL.md",
+      "sha256": "4bc4afb79c21ff1e8a7e4204713ce4ef323623d76bc2e4c4f687e4f5ae1b0bf5",
+      "source": "skills/feature-comparison/SKILL.md",
+      "source_sha256": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/concept-writing/scripts/run.py",
+      "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "source": "skills/concept-writing/scripts/run.py",
+      "source_sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/concept-writing/SKILL.md",
+      "sha256": "42b7e6ff432f905573db98eb7eac8263d786e1cddf08693a4b46a4564b7b31ab",
+      "source": "skills/concept-writing/SKILL.md",
+      "source_sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/references/payload.md",
+      "sha256": "8b5898e15e6060353cb817dd1dd29d0a99a8bf98c22238f9e5a9c70caf91f915",
+      "source": "skills/review-and-revise/references/payload.md",
+      "source_sha256": "8b5898e15e6060353cb817dd1dd29d0a99a8bf98c22238f9e5a9c70caf91f915",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/scripts/run.py",
+      "sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8",
+      "source": "skills/review-and-revise/scripts/run.py",
+      "source_sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/SKILL.md",
+      "sha256": "04ca76130112fb9c52a7e6c20116be3b54ecb18293fb9c4452cd1acb5c95b9b5",
+      "source": "skills/review-and-revise/SKILL.md",
+      "source_sha256": "60e9973abf9630005c7c4bb01fd9062721aa780fbeca0a5406beb40007502a70",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "15e2ed88cb28e4256b3683880edbccc1fc30fe87a522031d4f7e8b52f1202d90",
+      "source": "adapters/codex/templates/AGENTS.md",
+      "source_sha256": "15e2ed88cb28e4256b3683880edbccc1fc30fe87a522031d4f7e8b52f1202d90",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "README.md",
+      "sha256": "136e8ded0cfaee399ace805601be43196d9c98ab4ae9ab44edf63578b1dc9eff",
+      "source": "adapters/codex/templates/README.md",
+      "source_sha256": "136e8ded0cfaee399ace805601be43196d9c98ab4ae9ab44edf63578b1dc9eff",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "18c242cb312177d87a0617790f75572b07c94c4344ba793949b09c94a1d46b45",
+      "source": "adapters/codex/templates/pyproject.toml",
+      "source_sha256": "18c242cb312177d87a0617790f75572b07c94c4344ba793949b09c94a1d46b45",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "uv.lock",
+      "sha256": "9bca97496ed07b2b5f71be3f26011f45bf9e9822f58bea69af9a9f26d64e3988",
+      "source": "adapters/codex/templates/uv.lock",
+      "source_sha256": "9bca97496ed07b2b5f71be3f26011f45bf9e9822f58bea69af9a9f26d64e3988",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516",
+      "source": "adapters/codex/templates/.gitignore",
+      "source_sha256": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "product-doctor.py",
+      "sha256": "1d3907a30692e567e0474958607c165ad42062e74ae992f54f425d5971b13b19",
+      "source": "adapters/codex/templates/product-doctor.py",
+      "source_sha256": "1d3907a30692e567e0474958607c165ad42062e74ae992f54f425d5971b13b19",
+      "transformation": "Product-only template"
+    }
+  ],
+  "skills": [
+    "evidence-retrieval",
+    "web-evidence-collection",
+    "needs-structuring",
+    "feature-comparison",
+    "concept-writing",
+    "review-and-revise"
+  ],
+  "scope": "regular project files only; auth/global settings not copied; discovery/quality require actual native tests"
+}
