@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kitchen · 시각 자료</title><link rel="icon" href="data:,"><link rel="stylesheet" href="/style.css"><script src="/data-view.js" defer></script><script src="/app.js" defer></script></head>
+<body>
+<header class="topbar"><a class="brand" href="/" aria-label="Kitchen 시각 자료"><span class="brand-icon">K</span>Kitchen<span class="brand-detail">Visual workspace</span></a><span id="connection" class="connection">연결 확인 중</span></header>
+<main>
+<section class="intro"><div><p class="eyebrow">CLI에서 작업하고, 여기서 확인하세요</p><h1>시각 자료를 한눈에.</h1><p class="intro-copy">생성된 표, 차트, 이미지와 인터랙티브 화면이 이곳에 모입니다.</p></div><div class="live-card"><span class="live-dot"></span><div><strong id="file-count">자료 확인 중</strong><span id="watch-label">출력 폴더를 확인하고 있어요</span></div></div></section>
+<div class="toolbar"><div class="tabs" role="group" aria-label="하네스 자료 분류"><button data-filter="all" class="selected" aria-pressed="true">전체</button><button data-filter="evidence" aria-pressed="false">자료·근거</button><button data-filter="analysis" aria-pressed="false">분석·비교</button><button data-filter="planning" aria-pressed="false">개선 기획안</button><button data-filter="review" aria-pressed="false">검토 결과</button><button data-filter="visuals" aria-pressed="false">시각 자료</button><button data-filter="history" aria-pressed="false">이전 버전</button></div><span class="auto-note">새 자료는 자동으로 추가돼요</span></div>
+<div id="notices" aria-live="polite"></div>
+<section id="empty" class="empty hidden"><div class="empty-art" aria-hidden="true"><span>▥</span><span>↗</span><span>▧</span></div><h2>첫 시각 자료를 기다리고 있어요</h2><p>CLI에서 작업한 결과를 관찰 폴더에 저장하면<br>이 화면에 자동으로 나타납니다.</p><details><summary>파일을 어디에 저장하나요?</summary><p>하네스 JSON은 기존 <code>runtime-data/exports</code>, 새 HTML·이미지·CSV는 <code>runtime-data/visuals</code>에 저장하세요. 다른 폴더는 실행할 때 <code>--watch</code>로 지정할 수 있어요.</p></details></section>
+<section id="gallery" class="gallery" aria-label="모든 시각 자료"></section>
+<footer><span>LOCAL VISUAL VIEWER</span><p>CLI가 저장한 파일을 표시합니다. 화면의 조회와 새로고침은 AI를 실행하지 않습니다.</p></footer>
+</main>
+</body></html>
