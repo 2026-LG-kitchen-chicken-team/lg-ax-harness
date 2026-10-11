@@ -1,200 +1,183 @@
 {
   "status": "preparation_only",
   "theme": "Theme A: 실제 고객 불편·기존 기능 대조 기반 키친 상품기획 Agent",
-  "planned_seconds": 570,
+  "planned_seconds": 525,
   "recorded_video": false,
   "actual_rehearsal": false,
+  "presentation": "presentation/kitchen-planning.pptx",
+  "html": "presentation/presentation.html",
   "slides": [
     {
       "page": 1,
-      "title": "근거와 기존 기능을 대조하는 상품기획 Agent",
-      "seconds": 15,
+      "title": "실제 리뷰에서 키친 상품기획으로",
+      "seconds": 20,
       "requirements": [
-        "C01"
+        "C01",
+        "C08"
       ],
       "evidence": [
-        "docs/competition-requirements.md"
+        "docs/competition-requirements.md",
+        "docs/decisions/kitchen-scope-20261011.md"
       ]
     },
     {
       "page": 2,
-      "title": "리뷰에서 상품기획으로 연결하는 업무",
+      "title": "기획자의 원문 대조와 조건 재검토를 지원",
       "seconds": 35,
       "requirements": [
-        "C01"
+        "C01",
+        "C05"
       ],
       "evidence": [
-        "docs/contracts/product-planning.md"
+        "agents/product-planning.md",
+        "docs/evaluation/human-effect-protocol.md"
       ]
     },
     {
       "page": 3,
-      "title": "사용자 입력과 AI의 역할",
-      "seconds": 25,
+      "title": "세 제품군, 다섯 실제 모델",
+      "seconds": 40,
       "requirements": [
         "C01",
-        "C02"
+        "C05"
       ],
       "evidence": [
-        "docs/consultation/2026-10-10.md",
-        "agents/product-planning.md"
+        "docs/data/kitchen-v4.md",
+        "data/business/lg-kitchen-v4/manifest.json"
       ]
     },
     {
       "page": 4,
-      "title": "실제 자료와 확인 범위",
-      "seconds": 35,
+      "title": "사용자는 조건을 정하고, Agent는 근거를 연결",
+      "seconds": 40,
       "requirements": [
-        "C01"
+        "C02"
       ],
       "evidence": [
-        "docs/data/real-research.md",
-        "docs/data/s01d2-followup.md",
-        "docs/data/browser-import-20261010.md"
+        "docs/plans/product-harness.md",
+        "product-tools/product_tools/conversation.py"
       ]
     },
     {
       "page": 5,
-      "title": "메인 Agent와 업무 Skill",
-      "seconds": 40,
+      "title": "여섯 Skill과 일반 코드 Tool",
+      "seconds": 45,
       "requirements": [
         "C02",
         "C04"
       ],
       "evidence": [
-        "docs/plans/product-harness.md",
-        "skills/manifest.json"
+        "skills/manifest.json",
+        "docs/contracts/common-tools.md"
       ]
     },
     {
       "page": 6,
-      "title": "근거 조회부터 검토·저장까지",
-      "seconds": 30,
+      "title": "전자레인지: 조작부 사례를 공정 기획으로",
+      "seconds": 50,
       "requirements": [
-        "C02",
+        "C01",
+        "C03",
         "C04"
       ],
       "evidence": [
-        "docs/contracts/common-tools.md",
-        "docs/contracts/codex-product.md"
+        "docs/data/kitchen-v4.md",
+        "docs/validation/kitchen-progress-20261011.md"
       ]
     },
     {
       "page": 7,
-      "title": "실제 정상 업무 시연",
-      "seconds": 140,
+      "title": "식기세척기: 사전 작업과 잔여물 판단을 연결",
+      "seconds": 50,
       "requirements": [
+        "C01",
         "C03",
-        "C04"
+        "C05"
       ],
       "evidence": [
-        "docs/validation/s05-followup.md",
-        "evals/judge/s05-cases.json",
-        "docs/validation/s05-v52-flow.md"
+        "docs/data/kitchen-v4.md",
+        "docs/validation/kitchen-progress-20261011.md"
       ]
     },
     {
       "page": 8,
-      "title": "자료 부족과 조건 변경",
-      "seconds": 80,
+      "title": "실제 실행과 오류·후속의 근거",
+      "seconds": 65,
       "requirements": [
         "C03",
         "C04"
       ],
       "evidence": [
-        "docs/validation/s05-followup.md"
+        "docs/evaluation/kitchen-protocol-20261011.md",
+        "docs/validation/submission-status-20261011.md",
+        "docs/validation/kitchen-progress-20261011.md"
       ]
     },
     {
       "page": 9,
-      "title": "실제 입력 평가와 보존한 실패",
+      "title": "효과는 동일 과업과 완료 품질로 확인",
       "seconds": 45,
       "requirements": [
-        "C03",
-        "C04"
+        "C01",
+        "C05"
       ],
       "evidence": [
-        "docs/validation/s05-followup.md",
-        "docs/validation/s05-hardening.md",
-        "docs/validation/s05-v52-flow.md"
+        "docs/evaluation/human-effect-protocol.md",
+        "skills/concept-writing/SKILL.md",
+        "product-tools/product_tools/contracts.py"
       ]
     },
     {
       "page": 10,
-      "title": "토큰 사용량 비교의 결과와 한계",
-      "seconds": 40,
+      "title": "토큰 절감 설계와 제한된 실측",
+      "seconds": 55,
       "requirements": [
         "C06"
       ],
       "evidence": [
         "docs/evaluation/token-measurement.md",
-        "docs/validation/s05-followup.md",
-        "docs/validation/s05-skill-efficiency.md",
-        "docs/validation/s05-v52-flow.md"
+        "docs/validation/focused-progress-20261011.md"
       ]
     },
     {
       "page": 11,
-      "title": "업무 적용과 효과 측정",
-      "seconds": 30,
+      "title": "Codex 기준으로 재실행, 웹과 Claude는 별도 인수",
+      "seconds": 40,
       "requirements": [
-        "C05"
+        "C04",
+        "C07",
+        "C08",
+        "C08"
       ],
       "evidence": [
-        "docs/evaluation/human-effect-protocol.md"
+        "docs/decisions/product-runtime.md",
+        "docs/contracts/portable-product.md",
+        "docs/contracts/team-web-kitchen.md"
       ]
     },
     {
       "page": 12,
-      "title": "실행 환경별 지원 상태",
-      "seconds": 20,
-      "requirements": [
-        "C05"
-      ],
-      "evidence": [
-        "docs/validation/codex-product.md",
-        "docs/validation/portable-product.md",
-        "docs/validation/native-access-20261010.md"
-      ]
-    },
-    {
-      "page": 13,
-      "title": "Skill 재실행과 소스 재현",
-      "seconds": 15,
-      "requirements": [
-        "C07",
-        "C08"
-      ],
-      "evidence": [
-        "README.md",
-        "docs/validation/submission-rehearsal.md"
-      ]
-    },
-    {
-      "page": 14,
-      "title": "현재 한계와 제출 전 확인",
-      "seconds": 20,
+      "title": "구현 범위와 제출 전 확인",
+      "seconds": 40,
       "requirements": [
         "C05",
+        "C07",
         "C09"
       ],
       "evidence": [
         "docs/competition-requirements.md",
-        "docs/plans/development-harness.md"
+        "docs/validation/submission-status-20261011.md"
       ]
     }
   ],
   "pending": [
-    "거절 후보의 새 native 수정/보류 반복·일반 지연 개선",
-    "발표 파일 제작",
-    "별도 관찰 화면 가독성·누락/지연 표시·전체 Agent/메시지 관계 범위",
-    "30초 두 창 녹화·한국어·오디오·출력 시험",
-    "실제 정상/보류/후속 영상 촬영",
-    "실제 시간 리허설",
-    "Claude/Gemini 가능한 인증에서 native 인수·팀 원본 export 무결성",
-    "큰 미사용 입력·반복 일반화·입력 토큰 증가 원인 개선",
-    "사람 공수·전체 청구 측정",
-    "AI 직접 browser 수집/import·실제 청소 불편·내부 치수 자료",
-    "영상 규격·최종 마감·제출 경로·파일명·변경 공지 확인"
+    "실제 두 창 30초 녹화·한국어/음성/가독성/출력 시험",
+    "실제 입력→판단→Skill/Tool→결과 시연 영상 제작",
+    "10분 실제 발표 리허설과 영상 삽입 시간 확정",
+    "최길웅 Claude 환경 검증: 하네스 보완 후 메일 초안 승인·발송·정이량에게 결과 회신",
+    "팀원 실제 사람 공수 원본과 동일 과업/완료 품질 비교",
+    "웹팀 원본 수신 후 표시/상태/출처 계약 인수",
+    "운영진 최신 영상 규격·마감·경로·파일명·가산점 방식 확인",
+    "최종 실행자 재현·파일 동결·운영진 업로드/접수 확인"
   ]
 }

@@ -1,4 +1,4 @@
-"""Claude/Gemini file preparation and local Tool checks, not native quality."""
+"""Claude file preparation and withdrawn profile guard, not native quality."""
 import importlib.util
 import json
 from pathlib import Path
@@ -41,7 +41,7 @@ class PortableInstallTests(unittest.TestCase):
             installer.install(target,"claude")
             original=(target/"product-install.json").read_bytes()
             with self.assertRaises(ValueError):
-                installer.install(target,"gemini")
+                installer.install(target,"claude")
             self.assertEqual(original,(target/"product-install.json").read_bytes())
             (target/"CLAUDE.md").write_text("wrong",encoding="utf-8")
             self.assertTrue(installer.check(target)["errors"])
@@ -51,6 +51,13 @@ class PortableInstallTests(unittest.TestCase):
             self.assertIn("Invalid portable runtime profile",installer.check(target)["errors"])
         with self.assertRaises(ValueError):
             installer.install(ROOT/"must-not-install","claude")
+
+    def test_withdrawn_gemini_does_not_create_target(self):
+        with tempfile.TemporaryDirectory(prefix="lg-withdrawn-profile-") as tmp:
+            target=Path(tmp)/"gemini"
+            with self.assertRaisesRegex(ValueError,"withdrawn"):
+                installer.install(target,"gemini")
+            self.assertFalse(target.exists())
 
 
 if __name__=="__main__":

@@ -202,7 +202,7 @@ class WebEvidence:
                 "preview_start": start, "preview_truncated": start > 0 or start + len(preview) < len(value["text"]),
                 "snapshot_path": "runtime-data/web-evidence/" + value["snapshot_id"] + ".json", "cached": cached}
 
-    def _check_manual_association(self, entry, snapshot, exact):
+    def _check_manual_association(self, entry, snapshot, exact, family):
         association = self._read(entry["association_snapshot_id"])
         manual_url = urlparse(public_url(snapshot["url"]))
         product_url = urlparse(public_url(association["url"]))
@@ -210,7 +210,11 @@ class WebEvidence:
         model_token = re.search(r"(?<![A-Za-z0-9])" + re.escape(model) + r"(?![A-Za-z0-9])", association["text"], re.IGNORECASE)
         observed_urls = {url.rstrip(")],.;") for url in re.findall(r"https?://[^\s<>\"']+", association["text"])}
         product_path = product_url.path.rstrip("/")
-        is_product = product_path.casefold() in ("/product/refrigerators/" + model.casefold(), "/refrigerators/" + model.casefold())
+        categories = {"refrigerator": ("refrigerators",), "microwave": ("microwaves-and-ovens",),
+                      "dishwasher": ("dishwashers",)}[family]
+        is_product = product_path.casefold() in {
+            prefix + category + "/" + model.casefold()
+            for category in categories for prefix in ("/product/", "/")}
         is_pdf = manual_url.hostname == "gscs-b2c.lge.com" and manual_url.path == "/open/downloadFile"
         is_html = (manual_url.hostname == "gscs-manual.lge.com"
                    and re.fullmatch(r"/CNZ/MFL[0-9]+/ko-kr/main\.html", manual_url.path) is not None
@@ -262,7 +266,8 @@ class WebEvidence:
             if entry["support_quote"] not in snapshot["text"]:
                 fail("quote_mismatch", "Support quote is not in the observed snapshot")
             if "association_snapshot_id" in entry:
-                self._check_manual_association(entry, snapshot, exact)
+                model = next(m for m in dataset.models if all(m[k] == exact[k] for k in exact))
+                self._check_manual_association(entry, snapshot, exact, model["product_family"])
             elif exact["model_id"].casefold() not in (snapshot["text"] + " " + snapshot["url"]).casefold():
                 fail("scope_mismatch", "Observed page must identify the selected model; option mixing still needs review")
             if entry["kind"] == "review" and entry["text"] != entry["support_quote"]:

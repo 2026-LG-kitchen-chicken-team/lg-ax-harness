@@ -1,13 +1,13 @@
 # 제출 준비 원본
 
-현재 제출 상태는 preparation_only다. [발표 구성](demo-plan.json)과 [실제 시연 절차](demo-runbook.md)를 작성했으며 발표 파일·영상·최종 제출은 미완료다. 코드·근거·검사와 맞는 내용을 준비하고 아직 관측하지 않은 기능·효과는 제외한다.
+2026-10-11: 냉장고·전자레인지·식기세척기 기획의 **실제 발표 초안12쪽**을 [PPTX](presentation/kitchen-planning.pptx)와 [독립 HTML](presentation/presentation.html)로 작성했다. [내용 원본](presentation/slides.json), [발표 구성](demo-plan.json), [실제 시연 절차](demo-runbook.md), [평가항목 대조](../docs/validation/kitchen-progress-20261011.md)를 함께 관리한다. 현재 `preparation_only`: 영상·리허설·최종 접수는 미완료다.
 
-개발 레포에서 `uv run python scripts/check-submission-preparation.py`로 분량·시간 계획·C01~C09 근거 경로를 검사한다. 이는 영상 촬영·발표 리허설·파일 제출 완료 검사가 아니다.
+계획525초는 실측 발표 시간이 아니다. PPTX의12쪽을 다시 import/render해 글자·표·차트를 확인했으며 표2개와 차트1개는 편집 가능하다. 실제 입력/Skill/Tool 화면 캡처를 꾸며 넣지 않았다. `uv run python scripts/check-submission-preparation.py`는 계획·경로·C01~C09 연결 검사이며 심사 점수나 촬영 완료를 인증하지 않는다.
 
-최종 업무 소스는 README의 package 명령으로 새 ZIP에 만든다. ZIP 원본·manifest·LICENSE/NOTICE·Skill 폴더·잠금 파일을 새 환경에서 확인한다. 원문 실행 로그·SQLite·인증·전역 설정·개인정보·의존성 환경·개발 역할·평가 입력/runner·사용자 첨부 PDF를 포함하지 않는다. 현재 ZIP은 재현 연습이며 발표·영상은 별도로 준비한다.
+최종 업무 소스는 README의 package 명령으로 새 ZIP을 만든다. ZIP의 manifest/SHA·LICENSE/NOTICE·Skill 전체 폴더·잠금 파일을 새 환경에서 확인한다. 원문 실행 로그·SQLite·인증·개인정보·의존성 환경·개발 역할·평가 입력/runner·첨부 PDF는 제외한다. 소스 시험판은 발표/영상·운영진 최종 제출과 별도다. [제품 릴리스 계약](../docs/contracts/product-release.md)을 따른다.
 
-최종 제출 전에 운영진에게 영상 규격·실제 마감 시각·제출 경로·파일명·변경 공지를 확인하고 요구 원본에 반영한다. 연락이나 업로드를 자동 수행하지 않는다. 준비 원본의 pending 항목을 모두 확인해야 최종 제출 완료를 판단할 수 있다.
+최신 제품군·Codex 실증과 Claude 파일 설치 검사를 구분한다. Gemini는 신규 지원에서 철회했으며 과거 실패/설치 기록은 보존한다. 웹팀은 개발 중이나 원본은 아직 인수하지 않았다. Claude 환경 검증은 하네스 보완 후 최길웅에게 요청하고 결과를 정이량에게 메일로 받는다.
 
-의미 있는 출품 변경은 [제품 릴리스 계약](../docs/contracts/product-release.md)에 따라 새 버전으로 배포한다. 첨부물은 출품 하네스와 완성·검토한 실제 제출 파일만이며 개발 체계·평가·팀 결과는 제외한다. 앞선 접수 절차 문서만의 변경 단계에서는 새 릴리스를 발행하지 않았다. GitHub의 자동 전체 소스 아카이브와 별도 제품 첨부 ZIP을 구분한다.
+운영진 최신 영상 규격·실제 마감·경로·파일명·변경 공지 확인, 실제 시연 영상/10분 리허설, 새 실행자 최종 재현과 업로드/접수 확인이 남는다.20쪽/10분/질의응답5분과 실제 파일 마감을 혼동하지 않는다. 사람 공수·전체 청구·시장/실물 효과는 미측정이며 기대효과와 확인 방법으로만 설명한다.
 
-후속 Skill 지침 개선의 [제품 v0.1.0 검증](../docs/validation/s05-skill-efficiency.md)에서 최종 v5.1 원본 70파일·manifest/SHA와 새 추출·Claude/Gemini 파일 설치/doctor를 확인했다. [product-v0.1.0 prerelease](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.1.0)를 발행하고 실제 다운로드 SHA·태그/source commit `9fa81d2`를 확인했다. 제품 ZIP과 SHA 목록만 첨부했으며 원본 ZIP의 `submission_source_rehearsal_not_final_submission` 표시를 유지한다. 발표/영상·운영진 최종 제출은 포함하지 않는다.
+PPTX 재생성은 `build-deck.mjs`의 세 bundled runtime 환경변수로 수행하며 기존 최종 파일을 덮어쓰지 않는다. 편집이 필요하면 새 최종 파일명을 지정해 검사를 다시 받는다. 이는 제출 자료 제작 helper로서 출품 runtime/ZIP에 들어가지 않는다. 아래의 과거 제품 배포는 각 버전의 역사적 기록이다: v0.1.0→v0.2.3. 최신 세 제품군 릴리스와 검증은 저장소 상단의 기록을 따른다.

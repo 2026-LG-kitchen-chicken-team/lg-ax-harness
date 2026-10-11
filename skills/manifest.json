@@ -1,10 +1,11 @@
 {
   "version": "product-skills-v1",
   "agent": "agents/product-planning.md",
+  "data_path": "data/business/lg-kitchen-v4",
   "skills": [
     {
       "name": "evidence-retrieval",
-      "description": "선택한 냉장고 모델의 저장된 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
+      "description": "선택한 냉장고·전자레인지·식기세척기 모델의 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
       "path": "skills/evidence-retrieval/SKILL.md",
       "operations": [
         "doctor",
@@ -24,7 +25,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "4b901336152ee46be5a142bd62ea66d8c753dd2038043a517dfc888fcb12e943"
+          "sha256": "3b466b9ea83bc8075496d07c4fc1277b28690157078a75ce648c3eb078af4c81"
         }
       ]
     },
@@ -69,7 +70,7 @@
     },
     {
       "name": "feature-comparison",
-      "description": "원문으로 확인한 불편을 같은 냉장고 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다.",
+      "description": "원문으로 확인한 불편을 같은 냉장고·전자레인지·식기세척기 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다.",
       "path": "skills/feature-comparison/SKILL.md",
       "operations": [
         "match_product_scope",
@@ -83,7 +84,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "94356fcbd7abd0bad7167dc4aa131ec3f81e3267d7ecad098ed89eae0d918041"
+          "sha256": "5cf4ce2ec93c6b70802e512f642cafdfdda6f654ddbac8acf151bb296421d550"
         }
       ]
     },
@@ -102,7 +103,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "ce05339a2bfe5046a228a6148b5fc63c86693316ae2e3d4dc5d96bb715cf997c"
+          "sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174"
         }
       ]
     },
@@ -128,7 +129,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "f1030e6d5c6e97b073838494d7e8f128c62f3e7dff382c205c90afa40252051e"
+          "sha256": "ead4c72e7b8d0214f9752de2cd772cbb458c1d7cf671bd2639518f0b5b7015d8"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -144,11 +145,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "23f65f3944c3f510f1a85160d430ea83c45037337fcee2f83e10085d2a9c135d"
+      "sha256": "0acad81bc070d65c45d7e00d0da116d132f3227a5b968beef382f05578b7c1f2"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "7b4ce0c37762f94612395f94f30f43f2a7a4e6b62a25aca24abe5bea94607503"
+      "sha256": "67a25795dd461bf2256bda071cfc4013f4a5a75e98a930eadd3bbc8166fe4d38"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -156,15 +157,15 @@
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "e90df5ba22840b6c49075e84f9027c45dd4a8b6292a36986a4a55d3435314412"
+      "sha256": "f50117f5c868344ef1c36985ef8753a51557ac55a1f3e723170cfa3b272f5506"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "47d83cafbf04332135798757bde1bedea8e0795302be0bbc3202de26c662f52a"
+      "sha256": "69904fc0f4b3c0086ee6cc9a7ba3bea56448f96405c230945abc46ff690180e1"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
-      "sha256": "2e63353e15b4114ad25c8468ad98e5f0ce69b34245f646a225e4090409007737"
+      "sha256": "3c5e41f9510a39e63f30947f54b3af9bc524c342b10319c6335f4e122d637abc"
     },
     {
       "path": "product-tools/product_tools/planning.py",
@@ -176,19 +177,19 @@
     },
     {
       "path": "product-tools/product_tools/tools.py",
-      "sha256": "e4481e8b55a526a3d430a88c853547e2ecde65c36de2a1d428cb8c1e0f25a2e3"
+      "sha256": "eec15a36fdd5fcd53a1604a890180eb4c9a39ccfeeeb2bc3da8e22a68c4a2408"
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
-      "sha256": "cf5ccc9818071fb9a8778c36c5a8ccf3043bebc40aa9b91e05c77e0fd3c3a15a"
+      "sha256": "faaaef4080ec51ed70cd8440c3ffc14b4b5cca2e35895349ecbdc1be54ed9e94"
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "6d09e5d5c3d67957c2540567bc3df8eae27917bbdde34e4d2807625ee9cabd82"
+      "sha256": "3f4f59d1d307b1301d01e46abbf930fc493cb70f6de066230eb861a085c933d7"
     },
     {
       "path": "docs/contracts/product-planning.md",
-      "sha256": "f4298607ec193d4d03804022349d099530bbdd2d02893f8c7e8980e4ceb6ea8b"
+      "sha256": "9de2ca730c0a281993ec5e971a0398da0f56e979fe30867977a6ff3b71d638e8"
     },
     {
       "path": "docs/contracts/web-evidence.md",

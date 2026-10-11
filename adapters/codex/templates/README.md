@@ -1,5 +1,7 @@
 # LG AX Codex 상품기획 하네스
 
+현재 제품군은 냉장고·전자레인지·식기세척기다. 기본 lg-kitchen-v4는 B502S33/S836GBB122/T876MQQ012/MWJ25E/DUBJ2EA를 포함한다. 모델을 선택하면 실제 불편을 발견해 기획한다. 개선안의 구현 단계·검증 계획은 미측정 기대효과이며 실제 성능/시간 절감 인증이 아니다. Codex가 주 실행기, Claude는 native 미인수·후순위, Gemini는 지원 철회다.
+
 Python3.12, uv, Codex CLI와 실행자 자신의 Codex 로그인이 필요하다. 별도 LLM API key·환경변수·필수 MCP/플러그인은 요구하지 않는다. 모델 통신과 이용 한도는 Codex 계정에서 발생한다.
 
 이 폴더에서 PowerShell/터미널을 열고:

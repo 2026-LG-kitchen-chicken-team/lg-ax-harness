@@ -1,5 +1,9 @@
 # 출품용 상품기획 하네스의 실행·시연 계약
 
+## 현재 범위
+
+2026-10-11 사용자 변경: 냉장고·전자레인지·식기세척기의 실제 불편 기반 상품기획. 기본 lg-kitchen-v4·5모델/8후기/26사실, catalog family와 exact scope 일치 검사. Agent1개·업무5Skill+조건부 외부 조사1Skill 유지. 구현 단계와 검증 계획은 concept의 implementation_steps/validation_plan으로 저장하며 planned_not_measured만 허용한다. 구버전 결과 호환은 유지한다. Codex 기준, Gemini 철회, Claude native 후순위. 아래 냉장고3모델/세 실행기 내용은 이전 범위의 이력이며 최신 [결정](../decisions/kitchen-scope-20261011.md)·[v4 근거](../data/kitchen-v4.md)를 우선한다. 웹은 팀이 개발 중이고 원본 미수신 상태다.
+
 기준일: 2026-10-10. 이것은 출품 구현 계획이며 개발용 Codex/Claude 체계가 아니다. [요구](../competition-requirements.md), [채택 스택](../decisions/stack-selection.md), [AI 평가 입력](../evaluation/judge-input-cases.md)을 연결한다.
 
 사용자 선택: 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결한다. [실행 결정](../decisions/product-runtime.md)을 따른다. 출품 실행기 내부 모델 연결을 사용하고 자체 모델 API 프로그램·Codex 내부 호출 실행기는 초기 경로로 채택하지 않는다. 아래 업무·근거·예외 계약은 각 지원 환경에서 실제 구현·검증해야 한다. 구조·실행 시각화는 후순위의 [별도 관찰 프로그램](observability-viewer.md)에서 제공한다.

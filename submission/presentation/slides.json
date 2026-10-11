@@ -1,0 +1,297 @@
+{
+  "status": "review_draft",
+  "native_video_recorded": false,
+  "actual_rehearsal": false,
+  "planned_seconds": 525,
+  "slides": [
+    {
+      "title": "실제 리뷰에서 키친 상품기획으로",
+      "subtitle": "냉장고 · 전자레인지 · 식기세척기",
+      "lines": [
+        "모델을 선택하면 AI가 불편을 발견하고 기존 기능과 대조합니다.",
+        "결과는 출처·구현 단계·검증 계획을 포함한 기획 초안입니다.",
+        "Theme A | 키친에서치킨먹기 | 검토용 발표자료"
+      ],
+      "seconds": 20,
+      "requirements": [
+        "C01"
+      ],
+      "sources": [
+        "docs/competition-requirements.md",
+        "docs/decisions/kitchen-scope-20261011.md"
+      ]
+    },
+    {
+      "title": "기획자의 원문 대조와 조건 재검토를 지원",
+      "lines": [
+        "입력: 정확 모델과 기획 조건. 상세 불편 입력은 강제하지 않습니다.",
+        "처리: 실제 불편 → 기존 기능 → 남은 문제 → 적용 방법",
+        "적용: 기획 회의의 근거 대조표와 검증할 요구사항으로 활용",
+        "기대 가치: 누락·재확인 부담 감소. 실제 사람 공수와 사업 효과는 미측정"
+      ],
+      "seconds": 35,
+      "requirements": [
+        "C01",
+        "C05"
+      ],
+      "sources": [
+        "agents/product-planning.md",
+        "docs/evaluation/human-effect-protocol.md"
+      ]
+    },
+    {
+      "title": "세 제품군, 다섯 실제 모델",
+      "subtitle": "실제 후기 발췌8건 · 공식 사실26건",
+      "rows": [
+        [
+          "냉장고",
+          "B502S33 / T876MQQ012 등",
+          "수납 아쉬움 · 적재 그림자"
+        ],
+        [
+          "전자레인지",
+          "MWJ25E",
+          "개인 수령품 다이얼 링 흔들림"
+        ],
+        [
+          "식기세척기",
+          "DUBJ2EA",
+          "계란 잔여물 · 사전 작업 부담"
+        ]
+      ],
+      "lines": [
+        "신규 두 가전은 같은 개인 작성자의 사례입니다. 고객2명·대표 표본으로 세지 않습니다.",
+        "DUBJ2EA는 단종 모델. 구매·협찬·현재 생산품 적용성은 미확인입니다."
+      ],
+      "seconds": 40,
+      "requirements": [
+        "C01",
+        "C05"
+      ],
+      "sources": [
+        "docs/data/kitchen-v4.md",
+        "data/business/lg-kitchen-v4/manifest.json"
+      ]
+    },
+    {
+      "title": "사용자는 조건을 정하고, Agent는 근거를 연결",
+      "flow": [
+        "사용자 모델·조건",
+        "실제 원문 조회",
+        "불편·기능 대조",
+        "기획·검토",
+        "저장·후속"
+      ],
+      "lines": [
+        "출품은 메인 Agent1개입니다. 개발 역할6개와 구분합니다.",
+        "완료는 기획 초안 완료입니다. 실물·시장·효과 검증 완료를 뜻하지 않습니다.",
+        "근거 부족은 held / 모델 모호는 needs_input / 복구 불가 오류는 failed"
+      ],
+      "seconds": 40,
+      "requirements": [
+        "C02"
+      ],
+      "sources": [
+        "docs/plans/product-harness.md",
+        "product-tools/product_tools/conversation.py"
+      ]
+    },
+    {
+      "title": "여섯 Skill과 일반 코드 Tool",
+      "rows": [
+        [
+          "evidence-retrieval",
+          "모델·버전 원문 조회"
+        ],
+        [
+          "needs-structuring / feature-comparison",
+          "실제 불편 해석 · 기존 기능 대조"
+        ],
+        [
+          "concept-writing / review-and-revise",
+          "기획 · 제약 검토 · 최대2수정 · 저장"
+        ],
+        [
+          "web-evidence-collection",
+          "부족/최신 자료에만 조건부 조사"
+        ]
+      ],
+      "lines": [
+        "Python: family/scope·인용·SHA·제약·DB·export·재사용 무효화",
+        "기존 Codex 실행기가 모델 연결을 담당합니다. 자체 모델 API 서버는 없습니다.",
+        "공개 조회·로컬 저장 범위. 외부 쓰기·구매·인증 우회는 업무에 포함하지 않습니다."
+      ],
+      "seconds": 45,
+      "requirements": [
+        "C02",
+        "C04"
+      ],
+      "sources": [
+        "skills/manifest.json",
+        "docs/contracts/common-tools.md"
+      ]
+    },
+    {
+      "title": "전자레인지: 조작부 사례를 공정 기획으로",
+      "lines": [
+        "관측: 자기 수령품의 링 흔들림·소리. 모델 전체 결함으로 일반화하지 않음",
+        "기존 기능: 글라스 터치·팝업 다이얼. 조작 기능 자체는 이미 있음",
+        "조건부 초안: 기존 승인 조립방법 안에서 점검·판정·기록을 표준화",
+        "검증: 현행 점검과 중복, 검출 누락·재발·정상 조작·공수 비교",
+        "내부 치수는 확인했지만 용기 회전·가열 안전성은 확정하지 않음"
+      ],
+      "seconds": 50,
+      "requirements": [
+        "C01",
+        "C03",
+        "C04"
+      ],
+      "sources": [
+        "docs/data/kitchen-v4.md",
+        "https://i-blubird.tistory.com/908",
+        "https://www.lge.co.kr/product/microwaves-and-ovens/mwj25e"
+      ]
+    },
+    {
+      "title": "식기세척기: 사전 작업과 잔여물 판단을 연결",
+      "lines": [
+        "관측: LG 사용 뒤 계란 눌어붙음 잔여물과 사전 긁기 부담",
+        "기존 기능: 트루스팀·자동 문열림 건조. 잔여물 완전 제거의 보증이 아님",
+        "조건부 초안: 기존 사용자 안내·확인 기록을 연결하는 지원 기획",
+        "기존 설명서/안내와 중복·사용법 적합성을 확인한 뒤 시범 비교",
+        "단종 모델 기존 사용자 지원 가설. 새로운 세척 성능·매출 효과는 미측정"
+      ],
+      "seconds": 50,
+      "requirements": [
+        "C01",
+        "C03",
+        "C05"
+      ],
+      "sources": [
+        "docs/data/kitchen-v4.md",
+        "https://i-blubird.tistory.com/518",
+        "https://www.lge.co.kr/product/dishwashers/dubj2ea"
+      ]
+    },
+    {
+      "title": "실제 실행과 오류·후속의 근거",
+      "lines": [
+        "신규 인수는 최대4입력·각420초·동시2·자동 재실행0으로 동결",
+        "입력 → Skill 지침 → Python Tool → 검토 → 최신 receipt/export를 대조",
+        "저장 승인·최종 전달·원문 의미·효과 검증은 각각 구분",
+        "수정/거절·timeout·과거 후보는 보존. 실패로 새 요청을 만들지 않음",
+        "실제 화면 시연 영상과10분 리허설은 별도 완료가 필요"
+      ],
+      "seconds": 65,
+      "requirements": [
+        "C03",
+        "C04"
+      ],
+      "sources": [
+        "docs/evaluation/kitchen-protocol-20261011.md",
+        "docs/validation/submission-status-20261011.md"
+      ]
+    },
+    {
+      "title": "효과는 동일 과업과 완료 품질로 확인",
+      "flow": [
+        "현행 작업 측정",
+        "같은 자료·조건",
+        "기획안 적용",
+        "품질·공수 대조"
+      ],
+      "lines": [
+        "기획 업무: 사람 활동시간·근거 확인·수정 횟수·초안 완성도를 기록",
+        "제품 가설: 관측 불편별 지표·기준선·방법·성공 조건을 저장",
+        "사업 가치: 지원 응대 일관성·재확인 부담 감소 가설. 수치 실적은 미작성",
+        "validation_plan.status = planned_not_measured"
+      ],
+      "seconds": 45,
+      "requirements": [
+        "C01",
+        "C05"
+      ],
+      "sources": [
+        "docs/evaluation/human-effect-protocol.md",
+        "skills/concept-writing/SKILL.md",
+        "product-tools/product_tools/contracts.py"
+      ]
+    },
+    {
+      "title": "토큰 절감 설계와 제한된 실측",
+      "bars": [
+        [
+          "입력 전체",
+          3.01
+        ],
+        [
+          "비캐시 입력",
+          1.1122
+        ],
+        [
+          "출력 전체",
+          0.7241
+        ],
+        [
+          "AI 경과시간",
+          0.746
+        ]
+      ],
+      "lines": [
+        "일반 AI 대비 비율, v5.4 R01 각2회. 지표마다 단위가 다르며 총 비용 비교가 아님",
+        "필요 원문만 조회 · bundle 재사용 · compact 저장 반환 · 코드 검사",
+        "관찰 화면은 추가 모델 호출/로그 문맥0. native 전체 호출 통제를 뜻하지 않음",
+        "해당 표본 입력은 증가했습니다. 총 토큰·비용·사람 공수 우위는 미입증"
+      ],
+      "seconds": 55,
+      "requirements": [
+        "C06"
+      ],
+      "sources": [
+        "docs/evaluation/token-measurement.md",
+        "docs/validation/focused-progress-20261011.md"
+      ]
+    },
+    {
+      "title": "Codex 기준으로 재실행, 웹과 Claude는 별도 인수",
+      "lines": [
+        "제품ZIP → 새 폴더 → uv sync --locked → product-doctor.py → Codex 질문",
+        "예: MWJ25E의 실제 불편을 찾아 기존 기능과 비교한 개선안을 기획해줘",
+        "업무6Skill 전체 폴더·공통 코드·잠금 파일·실제 자료·README를 배포",
+        "Claude는 최길웅에게 환경 검증 요청 후 인수. Gemini는 지원 철회",
+        "웹팀은 개발 중. 원본 수신/표시 계약 검증 전 구현 완료로 발표하지 않음"
+      ],
+      "seconds": 40,
+      "requirements": [
+        "C04",
+        "C07",
+        "C08"
+      ],
+      "sources": [
+        "docs/decisions/product-runtime.md",
+        "docs/contracts/portable-product.md",
+        "docs/contracts/team-web-kitchen.md"
+      ]
+    },
+    {
+      "title": "구현 범위와 제출 전 확인",
+      "lines": [
+        "실제 리뷰 기반 기획 초안과 재현 가능한 Skill/Tool을 구현",
+        "한계: 소표본·귀속/협찬·제조/효과·심사 환경의 일반화 미검증",
+        "제품군 확장: family/scope 검사와 모델별 실제 자료·기능을 독립 관리",
+        "남은 제출 근거: 실제 시연 영상·리허설·새 실행자·마감/경로·접수 확인",
+        "공식 발표20쪽 이내/10분·질의응답5분. 가산점 세부 점수 미확정"
+      ],
+      "seconds": 40,
+      "requirements": [
+        "C05",
+        "C07",
+        "C09"
+      ],
+      "sources": [
+        "docs/competition-requirements.md",
+        "docs/validation/submission-status-20261011.md"
+      ]
+    }
+  ]
+}

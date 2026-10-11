@@ -97,7 +97,7 @@ class Conversation:
         prior_input = previous["input"] if previous else {}
         model = payload.get("model_id", prior_input.get("model_scope", [{}])[0].get("model_id"))
         if not model:
-            return self._pending(session, key, "needs_input", "model_required", "Ask for an exact refrigerator model; do not request internal IDs")
+            return self._pending(session, key, "needs_input", "model_required", "Ask for an exact refrigerator, microwave or dishwasher model; do not request internal IDs")
         prepared = {"model_id": model, "session_id": session, "request_key": key, "question": payload["question"]}
         if "constraints" in payload or "constraints" in prior_input:
             prepared["constraints"] = payload.get("constraints", prior_input.get("constraints"))

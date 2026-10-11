@@ -69,10 +69,11 @@ class ExtendedTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="lg-extended-note-test-") as tmp:
             target=Path(tmp)/"product"
             ex.ev.load_installer(ROOT).install(target)
-            before=ex.ev.sha(target/"data/business/lg-research-v3/sources.jsonl")
+            data_path=json.loads((target/"skills/manifest.json").read_text(encoding="utf-8"))["data_path"]
+            before=ex.ev.sha(target/data_path/"sources.jsonl")
             injection=ex.inject(target,"source_attack")
             self.assertFalse(injection["business_evidence"])
-            self.assertEqual(before,ex.ev.sha(target/"data/business/lg-research-v3/sources.jsonl"))
+            self.assertEqual(before,ex.ev.sha(target/data_path/"sources.jsonl"))
             self.assertIn("TEST_ONLY",(target/injection["path"]).read_text(encoding="utf-8"))
             self.assertFalse(ex.installed_integrity(ROOT,target,injection)["errors"])
 

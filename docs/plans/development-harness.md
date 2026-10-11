@@ -1,8 +1,12 @@
 # 개발용 하네스 구축 계획과 작업 원본
 
+## 새 범위 작업 — 2026-10-11
+
+이전 v5.5 수정 마감은 유지한다. 이번 작업은 사용자 요청에 따른 새 제품군/근거/산출물 변경이다: 세 제품군 계약과 실제 v4 자료 → 최대4입력 신규 native 인수/독립 검토 → 평가항목 발표자료/시연 근거 → 제품만 새 시험판 배포. Gemini 인수는 폐기하고 Claude는 하네스 보완 완료 후 최길웅에게 요청·정이량에게 회신하는 후순위다. 웹팀 개발 중/원본 미수신을 기록하고 프런트엔드는 PM에게 맡긴다. 최종 촬영/리허설·사람 시간·운영진 실제 제출은 실제 증거가 필요하다.
+
 기준일: 2026-10-11. 이 문서는 개발 체계 구축의 작업 상태 원본이다. 출품 구현의 실행 계약은 [product-harness.md](product-harness.md), 기술 결정은 [stack-selection.md](../decisions/stack-selection.md), 공식·사용자 요구는 [competition-requirements.md](../competition-requirements.md)를 따른다.
 
-최신 선택: 출품은 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결한다. [실행 결정](../decisions/product-runtime.md)을 따른다. 자체 모델 API 프로그램과 Codex 내부 호출 실행기는 초기 경로로 채택하지 않는다. 구조·실행 시각화는 후순위의 [별도 관찰 프로그램](observability-viewer.md)에서 제공한다.
+현재 선택: 출품은 공통 업무 Skill·코드를 Codex에 연결하며 Claude는 후순위 검증한다. Gemini 지원은 2026-10-11 철회했다. [실행 결정](../decisions/product-runtime.md)을 따른다. 자체 모델 API 프로그램과 Codex 내부 호출 실행기는 초기 경로로 채택하지 않는다. 구조·실행 시각화는 후순위의 [별도 관찰 프로그램](observability-viewer.md)에서 제공한다.
 
 Codex 개발 체계 D01-D05는 검증했다. S05의 이번 제한 평가·수정과 자료 조사 단계는 [2026-10-11 마감 기록](../validation/closure-progress-20261011.md)의 범위로 종료했다. 현재 내부 우선순위는 별도 관찰 화면/실제 녹화 → 발표/영상 → 최종 제출 재현이다. 일반 품질·효과·사람 공수와 D06b Claude 개발 인수는 별도 미완료이며 시각화를 과거 개발 체계/평가 인수의 선행 조건으로 소급하지 않는다. Codex/Claude 실행에 React Flow UI를 연결하는 후보는 현재 채택하지 않았다.
 
@@ -207,14 +211,14 @@ runtime-data/                 # 출품 SQLite·로그; Git 제외
 - [ ] S02b Claude Code 업무 사본·지침·Tool/권한·대화 상태 연결을 구현하고 같은 업무·예외 평가 수행. 개발 D06b 검증과 구분.
   - [x] S02b1 .claude/skills 업무6개·CLAUDE.md→AGENTS.md·설치 manifest/지문·새 폴더 잠금 환경·auth-free doctor 검사. [실제 준비 범위](../validation/portable-product.md).
   - [ ] S02b2 팀원 환경의 인증/신뢰/권한·Skill 발견·실제 업무/후속/예외·usage 인수. [개발 인수와 구분한 체크리스트](../evaluation/claude-native-handoff.md).
-- [ ] S02c Gemini CLI 업무 사본·지침·Tool/권한·대화 상태 연결을 구현하고 같은 업무·예외 평가 수행. 접근 부재·미관측 usage를 숨기지 않음.
+- S02c **지원 철회(2026-10-11 사용자 결정)**. 아래 설치/실패는 당시 기록이며 추가 native 인수/지원 목표에서 제외한다. 신규 Gemini 설치/패키징을 거부하고 기존 외부 사본·실패는 보존한다.
   - [x] S02c1 .gemini/skills 업무6개·GEMINI.md→AGENTS.md·설치 manifest/지문·새 폴더 잠금 환경·auth-free doctor 검사.
   - [ ] S02c2 실행자 환경의 인증/폴더 신뢰/Skill 동의·실제 발견/업무/예외·대화/usage 인수.
 - [ ] S03 단일 상품기획 Agent·업무 Skill 5개+조건부 외부 조사1개·보류/수정·출처·추가 입력 연결.
   - [x] S03a Agent 지침·Skill6개·실행 wrapper·지문 manifest·의미 검토 기록 정합성 Tool·외부 관측/버전 등록 코드 구현. 정적/일반 코드 검사는 환경별 native 인수가 아님.
   - [ ] S03b S02 실제 설치 환경에서 조건부 Skill 호출·상태 저장·추가 질문·보류/수정·전체 호출 관측 연결 검증. 네이티브 모델 판단의 심사 품질 평가는 S05.
     - [x] S03b1 Codex 실제 첫 입력→조건부 외부 근거→기획→실패 후보/수정1회→저장/export, 같은 native 대화 후속 입력, 긍정/기대만 있는 자료의 held, 미확인 모델 needs_input/no fake turn, native 명령/Tool 오류 복구. 성공 CLI usage 누적/차이를 기록하고 실패 미측정을 보존. native 전체 backend 비용·Claude/Gemini 연결은 포함하지 않음.
-    - [ ] S03b2 Claude/Gemini에서 동일 업무/예외와 관측 범위를 검증.
+    - [ ] S03b2 Claude에서 동일 업무/예외와 관측 범위를 검증. 하네스 보완 완료 후 최길웅에게 메일 요청·정이량 회신, 접근 불가 시 후순위. Gemini 제외.
 - [ ] S04 [후순위] 화면 방식을 선택한 뒤 일반 코드로 실제 이벤트·ID·상태를 관찰 도구/UI에 연결. 구조·실행·근거·메시지 관측 범위·재접속·재생·실행 격리를 검사. 현재 화면을 구현하지 않으며 S05 업무 평가의 선행 조건으로 두지 않음.
 - [ ] S05 실제 심사 입력·다중 턴·원문 지시문 공격·오류·동일 조건 baseline 평가. turn별 수정 및 invocation별 기술 재시도 상한을 검사. 전체 Agent+하위 호출·실패 비용과 미측정을 구분하고 동일 평가 묶음의 요구 충족률·총비용으로 토큰 절감 검증.
   - [x] S05a 개발용 native 평가 runner·격리/동결/실패·미측정/누적차이 경계 검사, 실제 자료 질문6개와 독립 원문 검토 방식 구현. 출품 모델 호출기 추가 아님.

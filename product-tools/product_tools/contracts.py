@@ -4,6 +4,7 @@ import json
 import re
 
 CONTRACT_VERSION = "product-contract-v1"
+DEFAULT_DATA_PATH = "data/business/lg-kitchen-v4"
 MAX_BYTES = 65536
 MAX_PLANNING_BYTES = 12288
 MAX_RESULT_BYTES = 32768
@@ -80,6 +81,7 @@ def items(value, name, maximum=20):
     return value
 
 SCOPE_FIELDS = ("model_id", "model_version", "document_version")
+PRODUCT_FAMILIES = ("refrigerator", "microwave", "dishwasher")
 
 def scope(value):
     obj(value, SCOPE_FIELDS)
@@ -94,8 +96,8 @@ def planning_input(value):
         identifier(value[field], field)
     for field in ("question", "target_customer", "context"):
         text(value[field], field)
-    if value["product_family"] != "refrigerator":
-        fail("unsupported_family", "Initial dataset only supports refrigerator")
+    if value["product_family"] not in PRODUCT_FAMILIES:
+        fail("unsupported_family", "Supported families: refrigerator, microwave, dishwasher")
     scopes = items(value["model_scope"], "model_scope", 5)
     if not scopes:
         fail("needs_input", "At least one exact model/version/document scope is required")
@@ -110,7 +112,7 @@ def planning_input(value):
     for pain in items(constraints["exclude_pains"], "exclude_pains"):
         text(pain, "excluded pain", 200)
     runtime = obj(value["runtime"], ("engine", "engine_version", "model_id", "settings_fingerprint"))
-    if runtime["engine"] not in (None, "codex", "claude", "gemini", "fixture"):
+    if runtime["engine"] not in (None, "codex", "claude", "fixture"):
         fail("invalid_input", "Unknown runtime engine")
     for key in ("engine_version", "model_id", "settings_fingerprint"):
         if runtime[key] is not None:
@@ -172,7 +174,8 @@ def evidence_ref(value):
     return value
 
 def claim(value, concept=False):
-    obj(value, ("id", "text", "source_ids") + (("requirements", "requires_hardware", "assumptions") if concept else ()))
+    obj(value, ("id", "text", "source_ids") + (("requirements", "requires_hardware", "assumptions") if concept else ()),
+        ("implementation_steps", "validation_plan") if concept else ())
     identifier(value["id"], "claim id")
     text(value["text"], "claim text")
     refs = items(value["source_ids"], "source_ids")
@@ -188,6 +191,18 @@ def claim(value, concept=False):
                 text(item, key, 1000)
         if not value["requirements"]:
             fail("invalid_input", "A concept needs at least one requirement")
+        if "implementation_steps" in value:
+            steps = items(value["implementation_steps"], "implementation_steps", 8)
+            if not steps:
+                fail("invalid_input", "Implementation steps cannot be empty")
+            for step in steps:
+                text(step, "implementation step", 1000)
+        if "validation_plan" in value:
+            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"))
+            for key in ("metric", "baseline", "method", "success_criterion", "business_value"):
+                text(plan[key], key, 1000)
+            if plan["status"] != "planned_not_measured":
+                fail("invalid_input", "Model-authored validation plans cannot certify measured effects")
 
 def product_result(value, planning):
     obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"))

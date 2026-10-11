@@ -2,7 +2,7 @@
 import copy
 import hashlib
 from pathlib import Path
-from .contracts import canonical, fail, identifier, integer, obj, origin, scope, strict_json, text
+from .contracts import PRODUCT_FAMILIES, canonical, fail, identifier, integer, obj, origin, scope, strict_json, text
 
 class Dataset:
     def __init__(self, root):
@@ -35,7 +35,7 @@ class Dataset:
             obj(model, ("model_id", "model_version", "document_version", "name", "product_family", "synthetic"), ("dimensions_mm", "capacity_l", "layout", "spec_source_id"))
             exact = {k: model[k] for k in ("model_id", "model_version", "document_version")}
             scope(exact)
-            if model["synthetic"] is not self.synthetic or model["product_family"] != "refrigerator":
+            if model["synthetic"] is not self.synthetic or model["product_family"] not in PRODUCT_FAMILIES:
                 fail("invalid_dataset", "Invalid model provenance/family")
             text(model["name"], "model name", 200)
             key = canonical(exact)
@@ -116,6 +116,9 @@ class Dataset:
             fail("data_version_mismatch", "Input data version differs from loaded catalog")
         for exact in planning["model_scope"]:
             self.check_scope(exact)
+            model = next(m for m in self.models if all(m[k] == exact[k] for k in exact))
+            if model["product_family"] != planning["product_family"]:
+                fail("family_mismatch", "Planning family differs from the exact catalog model")
 
     def source(self, source_id):
         identifier(source_id, "source_id")

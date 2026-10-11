@@ -13,7 +13,6 @@ ADAPTER_FILES=(
     "codex/templates/pyproject.toml","codex/templates/uv.lock",
     "codex/templates/.gitignore","codex/templates/product-doctor.py",
     "claude/install.py","claude/templates/CLAUDE.md",
-    "gemini/install.py","gemini/templates/GEMINI.md",
 )
 
 
@@ -25,6 +24,8 @@ def load(path,name):
 
 
 def build(engine,target,archive,root=ROOT):
+    if engine not in ("codex", "claude"):
+        raise ValueError("Unsupported runtime profile")
     root=root.resolve(strict=True)
     target,archive=Path(target).resolve(),Path(archive).resolve()
     if archive.exists() or archive.is_relative_to(root) or archive.is_relative_to(target):
@@ -60,7 +61,7 @@ def build(engine,target,archive,root=ROOT):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--engine",choices=("codex","claude","gemini"),required=True)
+    parser.add_argument("--engine",choices=("codex","claude"),required=True)
     parser.add_argument("--target",type=Path,required=True)
     parser.add_argument("--archive",type=Path,required=True)
     args=parser.parse_args()

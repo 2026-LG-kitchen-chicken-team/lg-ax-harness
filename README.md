@@ -1,6 +1,8 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
-출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. Codex 출품 설치와 실제 업무 연결을 검증했으며 Claude/Gemini와 시각화는 별도 작업이다.
+2026-10-11 새 범위: **냉장고·전자레인지·식기세척기** 실제 불편과 기존 기능을 대조하는 상품기획 Agent. 기본 자료5모델·8후기·26사실, 구현 단계/효과 검증 계획을 저장한다. [최신 결정](docs/decisions/kitchen-scope-20261011.md)·[실제 자료와 한계](docs/data/kitchen-v4.md). Gemini 신규 지원을 제거하고 Claude는 하네스 보완 후 최길웅의 환경 검증/정이량 메일 회신으로 진행한다. 웹팀은 개발 중이며 구현 원본 접수·연결 검토는 별도다. 아래 릴리스/검사 숫자는 해당 과거 버전의 이력이다.
+
+출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. Codex 출품 설치와 실제 업무 연결을 검증했다. 제품군은 냉장고·전자레인지·식기세척기로 확대하며 Gemini는 철회, Claude native는 후순위다.
 
 [제품 v0.2.3 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.2.3) · [제품 파일만 포함한 배포 검증](docs/validation/product-v0.2.3.md). 이번 관련 로컬253검사와4입력 실제 실행을 확인했다. 원격 CI 상태는 배포 기록을 따르며 로컬 통과와 구분한다. 이전 v0.2.2/205검사와 v0.2.1/248검사 기록은 보존한다.
 
@@ -57,7 +59,7 @@ uv run python product-tools/cli.py retrieve_reviews --input evals/development/re
 uv run python -m unittest discover -s tests/product-tools -v
 ```
 
-- [출품 실행 방식](docs/decisions/product-runtime.md): 공통 업무 Skill·코드를 Codex·Claude Code·Gemini CLI에 각각 연결하는 방향을 선택했다. 공통 도구·Agent/Skill 원본과 Codex 설치·실제 업무 연결, Claude/Gemini 미검증을 구분한다. 위 시작 절차와 개발 폴더는 개발 체계용이다.
+- [출품 실행 방식](docs/decisions/product-runtime.md): 공통 업무 Skill·코드를 기존 실행기에 연결한다. 현재 Codex 주 실행/Claude 후순위이며 Gemini는 지원 철회했다. 공통 코드·파일 설치와 실제 native 업무 인수를 구분한다. 위 시작 절차와 개발 폴더는 개발 체계용이다.
 - [연구원 컨설팅 반영](docs/consultation/2026-10-10.md): 실제 리뷰·모델 선택·정확한 사양·업무 효과 기준.
 - [기술 확정](docs/decisions/stack-selection.md): 개발 기반·역할·검사·MCP와 출품 실행 선택·미채택 대안을 구분.
 - [실제 검증과 제한](docs/validation/development-harness.md): 정적 검사, 네이티브 위임, 구현·검사·통합의 근거.
@@ -91,16 +93,15 @@ uv run python adapters/codex/install.py --target C:/YOUR-NEW-PRODUCT-FOLDER
 
 현재 실제 설치 폴더는 `C:/Users/user/Documents/ChatGPT/LG-AX-product-codex`다. [설치·대화 계약](docs/contracts/codex-product.md)과 [실제 Codex 검증·Windows 권한 제한](docs/validation/codex-product.md)을 따른다. workspace-write 명령 실행기 준비 오류는 실패로 보존했고 전체 접근 모드에서 확인한다. doctor 성공이 권한·AI 품질 통과를 뜻하지 않는다.
 
-## Claude·Gemini 준비와 제출 재현
+## Claude 후순위 준비와 제출 재현
 
 공통 업무 원본을 각 환경의 Skill 위치와 진입 지침으로 설치한다. 개발 레포 밖의 **서로 다른 새 폴더**를 지정한다.
 
 ```powershell
 uv run python adapters/claude/install.py --target C:/NEW-CLAUDE-PRODUCT
-uv run python adapters/gemini/install.py --target C:/NEW-GEMINI-PRODUCT
 ```
 
-설치 폴더에서 `uv sync --locked`, `uv run python product-doctor.py`를 실행하고, 실행자 자신의 설치·로그인·폴더 신뢰/Skill 동의를 마친 CLI를 연다. 파일 설치기는 로그인·전역 설정·모델 호출을 하지 않는다. [설치 계약](docs/contracts/portable-product.md)과 [로컬 검사](docs/validation/portable-product.md)는 통과했지만 실제 Claude/Gemini 발견·업무·예외·사용량은 미검증이다. 팀원의 개발 체계 인수는 [별도 체크리스트](docs/evaluation/claude-native-handoff.md)를 따른다.
+설치 폴더에서 `uv sync --locked`, `uv run python product-doctor.py`를 실행하고, 실행자 자신의 설치·로그인·폴더 신뢰/Skill 동의를 마친 CLI를 연다. 파일 설치기는 로그인·전역 설정·모델 호출을 하지 않는다. [설치 계약](docs/contracts/portable-product.md)과 [로컬 검사](docs/validation/portable-product.md)는 통과했지만 현재 Claude 발견·업무·예외·사용량은 미검증이며 Gemini 활성지원은 철회했다. 팀원의 개발 체계 인수는 [별도 체크리스트](docs/evaluation/claude-native-handoff.md)를 따른다.
 
 ```powershell
 uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED-PRODUCT --archive C:/NEW-SOURCE.zip

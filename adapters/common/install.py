@@ -1,4 +1,4 @@
-"""Prepare isolated Claude/Gemini product files; no installation/auth/inference."""
+"""Prepare isolated Claude product files; no installation/auth/inference."""
 import argparse
 import hashlib
 import importlib.util
@@ -9,7 +9,6 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 PROFILES = {
     "claude": {"name": "Claude Code", "cli": "claude", "skills": ".claude/skills", "entry": "CLAUDE.md"},
-    "gemini": {"name": "Gemini CLI", "cli": "gemini", "skills": ".gemini/skills", "entry": "GEMINI.md"},
 }
 
 
@@ -25,6 +24,8 @@ def codex_source(root):
 
 
 def install(target, engine, root=ROOT):
+    if engine not in PROFILES:
+        raise ValueError("Unsupported runtime profile; Gemini support was withdrawn on 2026-10-11")
     profile = PROFILES[engine]
     root, target = root.resolve(strict=True), Path(target).expanduser().resolve()
     if target == root or target.is_relative_to(root) or root.is_relative_to(target):

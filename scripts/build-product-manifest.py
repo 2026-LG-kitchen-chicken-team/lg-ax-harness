@@ -26,7 +26,7 @@ def build():
         skills.append({"name": name, "description": description, "path": path.relative_to(ROOT).as_posix(), "operations": operations, "files": files})
     common = [ROOT / "agents/product-planning.md", ROOT / "product-tools/cli.py", *sorted((ROOT / "product-tools/product_tools").glob("*.py")),
               ROOT / "docs/contracts/common-tools.md", ROOT / "docs/contracts/product-planning.md", ROOT / "docs/contracts/web-evidence.md", ROOT / "docs/contracts/codex-product.md"]
-    return {"version": "product-skills-v1", "agent": "agents/product-planning.md", "skills": skills,
+    return {"version": "product-skills-v1", "agent": "agents/product-planning.md", "data_path": "data/business/lg-kitchen-v4", "skills": skills,
             "shared_files": [{"path": p.relative_to(ROOT).as_posix(), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in common],
             "native_installation_verified": False, "native_discovery_verified": False}
 

@@ -36,6 +36,7 @@ class ProductPackageTests(unittest.TestCase):
             original=archive.read_bytes()
             with zipfile.ZipFile(archive) as output:
                 self.assertFalse(any("private" in name or ".env" in name for name in output.namelist()))
+                self.assertFalse(any("gemini" in name.casefold() for name in output.namelist()))
                 self.assertFalse(any(b"TEST_ONLY_PRIVATE_SENTINEL" in output.read(name) for name in output.namelist()))
                 manifest=json.loads(output.read("submission-source-manifest.json"))
                 self.assertIn("not_final_submission",manifest["purpose"])
@@ -45,6 +46,14 @@ class ProductPackageTests(unittest.TestCase):
                 package.build("codex",base/"must-not-create",archive,root=source)
             self.assertEqual(original,archive.read_bytes())
             self.assertFalse((base/"must-not-create").exists())
+
+    def test_withdrawn_runtime_rejected_before_writing(self):
+        with tempfile.TemporaryDirectory(prefix="lg-package-withdrawn-") as tmp:
+            target,archive=Path(tmp)/"product",Path(tmp)/"source.zip"
+            with self.assertRaisesRegex(ValueError,"Unsupported"):
+                package.build("gemini",target,archive)
+            self.assertFalse(target.exists())
+            self.assertFalse(archive.exists())
 
 
 if __name__=="__main__":

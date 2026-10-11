@@ -1,5 +1,7 @@
 # 출품 상품기획 Agent·Skill 계약
 
+2026-10-11: 냉장고·전자레인지·식기세척기 지원과 Gemini 철회/Claude 후순위는 [최신 결정](../decisions/kitchen-scope-20261011.md)을 따른다. 새 concept에는 implementation_steps·validation_plan(metric/baseline/method/success_criterion/business_value/status=planned_not_measured)을 포함한다. 실제 효과를 자체 인증하지 않는다. 기존 assessment·최대2수정·조건부 초안/치수 보류 규칙은 유지한다.
+
 2026-10-10. 업무 생성과 해석은 네이티브 모델, 조회·출처·버전·저장 검사는 Python 일반 코드다. [Agent 지침](../../agents/product-planning.md), [Skill 목록](../../skills/manifest.json), [공통 Tool](common-tools.md)을 연결한다. 개발 체계의6역할·9Skill과 별도다. Agent1개·업무Skill5개·조건부 외부조사Skill1개를 채택했다. Skill6개는 서브에이전트6개를 뜻하지 않는다.
 
 ## 구현과 지원 상태

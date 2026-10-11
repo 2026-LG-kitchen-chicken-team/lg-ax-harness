@@ -21,7 +21,9 @@ def source_files(root):
         if not path.is_relative_to(root) or digest(path.read_bytes()) != entry["sha256"]:
             raise ValueError("Changed/missing source asset: " + entry["path"])
     paths = {entry["path"] for entry in listed} | {"skills/manifest.json"}
-    data = root / "data/business/lg-research-v3"
+    data = (root / manifest.get("data_path", "data/business/lg-research-v3")).resolve(strict=True)
+    if not data.is_relative_to((root / "data/business").resolve()):
+        raise ValueError("Business data must stay below data/business")
     paths.update(p.relative_to(root).as_posix() for p in data.iterdir() if p.is_file())
     paths.update(["THIRD_PARTY_NOTICES.md", "vendor/codex-harness/LICENSE", "vendor/codex-harness/NOTICE"])
     return manifest, sorted(paths)

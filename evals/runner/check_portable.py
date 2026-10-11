@@ -22,7 +22,7 @@ def main():
     spec.loader.exec_module(installer)
     base=Path(tempfile.mkdtemp(prefix="lg-portable-validation-")).resolve()
     records=[]
-    for engine in ("claude","gemini"):
+    for engine in installer.PROFILES:
         target=base/engine
         prepared=installer.install(target,engine)
         sync=subprocess.run(["uv","sync","--locked"],cwd=target,capture_output=True,text=True,encoding="utf-8",timeout=90)

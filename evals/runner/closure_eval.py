@@ -49,7 +49,7 @@ def private_report(report):
     return report
 
 
-def prepare(report):
+def prepare(report, specs=None, data_path=DATA):
     report = private_report(report)
     report.mkdir(parents=True, exist_ok=False)
     source = ev.freeze(ev.ROOT, report / "source")
@@ -57,7 +57,7 @@ def prepare(report):
     shutil.copytree(Path(__file__).parent, report / "runner", ignore=shutil.ignore_patterns("__pycache__"))
     base = Path(tempfile.mkdtemp(prefix="lg-closure-"))
     jobs = []
-    for name, identifier, model, cap, question in SPECS:
+    for name, identifier, model, cap, question in (SPECS if specs is None else specs):
         workspace = base / ("product-1" if name == "followup" else name)
         if name != "followup":
             ev.load_installer(report / "source").install(workspace)
@@ -66,12 +66,12 @@ def prepare(report):
                 raise RuntimeError("Locked workspace sync failed")
         case = {"id": identifier, "model_id": model, "turns": [question],
                 "constraints": {"max_concepts": cap, "hardware_allowed": False, "exclude_pains": []}}
-        data = ev.Dataset(workspace / DATA)
-        prompt = receipt.prompt(case, "product", DATA) + QUALIFICATION
+        data = ev.Dataset(workspace / data_path)
+        prompt = receipt.prompt(case, "product", data_path) + QUALIFICATION
         if name == "followup":
             prompt += "\n실제 추가 질문이다. 같은 native 대화·업무 session_id와 prior_turn_id로 이어가고 이전 후보를 변경·삭제하지 않는다."
         jobs.append({"name": name, "case": case, "arm": "product", "workspace": str(workspace),
-                     "data_path": DATA, "data_fingerprint": data.fingerprint, "prompt": prompt,
+                     "data_path": data_path, "data_fingerprint": data.fingerprint, "prompt": prompt,
                      "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(), "fault": None})
     ev.dump(report / "prepared.json", {"jobs": jobs, "source": source, "runner": runner, "limits": LIMITS,
         "evaluation_kind": "newly authored nonblind diagnostic; not independent held-out/general accuracy",

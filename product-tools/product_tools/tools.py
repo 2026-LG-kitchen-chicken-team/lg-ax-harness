@@ -17,8 +17,8 @@ class ProductTools:
             fail("needs_input", "Model has multiple snapshots; select the exact product/document version")
         model = candidates[0]
         planning = {"session_id": payload["session_id"], "request_key": payload["request_key"],
-                    "question": payload.get("question", "선택한 모델의 실제 리뷰에서 수납·정리·청소 불편을 찾아 기존 기능과 대조하고 근거 있는 개선안을 제안해 줘."),
-                    "product_family": "refrigerator", "model_scope": [{k: model[k] for k in ("model_id", "model_version", "document_version")}],
+                    "question": payload.get("question", "선택한 모델의 실제 사용 리뷰에서 불편을 찾아 기존 기능과 대조하고 근거 있는 상품·서비스 개선안을 제안해 줘."),
+                    "product_family": model["product_family"], "model_scope": [{k: model[k] for k in ("model_id", "model_version", "document_version")}],
                     "target_customer": payload.get("target_customer", "미확인: 리뷰에 드러난 사용자 맥락만 사용"),
                     "context": "모델 선택 중심 상품기획. 자료에 없는 불편·내부 치수·시장 효과를 추정하지 않는다.",
                     "constraints": payload.get("constraints", {"max_concepts": 3, "hardware_allowed": False, "exclude_pains": []}),
@@ -85,4 +85,7 @@ class ProductTools:
         if referenced != used:
             fail("unused_evidence", "Unused citations must be removed to keep evidence focused")
         return {**report, "contract_version": "product-contract-v1", "contract_valid": True,
+                "planning_detail_complete": bool(result["concepts"]) and all(
+                    c.get("implementation_steps") and c.get("validation_plan") for c in result["concepts"]),
+                "planning_detail_scope": "field presence only; no evaluation score or effect certification",
                 "semantic_checks_required": ["claim support", "existing-feature duplication", "excluded-pain meaning", "synthetic vs market interpretation", "manufacturing assumptions"]}
