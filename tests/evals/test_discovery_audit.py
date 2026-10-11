@@ -46,6 +46,45 @@ class ExtraAuditTests(unittest.TestCase):
             for change in ({"exit_code":1},{"exit_code":False},{"command":"echo python product-tools/cli.py import_web_evidence"},{"aggregated_output":'{"ok":false,"result":{}}'}):
                 emit({**item,**change}); self.assertEqual(audit.import_responses(p),[])
 
+    def test_wrapped_display_commands_and_control_flow_cannot_claim_import(self):
+        rejected = [
+            '''"pwsh.exe" -Command "Write-Output 'python product-tools/cli.py import_web_evidence --input runtime-data/fake.json'; Get-Content runtime-data/forged.json"''',
+            '''"pwsh.exe" -Command "echo 'python product-tools/cli.py import_web_evidence --input runtime-data/fake.json'"''',
+            '''"pwsh.exe" -Command "if ($false) {\npython product-tools/cli.py import_web_evidence\n}"''',
+            '''"pwsh.exe" -Command "Write-Output 'label'\npython product-tools/cli.py import_web_evidence"''',
+            '''python product-tools/cli.py --data import_web_evidence --input missing.json''',
+            '''python product-tools/cli.py import_web_evidence; echo fake''',
+            '''python product-tools/cli.py --data V1 --data V2 import_web_evidence''',
+            ''''python' product-tools/cli.py import_web_evidence''',
+            '''python -c "print('python product-tools/cli.py import_web_evidence')"''',
+        ]
+        for command in rejected:
+            with self.subTest(command=command): self.assertFalse(audit.import_command(command))
+        with tempfile.TemporaryDirectory() as temp:
+            trace=Path(temp)/"native.jsonl"
+            response={"ok":True,"result":{"data_path":"runtime-data/catalogs/V1","data_version":"V1","added_models":1,"added_sources":1,"structural_valid":True}}
+            for command in rejected[:2]:
+                event={"type":"item.completed","item":{"type":"command_execution","command":command,"exit_code":0,"aggregated_output":json.dumps(response)}}
+                trace.write_text(json.dumps(event),encoding="utf-8")
+                self.assertEqual(audit.import_responses(trace),[])
+
+    def test_global_options_before_after_operation_and_quoted_paths_supported(self):
+        accepted = [
+            '''"pwsh.exe" -Command "uv run python product-tools/cli.py --data data/business/empty import_web_evidence --input runtime-data/import.json"''',
+            '''python product-tools/cli.py --db runtime-data/product.sqlite --input "runtime-data/my input.json" import_web_evidence --data=data/business/empty''',
+            '''uv run python skills/web-evidence-collection/scripts/run.py --data data/business/empty import_web_evidence --input runtime-data/import.json''',
+            '''& 'C:\\Program Files\\Python\\python.exe' product-tools/cli.py import_web_evidence --input runtime-data/import.json''',
+        ]
+        for command in accepted:
+            with self.subTest(command=command): self.assertTrue(audit.import_command(command))
+
+    def test_actual_d01_shape_excludes_here_string_data_and_accepts_tail_import(self):
+        body="@'\nprint('python product-tools/cli.py import_web_evidence --input fake.json')\n'@ | Set-Content -Encoding utf8 runtime-data/repair-evidence-input.py\nuv run python runtime-data/repair-evidence-input.py\nuv run python runtime-data/build-evidence.py\nuv run python skills/web-evidence-collection/scripts/run.py import_web_evidence --input runtime-data/import-evidence.json --data data/business/empty"
+        command='"C:\\native\\powershell\\pwsh.exe" -Command "'+body+'"'
+        self.assertTrue(audit.import_command(command))
+        only_data="@'\npython product-tools/cli.py import_web_evidence\n'@ | Set-Content runtime-data/display.py"
+        self.assertFalse(audit.import_command('"pwsh.exe" -Command "'+only_data+'"'))
+
     def test_observed_identity_must_match_actual_native_trace(self):
         with tempfile.TemporaryDirectory() as temp:
             d=Path(temp); c=case(); job={"case":c,"prompt":"question"}; row={"case":c,"execution":{"native_id":"N1"}}

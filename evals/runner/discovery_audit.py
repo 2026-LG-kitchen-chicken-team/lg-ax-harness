@@ -51,15 +51,119 @@ def frozen_input(directory, job, row):
     return True
 
 
+def command_words(line):
+    """Literal words only: no interpolation, operators or shell evaluation."""
+    if any(c in line for c in ";|$`(){}\r\n"):
+        return None
+    words, end = [], 0
+    for match in re.finditer(r"'[^']*'|\"[^\"]*\"|[^\s'\"]+",line):
+        if line[end:match.start()].strip():
+            return None
+        raw = match.group()
+        words.append((raw[1:-1] if raw[:1] in ("'",'"') else raw,raw[:1] in ("'",'"')))
+        end = match.end()
+    if line[end:].strip() or not words:
+        return None
+    return words
+
+
+def python_call(line):
+    words = command_words(line)
+    if not words:
+        return None
+    call_operator = words[0][0] == "&" and not words[0][1]
+    if call_operator:
+        words = words[1:]
+    if not words or (words[0][1] and not call_operator):
+        return None
+    values = [word for word,_ in words]
+    executable = values[0].replace("\\","/").rsplit("/",1)[-1].lower()
+    if executable in ("uv","uv.exe"):
+        if values[1:3] != ["run","python"]:
+            return None
+        values = values[3:]
+    elif executable in ("python","python.exe","python3","python3.exe"):
+        values = values[1:]
+    else:
+        return None
+    if any("&" in word for word in values) or not values:
+        return None
+    return values
+
+
+def import_arguments(values):
+    script = values[0].replace("\\","/").removeprefix("./")
+    if script not in ("product-tools/cli.py","skills/web-evidence-collection/scripts/run.py",
+                       ".agents/skills/web-evidence-collection/scripts/run.py"):
+        return False
+    args, seen, operations, index = values[1:], set(), [], 0
+    while index < len(args):
+        argument = args[index]
+        flag = argument.split("=",1)[0]
+        if flag in ("--data","--db","--input"):
+            if flag in seen:
+                return False
+            seen.add(flag)
+            if "=" in argument:
+                value = argument.split("=",1)[1]
+            else:
+                index += 1
+                if index == len(args):
+                    return False
+                value = args[index]
+            if not value or (value.startswith("-") and value != "-"):
+                return False
+        else:
+            operations.append(argument)
+        index += 1
+    return operations == ["import_web_evidence"]
+
+
+def import_command(command):
+    """Recognize a restricted observed call grammar, not execution attestation.
+
+    One pwsh/powershell -Command wrapper, standalone Python lines, and literal
+    here-string -> Set-Content setup are supported. Display/conditional/pipeline
+    commands and dynamic invocations are deliberately outside this grammar.
+    """
+    wrapper = re.fullmatch(r'\s*(?:"[^"\r\n]*[/\\]?(?:pwsh|powershell)(?:\.exe)?"|(?:pwsh|powershell)(?:\.exe)?)\s+-Command\s+"([\s\S]*)"\s*',command,re.I)
+    body = wrapper.group(1) if wrapper else command
+    here, found = None, False
+    for line in body.splitlines():
+        if here:
+            close = re.fullmatch(r"\s*"+re.escape(here)+r"@\s*\|\s*Set-Content\s+(.+)",line,re.I)
+            if close:
+                if command_words(close.group(1)) is None:
+                    return False
+                here = None
+            elif re.match(r"\s*"+re.escape(here)+r"@",line):
+                return False
+            continue
+        start = re.fullmatch(r"\s*@(['\"])\s*",line)
+        if start:
+            here = start.group(1)
+            continue
+        if not line.strip():
+            continue
+        values = python_call(line)
+        if values is None:
+            return False
+        if import_arguments(values):
+            if found:
+                return False # ambiguous output from multiple imports
+            found = True
+        elif not (len(values) == 1 and re.fullmatch(r"runtime-data[/\\][A-Za-z0-9_.-]+\.py",values[0])):
+            return False
+    return found and here is None
+
+
 def import_responses(trace):
-    """Only successful actual CLI command events, never an echoed label."""
+    """Cross-check observed command events/stdout; not execution attestation."""
     responses = []
-    entry = re.compile(r"(?:product-tools[/\\]cli\.py|web-evidence-collection[/\\]scripts[/\\]run\.py)\s+import_web_evidence(?:\s|$)")
     for item in command_outputs(trace):
         command = item.get("command", "")
         if (type(item.get("exit_code")) is not int or item["exit_code"] != 0
-                or not entry.search(command) or not re.search(r"\bpython(?:\.exe)?\s+", command)
-                or re.match(r"\s*(?:echo|write-output)\b", command, re.I)):
+                or not import_command(command)):
             continue
         for line in item.get("aggregated_output", "").splitlines():
             try:
@@ -323,6 +427,7 @@ def audit(report, review_file=None):
                                 "auditor_sha256":base.ev.sha(Path(__file__)),
                                 "review_sha256":base.ev.sha(review_file) if review_file else None})
     result["limits"] += ["Identity review declarations and saved page labels do not prove manufacturer authority or tool execution",
+                         "Restricted command grammar plus stdout/snapshot linkage is observed cross-checking, not execution attestation; other shell forms remain unsupported",
                          "factual_summary is caller-authored; exact identity quote linkage does not certify all product facts"]
     return result
 
