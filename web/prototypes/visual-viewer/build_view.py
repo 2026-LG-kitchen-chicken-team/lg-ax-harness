@@ -8,12 +8,16 @@
     # export 전, 작업 중간에 모델이 쓴 화면만 보여줄 때
     python build_view.py --insights <pages가 있는 JSON> --focus <화면 id>
 
+    # 하네스 안의 자동 갱신(hook.py)·수동 열기(viewer.py open)는 이 모듈의 generate()를 부른다.
+
 Python 3.10 이상, 표준 라이브러리만 쓴다. 하네스 폴더에서는 `uv run python`으로 실행해도 된다.
 
 - export: export_session이 만든 세션 기록. 상태·근거·사용량·검토 기록은 여기서 그대로 읽는다.
 - insights: CLI의 모델이 쓴 해석(의견 묶음, 단계 자막, 제외 사유 등)과 직접 쓴 화면(pages). 묶음 건수는 source_id 목록 길이로 센다.
 - 이 스크립트는 생성·판단을 하지 않는다. 읽고, 세고, 화면 블록으로 배치만 한다. 형식은 README.md에 있다.
 - 브라우저에 뷰어를 열어 둔 채 다시 실행하면 화면이 2초 안에 새 데이터로 바뀐다(로컬 파일일 때).
+- insights의 session_id가 export와 다르면 쓰지 않는다. 같은 세션의 insights가 없으면 근거 대시보드에
+  의견 묶음 화면에는 insights가 필요하다는 안내를 넣는다. decision_notes는 모델이 붙인 구분 그대로 보여준다.
 """
 
 from __future__ import annotations
@@ -41,6 +45,8 @@ PLAN_FIELDS = [("metric", "지표"), ("baseline", "기준선"), ("method", "방�
 CLAIM_TONE = {"P": "red", "F": "blue", "RP": "orange", "C": "purple"}
 CLAIM_KIND = {"P": "현재 불편", "F": "기존 기능", "RP": "남은 불편", "C": "제안"}
 MATCHING_LABEL = {"explicit_model_verified": "모델 명시 확인", "product_page_association": "제품 페이지 연관"}
+BASIS = {"source_fact": ("원문 사실", "green"), "ai_interpretation": ("AI 해석", "purple"), "unverified": ("미확인", "orange")}
+INSIGHTS_HINT = "runtime-data/visual-viewer/insights-<이름>.json"
 
 HARNESS_STEPS = [
     {"icon": "📚", "title": "자료 조회", "text": "선택한 모델의 저장된 리뷰·공식 사양·설명서를 정확한 버전으로 조회합니다. `evidence-retrieval`"},
@@ -189,10 +195,11 @@ def read_turns(export: dict) -> list[dict]:
 # ---------------------------------------------------------------- insight resolution
 
 class Ctx:
-    def __init__(self, export: dict, export_path: Path, insights: dict):
+    def __init__(self, export: dict, export_path: Path, insights: dict, insights_state: str = "given"):
         self.export = export
         self.export_path = export_path
         self.ins = insights
+        self.insights_state = insights_state  # given | matched | missing | mismatch
         self.rows = read_turns(export)
         if not self.rows:
             raise SystemExit("export에 turn이 없습니다.")
@@ -210,6 +217,10 @@ class Ctx:
         for c in self.claims:
             for sid in c.get("source_ids") or []:
                 self.links.setdefault(sid, []).append(c["id"])
+        self.notes = self.result.get("decision_notes") or []
+        for i, note in enumerate(self.notes, 1):
+            for sid in note.get("source_ids") or []:
+                self.links.setdefault(sid, []).append(f"D{i}")
         self.groups = {g["key"]: g for g in insights.get("groups") or []}
         for g in self.groups.values():
             missing = [s for s in g.get("source_ids") or [] if s not in self.ev]
@@ -284,6 +295,7 @@ def page_overview(c: Ctx) -> list[dict]:
             reason = reason[:220] + "…"
         blocks.append({"type": "callout", "tone": "warning",
                        "text": f"현재 결과는 **{status_text(cur['status'])}** 상태입니다. {reason} (검토 메모 전체는 '후기 선별' 화면에 있습니다)"})
+    blocks += decision_note_blocks(c)
     if follow_rows:
         blocks.append({"type": "expander", "icon": "💬", "title": f"후속 질문 {len(follow_rows)}개", "blocks": [{
             "type": "table",
@@ -298,17 +310,14 @@ def page_overview(c: Ctx) -> list[dict]:
         {"type": "features", "items": HARNESS_STEPS},
         {"type": "heading", "icon": "📋", "text": "이 화면 쓰는 법"},
         {"type": "steps", "items": [
-            "CLI에서 업무를 마치고 `export_session`으로 세션을 내보냅니다.",
-            "모델이 이번 결과의 해석(의견 묶음·자막·제외 사유)을 `insights-<모델>.json`에 씁니다.",
-            "`build_view.py`를 실행하면 `view-data.js`가 만들어지고 `--open`이면 브라우저가 열립니다.",
-            "브라우저를 열어 둔 채 다시 실행하면 2초 안에 새 데이터로 바뀝니다. `--focus`로 보여줄 단계를 고릅니다.",
-            "공유할 때는 `--standalone`으로 데이터가 들어 있는 HTML 한 파일을 만듭니다.",
+            "CLI(Claude Code·Codex)에서 질문하면 하네스가 결과를 `runtime-data/exports`에 export로 저장합니다.",
+            "훅을 설치했다면 새 export가 생길 때 이 화면을 다시 만들고, CLI 세션마다 처음 한 번 브라우저를 엽니다.",
+            f"의견 묶음·자막·제외 사유는 export에 없는 모델 해석입니다. 같은 session_id로 `{INSIGHTS_HINT}`를 쓰면 함께 그립니다.",
+            "브라우저를 열어 둔 채면 2초 안에 새 데이터로 바뀝니다. 훅이 없거나 화면을 닫았다면 아래 명령으로 직접 엽니다.",
+            "공유할 때는 `build_view.py --standalone`으로 데이터가 들어 있는 HTML 한 파일을 만듭니다.",
         ]},
-        {"type": "code", "text": "# 뷰어 폴더에서 실행 (Python 3.10 이상, 표준 라이브러리만 사용)\n"
-                                 "python build_view.py \\\n"
-                                 "    --export <하네스 runtime-data/exports의 세션 JSON> \\\n"
-                                 "    --insights insights-<모델>.json \\\n"
-                                 "    --focus dashboard --open"},
+        {"type": "code", "text": "# 하네스 폴더에서 실행 (표준 라이브러리만 사용, 모델·업무 호출 없음)\n"
+                                 "uv run python web/prototypes/visual-viewer/viewer.py open --latest"},
         {"type": "expander", "icon": "🆔", "title": "세션 정보", "blocks": [{"type": "files", "items": [
             {"label": "session_id", "value": c.export.get("session_id", "미기록")},
             {"label": "현재 turn", "value": cur["turn_id"]},
@@ -317,6 +326,40 @@ def page_overview(c: Ctx) -> list[dict]:
         ]}]},
     ]
     return blocks
+
+
+def decision_note_blocks(c: Ctx) -> list[dict]:
+    """결과의 decision_notes(판단 메모). basis는 모델이 붙인 구분이며 공식 인용·의미 검증이 아니다."""
+    if not c.notes:
+        return []
+    rows = []
+    for i, note in enumerate(c.notes, 1):
+        label, tone = BASIS.get(note.get("basis"), (f"미지원({note.get('basis')})", "gray"))
+        rows.append({"id": f"D{i}", "basis": {"text": label, "tone": tone}, "text": note.get("text", ""),
+                     "src": [{"text": s, "tone": TYPE_TONE.get(src_type(s), "gray")} for s in note.get("source_ids") or []]
+                     or [{"text": "근거 없음", "tone": "orange"}]})
+    return [
+        {"type": "heading", "icon": "🧭", "text": f"판단 메모 {len(rows)}개"},
+        {"type": "table", "count": False,
+         "columns": [{"key": "id", "label": "메모", "kind": "mono"}, {"key": "basis", "label": "구분(모델 보고)", "kind": "pill"},
+                     {"key": "text", "label": "내용", "kind": "wide"}, {"key": "src", "label": "근거", "kind": "chips"}],
+         "rows": rows,
+         "source": "현재 결과의 decision_notes · 구분은 모델이 붙인 라벨이며 공식 인용이나 의미 검증이 아닙니다"},
+    ]
+
+
+def insights_notice(c: Ctx) -> list[dict]:
+    """같은 세션의 insights가 없으면 의견 묶음 화면이 비는 이유와 만드는 방법을 알린다."""
+    if c.insights_state not in ("missing", "mismatch"):
+        return []
+    sid = str(c.export.get("session_id") or "")
+    why = ("insights 파일의 session_id가 이 export와 달라 쓰지 않았습니다."
+           if c.insights_state == "mismatch" else "이 세션과 session_id가 같은 insights 파일이 없습니다.")
+    return [{"type": "callout", "tone": "info", "text": (
+        f"**의견 묶음 화면에는 insights 파일이 필요합니다.** {why} 그래서 의견 묶음 도넛·구분별 막대·후기 원문 비교를 "
+        "그리지 않았고, 아래 지표는 결과 구조의 항목 수만 셉니다. 의견 묶음은 export에 없는 모델 해석입니다. "
+        f"보려면 `{INSIGHTS_HINT}`에 이 세션의 session_id `{sid}`와 groups를 써 두세요(README의 insights 형식). "
+        "다음 export 때나 `viewer.py open --latest`로 다시 만들 때 반영됩니다.")}]
 
 
 def page_dashboard(c: Ctx) -> list[dict]:
@@ -339,7 +382,7 @@ def page_dashboard(c: Ctx) -> list[dict]:
         ]
         kpi_source = "insights 없이 결과 구조의 항목 수를 센 값"
     groups = list(c.groups.values())
-    blocks = [{"type": "section", "text": "핵심 지표"}, {"type": "kpis", "items": kpis, "source": kpi_source}]
+    blocks = insights_notice(c) + [{"type": "section", "text": "핵심 지표"}, {"type": "kpis", "items": kpis, "source": kpi_source}]
     if groups:
         all_ids = [s for g in groups for s in g.get("source_ids") or []]
         donut = {"type": "donut", "title": (ins.get("groups_title") or "의견 묶음") + " (모델 해석)", "unit": "건", "center_label": "관측 의견",
@@ -678,10 +721,10 @@ def page_export(c: Ctx) -> list[dict]:
     review = cur["validation"].get("review") or {}
     raw = c.export_path.read_bytes()
     sha = hashlib.sha256(raw).hexdigest()
-    try:
-        rel_project = c.export_path.resolve().relative_to(HERE.parent.parent).as_posix()
-    except ValueError:
-        rel_project = c.export_path.resolve().as_posix()
+    # 사용자 이름이 든 절대 경로를 화면·공유 보고서에 넣지 않는다.
+    resolved = c.export_path.resolve()
+    in_exports = resolved.parent.name == "exports" and resolved.parent.parent.name == "runtime-data"
+    rel_project = f"runtime-data/exports/{resolved.name}" if in_exports else resolved.name
     usage = c.export.get("usage_summary") or {}
     totals = usage.get("totals") or {}
 
@@ -725,7 +768,9 @@ def page_export(c: Ctx) -> list[dict]:
         {"type": "section", "text": "미확인 항목"},
         {"type": "list", "items": c.ins.get("unresolved") or ["insights에 미확인 항목이 없습니다."]},
         {"type": "expander", "icon": "🔍", "title": "검토가 요구하는 의미 검사",
-         "blocks": [{"type": "list", "items": review.get("semantic_checks_required") or []}]},
+         "blocks": [{"type": "list", "items": (review.get("semantic_checks_required") or cur["validation"].get("semantic_checks_required") or [])
+                     + ([f"판단 메모 구분 범위: {cur['validation']['decision_basis_scope']}"]
+                        if cur["validation"].get("decision_basis_scope") else [])}]},
     ]
 
 
@@ -862,56 +907,101 @@ def build_requests_only(export: dict, export_path: Path, ins: dict, focus: str |
 
 
 def write_atomic(path: Path, text: str) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
     tmp.write_text(text, encoding="utf-8", newline="\n")
     os.replace(tmp, path)
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="하네스 세션 export → 시각자료 뷰어 데이터")
-    ap.add_argument("--export", type=Path, help="export_session이 만든 세션 JSON (없으면 insights의 pages만 그림)")
-    ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
-    ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + " 또는 insights pages의 id")
-    ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
-    ap.add_argument("--open", action="store_true", help="뷰어를 기본 브라우저로 연다")
-    args = ap.parse_args()
-    if not args.export and not args.insights:
-        ap.error("--export나 --insights 중 하나는 필요합니다.")
+def auto_focus(export: dict | None) -> str | None:
+    """완료된 결과는 근거 대시보드, 보류·입력 필요·실패·turn 없음은 요청·개요를 먼저 보여준다."""
+    if not export or not export.get("turns"):
+        return "overview"
+    rows = read_turns(export)
+    valid = [r for r in rows if r["valid"]]
+    current = (valid or rows)[-1]
+    return "dashboard" if current["status"] == "completed" else "overview"
 
-    insights = load_json(args.insights) if args.insights else {}
-    export = load_json(args.export) if args.export else None
+
+def insights_state(export: dict | None, insights: dict, given: bool) -> str:
+    """missing: insights 없음, mismatch: 다른 세션, matched: 같은 세션, given: session_id 없이 직접 준 파일."""
+    if not given:
+        return "missing"
+    sid = insights.get("session_id")
+    if export is None or not sid:
+        return "given"
+    return "matched" if sid == export.get("session_id") else "mismatch"
+
+
+def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
+             standalone: Path | None = None, out_dir: Path | None = None) -> dict:
+    """view를 out_dir(기본: 이 폴더)의 view-data.js로 쓰고 요약을 돌려준다. focus="auto"는 상태로 고른다.
+
+    out_dir가 이 폴더가 아니면 index.html도 그 폴더에 복사한다(하네스의 runtime-data/visual-viewer).
+    """
+    warnings.clear()
+    out_dir = Path(out_dir) if out_dir else HERE
+    insights = load_json(insights_path) if insights_path else {}
+    export = load_json(export_path) if export_path else None
+    state = insights_state(export, insights, insights_path is not None)
+    if state == "mismatch":
+        warn(f"insights {Path(insights_path).name}의 session_id가 export와 달라 쓰지 않았습니다.")
+        insights = {}
+    if focus == "auto":
+        focus = auto_focus(export)
     if export is not None and not export.get("turns"):
-        view = build_requests_only(export, args.export, insights, args.focus)
+        view = build_requests_only(export, export_path, insights, focus)
     else:
-        view = build(Ctx(export, args.export, insights) if export else None, insights, args.focus)
+        view = build(Ctx(export, export_path, insights, state) if export else None, insights, focus)
     payload = json.dumps(view, ensure_ascii=False, indent=1)
 
-    data_path = HERE / "view-data.js"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    page = HERE / "index.html"
+    if out_dir.resolve() != HERE:
+        target = out_dir / "index.html"
+        html = page.read_text(encoding="utf-8")
+        if not target.is_file() or target.read_text(encoding="utf-8") != html:
+            write_atomic(target, html)
+        page = target
+    data_path = out_dir / "view-data.js"
     write_atomic(data_path, "/* build_view.py가 만든 파일입니다. 직접 고치지 말고 다시 생성하세요. */\nwindow.LGAX_VIEW = " + payload + ";\n")
-    outputs = {"view_data": data_path.as_posix()}
+    outputs = {"view_data": data_path.as_posix(), "index": page.as_posix()}
 
-    if args.standalone:
+    if standalone:
         html = (HERE / "index.html").read_text(encoding="utf-8")
         tag = '<script src="view-data.js" charset="utf-8"></script>'
         if tag not in html:
             raise SystemExit("index.html에서 view-data.js 태그를 찾지 못했습니다.")
         # 단일 파일은 옮겨서 공유하므로 이 폴더 기준 상대 경로 링크(export 열기)는 뺀다.
         shared = json.loads(payload)
-        for page in shared["pages"]:
-            for block in page["blocks"]:
+        for pg in shared["pages"]:
+            for block in pg["blocks"]:
                 if block.get("type") == "files":
                     block.pop("href", None)
                     block.pop("href_label", None)
         shared_payload = json.dumps(shared, ensure_ascii=False, indent=1)
         inline = "<script>window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = " + shared_payload.replace("</", "<\\/") + ";</script>"
-        write_atomic(args.standalone, html.replace(tag, inline))
-        outputs["standalone"] = args.standalone.as_posix()
+        write_atomic(Path(standalone), html.replace(tag, inline))
+        outputs["standalone"] = Path(standalone).as_posix()
+    return {"ok": True, "pages": len(view["pages"]), "focus": view["focus"], "insights": state,
+            "outputs": outputs, "warnings": list(warnings)}
 
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="하네스 세션 export → 시각자료 뷰어 데이터")
+    ap.add_argument("--export", type=Path, help="export_session이 만든 세션 JSON (없으면 insights의 pages만 그림)")
+    ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
+    ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + ", insights pages의 id, 또는 auto(상태로 선택)")
+    ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
+    ap.add_argument("--out-dir", type=Path, help="view-data.js·index.html을 둘 폴더 (기본: 이 폴더)")
+    ap.add_argument("--open", action="store_true", help="뷰어를 기본 브라우저로 연다")
+    args = ap.parse_args()
+    if not args.export and not args.insights:
+        ap.error("--export나 --insights 중 하나는 필요합니다.")
+    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir)
     if args.open:
-        webbrowser.open((HERE / "index.html").as_uri())
-
-    print(json.dumps({"ok": True, "pages": len(view["pages"]), "focus": view["focus"], "outputs": outputs, "warnings": warnings},
-                     ensure_ascii=False, indent=1))
+        webbrowser.open(Path(summary["outputs"]["index"]).resolve().as_uri())
+    sys.stdout.reconfigure(encoding="utf-8")
+    print(json.dumps(summary, ensure_ascii=False, indent=1))
     return 0
 
 
