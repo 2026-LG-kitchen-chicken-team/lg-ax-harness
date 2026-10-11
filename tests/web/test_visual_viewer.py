@@ -1,10 +1,11 @@
 """Visual viewer prototype: builder, CLI hook and installer on synthetic v0.7.0 exports.
 
-All exports here are generated at test time through the real product-tools save/export
-path, with text marked "[합성 시험 자료]". They are code fixtures, not AI or customer
-results. No test opens a browser, runs a business question or calls a model.
+Every export here is generated at test time through the real product-tools save/export path,
+with text marked "[합성 시험 자료]". They are code fixtures, not AI or customer results.
+No test opens a browser, runs a business question, starts Codex/Claude or calls a model.
 """
 import contextlib
+import hashlib
 import importlib.util
 import io
 import json
@@ -30,8 +31,10 @@ SYNTH = "[합성 시험 자료]"
 FAMILIES = (("refrigerator", "냉장고", "B502S33", "REVIEW-B502S33-01", "SPEC-B502S33-02"),
             ("microwave", "전자레인지", "MWJ25E", "REVIEW-MWJ25E-01", "SPEC-MWJ25E-02"),
             ("dishwasher", "식기세척기", "DUBJ2EA", "REVIEW-DUBJ2EA-01", "SPEC-DUBJ2EA-03"))
+M, RID, FID = "MWJ25E", "REVIEW-MWJ25E-01", "SPEC-MWJ25E-02"
 EXPORTS: dict[str, Path] = {}
 _TMP = None
+_ENV = {}
 
 
 def load(name):
@@ -47,77 +50,173 @@ hook = load("hook")
 viewer = load("viewer")
 
 
-def completed(conv, store, model, rid, fid):
-    bundle = conv.open_request_bundle({"question": f"{SYNTH} {model} 불편 개선 시험", "model_id": model, "user_submitted": True})
-    value = bundle["candidate_template"]
-    scope = bundle["turn"]["input"]["model_scope"][0]
-    result = value["result"]
-    result.update(
-        status="completed",
-        pains=[{"id": "p1", "text": f"{SYNTH} 현재 불편", "source_ids": [rid]}],
-        existing_features=[{"id": "f1", "text": f"{SYNTH} 기존 기능", "source_ids": [fid]}],
-        remaining_pains=[{"id": "r1", "text": f"{SYNTH} 남은 불편", "source_ids": [rid, fid]}],
-        concepts=[{"id": "c1", "text": f"{SYNTH} 제안", "source_ids": [rid, fid], "requirements": [f"{SYNTH} 조건"],
-                   "requires_hardware": False, "assumptions": [f"{SYNTH} 효과 미측정"],
-                   "implementation_steps": [f"{SYNTH} 1단계 시제품", f"{SYNTH} 2단계 과업 시험"],
-                   "validation_plan": {"metric": f"{SYNTH} 과업 시간", "baseline": "현행", "method": "동일 과업 비교",
-                                       "success_criterion": "시험 전 합의", "business_value": "가설", "status": "planned_not_measured"}}],
-        assumptions=[f"{SYNTH} 코드 시험용"],
-        evidence_refs=store.tools.select_evidence(scope, [rid, fid])["evidence_refs"],
-        decision_notes=[{"text": f"{SYNTH} 판단 메모", "source_ids": [rid], "basis": "ai_interpretation"}])
-    checks = [{"claim_id": c["id"], "source_ids": c["source_ids"], "support_status": "supported", "scope_relation": "current_model",
-               "rationale": "code fixture"} for key in ("pains", "existing_features", "remaining_pains", "concepts") for c in result[key]]
-    value["assessment"] = {
-        "claim_checks": checks,
-        "feature_matches": [{"remaining_pain_id": "r1", "pain_id": "p1", "feature_source_ids": [fid], "resolution": "unresolved", "rationale": "fixture"}],
-        "concept_links": [{"concept_id": "c1", "remaining_pain_ids": ["r1"], "duplicates_existing": False, "geometry_required": False,
-                           "geometry_known": False, "geometry_source_ids": [], "rationale": "fixture"}]}
-    saved = conv.save_and_export(value)
-    assert saved["save"]["accepted"] and saved["export"], saved
-    return saved["export"]["path"]
+# ---------------------------------------------------------------- synthetic exports through real product-tools
+
+class Gen:
+    def __init__(self, work: Path, data: str):
+        for name in ("skills/manifest.json", "agents/product-planning.md"):
+            p = work / name
+            p.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / name, p)
+        self.work = work
+        self.store = StateStore(work / "runtime-data/product.sqlite", Dataset(ROOT / data))
+        self.conv = Conversation(self.store, work)
+
+    def keep(self, name: str, rel: str):
+        EXPORTS[name] = self.work / rel
+
+    def author(self, value, scope, rid, fid, unsupported=None, notes=None):
+        r = value["result"]
+        r.update(status="completed",
+                 pains=[{"id": "p1", "text": f"{SYNTH} 현재 불편", "source_ids": [rid]}],
+                 existing_features=[{"id": "f1", "text": f"{SYNTH} 기존 기능", "source_ids": [fid]}],
+                 remaining_pains=[{"id": "r1", "text": f"{SYNTH} 남은 불편", "source_ids": [rid, fid]}],
+                 concepts=[{"id": "c1", "text": f"{SYNTH} 제안", "source_ids": [rid, fid], "requirements": [f"{SYNTH} 조건"],
+                            "requires_hardware": False, "assumptions": [f"{SYNTH} 효과 미측정"],
+                            "implementation_steps": [f"{SYNTH} 1단계 시제품", f"{SYNTH} 2단계 과업 시험"],
+                            "validation_plan": {"metric": f"{SYNTH} 과업 시간", "baseline": "현행", "method": "동일 과업 비교",
+                                                "success_criterion": "시험 전 합의", "business_value": "가설", "status": "planned_not_measured"}}],
+                 assumptions=[f"{SYNTH} 코드 시험용"],
+                 evidence_refs=self.store.tools.select_evidence(scope, [rid, fid])["evidence_refs"])
+        if notes:
+            r["decision_notes"] = notes
+        checks = [{"claim_id": c["id"], "source_ids": c["source_ids"], "support_status": "supported", "scope_relation": "current_model",
+                   "rationale": "code fixture"} for key in ("pains", "existing_features", "remaining_pains", "concepts") for c in r[key]]
+        if unsupported:
+            checks[0]["support_status"] = unsupported
+        value["assessment"] = {
+            "claim_checks": checks,
+            "feature_matches": [{"remaining_pain_id": "r1", "pain_id": "p1", "feature_source_ids": [fid], "resolution": "unresolved", "rationale": "fixture"}],
+            "concept_links": [{"concept_id": "c1", "remaining_pain_ids": ["r1"], "duplicates_existing": False, "geometry_required": False,
+                               "geometry_known": False, "geometry_source_ids": [], "rationale": "fixture"}]}
+        return value
+
+    def bundle(self, question, **extra):
+        return self.conv.open_request_bundle({"question": f"{SYNTH} {question}", "user_submitted": True, **extra})
+
+    def completed(self, name, model, rid, fid, **extra):
+        b = self.bundle(f"{model} 불편 개선 시험", model_id=model, **extra)
+        v = self.author(b["candidate_template"], b["turn"]["input"]["model_scope"][0], rid, fid,
+                        notes=[{"text": f"{SYNTH} 판단 메모", "source_ids": [rid], "basis": "ai_interpretation"}])
+        saved = self.conv.save_and_export(v)
+        assert saved["save"]["accepted"], saved["save"]
+        self.keep(name, saved["export"]["path"])
+        return v
+
+    def close(self):
+        self.store.close()
 
 
-def held(conv, store):
-    bundle = conv.open_request_bundle({"question": f"{SYNTH} 보류 시험", "model_id": "MWJ25E", "user_submitted": True})
-    value = bundle["candidate_template"]
-    scope = bundle["turn"]["input"]["model_scope"][0]
-    value["result"].update(status="held", validation_findings=[f"{SYNTH} 내부 치수 근거 없음"],
-                           evidence_refs=store.tools.select_evidence(scope, ["REVIEW-MWJ25E-01"])["evidence_refs"],
-                           decision_notes=[{"text": f"{SYNTH} 원문 범위", "source_ids": ["REVIEW-MWJ25E-01"], "basis": "source_fact"},
+def make_exports(base: Path):
+    g = Gen(base / "product", "data/business/lg-kitchen-v4")
+    try:
+        for family, _, model, rid, fid in FAMILIES:
+            g.completed(family, model, rid, fid)
+        # 보류 결과 + 판단 메모(원문 사실·근거 없는 미확인)
+        b = g.bundle("보류 시험", model_id=M)
+        v = b["candidate_template"]
+        v["result"].update(status="held", validation_findings=[f"{SYNTH} 내부 치수 근거 없음"],
+                           evidence_refs=g.store.tools.select_evidence(b["turn"]["input"]["model_scope"][0], [RID])["evidence_refs"],
+                           decision_notes=[{"text": f"{SYNTH} 원문 범위", "source_ids": [RID], "basis": "source_fact"},
                                            {"text": f"{SYNTH} 근거 없는 추정", "source_ids": [], "basis": "unverified"}])
-    saved = conv.save_and_export(value)
-    assert saved["save"]["accepted"] and saved["export"], saved
-    return saved["export"]["path"]
+        saved = g.conv.save_and_export(v)
+        assert saved["save"]["accepted"]
+        g.keep("held", saved["export"]["path"])
+        # 거절 1회(수정 필요) → 3회(보류)
+        b = g.bundle("거절 시험", model_id=M)
+        scope = b["turn"]["input"]["model_scope"][0]
+        template = b["candidate_template"]
+        v = g.author(template, scope, RID, FID, unsupported="unsupported")
+        saved = g.conv.save_and_export(v)
+        assert not saved["save"]["accepted"] and saved["save"]["turn"]["status"] == "needs_revision"
+        g.keep("reject1", saved["export"]["path"])
+        for k in (1, 2):
+            v = g.author({"session_id": v["session_id"], "turn_id": v["turn_id"], "result_key": f"candidate-{k}", "expected_result_version": k,
+                          "result": dict(template["result"], revisions=k), "assessment": {}}, scope, RID, FID, unsupported="uncertain")
+            saved = g.conv.save_and_export(v)
+        assert saved["save"]["turn"]["status"] == "held"
+        g.keep("reject3", saved["export"]["path"])
+        # 완료 뒤 모르는 모델 후속 → 조사 보류(turn 없음)
+        v = g.completed("followup_base", M, RID, FID)
+        r = g.conv.open_request_bundle({"question": f"{SYNTH} 후속 ZZZ123", "session_id": v["session_id"], "prior_turn_id": v["turn_id"],
+                                        "model_id": "ZZZ123", "user_submitted": True})
+        assert r["status"] == "research_required"
+        g.conv.record_request_research({"session_id": v["session_id"], "request_key": r["request_key"], "event_key": "e1",
+                                        "expected_request_version": r["request_version"], "status": "held",
+                                        "reason": f"{SYNTH} HTTP403 보류 사유", "observation_refs": []})
+        g.keep("followup_held", g.conv.export_session({"session_id": v["session_id"]})["path"])
+        # 사용량: 출력 토큰 미측정 → 일부 측정
+        b = g.bundle("사용량 시험", model_id=M)
+        t = b["turn"]
+        g.store.record_usage(t["session_id"], t["turn_id"], {"call_id": "c1", "status": "succeeded", "input_tokens": 1000, "output_tokens": None,
+                                                             "cache_tokens": None, "reasoning_tokens": None, "cost_usd": None})
+        saved = g.conv.save_and_export(g.author(b["candidate_template"], t["input"]["model_scope"][0], RID, FID))
+        g.keep("usage_out_null", saved["export"]["path"])
+        g.store.record_usage(t["session_id"], t["turn_id"], {"call_id": "c2", "status": "succeeded", "input_tokens": None, "output_tokens": 50,
+                                                             "cache_tokens": None, "reasoning_tokens": None, "cost_usd": "0.01"})
+        g.keep("usage_partial", g.conv.export_session({"session_id": t["session_id"]})["path"])
+        # 제품군 카탈로그(냉장고 3개 모델 중 T876MQQ012 근거)
+        b = g.bundle("냉장고 제품군 시험", product_family="refrigerator")
+        scope = [s for s in b["turn"]["input"]["model_scope"] if s["model_id"] == "T876MQQ012"][0]
+        saved = g.conv.save_and_export(g.author(b["candidate_template"], scope, "REVIEW-T876MQQ012-01", "SPEC-T876MQQ012-02"))
+        assert saved["save"]["accepted"]
+        g.keep("family_catalog", saved["export"]["path"])
+        # 여러 turn: 제외 조건 → 셋째 취소(후보 없음) → 넷째 진행 중
+        v1 = g.completed("e_first", M, RID, FID)
+        b2 = g.conv.open_request_bundle({"question": f"{SYNTH} E 둘째", "session_id": v1["session_id"], "prior_turn_id": v1["turn_id"], "user_submitted": True,
+                                         "constraints": {"max_concepts": 1, "hardware_allowed": False, "exclude_pains": [f"{SYNTH} 소음제외"]}})
+        v2 = g.author(b2["candidate_template"], b2["turn"]["input"]["model_scope"][0], RID, FID)
+        saved = g.conv.save_and_export(v2)
+        g.keep("two_turns", saved["export"]["path"])
+        b3 = g.conv.open_request_bundle({"question": f"{SYNTH} E 셋째 취소", "session_id": v1["session_id"], "prior_turn_id": v2["turn_id"], "user_submitted": True})
+        g.store.cancel_turn(v1["session_id"], b3["turn"]["turn_id"], "cx", f"{SYNTH} 셋째 취소 사유", 0, True)
+        g.keep("third_cancelled", g.conv.export_session({"session_id": v1["session_id"]})["path"])
+        g.conv.open_request_bundle({"question": f"{SYNTH} E 넷째 진행 중", "session_id": v1["session_id"], "prior_turn_id": v2["turn_id"], "user_submitted": True})
+        g.keep("fourth_pending", g.conv.export_session({"session_id": v1["session_id"]})["path"])
+        # 거절 뒤 취소
+        b = g.bundle("거절 뒤 취소", model_id=M)
+        v = g.author(b["candidate_template"], b["turn"]["input"]["model_scope"][0], RID, FID, unsupported="unsupported")
+        g.conv.save_and_export(v)
+        g.store.cancel_turn(v["session_id"], v["turn_id"], "cf", f"{SYNTH} 사용자 취소 사유", 1, True)
+        g.keep("cancel_after_reject", g.conv.export_session({"session_id": v["session_id"]})["path"])
+        # 제품 미지정 → 입력 필요(turn 없음)
+        r = g.bundle("제품 미지정")
+        assert r["status"] == "needs_input"
+        g.keep("needs_input", g.conv.export_session({"session_id": r["session_id"]})["path"])
+    finally:
+        g.close()
+    s = Gen(base / "synthetic", "data/synthetic/kitchen-v1")
+    try:
+        b = s.bundle("합성 카탈로그 시험", model_id="AX-R302")
+        saved = s.conv.save_and_export(s.author(b["candidate_template"], b["turn"]["input"]["model_scope"][0],
+                                                "REV-AX-R302-1.0-01", "DOC-AX-R302-1.0-01"))
+        assert saved["save"]["accepted"]
+        s.keep("synthetic_catalog", saved["export"]["path"])
+    finally:
+        s.close()
 
 
 def setUpModule():
     global _TMP
-    os.environ["LGAX_VIEWER_NO_OPEN"] = "1"
     _TMP = tempfile.TemporaryDirectory(prefix="lgax-viewer-fixtures-")
-    work = Path(_TMP.name) / "product"
-    for name in ("skills/manifest.json", "agents/product-planning.md"):
-        p = work / name
-        p.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(ROOT / name, p)
-    store = StateStore(work / "runtime-data/product.sqlite", Dataset(ROOT / "data/business/lg-kitchen-v4"))
-    try:
-        conv = Conversation(store, work)
-        for family, _, model, rid, fid in FAMILIES:
-            EXPORTS[family] = work / completed(conv, store, model, rid, fid)
-        EXPORTS["held"] = work / held(conv, store)
-    finally:
-        store.close()
-    requests_only = {"session_id": "synthetic-requests-only", "turns": [], "semantic_status": "unverified", "acceptance_ready": False,
-                     "usage_summary": {"status": "unknown"},
-                     "requests": [{"input": {"question": f"{SYNTH} 조사 보류"}, "turn_id": None, "request_version": 1, "events": [],
-                                   "response": None, "research_usage": {"status": "unknown"}}]}
-    EXPORTS["requests_only"] = Path(_TMP.name) / "export-synthetic-requests-only.json"
-    EXPORTS["requests_only"].write_text(json.dumps(requests_only, ensure_ascii=False), encoding="utf-8")
+    codex_home = Path(_TMP.name) / "codexhome"
+    codex_home.mkdir()
+    for key, value in (("LGAX_VIEWER_NO_OPEN", "1"), ("CODEX_HOME", str(codex_home))):
+        _ENV[key] = os.environ.get(key)
+        os.environ[key] = value
+    make_exports(Path(_TMP.name))
 
 
 def tearDownModule():
+    for key, value in _ENV.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
     _TMP.cleanup()
 
+
+# ---------------------------------------------------------------- helpers
 
 def read_view(out_dir: Path) -> dict:
     text = (out_dir / "view-data.js").read_text(encoding="utf-8")
@@ -132,8 +231,37 @@ def blob(value) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def session_of(path: Path) -> str:
-    return json.loads(path.read_text(encoding="utf-8"))["session_id"]
+def export_of(key: str) -> dict:
+    return json.loads(EXPORTS[key].read_text(encoding="utf-8"))
+
+
+def current_turn(key: str) -> str:
+    return build_view.current_row(build_view.read_turns(export_of(key)))["turn_id"]
+
+
+def rename_source(value, old: str, new: str):
+    if isinstance(value, dict):
+        return {k: rename_source(v, old, new) for k, v in value.items()}
+    if isinstance(value, list):
+        return [rename_source(v, old, new) for v in value]
+    return new if value == old else value
+
+
+def git_bash() -> str | None:
+    """Git Bash (WSL의 System32 bash가 아님). PowerShell·cmd에서 돌려도 찾는다."""
+    if os.name != "nt":
+        return shutil.which("bash")
+    candidates = []
+    git = shutil.which("git")
+    if git:
+        root = Path(git).resolve().parents[1]
+        candidates += [root / "bin" / "bash.exe", root / "usr" / "bin" / "bash.exe"]
+    candidates.append(Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Git" / "bin" / "bash.exe")
+    for path in candidates:
+        if path.is_file():
+            return str(path)
+    found = shutil.which("bash")
+    return found if found and "system32" not in found.lower() else None
 
 
 class Harness:
@@ -147,15 +275,24 @@ class Harness:
         self.exports.mkdir(parents=True)
         self.out = root / "runtime-data" / "visual-viewer"
 
-    def add(self, key: str, name: str | None = None) -> Path:
+    def add(self, key: str, name: str | None = None, data: dict | None = None) -> Path:
         dest = self.exports / (name or EXPORTS[key].name)
-        shutil.copyfile(EXPORTS[key], dest)
+        if data is None:
+            shutil.copyfile(EXPORTS[key], dest)
+        else:
+            dest.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         stamp = time.time() + len(list(self.exports.iterdir()))  # strictly newer than earlier copies
         os.utime(dest, (stamp, stamp))
         return dest
 
     def state(self) -> dict:
         return json.loads((self.out / ".hook-state.json").read_text(encoding="utf-8"))
+
+    def insights(self, name: str, value: dict, bom: bool = False) -> Path:
+        self.out.mkdir(parents=True, exist_ok=True)
+        path = self.out / name
+        path.write_bytes(json.dumps(value, ensure_ascii=False).encode("utf-8-sig" if bom else "utf-8"))
+        return path
 
 
 def run_viewer(*argv) -> tuple[int, str]:
@@ -173,16 +310,21 @@ class TempCase(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def build(self, key=None, path=None, insights_path=None):
+        export = path or self.h.add(key)
+        summary = build_view.generate(export, insights_path, "auto", out_dir=self.h.out,
+                                      insights_dir=None if insights_path else self.h.out)
+        return summary, read_view(self.h.out)
+
+
+# ---------------------------------------------------------------- builder
 
 class BuildViewTests(TempCase):
     def test_three_families_with_steps_plan_and_decision_notes(self):
         for family, label, model, rid, _ in FAMILIES:
             with self.subTest(family=family):
-                export = self.h.add(family)
-                summary = build_view.generate(export, None, "auto", out_dir=self.h.out)
-                self.assertEqual(summary["warnings"], [])
-                self.assertEqual(summary["focus"], "dashboard")
-                view = read_view(self.h.out)
+                summary, view = self.build(family)
+                self.assertEqual((summary["warnings"], summary["focus"]), ([], "dashboard"))
                 self.assertTrue((self.h.out / "index.html").is_file())
                 self.assertEqual([p["id"] for p in view["pages"]],
                                  ["overview", "dashboard", "screening", "compare", "concepts", "history", "evidence", "export"])
@@ -196,46 +338,125 @@ class BuildViewTests(TempCase):
                 self.assertIn("AI 해석", overview)
                 self.assertIn('"D1"', blob(page(view, "evidence")))
                 self.assertIn("decision note support and attribution", blob(page(view, "export")))
+                self.assertIn("✓ 저장 승인(계약 검사)", blob(page(view, "export")))
 
     def test_held_result_shows_decision_notes_and_overview_focus(self):
-        summary = build_view.generate(self.h.add("held"), None, "auto", out_dir=self.h.out)
+        summary, view = self.build("held")
         self.assertEqual(summary["focus"], "overview")
-        overview = blob(page(read_view(self.h.out), "overview"))
+        overview = blob(page(view, "overview"))
         self.assertIn("보류(held)", overview)
-        for text in ("판단 메모 2개", "원문 사실", "미확인", "근거 없음", f"{SYNTH} 근거 없는 추정"):
+        for text in ("판단 메모 2개", "원문 사실", "미확인", "근거 없음", f"{SYNTH} 근거 없는 추정", f"{SYNTH} 내부 치수 근거 없음"):
             self.assertIn(text, overview)
 
-    def test_missing_insights_shows_dashboard_notice(self):
-        export = self.h.add("refrigerator")
-        summary = build_view.generate(export, None, "auto", out_dir=self.h.out)
-        self.assertEqual(summary["insights"], "missing")
-        first = page(read_view(self.h.out), "dashboard")["blocks"][0]
-        self.assertEqual(first["type"], "callout")
-        self.assertIn("의견 묶음 화면에는 insights 파일이 필요합니다", first["text"])
-        self.assertIn(session_of(export), first["text"])
+    def test_rejected_candidate_is_never_the_current_result(self):  # v07-format-01
+        summary, view = self.build("reject1")
+        self.assertEqual(summary["focus"], "overview")
+        status = [c["text"] for c in view["context"]["status"]]
+        self.assertIn("수정 필요(needs_revision)", status)
+        self.assertIn("승인된 결과 없음", status)
+        self.assertIn("review_not_finalizable", blob(page(view, "overview")))
+        self.assertIn("unsupported_or_uncertain:p1", blob(page(view, "overview")))
+        for pid in ("dashboard", "concepts", "compare", "evidence"):
+            self.assertIn("비워 두었습니다", page(view, pid)["blocks"][0]["text"])
+        self.assertNotIn("c1 · 제안", blob(view))
+        history = blob(page(view, "history"))
+        self.assertIn("거절 · review_not_finalizable", history)
+        self.assertIn("거절 후보(현재 결과 아님)", history)
+        export = blob(page(view, "export"))
+        self.assertIn("✗ 저장 승인(계약 검사)", export)
+        self.assertNotIn("✓ 저장 승인", export)
+        _, view = self.build("reject3")
+        overview = blob(page(view, "overview"))
+        self.assertIn("보류(held)", overview)
+        self.assertIn("review_not_finalizable", overview)
+        self.assertNotIn("결과에 사유가 기록되지 않았습니다", overview)
 
-    def test_matching_insights_draw_groups_and_mismatch_is_ignored(self):
-        export = self.h.add("microwave")
-        insights = self.h.out / "insights-synthetic.json"
-        self.h.out.mkdir(parents=True, exist_ok=True)
-        groups = [{"key": "g1", "label": f"{SYNTH} 묶음", "tone": "blue", "source_ids": ["REVIEW-MWJ25E-01"]}]
-        insights.write_text(json.dumps({"session_id": session_of(export), "synthetic": True, "groups": groups}, ensure_ascii=False), encoding="utf-8")
-        summary = build_view.generate(export, insights, "auto", out_dir=self.h.out)
-        self.assertEqual((summary["insights"], summary["warnings"]), ("matched", []))
-        dashboard = page(read_view(self.h.out), "dashboard")
-        self.assertNotIn("insights 파일이 필요합니다", blob(dashboard))
-        self.assertIn('"donut"', blob(dashboard))
-        insights.write_text(json.dumps({"session_id": "other-session", "groups": groups}), encoding="utf-8")
-        summary = build_view.generate(export, insights, "auto", out_dir=self.h.out)
-        self.assertEqual(summary["insights"], "mismatch")
-        self.assertEqual(len(summary["warnings"]), 1)
-        dashboard = blob(page(read_view(self.h.out), "dashboard"))
-        self.assertIn("session_id가 이 export와 달라", dashboard)
-        self.assertNotIn('"donut"', dashboard)
+    def test_turnless_followup_is_shown_before_previous_turn(self):  # v07-format-02
+        summary, view = self.build("followup_held")
+        self.assertEqual(summary["focus"], "overview")
+        self.assertTrue(view["context"]["status"][0]["text"].startswith("최근 요청 보류(held) · turn 없음"))
+        self.assertTrue(view["context"]["status"][1]["text"].startswith("이전 결과 "))
+        overview = blob(page(view, "overview"))
+        for text in ("turn 없이 멈췄습니다", f"{SYNTH} 후속 ZZZ123", f"{SYNTH} HTTP403 보류 사유", "research_observation"):
+            self.assertIn(text, overview)
+        self.assertIn("turn 없는 요청 1건", blob(page(view, "history")))
+        self.assertIn("마지막 turn 뒤(최근)", blob(page(view, "history")))
 
-    def test_requests_only_export_and_no_absolute_paths(self):
-        summary = build_view.generate(self.h.add("requests_only"), None, "auto", out_dir=self.h.out)
+    def test_unmeasured_usage_is_never_zero_or_complete(self):  # v07-format-03
+        _, view = self.build("usage_out_null")
+        history = blob(page(view, "history"))
+        self.assertNotIn("turn별 출력 토큰", history)
+        self.assertIn("출력 토큰 미측정 호출이 있는 turn T1(1/1건)", history)
+        _, view = self.build("usage_partial")
+        export = blob(page(view, "export"))
+        self.assertIn("부분 합계 · 2건 중 1건 미측정", export)
+        self.assertIn("일부 측정", export)
+        self.assertNotIn("turn별 출력 토큰", blob(page(view, "history")))
+
+    def test_family_catalog_scope_and_commercial_disclosure(self):  # v07-format-04, -09
+        _, view = self.build("family_catalog")
+        self.assertEqual(view["pages"][0]["title"], "냉장고 제품군 상품기획")
+        self.assertTrue(view["context"]["meta"].startswith("냉장고 제품군 3개 모델"))
+        overview = blob(page(view, "overview"))
+        for text in ("제품군 카탈로그", "S836GBB122", "B502S33", "T876MQQ012 · 결과 근거"):
+            self.assertIn(text, overview)
+        self.assertNotIn("S836GBB122 · 결과 근거", overview)
+        self.assertIn("상업 고지: 글과 사이트에 파트너스 활동", blob(page(view, "evidence")))
+
+    def test_turn_order_cancellation_and_pending(self):  # v07-format-06, -07
+        for key in ("third_cancelled", "fourth_pending"):
+            with self.subTest(key=key):
+                _, view = self.build(key)
+                quote = next(b for b in page(view, "overview")["blocks"] if b["type"] == "quotes")["items"][0]
+                self.assertEqual(quote["quote"], f"{SYNTH} {M} 불편 개선 시험")
+                self.assertEqual(quote["chips"][0]["text"], "T1 요청 원문")
+        _, view = self.build("third_cancelled")
+        self.assertIn(f"{SYNTH} 셋째 취소 사유", blob(page(view, "overview")))
+        self.assertIn("실행 중단은 확인 안 됨", blob(page(view, "overview")))
+        _, view = self.build("cancel_after_reject")
+        self.assertIn(f"{SYNTH} 사용자 취소 사유", blob(page(view, "overview")))
+        self.assertNotIn("c1 · 제안", blob(view))
+        self.assertIn("비워 두었습니다", page(view, "concepts")["blocks"][0]["text"])
+
+    def test_exclude_pains_condition_is_shown(self):  # v07-format-11
+        _, view = self.build("two_turns")
+        self.assertIn(f"{SYNTH} 소음제외", blob(page(view, "overview")))
+        self.assertIn("역사적 기록 · 무효(input_or_dependency_changed)", blob(page(view, "history")))
+
+    def test_evidence_types_without_harness_prefix(self):  # v07-format-08
+        _, view = self.build("synthetic_catalog")
+        dashboard = blob(page(view, "dashboard"))
+        self.assertIn('"후기 근거", "value": 1', dashboard)
+        self.assertIn('"label": "문서"', dashboard)
+        self.assertIn("합성 시험 자료", [c["text"] for c in view["context"]["status"]])
+        data = rename_source(export_of("synthetic_catalog"), "REV-AX-R302-1.0-01", "rv-001")
+        for turn in data["turns"]:
+            for result in [turn["state"].get("latest_result")] + [c["result"] for c in turn["candidates"]]:
+                for ref in (result or {}).get("evidence_refs") or []:
+                    if ref["source_id"] == "rv-001":
+                        ref["origin"]["representation"] = "excerpt"
+        _, view = self.build(path=self.h.add("synthetic_catalog", "export-renamed.json", data))
+        self.assertIn('"후기 근거", "value": "미확인"', blob(page(view, "dashboard")))
+        screening = blob(page(view, "screening"))
+        self.assertIn("유형을 알 수 없는 원문 발췌 1건", screening)
+        self.assertNotIn("근거가 없습니다", screening)
+
+    def test_invalidated_current_result_shows_reason(self):  # v07-format-10
+        data = export_of("microwave")
+        data["turns"][-1]["state"].update(valid=False, invalidation_reason="dataset_or_code_changed")
+        summary, view = self.build(path=self.h.add("microwave", "export-invalid.json", data))
+        self.assertEqual(summary["focus"], "overview")
+        self.assertIn("현재 유효한 결과가 없습니다", blob(page(view, "overview")))
+        self.assertIn("dataset_or_code_changed", blob(page(view, "dashboard")))
+        self.assertIn("현재 turn · 무효(dataset_or_code_changed)", blob(page(view, "history")))
+
+    def test_requests_only_export_shows_reason_and_no_absolute_paths(self):  # v07-format-12
+        summary, view = self.build("needs_input")
         self.assertEqual((summary["pages"], summary["focus"]), (1, "overview"))
+        overview = blob(view["pages"][0])
+        self.assertIn("product_required", overview)
+        self.assertIn("입력 필요로 멈춘 요청 기록", overview)
+        self.assertNotIn("events)에서 확인", overview)
         export = self.h.add("dishwasher")
         build_view.generate(export, None, "auto", out_dir=self.h.out)
         text = (self.h.out / "view-data.js").read_text(encoding="utf-8")
@@ -244,10 +465,63 @@ class BuildViewTests(TempCase):
             self.assertNotIn(private, text)
 
 
+class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
+    def test_missing_insights_shows_dashboard_notice(self):
+        export = self.h.add("refrigerator")
+        summary, view = self.build(path=export)
+        self.assertEqual(summary["insights"], "missing")
+        first = page(view, "dashboard")["blocks"][0]
+        self.assertIn("의견 묶음 화면에는 insights 파일이 필요합니다", first["text"])
+        self.assertIn(current_turn("refrigerator"), first["text"])
+
+    def test_turn_bound_insights_draw_groups_and_bom_is_read(self):
+        export = self.h.add("microwave")
+        sid = export_of("microwave")["session_id"]
+        groups = [{"key": "g1", "label": f"{SYNTH} 묶음", "tone": "blue", "source_ids": [RID]}]
+        self.h.insights("insights-bom.json", {"session_id": sid, "turn_id": current_turn("microwave"), "groups": groups}, bom=True)
+        summary, view = self.build(path=export)
+        self.assertEqual((summary["insights"], summary["insights_file"], summary["warnings"]), ("matched", "insights-bom.json", []))
+        self.assertIn('"donut"', blob(page(view, "dashboard")))
+
+    def test_other_turn_and_stale_insights_are_not_applied_and_warn_visibly(self):
+        export = self.h.add("microwave")
+        sid = export_of("microwave")["session_id"]
+        self.h.insights("insights-a.json", {"session_id": sid, "turn_id": "turn-other", "groups": [{"key": "g", "label": "x", "source_ids": [RID]}]})
+        summary, view = self.build(path=export)
+        self.assertEqual(summary["insights"], "other_turn")
+        self.assertIn("다른 turn(turn_id)용", blob(page(view, "dashboard")))
+        self.h.insights("insights-b.json", {"session_id": sid, "groups": [{"key": "g", "label": "x", "source_ids": ["REVIEW-B502S33-09"]}],
+                                            "kpis": [{"label": "확인한 후기", "value": 595, "verify_in": "assumptions"}]})
+        summary, view = self.build(path=export)
+        self.assertEqual(summary["insights"], "stale")
+        self.assertEqual(len(summary["warnings"]), 1)
+        self.assertEqual(view["warnings"], summary["warnings"])
+        for pid in ("overview", "dashboard"):
+            self.assertIn("화면 생성 경고 1건", page(view, pid)["blocks"][0]["text"])
+        self.assertIn("화면 경고 1", [c["text"] for c in view["context"]["status"]])
+        dashboard = blob(page(view, "dashboard"))
+        self.assertNotIn('"donut"', dashboard)
+        self.assertNotIn("595", dashboard)
+
+    def test_explicit_insights_with_other_session_or_unverified_numbers(self):
+        export = self.h.add("microwave")
+        path = self.h.insights("insights-x.json", {"session_id": "other-session", "groups": []})
+        summary, view = self.build(path=export, insights_path=path)
+        self.assertEqual(summary["insights"], "mismatch")
+        self.assertIn("session_id가 이 export와 달라", page(view, "overview")["blocks"][0]["text"])
+        sid = export_of("microwave")["session_id"]
+        path = self.h.insights("insights-y.json", {"session_id": sid, "kpis": [{"label": "고정", "value": 595, "verify_in": "assumptions"}]})
+        summary, view = self.build(path=export, insights_path=path)
+        self.assertIn("595가 결과 assumptions 원문에 없어 그리지 않았습니다", " ".join(summary["warnings"]))
+        self.assertNotIn('"value": 595', blob(page(view, "dashboard")))
+
+
+# ---------------------------------------------------------------- hook (in-process)
+
 class HookTests(TempCase):
     def run_hook(self, payload, source=None):
-        argv = [source] if source else []
-        return hook.run(payload, hook.detect_source(argv, payload), hook.Paths(str(self.h.root)))
+        src, _ = hook.parse_args([source] if source else [], payload)
+        return hook.run(payload, src, hook.Paths(str(self.h.root)))
 
     def test_rebuild_only_for_new_export_and_open_once_per_cli_session(self):
         with mock.patch.object(hook, "open_browser") as opened:
@@ -259,49 +533,84 @@ class HookTests(TempCase):
             self.h.add("microwave")
             self.assertEqual(self.run_hook({"session_id": "s1"}, "claude")["opened_browser"], False)
             codex = self.h.add("dishwasher")
-            result = self.run_hook({"session_id": "s1", "turn_id": "t1", "hook_event_name": "PostToolUse"})
+            result = self.run_hook({"session_id": "s1", "turn_id": "t1", "hook_event_name": "PostToolUse", "tool_name": "Bash"})
             self.assertEqual((result["export"], result["opened_browser"]), (codex.name, True))
             self.assertEqual(opened.call_count, 2)
         state = self.h.state()
         self.assertEqual(state["opened_sessions"], ["claude:s1", "codex:s1"])
-        self.assertEqual(state["last_export"], codex.name)
+        self.assertEqual((state["last_export"], state["built_key"]), (codex.name, state["last_key"]))
         self.assertEqual(state["insights"], "missing")
 
-    def test_insights_found_by_session_id(self):
-        export = self.h.add("held")
-        self.h.out.mkdir(parents=True)
-        (self.h.out / "insights-a-other.json").write_text(json.dumps({"session_id": "other"}), encoding="utf-8")
-        (self.h.out / "insights-b-broken.json").write_text("{broken", encoding="utf-8")
-        (self.h.out / "insights-c-match.json").write_text(json.dumps({"session_id": session_of(export), "synthetic": True}), encoding="utf-8")
-        self.run_hook({"session_id": "s1"}, "codex")
-        self.assertEqual((self.h.state()["insights"], self.h.state()["insights_file"]), ("matched", "insights-c-match.json"))
+    def test_failed_build_is_retried_after_insights_change(self):  # claude-hook-bom-insights
+        export = self.h.add("microwave")
+        sid = export_of("microwave")["session_id"]
+        bad = self.h.insights("insights-bad.json", {"session_id": sid, "groups": "not-a-list"})
+        with mock.patch.object(hook, "open_browser"):
+            self.assertFalse(self.run_hook({"session_id": "s"}, "claude")["changed"])
+            self.assertIn(export.name, (self.h.out / "hook-error.log").read_text(encoding="utf-8"))
+            self.assertEqual(self.run_hook({"session_id": "s"}, "claude")["reason"], "이미 처리한 export")
+            bad.write_bytes(json.dumps({"session_id": sid, "turn_id": current_turn("microwave"),
+                                        "groups": [{"key": "g", "label": "x", "source_ids": [RID]}]}).encode("utf-8-sig"))
+            self.assertTrue(self.run_hook({"session_id": "s"}, "claude")["changed"])
+        self.assertEqual(self.h.state()["insights"], "matched")
+        self.assertNotIn("failed_key", self.h.state())
 
     def test_broken_export_is_logged_once_then_skipped(self):
-        bad = self.h.exports / "export-broken.json"
-        bad.write_text("{not json", encoding="utf-8")
+        (self.h.exports / "export-broken.json").write_text("{not json", encoding="utf-8")
         self.assertFalse(self.run_hook({"session_id": "s1"}, "claude")["changed"])
         log = (self.h.out / "hook-error.log").read_text(encoding="utf-8")
         self.assertIn("export-broken.json", log)
         self.assertEqual(self.run_hook({"session_id": "s1"}, "claude")["reason"], "이미 처리한 export")
         self.assertEqual((self.h.out / "hook-error.log").read_text(encoding="utf-8"), log)
-        self.assertTrue(self.run_hook({"session_id": "s1"}, "claude")["changed"] is False)
         self.h.add("microwave")
-        self.assertTrue(self.run_hook({"session_id": "s1"}, "claude")["changed"])
+        with mock.patch.object(hook, "open_browser"):
+            self.assertTrue(self.run_hook({"session_id": "s1"}, "claude")["changed"])
 
-    def test_source_detection_and_stale_lock(self):
-        self.assertEqual(hook.detect_source(["codex"], {}), "codex")
-        self.assertEqual(hook.detect_source([], {"turn_id": "t"}), "codex")
-        with mock.patch.dict(os.environ, {"CLAUDE_PROJECT_DIR": "x"}):
-            self.assertEqual(hook.detect_source([], {}), "claude")
+    def test_state_write_retries_and_session_is_recorded_before_opening(self):  # claude-hook-state-replace-race
         paths = hook.Paths(str(self.h.root))
-        os.makedirs(paths.out)
-        Path(paths.lock).write_text("1", encoding="ascii")
-        old = time.time() - hook.LOCK_STALE_SECONDS - 5
-        os.utime(paths.lock, (old, old))
-        self.assertTrue(hook.acquire_lock(paths))
-        hook.release_lock(paths)
-        self.assertFalse(os.path.exists(paths.lock))
+        real, calls = os.replace, []
 
+        def flaky(a, b):
+            calls.append(a)
+            if len(calls) <= 2:
+                raise PermissionError(5, "Access is denied")
+            return real(a, b)
+
+        with mock.patch.object(hook.os, "replace", flaky):
+            hook.write_state(paths, {"opened_sessions": ["claude:x"]})
+        self.assertEqual(hook.read_state(paths), {"opened_sessions": ["claude:x"]})
+        self.h.add("microwave")
+        real_write = hook.write_state
+
+        def fail_on_sessions(p, state):
+            if "claude:y" in (state.get("opened_sessions") or []):
+                raise PermissionError("state locked")
+            return real_write(p, state)
+
+        with mock.patch.object(hook, "write_state", fail_on_sessions), mock.patch.object(hook, "open_browser") as opened:
+            with self.assertRaises(PermissionError):
+                hook.run({"session_id": "y"}, "claude", paths)
+            opened.assert_not_called()
+        self.assertEqual(list(self.h.out.glob(".hook-state.json.*.tmp")), [])
+
+    def test_os_lock_excludes_second_holder_and_frees_on_release(self):
+        paths = hook.Paths(str(self.h.root))
+        first, second = hook.Lock(paths), hook.Lock(paths)
+        self.assertTrue(first.acquire(0))
+        self.assertFalse(second.acquire(0.3))
+        first.release()
+        self.assertTrue(second.acquire(0))
+        second.release()
+
+    def test_argument_parsing(self):
+        digest = "a" * 64
+        self.assertEqual(hook.parse_args(["codex", digest, "b" * 64], {}), ("codex", {"build_view": digest, "index": "b" * 64}))
+        self.assertEqual(hook.parse_args([], {"turn_id": "t"})[0], "codex")
+        with mock.patch.dict(os.environ, {"CLAUDE_PROJECT_DIR": "x"}):
+            self.assertEqual(hook.parse_args([], {}), ("claude", {}))
+
+
+# ---------------------------------------------------------------- installed hook process
 
 class InstalledHookProcessTests(TempCase):
     """Runs the exact installed command (or its Python part) as the CLIs would: stdin JSON, check silence."""
@@ -310,12 +619,17 @@ class InstalledHookProcessTests(TempCase):
         super().setUp()
         code, text = run_viewer("install", "--both", str(self.h.root))
         self.assertEqual(code, 0, text)
-        self.claude = self.command(".claude/settings.local.json")
-        self.codex = self.command(".codex/hooks.json")
+        self.claude = self.entry(".claude/settings.local.json")
+        self.codex = self.entry(".codex/hooks.json")
 
-    def command(self, rel):
+    def entry(self, rel):
         config = json.loads((self.h.root / rel).read_text(encoding="utf-8"))
-        return config["hooks"]["PostToolUse"][-1]["hooks"][0]["command"]
+        return [h for g in config["hooks"]["PostToolUse"] for h in g["hooks"] if viewer.is_ours(h)][0]
+
+    def python_part(self, entry):
+        m = re.match(r'^uv run .* python -I -B -c "(.*)" (claude|codex) ([0-9a-f]{64}) ([0-9a-f]{64})$', entry["command"])
+        self.assertIsNotNone(m, entry["command"])
+        return [sys.executable, "-I", "-B", "-c", m.group(1), m.group(2), m.group(3), m.group(4)]
 
     def call(self, argv, payload, cwd, shell=False, env=None):
         stdin = payload if isinstance(payload, bytes) else json.dumps(payload).encode("utf-8")
@@ -323,84 +637,121 @@ class InstalledHookProcessTests(TempCase):
         environment.update(env or {}, LGAX_VIEWER_NO_OPEN="1")
         return subprocess.run(argv, input=stdin, capture_output=True, cwd=cwd, env=environment, shell=shell, timeout=120)
 
-    def python_part(self, source):
-        return [sys.executable, "-I", "-B", "-c", viewer.HOOK_CODE[source], source]
-
     def assertSilentZero(self, proc):
         self.assertEqual((proc.returncode, proc.stdout, proc.stderr), (0, b"", b""))
 
-    def test_python_part_builds_for_claude_and_codex(self):
-        self.h.add("refrigerator")
-        proc = self.call(self.python_part("claude"), {"session_id": "c1", "tool_name": "Bash"}, Path.home(),
-                         env={"CLAUDE_PROJECT_DIR": str(self.h.root)})
-        self.assertSilentZero(proc)
-        self.assertEqual(self.h.state()["opened_sessions"], ["claude:c1"])
+    def test_codex_entry_is_synchronous_and_claude_entry_async(self):  # codex-hook-01
+        self.assertNotIn("async", self.codex)
+        self.assertEqual(self.codex["timeout"], 30)
+        self.assertEqual((self.claude.get("async"), self.claude["timeout"]), (True, 60))
+        for entry in (self.claude, self.codex):
+            command = entry["command"]
+            self.assertIn("--python 3.12", command)
+            self.assertIn("--no-config", command)
+            self.assertEqual(len(re.findall(r"[0-9a-f]{64}", command)), 3)
+
+    def test_codex_post_tool_use_payload_triggers_rebuild(self):  # codex-hook-01
         self.h.add("microwave")
-        proc = self.call(self.python_part("codex"), {"session_id": "x1", "turn_id": "t1", "tool_name": "Bash"}, self.h.root)
-        self.assertSilentZero(proc)
-        self.assertEqual(self.h.state()["opened_sessions"], ["claude:c1", "codex:x1"])
+        payload = {"session_id": "x1", "turn_id": "t1", "hook_event_name": "PostToolUse", "tool_name": "Bash",
+                   "tool_input": {"command": "uv run python .agents/skills/review-and-revise/scripts/run.py"}, "cwd": str(self.h.root)}
+        self.assertSilentZero(self.call(self.python_part(self.codex), payload, self.h.root))
+        self.assertEqual(self.h.state()["opened_sessions"], ["codex:x1"])
         self.assertTrue((self.h.out / "view-data.js").is_file())
+        self.h.add("dishwasher")
+        self.assertSilentZero(self.call(self.python_part(self.claude), {"session_id": "c1", "tool_name": "PowerShell"}, Path.home(),
+                                        env={"CLAUDE_PROJECT_DIR": str(self.h.root)}))
+        self.assertEqual(self.h.state()["opened_sessions"], ["codex:x1", "claude:c1"])
+
+    def test_tampered_viewer_files_are_not_executed(self):  # codex-hook-02
+        app = self.h.root / "web/prototypes/visual-viewer"
+        self.h.add("microwave")
+        original = (app / "build_view.py").read_bytes()
+        (app / "build_view.py").write_bytes(original + b"\nTAMPERED = True\n")
+        self.assertSilentZero(self.call(self.python_part(self.codex), {"session_id": "x"}, self.h.root))
+        self.assertFalse((self.h.out / "view-data.js").exists())
+        self.assertIn("build_view.py가 설치 때와 다릅니다", (self.h.out / "hook-error.log").read_text(encoding="utf-8"))
+        report = json.loads(run_viewer("status", str(self.h.root))[1])
+        self.assertFalse(report["codex"]["files_match_command"])
+        (app / "build_view.py").write_bytes(original)
+        marker = self.h.root / "hook-ran.txt"
+        (app / "hook.py").write_bytes((app / "hook.py").read_bytes() + f"\nopen({str(marker)!r}, 'w').close()\n".encode())
+        log_before = (self.h.out / "hook-error.log").read_text(encoding="utf-8")
+        self.assertSilentZero(self.call(self.python_part(self.codex), {"session_id": "x"}, self.h.root))
+        self.assertFalse(marker.exists())
+        self.assertFalse((self.h.out / "view-data.js").exists())
+        self.assertEqual((self.h.out / "hook-error.log").read_text(encoding="utf-8"), log_before)
 
     def test_garbage_input_missing_script_and_errors_stay_silent(self):
         self.h.add("held")
-        self.assertSilentZero(self.call(self.python_part("codex"), b"\xff not json", self.h.root))
+        self.assertSilentZero(self.call(self.python_part(self.codex), b"\xff not json", self.h.root))
         self.assertIn("codex:no-session", self.h.state()["opened_sessions"])
-        (self.h.exports / "export-zz-broken.json").write_text("{", encoding="utf-8")
-        os.utime(self.h.exports / "export-zz-broken.json", (time.time() + 100, time.time() + 100))
-        self.assertSilentZero(self.call(self.python_part("codex"), {"session_id": "x"}, self.h.root))
+        broken = self.h.exports / "export-zz-broken.json"
+        broken.write_text("{", encoding="utf-8")
+        os.utime(broken, (time.time() + 100, time.time() + 100))
+        self.assertSilentZero(self.call(self.python_part(self.codex), {"session_id": "x"}, self.h.root))
         self.assertIn("export-zz-broken.json", (self.h.out / "hook-error.log").read_text(encoding="utf-8"))
         (self.h.root / "web/prototypes/visual-viewer/hook.py").unlink()
-        self.assertSilentZero(self.call(self.python_part("codex"), {"session_id": "x"}, self.h.root))
+        self.assertSilentZero(self.call(self.python_part(self.codex), {"session_id": "x"}, self.h.root))
 
-    @unittest.skipUnless(shutil.which("uv"), "uv not on PATH")
-    def test_exact_installed_command_in_available_shells(self):
-        shells = [("default", lambda c: c, True)]
-        bash = shutil.which("bash")
-        if bash and "system32" not in bash.lower():  # Git Bash, not WSL
-            shells.append(("bash", lambda c: [bash, "-c", c], False))
-        if os.name == "nt" and shutil.which("powershell.exe"):
-            shells.append(("powershell", lambda c: ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", c], False))
-        for i, (name, wrap, shell) in enumerate(shells):
-            with self.subTest(shell=name):
-                self.h.add(FAMILIES[i % 3][0], f"export-{name}.json")
-                proc = self.call(wrap(self.claude), {"session_id": name}, Path.home(), shell=shell,
-                                 env={"CLAUDE_PROJECT_DIR": str(self.h.root)})
-                self.assertSilentZero(proc)
-                self.assertEqual(self.h.state()["last_export"], f"export-{name}.json")
-                self.assertIn(f"claude:{name}", self.h.state()["opened_sessions"])
-        self.h.add("held", "export-codex.json")
-        self.assertSilentZero(self.call(self.codex, {"session_id": "cx", "turn_id": "t"}, self.h.root, shell=True))
-        self.assertIn("codex:cx", self.h.state()["opened_sessions"])
+    # The exact command string per shell. Skips say why, so a missing shell is visible in the run.
+    def shell_run(self, name, wrap, shell=False):
+        if not shutil.which("uv"):
+            self.skipTest("uv not on PATH: the exact command runs through uv")
+        self.h.add(FAMILIES[len(name) % 3][0], f"export-{name}.json")
+        proc = self.call(wrap(self.claude["command"]), {"session_id": name}, Path.home(), shell=shell,
+                         env={"CLAUDE_PROJECT_DIR": str(self.h.root)})
+        self.assertSilentZero(proc)
+        self.assertEqual(self.h.state()["last_export"], f"export-{name}.json")
+        self.assertIn(f"claude:{name}", self.h.state()["opened_sessions"])
+        self.h.add("held", f"export-{name}-codex.json")
+        self.assertSilentZero(self.call(wrap(self.codex["command"]), {"session_id": name, "turn_id": "t"}, self.h.root, shell=shell))
+        self.assertIn(f"codex:{name}", self.h.state()["opened_sessions"])
 
+    def test_exact_command_default_shell(self):
+        self.shell_run("default", lambda c: c, shell=True)  # cmd.exe on Windows, /bin/sh elsewhere
+
+    def test_exact_command_git_bash(self):
+        bash = git_bash()
+        if not bash:
+            self.skipTest("Git Bash not found (WSL bash in System32 is not used)")
+        self.shell_run("gitbash", lambda c: [bash, "-c", c])
+
+    def test_exact_command_windows_powershell(self):
+        if os.name != "nt" or not shutil.which("powershell.exe"):
+            self.skipTest("Windows PowerShell not available")
+        self.shell_run("powershell", lambda c: ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", c])
+
+
+# ---------------------------------------------------------------- installer
 
 class InstallTests(TempCase):
     old = {"type": "command", "command": "C:/Users/someone/Python314/python.exe -I -S -B C:/Users/someone/h/runtime-data/visual-viewer/hook.py",
            "timeout": 30, "async": True}
+    lint = {"matcher": "apply_patch", "hooks": [{"type": "command", "command": "echo lint", "timeout": 5}]}
 
-    def write(self, rel, value):
+    def write(self, rel, value, encoding="utf-8"):
         path = self.h.root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(value if isinstance(value, str) else json.dumps(value), encoding="utf-8")
+        path.write_text(value if isinstance(value, str) else json.dumps(value), encoding=encoding)
         return path
 
-    def ours(self, config):
-        return [h for groups in config.get("hooks", {}).values() for g in groups for h in g["hooks"] if viewer.is_ours(h)]
+    def load(self, rel):
+        return json.loads((self.h.root / rel).read_text(encoding="utf-8"))
 
-    def test_claude_merge_keeps_other_settings_replaces_old_entry_and_is_idempotent(self):
+    def test_claude_merge_keeps_other_settings_in_place_and_is_idempotent(self):
         other = {"matcher": "Write", "hooks": [{"type": "command", "command": "echo other"}]}
-        path = self.write(".claude/settings.local.json", {"permissions": {"allow": ["Bash(uv run:*)"]},
-                                                          "hooks": {"PostToolUse": [other, {"matcher": "Bash", "hooks": [self.old]}],
-                                                                    "Stop": [{"hooks": [{"type": "command", "command": "echo stop"}]}]}})
+        self.write(".claude/settings.local.json", {"permissions": {"allow": ["Bash(uv run:*)"]},
+                                                    "hooks": {"PostToolUse": [{"matcher": "Bash", "hooks": [self.old]}, other],
+                                                              "Stop": [{"hooks": [{"type": "command", "command": "echo stop"}]}]}})
         for _ in range(2):
             self.assertEqual(run_viewer("install", "--claude", str(self.h.root))[0], 0)
-        config = json.loads(path.read_text(encoding="utf-8"))
+        config = self.load(".claude/settings.local.json")
         self.assertEqual(config["permissions"], {"allow": ["Bash(uv run:*)"]})
         self.assertEqual(config["hooks"]["Stop"], [{"hooks": [{"type": "command", "command": "echo stop"}]}])
-        self.assertEqual(config["hooks"]["PostToolUse"][0], other)
-        ours = self.ours(config)
+        self.assertEqual(config["hooks"]["PostToolUse"][1], other)
+        ours = config["hooks"]["PostToolUse"][0]["hooks"]
         self.assertEqual(len(ours), 1)
-        self.assertEqual(config["hooks"]["PostToolUse"][-1]["matcher"], "Bash|PowerShell")
-        self.assertEqual((ours[0]["async"], ours[0]["timeout"]), (True, 60))
+        self.assertTrue(viewer.is_ours(ours[0]))
         command = ours[0]["command"]
         for private in (str(self.h.root), self.h.root.as_posix(), "Users", "someone"):
             self.assertNotIn(private, command)
@@ -408,61 +759,131 @@ class InstallTests(TempCase):
         self.assertIsNone(re.search(r"[$%!`^&|<>\\]", command.split('"')[1]))
         for name in viewer.APP_FILES:
             self.assertEqual((self.h.root / "web/prototypes/visual-viewer" / name).read_bytes(), (VIEWER / name).read_bytes())
-        self.assertTrue((self.h.out / "index.html").is_file())
+        self.assertEqual((self.h.out / "index.html").read_bytes(), (VIEWER / "index.html").read_bytes())
 
-    def test_codex_merge_uninstall_and_config_untouched(self):
-        toml = self.write(".codex/config.toml", "[agents]\nenabled = true\n")
-        before = toml.read_bytes()
-        other = {"matcher": "apply_patch", "hooks": [{"type": "command", "command": "echo keep"}]}
-        path = self.write(".codex/hooks.json", {"hooks": {"PostToolUse": [other]}})
+    def test_codex_positions_are_preserved(self):  # codex-hook-03
+        rel = ".codex/hooks.json"
+        self.write(rel, {"hooks": {"PostToolUse": [{"matcher": "Bash", "hooks": [self.old]}, self.lint]}})
         self.assertEqual(run_viewer("install", "--codex", str(self.h.root))[0], 0)
-        config = json.loads(path.read_text(encoding="utf-8"))
-        self.assertEqual(config["hooks"]["PostToolUse"][0], other)
-        self.assertEqual(config["hooks"]["PostToolUse"][1]["matcher"], "Bash")
-        self.assertTrue(config["hooks"]["PostToolUse"][1]["hooks"][0]["command"].endswith(" codex"))
+        groups = self.load(rel)["hooks"]["PostToolUse"]
+        self.assertTrue(viewer.is_ours(groups[0]["hooks"][0]))
+        self.assertEqual(groups[1], self.lint)
         self.assertEqual(run_viewer("uninstall", "--codex", str(self.h.root))[0], 0)
-        self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"hooks": {"PostToolUse": [other]}})
-        path.unlink()
+        self.assertEqual(self.load(rel)["hooks"]["PostToolUse"], [{"matcher": "Bash", "hooks": []}, self.lint])
+        self.assertIn("추가(이전 자리)", run_viewer("install", "--codex", str(self.h.root))[1])
+        groups = self.load(rel)["hooks"]["PostToolUse"]
+        self.assertTrue(viewer.is_ours(groups[0]["hooks"][0]))
+        self.assertEqual(groups[1], self.lint)
+        self.write(rel, {"hooks": {"PostToolUse": [self.lint]}})
         run_viewer("install", "--codex", str(self.h.root))
         run_viewer("uninstall", "--codex", str(self.h.root))
-        self.assertFalse(path.exists())
+        self.assertEqual(self.load(rel), {"hooks": {"PostToolUse": [self.lint]}})
+
+    def test_codex_uninstall_deletes_own_file_and_keeps_config(self):
+        toml = self.write(".codex/config.toml", "[agents]\nenabled = true\n")
+        before = toml.read_bytes()
+        run_viewer("install", "--codex", str(self.h.root))
+        self.assertTrue(self.load(".codex/hooks.json")["hooks"]["PostToolUse"][0]["hooks"][0]["command"].split('" ')[1].startswith("codex "))
+        run_viewer("uninstall", "--codex", str(self.h.root))
+        self.assertFalse((self.h.root / ".codex/hooks.json").exists())
         self.assertEqual(toml.read_bytes(), before)
         self.assertTrue((self.h.root / "web/prototypes/visual-viewer/hook.py").is_file())
 
-    def test_invalid_config_and_non_harness_are_refused_without_changes(self):
+    def test_invalid_and_non_utf8_configs_are_refused_without_traceback(self):  # installer-non-utf8-settings-traceback
         path = self.write(".claude/settings.local.json", "{broken")
         code, text = run_viewer("install", "--claude", str(self.h.root))
         self.assertEqual(code, 1)
         self.assertIn("JSON", text)
         self.assertEqual(path.read_text(encoding="utf-8"), "{broken")
         self.assertFalse((self.h.root / "web").exists())
+        for encoding in ("utf-16", "cp949"):
+            with self.subTest(encoding=encoding):
+                path = self.write(".claude/settings.local.json", '{"hooks": {}, "메모": "한글"}', encoding=encoding)
+                raw = path.read_bytes()
+                code, text = run_viewer("install", "--claude", str(self.h.root))
+                self.assertEqual(code, 1)
+                self.assertIn("UTF-8이 아니어서", text)
+                self.assertNotIn("Traceback", text)
+                self.assertEqual(path.read_bytes(), raw)
+                code, text = run_viewer("status", str(self.h.root))
+                self.assertEqual(code, 0)
+                self.assertIn("UTF-8이 아니어서", json.loads(text)["claude"]["error"])
+
+    def test_dev_repo_and_non_harness_are_refused(self):  # installer-default-target-is-dev-repo
+        dev = Path(self.tmp.name) / "dev-repo"
+        for name in ("product-tools", "dev-harness"):
+            (dev / name).mkdir(parents=True)
+        (dev / "AGENTS.md").write_text("# dev\n", encoding="utf-8")
+        (dev / ".git").write_text("gitdir: elsewhere\n", encoding="utf-8")
+        code, text = run_viewer("install", "--both", str(dev))
+        self.assertEqual(code, 1)
+        self.assertIn("개발 레포", text)
+        self.assertFalse((dev / ".codex" / "hooks.json").exists())
+        self.assertEqual(run_viewer("install", "--claude")[0], 1)  # 레포 안의 viewer.py, 하네스 생략
         empty = Path(self.tmp.name) / "not-a-harness"
         empty.mkdir()
         self.assertEqual(run_viewer("install", "--codex", str(empty))[0], 1)
         self.assertEqual(list(empty.iterdir()), [])
         self.assertEqual(run_viewer("install", str(self.h.root))[0], 1)
 
-    def test_baseline_open_latest_and_status(self):
+    def test_baseline_on_every_install_and_status_is_honest(self):  # baseline-reinstall, status-unbuilt
+        before = self.h.add("refrigerator")
+        code, text = run_viewer("install", "--claude", str(self.h.root))
+        self.assertIn(before.name, text)
+        report = json.loads(run_viewer("status", str(self.h.root))[1])
+        self.assertEqual((report["view_built"], report["baseline_only"], report["up_to_date"], report["last_built"]), (False, True, False, None))
+        paths = hook.Paths(str(self.h.root))
+        with mock.patch.object(hook, "open_browser") as opened:
+            self.assertFalse(hook.run({"session_id": "a"}, "claude", paths)["changed"])
+            built = self.h.add("microwave")
+            self.assertTrue(hook.run({"session_id": "a"}, "claude", paths)["opened_browser"])
+            run_viewer("uninstall", "--claude", str(self.h.root))
+            while_off = self.h.add("dishwasher")
+            code, text = run_viewer("install", "--claude", str(self.h.root))
+            self.assertIn(while_off.name, text)
+            self.assertFalse(hook.run({"session_id": "new-session"}, "claude", paths)["changed"])
+            self.assertEqual(opened.call_count, 1)
+        report = json.loads(run_viewer("status", str(self.h.root))[1])
+        self.assertEqual((report["view_built"], report["up_to_date"], report["last_built"], report["latest_export"]),
+                         (True, False, built.name, while_off.name))
+        self.assertTrue(report["claude"]["registered"] and report["claude"]["files_match_command"])
+
+    def test_open_latest_builds_and_reports(self):
         before = self.h.add("refrigerator")
         run_viewer("install", "--both", str(self.h.root))
-        self.assertEqual(self.h.state()["last_export"], before.name)
-        with mock.patch.object(hook, "open_browser") as opened:
-            self.assertFalse(hook.run({"session_id": "s"}, "claude", hook.Paths(str(self.h.root)))["changed"])
-            opened.assert_not_called()
-        self.assertFalse((self.h.out / "view-data.js").exists())
         with mock.patch("webbrowser.open") as browser:
             code, text = run_viewer("open", "--latest", "--no-browser", str(self.h.root))
             browser.assert_not_called()
         self.assertEqual(code, 0, text)
         self.assertEqual(json.loads(text)["export"], before.name)
-        self.assertTrue((self.h.out / "view-data.js").is_file())
-        code, text = run_viewer("status", str(self.h.root))
-        report = json.loads(text)
+        report = json.loads(run_viewer("status", str(self.h.root))[1])
         self.assertTrue(report["claude"]["registered"] and report["codex"]["registered"] and report["up_to_date"])
         self.assertTrue(all(report["app_files"].values()))
+        (self.h.exports / "export-zz.json").write_text("{", encoding="utf-8")
+        os.utime(self.h.exports / "export-zz.json", (time.time() + 100, time.time() + 100))
+        code, text = run_viewer("open", "--latest", "--no-browser", str(self.h.root))
+        self.assertEqual(code, 1)
+        self.assertIn("화면을 만들지 못했습니다", text)
+        self.assertNotIn("Traceback", text)
         self.assertEqual(run_viewer("uninstall", "--both", str(self.h.root))[0], 0)
         report = json.loads(run_viewer("status", str(self.h.root))[1])
         self.assertFalse(report["claude"]["registered"] or report["codex"]["registered"])
+
+    def test_codex_feature_flag_layers(self):  # codex-hook-04
+        home = Path(self.tmp.name) / "codexhome"
+        home.mkdir()
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(home)}):
+            (home / "config.toml").write_text("[features]\nhooks = false\n", encoding="utf-8")
+            self.assertTrue(viewer.codex_hooks_disabled(self.h.root))
+            self.assertIn("hooks = false", run_viewer("install", "--codex", str(self.h.root))[1])
+            report = json.loads(run_viewer("status", str(self.h.root))[1])
+            self.assertTrue(report["codex_hooks_disabled"])
+            self.assertEqual([layer["hooks"] for layer in report["codex_features"]], [None, False])
+            (home / "config.toml").write_text("[features]\ncodex_hooks = true\n", encoding="utf-8")
+            self.write(".codex/config.toml", "[some_tool]\nhooks = false\n")
+            self.assertFalse(viewer.codex_hooks_disabled(self.h.root))
+            self.write(".codex/config.toml", "[features]\nhooks = false\n")
+            self.assertTrue(viewer.codex_hooks_disabled(self.h.root))
 
     def test_outputs_stay_in_ignored_runtime_data(self):
         self.assertEqual(Path(hook.Paths(str(self.h.root)).out).relative_to(self.h.root).parts[0], "runtime-data")
