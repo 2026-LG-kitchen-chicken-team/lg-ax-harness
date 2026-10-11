@@ -4,7 +4,7 @@
 
 [공개50입력](../evaluation/regression50.md)의 실제 v6.0 Codex50입력/40대화·최종/저장 감사·독립 원문 의미 검토를 완료했다. [결과](../validation/regression50-20261011.md): completed18/held27/needs_input5, 정의한 판정50/50. 경계 힌트가 있는 알려진 자료 검증이며 미사용/일반 품질·효과·전체 청구의 완료로 바꾸지 않는다. 입력 범위를 고정하고 자동 재시도하지 않았다.
 
-제품군 일반명·축약명·후속 전체 scope 유지와 명시 모델 좁히기를 v6.1에 구현했다. 제품147·평가117개 일반 코드 검사와 asset 검사는 실제 exit0다. [별도10입력](../validation/family10-20261011.md)은 실제 실행/독립 의미 검토/저장 감사를 완료했다(completed4/held3/needs_input3). v6.0의50개와 합쳐 현재 버전 성공률로 표시하지 않는다. v0.4.0 제품 소스 ZIP의68파일/67manifest·새 폴더 locked 설치/doctor·Claude 사본 설치를 검증했으며 제품 시험판 배포는 최종 통합검토 뒤 진행한다. Claude native 실행은 미검증이다.
+제품군 일반명·축약명·후속 전체 scope 유지와 명시 모델 좁히기를 v6.1에 구현했다. 제품147·평가117개 일반 코드 검사와 asset 검사는 실제 exit0다. [별도10입력](../validation/family10-20261011.md)은 실제 실행/독립 의미 검토/저장 감사를 완료했다(completed4/held3/needs_input3). v6.0의50개와 합쳐 현재 버전 성공률로 표시하지 않는다. v0.4.0 제품 소스 ZIP의68파일/67manifest·새 폴더 locked 설치/doctor·Claude 사본 설치를 검증했으며 이후 최종 통합검토·task-bound 감사·독립 검토·장부 complete errors=[]와 [v0.4.0 제품 시험판 배포/원격·다운로드 대조](../validation/product-v0.4.0.md)를 완료했다. Claude native 실행은 미검증이다.
 
 웹 원본은 사용자 확인으로 아직 원격에 없고 팀 개발 진행은 유지한다. [카톡/스크린샷·기본 자료 검토](../validation/web-data-analysis-20261011.md)의 최신 조사·새 모델 등록·질문 실행 제안은 미채택이다. 현재 저장 자료 우선·등록5모델의 실제 지원 한계를 유지한다. 제품군 입력 지원은 새 모델 자동 조사/등록을 포함하지 않는다.
 
