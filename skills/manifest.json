@@ -142,7 +142,7 @@
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
-          "sha256": "302b9811eb47bb0b84eab863a0cc2eed7afd175d863c1a5738101b08c40792cb"
+          "sha256": "638f137325651b6d8721aa762a9407a175f267ddd743a4c1d8c8b56b002f1637"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -194,7 +194,7 @@
     },
     {
       "path": "product-tools/product_tools/reporting.py",
-      "sha256": "fba6d50bc3d383ac3caa9a42afc11e76230d0ef3ee5bc71492f67f25b3124257"
+      "sha256": "a4401b4b0f2e2ff50979fbb531ba05d013755941e6f55773a4c9e3c3191bd49b"
     },
     {
       "path": "product-tools/product_tools/state.py",
