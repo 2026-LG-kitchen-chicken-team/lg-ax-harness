@@ -57,5 +57,29 @@
     "Timeout usage partial; backend billing/development cost/saving rate unknown",
     "Native task cancellation and local process termination do not certify backend stop",
     "Video/presentation update/rehearsal/web integration/final submission not completed"
-  ]
+  ],
+  "remote_ci": {
+    "run_id": 38155686290,
+    "head_sha": "33001576987dfc212b09f75d016f2cd65d00ff08",
+    "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/actions/runs/38155686290",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "check (ubuntu-latest)",
+        "job_id": 114518079997,
+        "conclusion": "failure",
+        "executed_steps": 0,
+        "reason": "GitHub annotation: job not started due failed account payments or spending limit; specific cause not distinguished"
+      },
+      {
+        "name": "check (windows-latest)",
+        "job_id": 114518080192,
+        "conclusion": "failure",
+        "executed_steps": 0,
+        "reason": "GitHub annotation: job not started due failed account payments or spending limit; specific cause not distinguished"
+      }
+    ],
+    "scope": "Remote jobs not started; not a code test failure and not a remote test pass; local345actual tests are separate"
+  }
 }
