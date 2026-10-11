@@ -1,6 +1,8 @@
 """Conversation handles and historical exports. Never invokes a model/runtime."""
 import hashlib
+import os
 from pathlib import Path
+import subprocess
 import uuid
 from .contracts import canonical, fail, identifier, integer, obj, strict_json, text
 from .payload import candidate_template
@@ -21,6 +23,10 @@ class Conversation:
             version INTEGER NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL,
             PRIMARY KEY(session_id,request_key,event_key),
             FOREIGN KEY(session_id,request_key) REFERENCES conversation_requests(session_id,request_key))""")
+        store.db.execute("""CREATE TABLE IF NOT EXISTS reader_deliveries(
+            turn_id TEXT NOT NULL REFERENCES turns(turn_id), result_version INTEGER NOT NULL,
+            plan_hash TEXT NOT NULL, response TEXT NOT NULL, file_hashes TEXT NOT NULL,
+            PRIMARY KEY(turn_id,result_version,plan_hash))""")
 
     def open_request_bundle(self, payload):
         """Open the same request and return exact local sources once, with bounds.
@@ -295,8 +301,10 @@ class Conversation:
         Export failure cannot roll back a stored candidate. A caller can recover
         with current_request/export_session; a stale replay is never delivered.
         """
-        obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment"))
-        saved = self.store.save_result(**payload, require_review=True, response_mode="receipt")
+        fields = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
+        obj(payload, fields, ("report", "report_plan_path", "open_folder"))
+        options = self._report_options(payload)
+        saved = self.store.save_result(**{k: payload[k] for k in fields}, require_review=True, response_mode="receipt")
         receipt = saved["receipt"]
         latest = (receipt["candidate_result_version"] == receipt["current_result_version"]
                   and receipt["candidate_result_version"] is not None and receipt["valid"] is True)
@@ -312,4 +320,108 @@ class Conversation:
                     response.update(delivery_ready=False, export_error={"code": "current_state_changed", "message": "Reread current_request/get_turn; exported history is preserved"})
         except (OSError, ValueError) as exc:
             response.update(delivery_ready=False, export_error={"code": "export_failed", "message": str(exc)[:512]})
+        if options["report"]:
+            response.update(report=None, report_ready=False, report_error=None)
+            if response["delivery_ready"]:
+                report = self._deliver_current(payload["session_id"], payload["turn_id"], receipt["current_result_version"], options)
+                response.update(report=report, report_ready=report["ready"], report_error=report.get("error"))
         return response
+
+    def _report_options(self, payload, recovery=False):
+        report = payload.get("report", recovery)
+        open_folder = payload.get("open_folder", True)
+        if type(report) is not bool or type(open_folder) is not bool:
+            fail("invalid_input", "report and open_folder must be booleans")
+        if payload.get("report_plan_path") is not None:
+            text(payload["report_plan_path"], "report_plan_path", 4096)
+            if not report:
+                fail("invalid_input", "report_plan_path requires report:true")
+        return {"report": report, "open_folder": open_folder, "report_plan_path": payload.get("report_plan_path")}
+
+    def _read_report_plan(self, name):
+        if name is None:
+            return None
+        path = Path(name)
+        path = (path if path.is_absolute() else self.workspace / path).resolve(strict=True)
+        allowed = (self.workspace / "runtime-data").resolve()
+        if not allowed.is_relative_to(self.workspace) or not path.is_relative_to(allowed) or not path.is_file():
+            fail("invalid_path", "Authored report plans must be files inside this workspace's runtime-data")
+        # Report length has a separate, generous mechanical bound; the business
+        # result's 64 KiB stdin limit is never applied to a report plan.
+        if path.stat().st_size > 16 * 1024 * 1024:
+            fail("report_plan_limit", "Authored report plan exceeds 16 MiB")
+        return strict_json(path.read_text(encoding="utf-8-sig"))
+
+    def _report_hashes(self, response):
+        base = (self.workspace / "runtime-data/deliverables").resolve()
+        if not base.is_relative_to(self.workspace):
+            fail("invalid_path", "Reader files must stay inside this workspace")
+        hashes = {}
+        for item in response.get("files", []):
+            path = Path(item["path"])
+            path = (path if path.is_absolute() else self.workspace / path).resolve(strict=True)
+            if not path.is_relative_to(base) or not path.is_file():
+                fail("invalid_path", "Reader files must stay in runtime-data/deliverables")
+            hashes[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+        if not hashes:
+            fail("report_failed", "Renderer returned ready without reader files")
+        return hashes
+
+    def _deliver_current(self, session, turn, version, options):
+        """Bind files to a valid saved version and reuse intact output on replay.
+
+        Rendering shares a SQLite write snapshot with current-state checks.
+        A renderer error never rolls back the previously committed candidate.
+        Explorer is opened only after the successful delivery receipt commits.
+        """
+        try:
+            from .delivery import create_deliverables
+            authored = self._read_report_plan(options["report_plan_path"])
+            plan_hash = hashlib.sha256(canonical(authored).encode("utf-8")).hexdigest()
+            reused = False
+            with self.store.transaction():
+                current = self.store.get_turn(session, turn)
+                if current["result_version"] != version or not current["valid"] or current["status"] not in ("completed", "held", "needs_input") or current["latest_result"] is None:
+                    fail("current_state_changed", "Reader generation requires the current valid, reviewed saved result")
+                cached = self.store.db.execute("SELECT response,file_hashes FROM reader_deliveries WHERE turn_id=? AND result_version=? AND plan_hash=?", (turn, version, plan_hash)).fetchone()
+                if cached:
+                    response = strict_json(cached["response"])
+                    try:
+                        intact = self._report_hashes(response) == strict_json(cached["file_hashes"])
+                    except (OSError, ValueError, KeyError):
+                        intact = False
+                    if intact:
+                        reused = True
+                if not reused:
+                    scopes = current["input"]["model_scope"]
+                    sources = [self.store.dataset.source(s["source_id"]) for s in self.store.dataset.sources.values()
+                               if any(all(s[k] == scope[k] for k in ("model_id", "model_version", "document_version")) for scope in scopes)]
+                    response = create_deliverables(self.workspace, current["input"], current["latest_result"], sources,
+                                                   authored_plan=authored, open_folder=False)
+                    if response.get("ready") is not True:
+                        return {**response, "ready": False, "error": response.get("error") or {"code": "report_failed", "message": "Reader files were not generated; see checks"}}
+                    after = self.store.get_turn(session, turn)
+                    if after["result_version"] != version or not after["valid"] or after["status"] != current["status"]:
+                        fail("current_state_changed", "Saved state changed during reader generation; generated files are historical only")
+                    hashes = self._report_hashes(response)
+                    response.update(result_version=version, turn_id=turn, folder_opened=False)
+                    self.store.db.execute("INSERT OR REPLACE INTO reader_deliveries VALUES(?,?,?,?,?)", (turn, version, plan_hash, canonical(response), canonical(hashes)))
+            response = {**response, "reused": reused}
+            if not reused and options["open_folder"] and os.name == "nt":
+                try:
+                    subprocess.Popen(["explorer.exe", response["directory"]])
+                    response["folder_opened"] = True
+                except OSError as exc:
+                    response["folder_open_error"] = str(exc)[:512]
+            return response
+        except (ImportError, OSError, ValueError, TypeError, KeyError) as exc:
+            return {"ready": False, "directory": None, "files": [], "checks": {"errors": [str(exc)[:512]]},
+                    "error": {"code": getattr(exc, "code", "report_failed"), "message": str(exc)[:512]}}
+
+    def deliver_result(self, payload):
+        """Recover reader files from a reviewed stored result without resaving it."""
+        obj(payload, ("session_id", "turn_id", "expected_result_version"), ("report_plan_path", "open_folder"))
+        session = identifier(payload["session_id"], "session_id")
+        turn = identifier(payload["turn_id"], "turn_id")
+        version = integer(payload["expected_result_version"], "expected_result_version", 1)
+        return self._deliver_current(session, turn, version, self._report_options(payload, recovery=True))
