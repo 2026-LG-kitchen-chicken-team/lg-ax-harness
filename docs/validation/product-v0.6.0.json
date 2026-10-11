@@ -1,0 +1,38 @@
+{
+  "verified_at_utc": "2026-10-11T14:34:15.061455+00:00",
+  "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.6.0",
+  "release_id": 409719329,
+  "published_at_utc": "2026-10-11T14:31:18Z",
+  "is_prerelease": true,
+  "is_draft": false,
+  "tag": "product-v0.6.0",
+  "source_commit": "b84d12aa8e9886e1de662beef66c615573fd8d49",
+  "product_commit": "61cba3ebad6bc36fd0097dbb463255be80e001ac",
+  "product_tree": "4ae18319af916a26adc94365cf75379b7d64dc79",
+  "parentless": true,
+  "zip_files": 69,
+  "manifest_files": 68,
+  "zip_tag_names_bytes_match": true,
+  "download_local_checksum_github_digest_match": true,
+  "assets": [
+    {
+      "name": "SHA256SUMS.txt",
+      "id": 630959282,
+      "size": 99,
+      "state": "uploaded",
+      "digest": "sha256:edc106a9913b10775c3eae8d60337217f927b28715ff1098e6f01a260d65542d",
+      "browser_download_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/download/product-v0.6.0/SHA256SUMS.txt"
+    },
+    {
+      "name": "lg-ax-harness-product-v0.6.0.zip",
+      "id": 630959284,
+      "size": 137324,
+      "state": "uploaded",
+      "digest": "sha256:21924707a2395ad4be5e4bf0299f2b823160f1325eaa1c4565a541ca31cbcaaf",
+      "browser_download_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/download/product-v0.6.0/lg-ax-harness-product-v0.6.0.zip"
+    }
+  ],
+  "native_scope": "frozen_v72_8_inputs_not_final_suffix_delta",
+  "full_semantic_pass_claim": false,
+  "final_competition_submission_claim": false
+}
