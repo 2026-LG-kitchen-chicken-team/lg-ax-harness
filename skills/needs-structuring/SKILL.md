@@ -5,6 +5,8 @@ description: "확보한 실제 후기에서 현재 제품의 불편·사용 맥�
 
 # 불편 구조화
 
+보고서에 집계를 쓰면 [보고서 작성](../review-and-revise/references/report-writing.md)의 합계·분모·포함/제외 기준을 적용한다. 고유 후기 수와 복수 분류 언급 수를 구별하고 실제 숫자만 도표로 만든다. 원문은 자료집에 보존하고 문장·표·그래프 수치를 같은 범위로 대조한다.
+
 단독 실행이면 프로젝트 루트 agents/product-planning.md의 공통 안전 규칙을 먼저 읽는다. 이미 문맥에 있으면 유지한다. 각 원문을 관측 불편/긍정/기대/이전 제품/불명확으로 분류하고 상충 의견·서로 다른 사용 조건을 보존한다. 페이지 연결 사례는 구매/정확 모델 확인과 구분하여 귀속 한계를 적는다. 불편이 없으면 빈 pains와 부족 사유이며 개수를 채우지 않는다.
 
 pains의 id/text/source_ids와 claim_checks를 작성한다. literal 원문 지지와 모델 귀속·대표성의 불확실성을 분리한다. qualification 양식은 review-and-revise/references/payload.md에 있다. 판단은 네이티브 모델, 코드 검사는 구조만이다.

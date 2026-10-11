@@ -5,6 +5,8 @@ description: "질문에서 지정하거나 해석한 제품군 또는 정확 모
 
 # 저장 근거 조회
 
+독자용 자료집은 [보고서 작성](../review-and-revise/references/report-writing.md)의 실제 종류별 구성에 맞춘다. 확보한 원문·요약·모델/문서 버전·관측 범위·URL/위치를 보존하며 등록 ID는 내부 연결에만 사용한다. 비어 있는 조사 종류나 가상 통계로 파일을 채우지 않는다.
+
 원래 질문의 제품 범위·목표·제약은 native AI가 판단한다. 제품군은 product_family/scope_mode=family_catalog, 정확 모델은 model_id로 명시하며 코드가 질문 키워드로 고르지 않는다. 기본 data/business/empty에는 제품·후기·정답이 없다. 필요한 자료·관측일·정확 버전을 확인하고 신규/부족/갱신이면 web-evidence-collection을 적용한다. 이미 충분한 저장 자료만 직접 재사용하며 현재 질문에 맞는 이유와 한계를 밝힌다.
 
 조사 전 open_request로 실제 question/user_submitted:true를 저장하고 session_id/request_key/request_version을 유지한다. 선택 필드 없이 요청만 저장할 수도 있다. 미등록 선택은 research_required이다. record_request_research 입력은 {session_id,request_key,event_key,expected_request_version,status,reason,observation_refs:[]}이며 status는 researching/research_required/held/needs_input/failed다. snapshot ID는 실제 관측값만 기록한다. 조사후 resolve_request_bundle 입력은 {session_id,request_key,event_key,expected_request_version,selection:{model_id 또는 product_family,scope_mode}}이다. --data에는 import 응답의 data_path를 지정한다. 원질문/조건은 불변이며 이미 연결된 turn은 재연결할 수 없다. 동일 event_key 재전송은 같은 내용만 허용하고 충돌은 current_request로 확인한다. turn 전 보류도 export_session으로 이력을 내보낸다.

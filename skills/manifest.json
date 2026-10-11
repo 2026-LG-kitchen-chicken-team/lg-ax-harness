@@ -29,7 +29,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "8d05bb9a94a7d8ca29918dfc9978a807b89da7b9a2174b3124724ee3ee0b7023"
+          "sha256": "d00a9dd60c99dcf6f5b591faacd5dee7adfb73f3c6c5416ba61394013396c3d6"
         }
       ]
     },
@@ -68,7 +68,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "d5b70b6a771733c4bbd958d9041dad033611ab47a790ca6a75e500427e3c9f18"
+          "sha256": "89989c3a23602bfb33df8459d80dfd965a99ecd6535459b3693cbfb836213aef"
         }
       ]
     },
@@ -88,7 +88,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d"
+          "sha256": "7ee0b2d94775c6ec6abcc49dda73b96726acd27d65f05ddf242481191622b0a5"
         }
       ]
     },
@@ -102,12 +102,16 @@
       ],
       "files": [
         {
+          "path": "skills/concept-writing/references/concept-images.md",
+          "sha256": "0ee20c749f617ff617ff09241e1ad1ca7f92dd8666b7795a9cc4b1f3902a76b8"
+        },
+        {
           "path": "skills/concept-writing/scripts/run.py",
           "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd"
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174"
+          "sha256": "ac219cc65c8b5cb04083edd1fe2c4b914308135a9a69609dd6ec6e0b49e0e8ac"
         }
       ]
     },
@@ -123,6 +127,7 @@
         "save_result",
         "save_reviewed_result",
         "save_and_export",
+        "deliver_result",
         "export_session",
         "current_request",
         "record_usage",
@@ -133,15 +138,19 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "4dcec360787be7196316283feadde3971d245e9b5b7ab50864c1833e861a29a3"
+          "sha256": "818dde16efcf49b5122ac015cf1d31203643c8d6e034114b9b217173a183cf65"
+        },
+        {
+          "path": "skills/review-and-revise/references/report-writing.md",
+          "sha256": "302b9811eb47bb0b84eab863a0cc2eed7afd175d863c1a5738101b08c40792cb"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
-          "sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8"
+          "sha256": "bd6cf58f5e77c7400a2aaa7a4b82ea49baae146a02eca8142b23610ff6a2e105"
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "fef1c6acf43fe98f1f646246957af34a8d51c2d6ec81984b9b98917477b93d31"
+          "sha256": "a8004a8a89c4ab23a9440d1e6d665d0131b4d521db61547540bca70c34039fe4"
         }
       ]
     }
@@ -149,7 +158,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "9558f4552ac1e95f1987b727da4d0aa2189462b199495fd8a32a0dcfa14de858"
+      "sha256": "0cd1f07d4944f0cea82d0277a1f44add41822fb70ab9e44e9c7b243addeacbd2"
     },
     {
       "path": "product-tools/cli.py",
@@ -206,6 +215,18 @@
     {
       "path": "docs/contracts/codex-product.md",
       "sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54"
+    },
+    {
+      "path": "docs/contracts/reader-deliverables.md",
+      "sha256": "a3f19c9952a1e4a6e2a705c0e8b556502a9b6065473356469dfde0fbe24f893f"
+    },
+    {
+      "path": "product-tools/requirements.in",
+      "sha256": "a77cc1377529b98d8584987066d3da415c894a506e74079706653316e593ff98"
+    },
+    {
+      "path": "product-tools/requirements.lock",
+      "sha256": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033"
     }
   ],
   "native_installation_verified": false,

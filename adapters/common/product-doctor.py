@@ -1,6 +1,8 @@
 """Local portable readiness; never reads auth or invokes model inference."""
 import argparse
 import hashlib
+import importlib
+import importlib.metadata
 import json
 from pathlib import Path
 import shutil
@@ -8,6 +10,19 @@ import subprocess
 import sys
 
 ROOT=Path(__file__).resolve().parent
+
+
+def reporting_dependencies():
+    """Check local imports only; no native AI or document rendering."""
+    result = {}
+    for distribution, module in (("python-docx", "docx"), ("openpyxl", "openpyxl"),
+                                 ("reportlab", "reportlab"), ("Pillow", "PIL"), ("pypdf", "pypdf")):
+        try:
+            importlib.import_module(module)
+            result[distribution] = {"available": True, "version": importlib.metadata.version(distribution)}
+        except (ImportError, OSError, importlib.metadata.PackageNotFoundError) as exc:
+            result[distribution] = {"available": False, "version": None, "error": type(exc).__name__}
+    return result
 
 
 def main():
@@ -18,6 +33,10 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")
     record=json.loads((ROOT/"product-install.json").read_text(encoding="utf-8"))
     errors=[]
+    report_dependencies = reporting_dependencies()
+    for name, detail in report_dependencies.items():
+        if not detail["available"]:
+            errors.append("Reporting dependency unavailable: " + name + "; run uv sync --locked")
     for entry in record["files"]:
         path=(ROOT/entry["path"]).resolve()
         if not path.is_relative_to(ROOT) or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=entry["sha256"]:
@@ -39,7 +58,8 @@ def main():
         errors.append("Common Tool/catalog doctor failed")
     print(json.dumps({"errors":errors,"engine":record["engine"],"readiness":"local_only" if not cli else "native_version_only",
                       "runtime":runtime,"common_tool_exit_code":common.returncode,"installed_skills":record["skills"],
-                      "scope":"files/version/common Tool only; auth/AI/native discovery/permissions not verified"},ensure_ascii=False))
+                      "reporting_dependencies":report_dependencies,"report_generation":"unverified",
+                      "scope":"files/dependency imports/version/common Tool only; document layout/auth/AI/native discovery/permissions not verified"},ensure_ascii=False))
     return int(bool(errors))
 
 

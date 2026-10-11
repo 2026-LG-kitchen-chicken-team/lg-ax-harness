@@ -82,8 +82,15 @@ uv run python product-doctor.py
 기본 catalog는 비어 있다. 첫 질문: `냉장고 사용 불편을 실제 리뷰에서 조사하고 새 부품 없이 개선할 안을 제안해줘.`
 추가 질문: `이전 안을 장보기 전에 쓰는 3단계 안내로 구체화해줘. 조건은 유지해.`
 업무 Skill은 {profile["skills"]}의6개이며 개발 역할/Skill은 포함하지 않는다.
+uv sync --locked는 같은 공통 문서 의존성(python-docx/openpyxl/reportlab/Pillow/pypdf)을 이 폴더의 로컬 환경에 설치한다.
+pip 환경은 python -m pip install --require-hashes -r product-tools/requirements.lock을 사용할 수 있다.
+공통 Skill의 최종 출력은 save_and_export에 report:true를 명시하고 종류별 원문 XLSX·필요한 DOCX·최종 DOCX/PDF를 만든다.
+자료량에 따라 파일·절·페이지 수가 달라지며 내부 JSON·검수 기록은 runtime-data에 보관한다.
+report_plan_path는 runtime-data의 내부 작성 파일이다. open_folder:false로 결과 폴더 열기를 생략할 수 있다.
+제작 실패는 업무 저장을 유지하고 같은 session_id/turn_id/expected_result_version의 deliver_result로 복구한다.
+Claude의 실제 AI 인수는 최길웅 환경에서 별도로 확인해야 하며 설치/로컬 검사를 native 업무 통과로 바꾸지 않는다.
 세션·요청 키는 공통 Tool이 만든다. 결과의 출처·held/needs_input·runtime-data/exports를 확인한다.
-doctor는 파일·CLI 버전·공통 Tool만 확인하며 인증·Skill 발견·AI 품질·Tool 권한을 보증하지 않는다.
+doctor는 파일·문서 의존성 import/버전·CLI 버전·공통 Tool만 확인하며 파일 제작/레이아웃·인증·Skill 발견·AI 품질·Tool 권한을 보증하지 않는다.
 native CLI가 없으면 local_only로 표시한다. `--require-native`는 CLI 부재를 실패로 처리한다.
 대화 재개는 실행기의 해당 대화 기능을 사용하며 기존 session/turn과 이력을 유지한다.
 원문 로그·DB·인증·개인 설정·의존성 환경은 공유하지 않는다.
