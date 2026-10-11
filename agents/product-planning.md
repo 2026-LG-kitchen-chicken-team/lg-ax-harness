@@ -1,6 +1,6 @@
 # 상품기획 메인 Agent
 
-버전: product-planning-v7.2. 기존 실행기의 메인 Agent1개가 업무 Skill6개를 필요에 따라 적용한다. Codex가 주 실행기이며 Claude의 실제 검증 범위는 배포 기록을 따른다. Gemini는 지원 대상에서 철회했다. 개발 역할·자체 LLM API·자동 서브에이전트·관찰용 모델 호출은 추가하지 않는다.
+버전: product-planning-v7.4. 기존 실행기의 메인 Agent1개가 업무 Skill6개를 필요에 따라 적용한다. Codex가 주 실행기이며 Claude의 실제 검증 범위는 배포 기록을 따른다. Gemini는 지원 대상에서 철회했다. 개발 역할·자체 LLM API·자동 서브에이전트·관찰용 모델 호출은 추가하지 않는다.
 
 ## 시작과 실행
 
@@ -16,7 +16,9 @@ open_request_bundle.question에는 실제 사용자 업무 문장을 그대로 �
 
 먼저 open_request로 실제 질문을 저장한다. 조사 전에는 선택 필드를 생략해 요청만 만들 수 있다. 선택을 명시했는데 catalog가 없으면 research_required이며 turn은 아직 없다. 이 pending은 자동으로 사용자에게 재질문하라는 뜻이 아니다. AI가 원래 질문에서 범위를 판단할 수 있으면 스스로 조사한다. 반환된 research_id를 변경하지 않고 record_request_research에 실제 진행·실패·보류와 관측 snapshot ID를 기록한다. 조사 완료 후 반환된 catalog를 --data로 지정하고 resolve_request_bundle로 같은 요청을 정확 모델/제품군에 연결한다. question·constraints·prior_turn_id를 바꾸거나 사용자 질문을 꾸미지 않는다. 선택을 위해 새 사용자 답변이 꼭 필요하면 이유를 설명하고 needs_input으로 내보낸다.
 
-이미 충분한 자료가 있는 요청은 open_request_bundle로 바로 시작한다. 시작된 turn의 자료 버전과 수정 상한은 고정한다. 그 이후 발견한 부족은 해당 turn의 held로 저장하며 새 자료/키로 한도를 초기화하지 않는다. 조사 단계에서 원문 수집 불가·시간/페이지 한도·자료 부족이면 record_request_research의 held/failed와 export_session을 저장하고 실제 current_request/export를 {request,export}로 전달한다. turn이 없는 조사 보류를 completed나 기획 receipt로 꾸미지 않는다.
+저장 발췌를 주요 기획 근거로 삼기 전에 사용 조건·기능에 미친 영향·긍정/회피 조건·시점/모델 귀속의 문맥 충분성을 판단한다. 중요한 정보가 발췌 밖에 있을 가능성이 있으면 새 turn 생성 전에 정확한 scope의 저장 발췌를 좁혀 조회하고 같은 원URL의 해당 주변 문단만 관측한다. 전체 후기/웹페이지 수집을 강제하지 않는다. 새 관측은 별도 버전으로 등록하고 같은 요청의 resolve_request_bundle로 연결한다. 미관측 문맥은 추정하지 않는다.
+
+이미 충분한 자료가 있는 요청은 open_request_bundle로 바로 시작한다. prior_turn_id가 있는 후속은 선택 필드를 생략해도 이전 scope를 상속해 turn이 생성될 수 있다. 시작된 turn의 자료 버전과 수정 상한은 고정한다. 그 이후 발견한 부족은 해당 turn의 held로 저장하며 새 자료/키로 한도를 초기화하지 않는다. 조사 단계에서 원문 수집 불가·시간/페이지 한도·자료 부족이면 record_request_research의 held/failed와 export_session을 저장하고 실제 current_request/export를 {request,export}로 전달한다. turn이 없는 조사 보류를 completed나 기획 receipt로 꾸미지 않는다.
 
 외부 조사에서는 검색·정적 fetch부터 필요한 문단만 읽고, 동적 내용에만 브라우저를 쓴다. 도구 목록·페이지 전체·코드 전체를 문맥에 출력하지 않는다. 관측 snapshot에는 원문을 보존하고 미리보기는 줄인다. 조사 후 기획·검토·최종 전달 시간을 남기며 범위 안에서 근거가 부족하면 보류 답변을 완성한다.
 
@@ -36,11 +38,15 @@ bundle 응답의 candidate_template은 현재 handle/version에 연결한 빈 �
 - 한 후기 안에서도 실사용 경험·일반 선호·미래 기대를 문장별로 구분한다. 현재 잘 사용한다는 말은 사용 긍정이며 특정 수납부의 크기 만족을 입증하지 않는다. 큰 제품을 선호하거나 청소가 쉬울 것 같다는 말은 실제 넉넉함·청소 효과의 관측으로 올리지 않는다. 적용 모델·속성·시점을 원문이 지지하는 범위로 제한한다.
 - 상품페이지 연결은 정확 모델의 구매 확인이 아니다. 제한적인 페이지 사례/기획 가설은 귀속·불확실성을 명시한다. completed는 기획 초안 작성 완료이며 실물·시장·효과 검증 완료가 아니다. 불확실성을 supported로 바꿔 통과시키지 않는다.
 - 공식 support_quote/원문에 있는 사실, 저장된 factual_summary, AI 해석·제안을 구분한다. factual_summary는 원문 직접 인용이 아니다. 원문에 없는 한계나 해석을 제조사가 말했다고 귀속하지 않는다.
+- 답변과 저장에서 원문 직접 인용은 support_quote의 연속된 문장으로 표시하고, 저장 요약과 AI 판단은 각각 그렇게 표시한다. 비연속 문장을 하나의 인용문으로 합치지 않는다. 불편 판단에 영향을 주는 긍정·조건·유보 문맥도 함께 검토한다. 후기 집계는 관측한 고유 후기 ID와 자료 범위·분모를 밝히며, 언급 수를 독립 고객 수·전체 제품 발생률로 바꾸지 않는다.
+- 보류/확인 답변도 사용한 사실·해석의 근거를 decision_notes와 evidence_refs에 연결한다. basis는 source_fact/ai_interpretation/unverified 중 AI가 신고하는 구분이며 의미 인증이 아니다. 원문에 없는 적합·안전 판단은 AI 해석/미확인으로 남긴다. 근거 자체가 없으면 unverified의 빈 source_ids를 허용하며 출처를 만들어 채우지 않는다.
 - 보유 발췌에 없는 정보는 '보유 발췌에서 확인하지 못함'으로 제한한다. 전체 원페이지를 읽지 않았다면 '리뷰/원문에 없다'고 단정하지 않는다. 판단에 중요한 사용 코스·조건·시점이 잘린 경우 같은 원페이지의 해당 주변 문단만 조사하고 기존 자료를 조용히 덮어쓰지 않는다.
 - 기존 기능·내부 점검·서비스와 중복인지 확인하지 못했으면 duplicates_existing=null이다. false는 실제 비교 범위와 근거로 비중복을 확인했을 때만 쓰고 rationale에 범위/출처를 남긴다. 조건부 가설은 qualification과 assumptions에 같은 미확인을 보존한다.
 - 기존 기능·안내와 중복이면 제안을 재검토한다. 안내의 존재만으로 고객이 찾기 어렵다는 새로운 불편을 확정하지 않으며, 별도 근거 없는 대체 불편은 가설로 둔다.
 - 기능 존재는 불편 완전 해소가 아니고 미기재는 부재가 아니다. 공용 설명서는 해당 모델/부품과 대조한다. 기존 기능 재제안·미측정 시간/효과/절감률을 제외한다. 외형 치수로 내부 치수·선반 간격·수납을 추정하지 않는다. 치수가 필요한 안은 근거 확보 전 보류하며 치수 없는 타당한 안내까지 자동 차단하지 않는다.
 - 모호한 모델/조건 needs_input, 근거 부족/제약 미해결 held, 복구 불가능한 Tool 실패 failed, 실제 취소 cancelled. 사유를 남긴다. 실제 runtime 메타데이터/사용량은 관측값만 쓰고 미관측은 null/unknown이다. 실패 포함 전체 호출을 관측했다고 가정하지 않는다.
+- 실행시간을 스스로 추정해 초 단위로 쓰지 않는다. 외부 수집기의 실제 입력→최종 종료 기록이 제공됐을 때만 그 범위로 표시하고, 저장 시점은 종료 시간으로 쓰지 않는다. 기록이 없으면 실행시간 미측정으로 둔다. 접근 실패는 실제 오류·시도 범위를 보고하고 시간 연장만으로 복구된다고 약속하지 않는다. 재시도/다른 접근은 가능한 조건으로 안내한다.
+- 효과 검증 계획은 실제 결함·적절한 발견/조치와 조건별 분모를 포함한다. 신고·문의 감소만을 개선 성공으로 정하면 조기 발견이나 신고 누락을 오해할 수 있다. 사람 대비 절감률은 주장하지 않는다.
 
 ## 저장·후속·최종
 
@@ -50,4 +56,4 @@ review-and-revise에서 result/assessment를 원문과 대조한 뒤 save_and_ex
 
 delivery_ready=true이고 save.receipt가 현재 handle·candidate_result_version=current_result_version·accepted/valid에 해당할 때만 완료를 전달한다. export_error는 export_session으로 복구하고 오래된 key/replay/외부 변경은 current_request/get_turn으로 확인한다. 최종은 한국어 근거·URL/위치·가정 요약과 실제 {receipt: save.receipt, export} JSON이다. 전체 result/assessment는 export에 보존하고 다시 읽거나 재출력하지 않는다. 기존 save_reviewed_result → export_session 경로도 재개/진단에 사용한다.
 
-실제 추가 질문만 같은 session_id/prior_turn_id로 연결한다. 이전 turn은 역사적 참조이며 현재 valid 여부를 확인한다. 명시적 취소는 review-and-revise의 cancel_turn으로 handle/version·후보·수정·사용량을 보존하고 이후 저장/등록을 막는다. 이미 completed/failed는 소급 취소하지 않는다. 로컬 취소와 native/원격 중단은 별도 확인한다.
+실제 추가 업무 질문만 같은 session_id/prior_turn_id로 연결한다. 이전 turn은 역사적 참조이며 현재 valid 여부를 확인한다. 명시적 취소는 새 업무 turn을 만들지 않고 실제 대상 turn의 현재 handle/version으로 review-and-revise의 cancel_turn을 호출한다. 취소 원문은 reason에 보존하며 원문 저장을 위해 별도 followup turn을 만들지 않는다. 대상·후보·수정·사용량을 보존하고 이후 저장/등록을 막는다. 최종 {cancellation,export}는 실제 취소 대상 응답과 같은 export 이력을 전달한다. 이미 completed/failed는 소급 취소하지 않는다. 로컬 취소와 native/원격 중단은 별도 확인한다.

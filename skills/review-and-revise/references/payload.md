@@ -12,7 +12,9 @@ save_reviewed_result 입력은6필수 필드와 선택 response_mode다. 일반 
 {"session_id":"도구의 값","turn_id":"도구의 값","result_key":"candidate-0","expected_result_version":0,"response_mode":"receipt","result":{"status":"held","pains":[],"existing_features":[],"remaining_pains":[],"concepts":[],"assumptions":[],"evidence_refs":[],"validation_findings":["실제 부족 근거와 이유"],"revisions":0,"usage_summary":{"status":"unknown"}},"assessment":{"claim_checks":[],"feature_matches":[],"concept_links":[]}}
 ```
 
-이 빈 held는 부족 이유를 판단했을 때만 쓴다. completed에는 근거 있는 불편·기존 기능·남은 불편·콘셉트와 검토 연결이 필요하다. result<=32KiB, stdin/파일<=64KiB. refs는 사용한 source만 복사하며 인용만 늘리고 claim에서 사용하지 않으면 unused_evidence로 실패한다.
+이 빈 held는 부족 이유를 판단했을 때만 쓴다. completed에는 근거 있는 불편·기존 기능·남은 불편·콘셉트와 검토 연결이 필요하다. result<=32KiB, stdin/파일<=64KiB. refs는 claim 또는 decision_notes에서 사용한 source만 복사하며 사용하지 않으면 unused_evidence로 실패한다.
+
+- 선택 필드 decision_notes: 최대10개 `{text,source_ids:["원문ID"],basis:"source_fact|ai_interpretation|unverified 중 한 값"}`. note별 text<=2000자, source_ids<=20개·중복 금지·정확한 한 모델 snapshot. source_fact/ai_interpretation은 nonempty IDs와 exact refs가 필요하고 unverified는 빈 IDs를 허용한다. 보류 판단에 사용한 사실과 AI 해석은 별도 note로 저장하며, 실제 근거가 전혀 없으면 미확인 이유만 남긴다. basis는 AI 신고이고 source_fact도 공식 직접 인용·의미 정확성 인증이 아니다. 기존 결과의 필드 생략은 호환하며 completed의 claim/assessment 조건을 대체하지 않는다.
 
 - pains/existing_features/remaining_pains: `{id,text,source_ids:["원문ID"]}`. id는 전체 result 안에서 유일하다.
 - concepts: 위3필드 + `{requirements:["검증 가능한 조건"],requires_hardware:false,assumptions:["미확인 조건"]}`. 최대3개이며 근거 없는 수량 채우기는 금지다. 각 concept의 requirements와 assumptions는 각각 최대10개, 각 항목은 최대1000자다. 중복 한계를 합쳐 간결하게 쓰되 중요한 미확인을 삭제하거나 확정값으로 바꾸지 않는다. result.assumptions 전체를 concept에 그대로 복제하지 말고 해당 제안의 조건만 포함한다.

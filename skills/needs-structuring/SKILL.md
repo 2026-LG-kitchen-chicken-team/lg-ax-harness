@@ -11,6 +11,8 @@ pains의 id/text/source_ids와 claim_checks를 작성한다. literal 원문 지�
 
 같은 후기의 문장도 실사용 관측/현재 사용 긍정/일반 선호/미래 기대를 나누어 적는다. 선호 속성의 실제 만족, 예상 기능의 실제 효과, 다른 수납부의 경험을 추론해 추가하지 않는다. 긍정이나 선호는 상충·한계 설명에 쓰며 그 자체를 pains로 채우지 않는다.
 
+인용은 연속 원문 구간을 그대로 쓰며 떨어진 문장을 한 인용문으로 합치지 않는다. 증상과 함께 실제 기능 영향·발생 조건·회피 가능성·유보를 보존한다. 판단을 바꾸는 중간의 긍정·조건·유보는 생략하지 않는다. 확인하지 못한 문맥이 제안의 필요성·적용 범위에 영향을 주면 assumptions/qualification/decision_notes에 한계를 적고, 핵심 전제 근거가 부족하면 held로 남긴다. 빈도는 관측한 고유 후기 ID·자료 범위·분모와 함께 보고하고 독립 고객 수나 전체 발생률로 일반화하지 않는다.
+
 정확한 bundle refs를 재조회하지 않는다. 누락/잘림/새 출처에만 select_evidence, 단독 실행·refs 변경·불일치 진단에는 validate_source_refs를 실제 실행한다. 전체 업무는 최종 저장이 검사한다.
 
 실행: `uv run python skills/needs-structuring/scripts/run.py OP --input JSON_PATH`. OP: select_evidence/validate_source_refs.

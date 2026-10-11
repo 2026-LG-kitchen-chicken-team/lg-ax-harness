@@ -1,13 +1,14 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+2026-10-12 최신 작업 마감: 원문/요약/AI 판단 분리, 보류 decision_notes·후기 문맥/집계·실제 시간·원래 대상 취소를 보완하고 v7.4 동일 원본의 제한 회귀를 종료했다. **Codex10건 중8통과·2실패, Claude3건 중2통과·1실패, 기본 R06미실행1건**. 최종 pointer 전달 오류·신규 조사420초 timeout·Claude 문맥/지표/귀속 제한은 남았다. [구현·실제 결과·시간·한계](docs/validation/quality-regression-20261012.md) · [토큰 가산점의 실제 사건·관측 수치](docs/validation/token-bonus-20261012.md). 제품189·평가128·eval28개 코드 검사 exit0는 AI 전체 품질 통과가 아니다. 보류 진단 통과를 기획 완성으로 바꾸지 않는다. 아래 버전별 문단은 당시 이력이다.
+
 2026-10-11 최신 v7.2: Codex·Claude Desktop Code 각각4입력/3대화의 실제 저장·최종 전달을 확인했다. 초안2/기획 보류5/조사 보류1이며 의미 품질 전체 통과가 아니다. 제품180·평가128개 및 새69파일 ZIP 설치/재설치 검사 exit0. 원질문/발췌 범위 지침과 빈 후보 양식·시간 배분을 보완했다. Claude의 최종 공식 문구 귀속·자체 시간 표시·후기 맥락/검증 지표·접근 복구 안내에는 한계가 남았다. [실제 결과·토큰·남은 작업](docs/validation/claude-codex-v72-20261011.md)을 현재 상태로 우선한다. 아래 날짜별 문단은 각 버전 당시의 이력이며 과거 미인수 상태·검사 수를 최신 결과와 합산하지 않는다. 사람 비교·Gemini는 제외하며 팀 웹 원본과 영상/최종 제출은 별도다.
 
 2026-10-11 최신 v7.1: 빈 catalog에서 실제 질문→조사·등록→같은 요청 기획 경로를 구현하고 열린 이슈5건을 전수 검토해 #4/#5를 수정했다. 제품174·평가145개 일반 코드 검사 통과. 동결 v7.0 실제 진단은 완료1/시간초과3/미실행1, 별도 같은 요청 복구1건 완료이며 최신 v7.1 native·Claude·웹 연결 인수는 미완료다. 사람 대비 절감효과 측정은 사용자 선택으로 제외했다. [구현/진단 결과](docs/validation/request-driven-20261011.md) · [이슈 검토](docs/validation/open-issues-20261011.md). 아래 기록은 각 당시 버전의 이력이다.
 
 2026-10-11 신규 요청 기반 경로(v7.0): 사용자가 새 모델 조사·등록까지 확장하도록 승인했다. 기본 설치는 빈 catalog이며 native AI가 질문을 해석해 실제 근거를 조사하고 정확 모델/출처를 등록한다. open_request 원문 보존 → 연구 사건 → 같은 요청 resolve_request_bundle → 기획/검토/저장으로 연결한다. 특정 질문·제품 enum·기본5모델 답안 선택 경로를 사용하지 않는다. Claude 중복 미확인 null·공식 원문/해석 분리 지침을 보완했다. 현재 구현/코드 검증과 실제 AI 검증은 [최신 작업 기록](docs/validation/request-driven-20261011.md)으로 구분한다. 아래 과거 기본자료·미채택·대기 설명은 당시 이력이다.
 
-
-최신 제품 배포: [v0.6.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.6.0) · [제품 전용 스냅샷·원격/다운로드 검증](docs/validation/product-v0.6.0.md). 69파일 ZIP과 부모 없는 제품 태그의 바이트, 다운로드·체크섬·GitHub digest를 대조했다. 실제 8입력은 최종 키 접미사 수정 전 동결본이며 최종 수정은 코드 검사로 확인했다. 아래 v0.5.0/v0.4.0/v0.3.0 검사는 과거 checkpoint다.
+최신 제품 배포: [v0.7.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.7.0) · [제품 전용 스냅샷·원격/다운로드 검증](docs/validation/product-v0.7.0.md).69파일 ZIP·부모 없는 제품 태그의 바이트·다운로드/체크섬/GitHub digest를 실제 대조했다. 같은 v7.4 원본 제한 회귀의 Codex8/10·Claude2/3 통과와 실패 범위를 공개한다. 아래 v0.6.0 및 이전 검사 수치는 과거 checkpoint다.
 
 2026-10-11 Claude 회신: [최길웅의 v0.3.0 네 입력·첨부 검토](docs/validation/team-runs/records/20261011-claude-mail-review.md). export4개·실행 요약을 접수해 초안3/보류1과 후속 이력·출처를 대조했다. 최초 중복 판단의 모순과 공식 문구 귀속 오류를 기록했다. 환경·시간은 팀원 보고이며 전체 native 최종문/DB/요청별 usage는 미접수다. 최신 v6.1 Claude 제품군10입력·전체 품질/비용 인수와 별도 개발용 Claude 위임 인수는 미완료다.
 
@@ -124,7 +125,7 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 
 이 ZIP은 [새 폴더 재현 연습](docs/validation/submission-rehearsal.md)용 업무 소스다. 발표·영상·최종 제출 요건 확인을 포함하지 않는다. 실제 로그·DB·인증·의존성 환경은 제외한다. 제품 설치물에 개발 평가 실행기를 넣지 않는다.
 
-실제 심사 입력의 비교·다중 턴·장애 시험은 [S05 후속 검증](docs/validation/s05-followup.md)에 기록한다. 관측 usage와 전체 청구 비용을 구분하며, 사람의 공수 효과는 [측정 절차](docs/evaluation/human-effect-protocol.md)에 따른 실제 기록이 있어야 확정한다. 청소 불편·내부 치수는 [후속 조사](docs/data/s01d2-followup.md)에서도 확보하지 못해 물리 배치 확정은 보류한다.
+실제 심사 입력의 비교·다중 턴·장애 시험은 [S05 후속 검증](docs/validation/s05-followup.md)에 기록한다. 관측 usage와 전체 청구 비용을 구분하며, 사람 비교는 [최신 제외 결정](docs/decisions/effect-scope-20261011.md)에 따라 수행·회신 대기하지 않는다. AI 자체 시간·사용량·오류·근거 품질은 계속 검증한다. 청소 불편·내부 치수는 [후속 조사](docs/data/s01d2-followup.md)에서도 확보하지 못해 물리 배치 확정은 보류한다.
 
 [취소·재시도·반환 원문 시험](docs/validation/s05-hardening.md)에서는 공통 취소 저장과 재시도 경계를 추가했고 제품97개·평가29개·개발22개 코드 검사를 통과했다. 실제 J17 삽입 조건은 최종 저장 일치를 확인했으나 정상 대조가420초 시간초과여서 두 조건 비교는 미통과다. 업무 취소는 로컬 저장 차단이며 native/backend 종료를 보장하지 않는다.
 
@@ -134,7 +135,7 @@ uv run python adapters/common/package.py --engine codex --target C:/NEW-PREPARED
 
 [실행 결과 Issue](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/issues/new?template=harness-test-result.md)에 환경·실제 질문/답변·관측 Skill/Tool·오류·후속 이력·사용량을 남긴다. 읽기 권한으로 접수하고 관리자가 비식별 검토 보고서를 레포에 정리한다. 이 절차를 위해 기존 테스트를 다시 실행할 필요는 없다. [접수 방법](docs/evaluation/team-test-records.md), [환경별 결과 색인](docs/validation/team-runs/index.md), [질문 범위와 미사용 평가](docs/evaluation/coverage-and-holdout.md)를 따른다.
 
-팀원들이 실행했다는 사용자 보고와 실제 결과를 접수·검토한 상태를 구분한다. 대겸의 ZIP 보고서는 접수·검토했지만 native 원본·DB·export는 받지 못했다. 새로 발송한 사람 측정·원본 요청의 회신은 아직 없으며 새 환경 지원·전체 사용량/공수 통과를 추가하지 않았다. 실행 종료·업무 상태·내용 검토를 따로 기록하고, 실패 → 수정 commit → 재시험을 연결한다. 수백 질문 후보를 마련하더라도 개발에 노출된 사례와 미사용 평가를 분리한다.
+팀원들이 실행했다는 사용자 보고와 실제 결과를 접수·검토한 상태를 구분한다. 대겸의 ZIP 보고서는 접수·검토했지만 native 원본·DB·export는 받지 못했다. 과거 사람 측정 요청은 범위에서 제외해 추가 회신을 기다리지 않는다. 팀원 Claude 원본은 [최신 메일 검토](docs/validation/team-runs/records/20261011-claude-followup-mail-review.md)를 따르며 전체 backend 청구를 인증하지 않는다. 실행 종료·업무 상태·내용 검토를 따로 기록하고, 실패 → 수정 commit → 재시험을 연결한다. 수백 질문 후보를 마련하더라도 개발에 노출된 사례와 미사용 평가를 분리한다.
 
 ## 제품 릴리스
 

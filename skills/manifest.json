@@ -29,7 +29,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "df55583cac12d2d49b198e545a2e7934e5ad0747b1fae19526933370e7894766"
+          "sha256": "8d05bb9a94a7d8ca29918dfc9978a807b89da7b9a2174b3124724ee3ee0b7023"
         }
       ]
     },
@@ -49,7 +49,7 @@
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "c0f418643cb82f7dcebbe319e758f76d0a41c923dc90dedbdd8f4ca0e4b7ab9f"
+          "sha256": "1de200004b5a1a587e1955e96826ffc6486300be8b3589c26f01a75d8ac88298"
         }
       ]
     },
@@ -68,7 +68,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "8b4dafb9a7640c2974de992e218da9e39c5800f51b9b2b16fc2e88676ec75b61"
+          "sha256": "d5b70b6a771733c4bbd958d9041dad033611ab47a790ca6a75e500427e3c9f18"
         }
       ]
     },
@@ -133,7 +133,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "8b5898e15e6060353cb817dd1dd29d0a99a8bf98c22238f9e5a9c70caf91f915"
+          "sha256": "4dcec360787be7196316283feadde3971d245e9b5b7ab50864c1833e861a29a3"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -141,7 +141,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "60e9973abf9630005c7c4bb01fd9062721aa780fbeca0a5406beb40007502a70"
+          "sha256": "fef1c6acf43fe98f1f646246957af34a8d51c2d6ec81984b9b98917477b93d31"
         }
       ]
     }
@@ -149,7 +149,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "6face0ef2d8e8155d1b3850307d4786e912dda74e00b8a7a73ebc62e03b5f83e"
+      "sha256": "9558f4552ac1e95f1987b727da4d0aa2189462b199495fd8a32a0dcfa14de858"
     },
     {
       "path": "product-tools/cli.py",
@@ -161,11 +161,11 @@
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "91ccbdb108d5bab6156eba78c4cb70f7fddbf6a86ef9ee17630120bb9a20e3ca"
+      "sha256": "d45c0677328e1fce39e63998cc6131fc5e71edbd41bccdaa3068a5ce82a0ee01"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "a1860c3f575aabc40c9a78ca6f39c84c8fa7b7ae7fe4ea342337cda6a522c681"
+      "sha256": "a9a28b98fd5fa94aa117c22bdcd7dcb706b39f1e822b2efebd1519f4b9fd6ed2"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -173,7 +173,7 @@
     },
     {
       "path": "product-tools/product_tools/payload.py",
-      "sha256": "f74811c989b99e87d9cad7bd66903f5726ef5d2ad3922a52df708654f1ccd804"
+      "sha256": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e"
     },
     {
       "path": "product-tools/product_tools/planning.py",
@@ -185,7 +185,7 @@
     },
     {
       "path": "product-tools/product_tools/tools.py",
-      "sha256": "9e57660751c3df371cdf247f2895fab40690e3af642043f9964ea73b76064444"
+      "sha256": "1cae4712bf3cfdc8f3d41b222f7d335da0ae4d3c6495a6039d9fb503c99f0fa2"
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
@@ -193,11 +193,11 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "9ddb014647f0fdf66acc8351afbf953d7b581b436564dd68bdc53ab721ab0f8f"
+      "sha256": "048eb1ecc916598189f3529bdca0a8229983398d429a16debfa6cf074880b9ff"
     },
     {
       "path": "docs/contracts/product-planning.md",
-      "sha256": "9de2ca730c0a281993ec5e971a0398da0f56e979fe30867977a6ff3b71d638e8"
+      "sha256": "374ec19cbe28a8eadba49196ad4c217bfb785bc02f34bed8a011d72219c0f25c"
     },
     {
       "path": "docs/contracts/web-evidence.md",

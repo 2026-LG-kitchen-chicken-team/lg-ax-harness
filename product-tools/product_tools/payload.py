@@ -24,6 +24,6 @@ def candidate_template(turn):
             'result_key': key, 'expected_result_version': version,
             'result': {'status': '', 'pains': [], 'existing_features': [],
                        'remaining_pains': [], 'concepts': [], 'assumptions': [],
-                       'evidence_refs': [], 'validation_findings': [],
+                       'evidence_refs': [], 'decision_notes': [], 'validation_findings': [],
                        'revisions': version, 'usage_summary': {'status': 'unknown'}},
             'assessment': {'claim_checks': [], 'feature_matches': [], 'concept_links': []}}

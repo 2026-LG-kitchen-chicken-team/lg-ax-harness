@@ -1,0 +1,85 @@
+{
+  "files": 69,
+  "bytes": 143193,
+  "sha256": "89eba6307a7411aefceb79868f161bcab369eeecfca29ecdf3079a751cecfae5",
+  "source_commit": "33001576987dfc212b09f75d016f2cd65d00ff08",
+  "product_commit": "5aa651c14f6282ec463a63ccf0fae8416ffb0060",
+  "product_tree": "b6fd93e920d9cc6c5b341dd3454b1d6b0ebf2b00",
+  "tag": "product-v0.7.0",
+  "parentless": true,
+  "zip_tag_bytes_match": true,
+  "date": "2026-10-12",
+  "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.7.0",
+  "release_id": 409784549,
+  "prerelease": true,
+  "remote_tag_matches": true,
+  "download_sha256": "89eba6307a7411aefceb79868f161bcab369eeecfca29ecdf3079a751cecfae5",
+  "github_asset_digest": "sha256:89eba6307a7411aefceb79868f161bcab369eeecfca29ecdf3079a751cecfae5",
+  "github_asset_size": 143193,
+  "download_manifest_hashes_match": true,
+  "downloaded_zip_tag_bytes_match": true,
+  "development_eval_private_files_absent": true,
+  "native_source_fingerprint": "73ec3fc2ac5931ed70bba7785dc31ef52c24493c32b8128b16060326793697e9",
+  "native_source_matches_final_product": true,
+  "default_catalog_empty": true,
+  "checks": {
+    "product_unit": {
+      "count": 189,
+      "exit_code": 0
+    },
+    "evaluation_unit": {
+      "count": 128,
+      "exit_code": 0
+    },
+    "eval_unit": {
+      "count": 28,
+      "exit_code": 0
+    },
+    "fresh_final_gate_receipt": ".harness/checks/f6b50612cdb548b1b2dfea620a019fa2/receipt.json"
+  },
+  "native_results": {
+    "codex": {
+      "executed": 10,
+      "passed": 8,
+      "failed": 2,
+      "not_run": 1
+    },
+    "claude": {
+      "executed": 3,
+      "passed": 2,
+      "failed": 1
+    }
+  },
+  "limitations": [
+    "Bounded disclosed diagnostic inputs, not general accuracy certification",
+    "Codex held final pointer delivery failure and one420second timeout",
+    "Claude source-context/metric quality failure and some summary-attribution ambiguity",
+    "Timeout usage partial; backend billing/development cost/saving rate unknown",
+    "Native task cancellation and local process termination do not certify backend stop",
+    "Video/presentation update/rehearsal/web integration/final submission not completed"
+  ],
+  "remote_ci": {
+    "run_id": 38155686290,
+    "head_sha": "33001576987dfc212b09f75d016f2cd65d00ff08",
+    "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/actions/runs/38155686290",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "check (ubuntu-latest)",
+        "job_id": 114518079997,
+        "conclusion": "failure",
+        "executed_steps": 0,
+        "reason": "GitHub annotation: job not started due failed account payments or spending limit; specific cause not distinguished"
+      },
+      {
+        "name": "check (windows-latest)",
+        "job_id": 114518080192,
+        "conclusion": "failure",
+        "executed_steps": 0,
+        "reason": "GitHub annotation: job not started due failed account payments or spending limit; specific cause not distinguished"
+      }
+    ],
+    "scope": "Remote jobs not started; not a code test failure and not a remote test pass; local345actual tests are separate"
+  }
+}

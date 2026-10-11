@@ -12,6 +12,8 @@
 
 `review_product_result` 입력은 `{input: PlanningInput, result: ProductResult, assessment: ...}`다. ProductResult 원본은 변경하지 않는다. assessment는 모델이 원문을 대조해서 작성하는 아래3개 배열이다.
 
+선택 decision_notes의 refs·한 모델 snapshot·상한은 공통 계약이 검사한다. note의 basis는 모델 신고이며 claim_checks를 대신하지 않는다. 원문 직접 인용/요약/AI 해석과 보류 사유의 의미는 별도 답변 검토로 확인한다. note를 추가해 completed의 concept/불편 연결 규칙을 우회할 수 없다.
+
 - `claim_checks`: 모든 pains/existing_features/remaining_pains/concepts의 claim마다 `{claim_id, source_ids, support_status, scope_relation, rationale}`. source_ids는 claim과 동일 순서. support_status는 supported/unsupported/uncertain, scope_relation은 current_model/previous_product/unclear.
 - `feature_matches`: remaining_pain마다 `{remaining_pain_id, pain_id, feature_source_ids, resolution, rationale}`. 원래 관측 불편과 인용된 제품 사실을 연결한다. resolution은 resolved/partially_resolved/unresolved/uncertain. resolved 또는 uncertain인 문제는 completed 제안의 남은 불편으로 확정하지 않는다.
 - `concept_links`: concept마다 `{concept_id, remaining_pain_ids, duplicates_existing, geometry_required, geometry_known, geometry_source_ids, rationale}`. duplicates_existing은 boolean/null. 치수가 필요한 안은 geometry_known=true와 해당 사실 출처가 필요하다. 치수 종류·원문 의미·추정 오류는 실제 원문 검토가 담당한다.

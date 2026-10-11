@@ -127,10 +127,18 @@ class ProductTools:
                 if len(source_scopes) != 1:
                     fail("scope_mismatch", "Each claim belongs to one exact model snapshot; separate cross-model claims")
                 used.update(claim["source_ids"])
+        for note in result.get("decision_notes", []):
+            if not set(note["source_ids"]) <= referenced:
+                fail("missing_evidence", "Each decision source ID must have an exact evidence reference")
+            source_scopes = {canonical({k: self.dataset.source(s)[k] for k in ("model_id", "model_version", "document_version")}) for s in note["source_ids"]}
+            if len(source_scopes) > 1:
+                fail("scope_mismatch", "Each decision note belongs to one exact model snapshot")
+            used.update(note["source_ids"])
         if referenced != used:
             fail("unused_evidence", "Unused citations must be removed to keep evidence focused")
         return {**report, "contract_version": "product-contract-v1", "contract_valid": True,
                 "planning_detail_complete": bool(result["concepts"]) and all(
                     c.get("implementation_steps") and c.get("validation_plan") for c in result["concepts"]),
                 "planning_detail_scope": "field presence only; no evaluation score or effect certification",
-                "semantic_checks_required": ["claim support", "existing-feature duplication", "excluded-pain meaning", "synthetic vs market interpretation", "manufacturing assumptions"]}
+                "decision_basis_scope": "model-reported labels only; not official quote or semantic certification",
+                "semantic_checks_required": ["claim support", "decision note support and attribution", "existing-feature duplication", "excluded-pain meaning", "synthetic vs market interpretation", "manufacturing assumptions"]}
