@@ -1,5 +1,7 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+최신 완료: [제품 v0.3.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.3.0) · [배포·다음 인수](docs/validation/product-v0.3.0.md) · [세 제품군/평가항목 보고](docs/validation/kitchen-progress-20261011.md). 제품135·평가90개 로컬 검사와 실제4입력/3세션,12쪽 발표 검토 초안을 확인했다. 최길웅에게 Claude 검증 요청 메일을 승인받아 발송했다. 영상·리허설·실제 효과·Claude native·최종 접수는 남아 있다. 원격 CI는 계정 결제/지출 제한으로 steps0 실패이며 로컬 검사와 구분한다.
+
 2026-10-11 새 범위: **냉장고·전자레인지·식기세척기** 실제 불편과 기존 기능을 대조하는 상품기획 Agent. 기본 자료5모델·8후기·26사실, 구현 단계/효과 검증 계획을 저장한다. [최신 결정](docs/decisions/kitchen-scope-20261011.md)·[실제 자료와 한계](docs/data/kitchen-v4.md). Gemini 신규 지원을 제거하고 Claude는 하네스 보완 후 최길웅의 환경 검증/정이량 메일 회신으로 진행한다. 웹팀은 개발 중이며 구현 원본 접수·연결 검토는 별도다. 아래 릴리스/검사 숫자는 해당 과거 버전의 이력이다.
 
 출품 Agent·Skill을 만들기 위한 **Codex 중심 개발 체계**다. 메인은 Codex 부모 세션이며 6개 개발 역할·9개 개발 Skill·OSS 작업 장부·실제 검사 실행기를 사용한다. 팀원의 Claude Code에는 별도 네이티브 어댑터를 제공한다. 출품 상품기획 Agent 지침·업무 Skill5개+조건부 외부 조사Skill1개·공통 코드를 작성했다. Codex 출품 설치와 실제 업무 연결을 검증했다. 제품군은 냉장고·전자레인지·식기세척기로 확대하며 Gemini는 철회, Claude native는 후순위다.
