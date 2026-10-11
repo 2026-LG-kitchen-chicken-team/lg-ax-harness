@@ -26,4 +26,8 @@ Excel 원자료는 편집 가능하다. 차트는 동일 렌더링 이미지이�
 
 ## 원격 반영
 
-현재 파일은 로컬 준비 검증 기록이다. main 반영·원격 tag·Release 업로드·실제 다운로드 SHA 및 자동 tag archive의 byte 대조 결과는 실행 뒤 이 절에 추가한다. 기존 릴리스와 파일을 덮어쓰지 않는다.
+main에 source/검수 기록을 직접 반영했다(첫 push `b85e0d17e0867a946ddd53a1f58215cafb3d6dae`). [제품 v0.8.0 릴리스](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.0)는 prerelease이며 새 ZIP과 SHA256SUMS만 첨부했다. 원격 annotated tag의 실제 commit은 `8e58057a5ec4910066a547ab62eee507669c3405`다. 기존 릴리스와 파일을 덮어쓰지 않았다.
+
+실제 릴리스 다운로드 ZIP은221277바이트이고 위 SHA256·체크섬 파일·GitHub digest가 모두 일치한다. GitHub 자동 tag archive도 직접 내려받아 root prefix를 제거한78파일 각각을 제품 ZIP과 byte 대조했다. 개발 이력·개인 자료·원문 실행 로그·가상 검수 예제가 태그에 따라가지 않는다.
+
+[main 첫 push의 원격 CI](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/actions/runs/38179098160)는 Windows/Ubuntu 두 job 모두 failure·steps0이다. 실제 annotation은 계정의 최근 결제 실패 또는 지출 한도로 시작되지 않았다고 한다. 구체 원인은 구분하지 않으며 계정 결제/지출 설정을 변경하지 않았다. 로컬357검사 통과를 원격 CI 통과로 바꾸지 않는다. 새 문서 검사의 의존성이 준비되도록 CI에 `pip install --require-hashes -r product-tools/requirements.lock`을 추가했고 같은 잠금 의존성 환경에서 개발22검사/validate도 exit0였다. 제품 ZIP은 개발 workflow 변경으로 다시 발행하지 않는다.
