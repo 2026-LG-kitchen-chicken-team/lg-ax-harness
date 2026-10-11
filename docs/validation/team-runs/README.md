@@ -1,5 +1,7 @@
 # 팀원 실행·검토 보고서
 
+2026-10-11 최신 접수는 [목록](index.md)과 길웅의 [추가 export·사용량 검토](records/20261011-claude-followup-mail-review.md), [뷰어 메일 검토](records/20261011-viewer-mail-review.md)를 따른다. 원본·보고값·독립 관측 범위를 구분하며 사람 대비 측정은 제외한다. 아래 최초 접수 전 설명은2026-10-10 이력이다.
+
 실행자가 [Issue 양식](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/issues/new?template=harness-test-result.md)으로 결과를 제출하면 관리자가 실제 질문/출력·관측 근거와 민감 정보 제거를 확인해 `records/<run-id>.md`에 정리한다. 팀원은 코드 푸시 권한이 없어도 Issue로 접수할 수 있다. [기록 계약](../../evaluation/team-test-records.md)을 따른다.
 
 - [환경·질문별 접수/검토 목록](index.md)
