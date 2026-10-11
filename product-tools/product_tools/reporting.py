@@ -223,7 +223,7 @@ def _deps():
         try:
             modules[name] = importlib.import_module(name)
         except (ImportError, OSError) as exc:
-            fail("reporting_dependency_missing", "Install the project's reporting extra: uv sync --extra reporting. Missing " + name + ": " + str(exc))
+            fail("reporting_dependency_missing", "Install the project dependencies: uv sync --locked. Missing " + name + ": " + str(exc))
     return modules
 
 
@@ -396,10 +396,20 @@ def _write_libraries(doc, folder, deps):
                         row.extend(s["x_values"][i] for s in block["series"])
                 _style_sheet(ws, block["title"], headers, rows, deps,
                              [[point,series+1] for series,point in block.get("highlights",[])])
-                ws["B3"] = block.get("unit", "")
+                _cell_text(ws["B3"], block.get("unit", ""))
+            citation_row = len(block["rows"] if block["type"] == "table" else rows)+8
+            for sid in block.get("source_ids", []):
+                source = records[sid]
+                info = source_links[sid]
+                cell = ws.cell(citation_row,2)
+                _cell_text(cell, source["title"]+" 원문")
+                cell.hyperlink = info["file"]+"#'"+info["sheet"]+"'!"+info["cell"]
+                _sheet_note(ws,citation_row,cell.value,13 if block["type"] == "chart" else len(block["headers"])+1)
+                citation_row += 1
+            if block["type"] == "chart":
                 from io import BytesIO
                 from openpyxl.drawing.image import Image as ExcelImage
-                chart_row = len(rows)+11
+                chart_row = citation_row+2
                 for drawing in _chart_drawings(block, _font()):
                     buffer = BytesIO()
                     _drawing_png(drawing,buffer)
@@ -409,20 +419,35 @@ def _write_libraries(doc, folder, deps):
                     picture.height = 720*drawing.height/drawing.width
                     ws.add_image(picture,"B"+str(chart_row))
                     chart_row += math.ceil(picture.height/20)+2
-            citation_row = len(block["rows"] if block["type"] == "table" else rows)+8
-            for sid in block.get("source_ids", []):
-                source = records[sid]
-                info = source_links[sid]
-                cell = ws.cell(citation_row,2,source["title"]+" 원문")
-                cell.hyperlink = info["file"]+"#'"+info["sheet"]+"'!"+info["cell"]
-                citation_row += 1
-            if block["type"] == "chart":
+                if block.get("caption"):
+                    _sheet_note(ws,chart_row,block["caption"],13)
+                    chart_row += 1
                 ws.page_setup.fitToHeight = 1
                 ws.print_area = f"B2:M{chart_row+2}"
+            elif block.get("source_ids"):
+                from openpyxl.utils import get_column_letter
+                ws.print_area = f"B2:{get_column_letter(len(block['headers'])+1)}{citation_row}"
         path = folder/"보고서 도표.xlsx"
         wb.save(path)
         outputs.append(path)
     return outputs, source_links
+
+
+def _sheet_note(ws, row, value, end_column):
+    """Keep citation titles literal and captions readable inside the print area."""
+    from openpyxl.styles import Alignment, Font
+    from openpyxl.utils import get_column_letter
+    _cell_text(ws.cell(row,2),value)
+    if end_column > 2:
+        ws.merge_cells(start_row=row,start_column=2,end_row=row,end_column=end_column)
+    cell = ws.cell(row,2)
+    cell.font = Font(name=FONT,size=10,color="000000")
+    cell.alignment = Alignment(horizontal="left",vertical="top",wrap_text=True)
+    width = sum(ws.column_dimensions[get_column_letter(col)].width for col in range(2,end_column+1))
+    lines = sum(max(1,math.ceil(len(line)*2.1/max(8,width-3))) for line in value.split("\n"))
+    if lines*15+10 > 409:
+        fail("reporting_layout_failed","An Excel caption or citation exceeds its readable row height")
+    ws.row_dimensions[row].height = max(26,lines*15+10)
 
 
 def _new_docx():
@@ -592,6 +617,17 @@ def _chart_drawings(block, font):
     grid, grey, red = HexColor("#E6E6E6"), HexColor("#"+GREY), HexColor("#"+RED)
     highlights = {tuple(p) for p in block.get("highlights", [])}
     cats, series, kind = block["categories"], block["series"], block["kind"]
+    palette = ["737373", "303030", "A6A6A6", "595959", "BDBDBD", "454545"]
+    dashes = [None, [6,3], [2,3], [6,2,1,2]]
+
+    def series_color(index):
+        return HexColor("#"+palette[index % len(palette)])
+
+    def marker(d, x, y, index, color):
+        if index % 2:
+            d.add(Rect(x-3.5,y-3.5,7,7,fillColor=color,strokeColor=white))
+        else:
+            d.add(Circle(x,y,3.5,fillColor=color,strokeColor=white))
 
     def label(d, x, y, value, width=120, size=9, color=black, max_lines=3):
         value = str(value)
@@ -654,7 +690,7 @@ def _chart_drawings(block, font):
                 for sidx,item in enumerate(series):
                     y = top-24-(index*len(series)+sidx)*46
                     value = item["values"][absolute]
-                    color = red if (sidx,absolute) in highlights else grey
+                    color = red if (sidx,absolute) in highlights else series_color(sidx)
                     target = x0+(value-lo)/span*width
                     label(d,0,y+9,cats[absolute]+(" "+item["name"] if len(series)>1 else ""),width=140,size=8)
                     d.add(Rect(min(zero,target),y,abs(target-zero),13,fillColor=color,strokeColor=None))
@@ -688,14 +724,20 @@ def _chart_drawings(block, font):
             for absolute in range(start,start+count):
                 x = left+(item["x_values"][absolute]-xmin)/xspan*width if kind == "scatter" else left+(absolute-start)/max(1,count-1)*width
                 y = bottom+(item["values"][absolute]-lo)/span*height
-                color = red if (sidx,absolute) in highlights else grey
+                color = red if (sidx,absolute) in highlights else series_color(sidx)
                 if prior is not None and kind == "line":
-                    d.add(Line(prior[0],prior[1],x,y,strokeColor=grey))
-                d.add(Circle(x,y,3.5,fillColor=color,strokeColor=white))
+                    d.add(Line(prior[0],prior[1],x,y,strokeColor=series_color(sidx),
+                               strokeDashArray=dashes[sidx % len(dashes)]))
+                marker(d,x,y,sidx,color)
                 prior = (x,y)
                 if kind == "line" and sidx == 0:
                     label(d,x-18,bottom-18,cats[absolute],width=max(40,width/max(1,count)),size=8)
-            label(d,left+(sidx%3)*130,d.height-25-(sidx//3)*15,item["name"],width=125,size=9,max_lines=1)
+            legend_x, legend_y = left+(sidx%3)*130, d.height-25-(sidx//3)*15
+            if kind == "line":
+                d.add(Line(legend_x,legend_y+3,legend_x+20,legend_y+3,
+                           strokeColor=series_color(sidx),strokeDashArray=dashes[sidx % len(dashes)]))
+            marker(d,legend_x+10,legend_y+3,sidx,series_color(sidx))
+            label(d,legend_x+25,legend_y,item["name"],width=100,size=9,max_lines=1)
         label(d,left,265,block.get("unit","값"),width=350,size=9)
         drawings.append(d)
     return drawings
@@ -767,7 +809,21 @@ def _drawing_png(drawing, target):
             font = ImageFont.truetype(str(font_path), round(item.fontSize*scale)) if font_path.is_file() else ImageFont.load_default(size=round(item.fontSize*scale))
             paint.text(point(item.x,item.y),item.text,font=font,fill=color(item.fillColor),anchor="ls")
         elif isinstance(item,Line):
-            paint.line([point(item.x1,item.y1),point(item.x2,item.y2)],fill=color(item.strokeColor),width=2)
+            first,last = point(item.x1,item.y1),point(item.x2,item.y2)
+            dash = item.strokeDashArray
+            if dash:
+                dx,dy = last[0]-first[0],last[1]-first[1]
+                length = math.hypot(dx,dy)
+                at,index = 0,0
+                while at < length:
+                    end = min(length,at+dash[index % len(dash)]*scale)
+                    if index % 2 == 0 and length:
+                        paint.line([(first[0]+dx*at/length,first[1]+dy*at/length),
+                                    (first[0]+dx*end/length,first[1]+dy*end/length)],
+                                   fill=color(item.strokeColor),width=2)
+                    at,index = end,index+1
+            else:
+                paint.line([first,last],fill=color(item.strokeColor),width=2)
         elif isinstance(item,Rect):
             paint.rectangle([point(item.x,item.y+item.height),point(item.x+item.width,item.y)],fill=color(item.fillColor),outline=color(item.strokeColor))
         elif isinstance(item,Circle):
@@ -894,7 +950,10 @@ def _verify(stage, doc, outputs, links, deps):
             checks["docx_count"] += 1
     pdf = PdfReader(str(stage/"02_최종 보고서/보고서.pdf"))
     extracted = "\n".join(page.extract_text() or "" for page in pdf.pages)
-    if not pdf.pages or not extracted.strip() or doc["title"] not in extracted:
+    # PDF text extraction inserts line breaks when a legitimate title wraps.
+    compact_title = re.sub(r"\s+", "", doc["title"])
+    compact_extracted = re.sub(r"\s+", "", extracted)
+    if not pdf.pages or not extracted.strip() or compact_title not in compact_extracted:
         fail("reporting_verification_failed", "PDF pages/text/title missing")
     reader_text.append(extracted)
     checks["pdf_pages"] = len(pdf.pages)

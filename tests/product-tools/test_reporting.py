@@ -61,7 +61,49 @@ def example_plan():
     }
 
 
+def multi_source_plan():
+    sources = [{"id": "internal-citation-"+str(i), "kind": "other",
+                "title": "=SUM(A1:A2)" if i == 0 else "시험 근거 "+str(i+1),
+                "text": "원문 기록 "+str(i+1), "synthetic": True} for i in range(5)]
+    line = {"type":"chart","title":"두 계열의 합성 측정값","chart_type":"line",
+            "labels":["첫째","둘째","셋째"],"unit":"시험 단위",
+            "series":[{"name":"계열 A","values":[1,5,2]},{"name":"계열 B","values":[5,1,4]}],
+            "source_ids":[s["id"] for s in sources],"highlights":[[1,2]],
+            "caption":"합성 계열 A와 B가 둘째 구간에서 교차한다.\n회색 원과 실선은 A, 진한 회색 사각형과 점선은 B를 나타낸다."}
+    scatter = copy.deepcopy(line)
+    scatter.update(title="두 계열의 합성 좌표",chart_type="scatter",
+                   caption="합성 좌표의 계열을 범례의 원과 사각형으로 구분한다.")
+    scatter["series"][0]["x_values"] = [1,2,4]
+    scatter["series"][1]["x_values"] = [1,3,4]
+    return {"title":"출처와 복수 계열 계약 시험","summary":["계약 시험용 합성 자료다."],
+            "sources":sources,"sections":[{"title":"교차하는 두 계열","blocks":[line,scatter]}]}
+
+
 class ReportingValidationTests(unittest.TestCase):
+    def test_multiple_series_have_distinct_matching_keys_and_red_highlight(self):
+        from reportlab.graphics.shapes import Circle, Rect, Line, String
+        from reportlab.lib.colors import HexColor
+        for block in reporting._adapt_plan(multi_source_plan())["sections"][0]["blocks"]:
+            d = reporting._chart_drawings(block,reporting._font())[0]
+            points = [v for v in d.contents if isinstance(v,(Circle,Rect))
+                      and (getattr(v,"r",None) == 3.5 or getattr(v,"width",None) == 7)]
+            circles = [v for v in points if isinstance(v,Circle)]
+            squares = [v for v in points if isinstance(v,Rect)]
+            self.assertEqual(len(circles),4)  # three plot points plus the key
+            self.assertEqual(len(squares),4)
+            self.assertEqual(circles[0].fillColor,circles[-1].fillColor)
+            self.assertEqual(squares[0].fillColor,squares[-1].fillColor)
+            self.assertNotEqual(circles[-1].fillColor,squares[-1].fillColor)
+            self.assertEqual(squares[2].fillColor,HexColor("#B42318"))
+            self.assertEqual({v.text for v in d.contents if isinstance(v,String)} & {"계열 A","계열 B"},
+                             {"계열 A","계열 B"})
+            if block["kind"] == "line":
+                strokes = [v for v in d.contents if isinstance(v,Line)
+                           and v.strokeColor in (circles[-1].fillColor,squares[-1].fillColor)
+                           and v.y1 > 65 and v.y2 > 65]
+                self.assertTrue(any(v.strokeDashArray for v in strokes))
+                self.assertTrue(any(not v.strokeDashArray for v in strokes))
+
     def test_copy_and_exact_schema(self):
         plan = example_plan()
         normalized = reporting.validate_report_plan(plan)
@@ -123,6 +165,58 @@ class ReportingValidationTests(unittest.TestCase):
 
 
 class ReportingRenderTests(unittest.TestCase):
+    def test_literal_citation_titles_caption_and_chart_do_not_overlap(self):
+        from openpyxl import load_workbook
+        from openpyxl.utils.cell import range_boundaries
+        from openpyxl.utils.units import EMU_to_pixels
+        plan = multi_source_plan()
+        with tempfile.TemporaryDirectory() as temporary:
+            result = reporting.render_report(plan,Path(temporary)/"reader")
+            self.assertTrue(result["ready"],result)
+            data = load_workbook(Path(result["directory"])/"01_자료집"/"보고서 도표.xlsx")
+            raw = load_workbook(Path(result["directory"])/"01_자료집"/"01_참고 자료.xlsx")
+            self.assertEqual(raw.active["B7"].value,plan["sources"][0]["title"])
+            self.assertEqual(raw.active["B7"].data_type,"s")
+            for ws,block in zip(data.worksheets,plan["sections"][0]["blocks"]):
+                citations = [c for row in ws for c in row if c.hyperlink]
+                self.assertEqual(len(citations),5)
+                self.assertEqual([c.value for c in citations],
+                                 [s["title"]+" 원문" for s in plan["sources"]])
+                self.assertTrue(all(c.data_type == "s" for c in citations))
+                self.assertTrue(all(c.data_type != "f" for row in ws for c in row))
+                image = ws._images[0]
+                image_row = image.anchor._from.row+1
+                self.assertGreater(image_row,max(c.row for c in citations))
+                caption = next(c for row in ws for c in row if c.value == block["caption"])
+                self.assertGreater(caption.row,image_row+EMU_to_pixels(image.anchor.ext.cy)/20)
+                self.assertTrue(caption.alignment.wrap_text)
+                self.assertGreaterEqual(ws.row_dimensions[caption.row].height,26)
+                if "\n" in block["caption"]:
+                    self.assertGreater(ws.row_dimensions[caption.row].height,26)
+                printable_bottom = range_boundaries(str(ws.print_area).split("!")[-1])[3]
+                self.assertGreaterEqual(printable_bottom,caption.row)
+
+    def test_wrapped_pdf_title_and_missing_title(self):
+        from pypdf import PdfReader
+        import re
+        plan = example_plan()
+        plan["title"] = "DUBJ2EA 후기·기존 기능 대조와 개선안 보류 보고서"
+        with tempfile.TemporaryDirectory() as temporary:
+            result = reporting.render_report(plan,Path(temporary)/"wrapped")
+            self.assertTrue(result["ready"],result)
+            text = PdfReader(Path(result["directory"])/"02_최종 보고서"/"보고서.pdf").pages[0].extract_text()
+            self.assertNotIn(plan["title"],text)
+            self.assertIn(re.sub(r"\s+","",plan["title"]),re.sub(r"\s+","",text))
+            writer = reporting._write_pdf
+            def wrong_title(doc,*args):
+                changed = copy.deepcopy(doc)
+                changed["title"] = "다른 문서 제목"
+                return writer(changed,*args)
+            with patch.object(reporting,"_write_pdf",side_effect=wrong_title):
+                failure = reporting.render_report(plan,Path(temporary)/"wrong")
+            self.assertFalse(failure["ready"])
+            self.assertEqual(failure["checks"]["errors"][0]["code"],"reporting_verification_failed")
+
     def test_generation_preserves_raw_links_totals_and_no_internal_files(self):
         from openpyxl import load_workbook
         from pypdf import PdfReader
