@@ -9,10 +9,11 @@
 - install: 뷰어 파일을 `<하네스>/web/prototypes/visual-viewer/`에 복사하고(이미 그 자리면 생략), 훅을
   `.claude/settings.local.json` 또는 `.codex/hooks.json`에 합친다. 기존 설정·다른 훅은 지우거나 옮기지 않는다.
   훅 명령에는 사용자별 절대 경로가 없고, 설치한 hook.py·build_view.py·index.html의 SHA-256이 들어간다.
-  그래서 파일이 바뀌면 훅이 실행하지 않고, Codex에서는 명령이 바뀌어 다시 신뢰해야 한다.
+  그래서 파일이 바뀌면 훅이 실행하지 않고(로그만 남김), Codex에서는 명령이 바뀌어 다시 신뢰해야 한다.
+  공유 파일이 바뀌면 이미 등록된 다른 CLI의 항목도 같은 지문으로 다시 맞춘다.
 - uninstall: 이 뷰어의 훅 항목만 지운다. 뷰어 파일과 runtime-data의 화면·insights는 남긴다.
 - open --latest: 가장 최근 export로 화면을 다시 만들고 브라우저로 연다(훅이 없거나 놓쳤을 때).
-- 업무·모델·Tool을 실행하지 않는다. 개발 레포에는 설치하지 않는다.
+- 업무·모델·Tool을 실행하지 않는다. 개발 레포(dev-harness 폴더가 있는 곳)에는 설치하지 않는다.
 """
 
 from __future__ import annotations
@@ -35,19 +36,26 @@ APP_REL = ("web", "prototypes", "visual-viewer")
 APP_FILES = ("index.html", "build_view.py", "hook.py", "viewer.py", "README.md")
 # uv: 작업 폴더의 .python-version·uv.toml·pyproject를 따르지 않고 3.12를 쓰며 Python을 내려받지 않는다.
 UV_PREFIX = "uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c"
-# 훅 명령은 Git Bash·PowerShell·cmd 어디서나 같게 해석되도록 $ % ! ` \ ^ & | < > 를 쓰지 않는다.
-# hook.py의 SHA-256이 맞을 때만 읽은 바이트 그대로 실행하고, 없거나 다르면 조용히 끝난다.
+# Python 코드 부분은 Git Bash·PowerShell·cmd 어디서나 같게 해석되도록 $ % ! ` \ ^ & | < > 를 쓰지 않는다.
+# hook.py의 SHA-256이 맞을 때만 읽은 바이트 그대로 실행한다. 없거나 다르면 실행하지 않고 로그에 한 줄 남긴다.
 _BASE = {"claude": "os.environ.get('CLAUDE_PROJECT_DIR') or os.getcwd()", "codex": "os.getcwd()"}
-_CODE = ("import hashlib,os;p=os.path.join({base},'web','prototypes','visual-viewer','hook.py');"
+_CODE = ("import hashlib,os,time;d={base};p=os.path.join(d,'web','prototypes','visual-viewer','hook.py');"
+         "l=os.path.join(d,'runtime-data','visual-viewer','hook-error.log');"
          "b=open(p,'rb').read() if os.path.isfile(p) else b'';"
-         "hashlib.sha256(b).hexdigest()=='{digest}' and exec(compile(b,p,'exec'),{{'__name__':'__main__','__file__':p}})")
+         "exec(compile(b,p,'exec'),{{'__name__':'__main__','__file__':p}}) if hashlib.sha256(b).hexdigest()=='{digest}' "
+         "else os.path.isdir(os.path.dirname(l)) and open(l,'a').write("
+         "time.ctime()+' hook.py is missing or differs from the installed fingerprint. Run viewer.py install again.'+chr(10))")
+LOG_POSIX = "runtime-data/visual-viewer"
+LOG_WINDOWS = r"runtime-data\visual-viewer"
 TARGETS = {
     "claude": {"file": (".claude", "settings.local.json"), "event": "PostToolUse", "matcher": "Bash|PowerShell",
-               "name": "Claude Code", "async": True, "timeout": 60},
+               "name": "Claude Code", "async": True, "timeout": 60, "keep_positions": False},
     # codex-cli 0.146은 SessionEnd 외의 async 훅을 "async hooks are not supported yet"로 건너뛴다. 동기로 둔다.
+    # 신뢰 키가 `이벤트:묶음 번호:처리기 번호` 위치라서 다른 훅의 위치를 지킨다.
     "codex": {"file": (".codex", "hooks.json"), "event": "PostToolUse", "matcher": "Bash",
-              "name": "Codex CLI", "async": False, "timeout": 30},
+              "name": "Codex CLI", "async": False, "timeout": 30, "keep_positions": True},
 }
+PLACEHOLDER = {"type": "command", "command": ""}  # Codex는 빈 명령을 건너뛰지만 그 자리 번호는 센다
 HEX64 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -68,20 +76,45 @@ def hook_code(source: str, digests: dict) -> str:
 
 
 def hook_command(source: str, digests: dict) -> str:
+    """셸에 상관없는 핵심 명령. Claude는 이것을 그대로 쓴다(Git Bash·PowerShell은 작업 폴더의 실행 파일을 찾지 않는다)."""
     return f'{UV_PREFIX} "{hook_code(source, digests)}" {source} {digests["build_view"]} {digests["index"]}'
+
+
+def codex_commands(digests: dict) -> dict:
+    """Codex는 동기 훅이라 uv·Python이 시작조차 못 해도 exit 0·무출력이어야 한다(exit 2면 셸 결과를 바꿔 버린다).
+
+    - command(macOS·Linux, sh -c): 출력은 버리고 오류는 hook-error.log에 붙인 뒤 exit 0.
+    - commandWindows(COMSPEC /C, 작업 폴더 = 하네스): cmd는 작업 폴더의 uv.cmd·uv.bat을 PATH보다 먼저 찾으므로
+      NoDefaultCurrentDirectoryInExePath를 켜서 막는다. 출력은 버리고 오류는 로그에 붙인 뒤 exit /b 0.
+    """
+    core = hook_command("codex", digests)
+    return {
+        "command": f"mkdir -p {LOG_POSIX} 2>/dev/null; {core} >/dev/null 2>>{LOG_POSIX}/hook-error.log; exit 0",
+        "commandWindows": (f"set NoDefaultCurrentDirectoryInExePath=1&& (if not exist {LOG_WINDOWS}\\ md {LOG_WINDOWS}) & "
+                           f"{core} 1>nul 2>>{LOG_WINDOWS}\\hook-error.log & exit /b 0"),
+    }
 
 
 def handler(source: str, digests: dict) -> dict:
     target = TARGETS[source]
-    value = {"type": "command", "command": hook_command(source, digests), "timeout": target["timeout"]}
+    if source == "codex":
+        value = {"type": "command", **codex_commands(digests), "timeout": target["timeout"]}
+    else:
+        value = {"type": "command", "command": hook_command(source, digests), "timeout": target["timeout"]}
     if target["async"]:
         value["async"] = True
     return value
 
 
 def is_ours(item) -> bool:
-    command = item.get("command") if isinstance(item, dict) else None
-    return isinstance(command, str) and "visual-viewer" in command and "hook.py" in command
+    if not isinstance(item, dict):
+        return False
+    text = " ".join(v for v in (item.get("command"), item.get("commandWindows")) if isinstance(v, str))
+    return "visual-viewer" in text and "hook.py" in text
+
+
+def is_placeholder(item) -> bool:
+    return isinstance(item, dict) and item.get("command") == "" and not item.get("commandWindows")
 
 
 # ---------------------------------------------------------------- settings files
@@ -120,6 +153,9 @@ def hooks_table(config: dict, path: Path) -> dict:
     for event, groups in table.items():
         if not isinstance(groups, list):
             raise ViewerError(f"{path}의 hooks.{event}가 목록이 아니어서 고치지 않았습니다.")
+        for group in groups:
+            if isinstance(group, dict) and "hooks" in group and not isinstance(group["hooks"], list):
+                raise ViewerError(f"{path}의 hooks.{event}의 hooks가 목록이 아니어서 고치지 않았습니다.")
     return table
 
 
@@ -135,82 +171,118 @@ def our_positions(config: dict) -> list[tuple[str, int, int]]:
     return found
 
 
-def place_ours(config: dict, path: Path, source: str, new: dict) -> str:
-    """이 뷰어 항목을 넣는다. Codex 신뢰 키는 `이벤트:묶음 번호:처리기 번호` 위치라 다른 훅의 위치를 바꾸지 않는다.
+def remove_positions(config: dict, positions: list[tuple[str, int, int]], keep_positions: bool) -> list[str]:
+    """주어진 처리기를 지운다. keep_positions면 뒤에 있는 다른 처리기·묶음의 번호가 바뀌지 않게 자리표시를 남긴다.
 
-    1) 기존 항목이 있으면 그 자리에서 바꾼다. 2) 해제 때 남긴 빈 묶음(같은 matcher)이 있으면 그 자리를 다시 쓴다.
-    3) 둘 다 없으면 이벤트 목록 맨 끝에 붙인다.
+    돌려주는 목록은 사용자에게 알릴 말이다(빈 명령 자리표시를 남긴 경우 등).
     """
-    target = TARGETS[source]
-    table = config.setdefault("hooks", {})
-    hooks_table(config, path)
-    positions = our_positions(config)
-    if positions:
-        event, gi, hi = positions[0]
-        table[event][gi]["hooks"][hi] = new
-        for event2, gi2, hi2 in reversed(positions[1:]):  # 중복 항목은 지운다(같은 묶음 안 뒤쪽부터)
-            del table[event2][gi2]["hooks"][hi2]
-        return "갱신"
-    groups = table.setdefault(target["event"], [])
-    for group in groups:
-        if isinstance(group, dict) and group.get("matcher") == target["matcher"] and group.get("hooks") == []:
-            group["hooks"] = [new]
-            return "추가(이전 자리)"
-    groups.append({"matcher": target["matcher"], "hooks": [new]})
-    return "추가"
-
-
-def remove_ours(config: dict, path: Path) -> int:
-    """이 뷰어의 처리기만 지운다. 뒤에 다른 묶음이 있으면 빈 묶음을 자리표시로 남겨 그 훅들의 위치(신뢰 키)를 지킨다."""
-    if "hooks" not in config:
-        return 0
-    table = hooks_table(config, path)
-    removed = 0
-    for event in list(table):
+    notes = []
+    table = config.get("hooks") or {}
+    for event, gi, hi in sorted(positions, reverse=True):
         groups = table[event]
-        for gi in range(len(groups) - 1, -1, -1):
-            group = groups[gi]
-            items = group.get("hooks") if isinstance(group, dict) else None
-            if not isinstance(items, list) or not any(is_ours(h) for h in items):
-                continue
-            kept = [h for h in items if not is_ours(h)]
-            removed += len(items) - len(kept)
-            if kept:
-                group["hooks"] = kept
-            elif gi == len(groups) - 1:
+        items = groups[gi]["hooks"]
+        last_handler = hi == len(items) - 1
+        if keep_positions and not last_handler:
+            items[hi] = dict(PLACEHOLDER)
+            notes.append(f"{event} 묶음 {gi}의 뒤쪽 훅 {len(items) - hi - 1}개가 신뢰를 잃지 않도록 빈 명령 자리표시를 남겼습니다"
+                         " (Codex 시작 때 'skipping empty hook command' 경고가 보일 수 있습니다).")
+            continue
+        del items[hi]
+        if keep_positions:
+            while items and is_placeholder(items[-1]):  # 맨 뒤 자리표시는 번호에 영향이 없다
+                items.pop()
+        if not items:
+            if gi == len(groups) - 1 or not keep_positions:
                 del groups[gi]
             else:
-                group["hooks"] = []
-        if not groups:
+                groups[gi]["hooks"] = []  # 뒤 묶음의 번호를 지키는 빈 묶음
+    for event in list(table):
+        if not table[event]:
             del table[event]
-    if not table:
+    if "hooks" in config and not config["hooks"]:
         del config["hooks"]
-    return removed
+    return notes
+
+
+def place_ours(config: dict, path: Path, source: str, new: dict) -> tuple[str, list[str]]:
+    """이 뷰어 항목을 올바른 이벤트·matcher 자리에 넣는다.
+
+    1) 올바른 자리(PostToolUse·target matcher)의 기존 항목은 그 자리에서 바꾼다.
+    2) 다른 이벤트·matcher에 있던 항목과 중복 항목은 위치를 지키며 지운다.
+    3) 기존 항목이 없으면 해제 때 남긴 자리표시(빈 명령·빈 묶음)를 다시 쓰고, 없으면 맨 끝에 붙인다.
+    """
+    target = TARGETS[source]
+    hooks_table(config, path)
+    table = config.setdefault("hooks", {})
+    positions = our_positions(config)
+    good = [p for p in positions if p[0] == target["event"] and table[p[0]][p[1]].get("matcher") == target["matcher"]]
+    if good:
+        event, gi, hi = good[0]
+        table[event][gi]["hooks"][hi] = new
+        notes = remove_positions(config, [p for p in positions if p != good[0]], target["keep_positions"])
+        return "갱신", notes
+    notes = remove_positions(config, positions, target["keep_positions"])
+    if positions:
+        notes.append(f"다른 이벤트·matcher에 있던 이 뷰어 항목 {len(positions)}개를 {target['event']}({target['matcher']})로 옮겼습니다.")
+    table = config.setdefault("hooks", {})
+    groups = table.setdefault(target["event"], [])
+    for group in groups:
+        if isinstance(group, dict) and group.get("matcher") == target["matcher"] and isinstance(group.get("hooks"), list):
+            for hi, item in enumerate(group["hooks"]):
+                if is_placeholder(item):
+                    group["hooks"][hi] = new
+                    return "추가(이전 자리)", notes
+            if not group["hooks"]:
+                group["hooks"] = [new]
+                return "추가(이전 자리)", notes
+    groups.append({"matcher": target["matcher"], "hooks": [new]})
+    return "추가", notes
+
+
+def remove_ours(config: dict, path: Path, keep_positions: bool = True) -> tuple[int, list[str]]:
+    """이 뷰어의 처리기만 지운다. 지운 개수와 알릴 말을 돌려준다."""
+    if "hooks" not in config:
+        return 0, []
+    hooks_table(config, path)
+    positions = our_positions(config)
+    return len(positions), remove_positions(config, positions, keep_positions)
 
 
 def count_others(config: dict) -> int:
     table = config.get("hooks") if isinstance(config.get("hooks"), dict) else {}
     return sum(1 for groups in table.values() if isinstance(groups, list) for g in groups if isinstance(g, dict)
-               for h in (g.get("hooks") if isinstance(g.get("hooks"), list) else []) if not is_ours(h))
+               for h in (g.get("hooks") if isinstance(g.get("hooks"), list) else []) if not is_ours(h) and not is_placeholder(h))
 
 
 def registered(config: dict, source: str) -> dict:
-    """등록된 이 뷰어 명령과 그 명령에 든 파일 지문."""
+    """등록된 이 뷰어 명령, 올바른 자리(이벤트·matcher)인지, 그 명령에 든 파일 지문."""
     target = TARGETS[source]
     table = config.get("hooks") if isinstance(config.get("hooks"), dict) else {}
-    for group in table.get(target["event"]) or []:
-        for item in (group.get("hooks") or []) if isinstance(group, dict) else []:
-            if is_ours(item):
-                found = HEX64.findall(item.get("command") or "")
-                return {"registered": True, "async": bool(item.get("async")), "timeout": item.get("timeout"),
-                        "digests": dict(zip(("hook", "build_view", "index"), found)) if len(found) == 3 else None}
-    return {"registered": False}
+    found = []
+    for event, groups in table.items():
+        for group in groups if isinstance(groups, list) else []:
+            items = group.get("hooks") if isinstance(group, dict) else None
+            for item in items if isinstance(items, list) else []:
+                if is_ours(item):
+                    found.append((event, group.get("matcher"), item))
+    if not found:
+        return {"registered": False}
+    placed = [f for f in found if f[0] == target["event"] and f[1] == target["matcher"]]
+    event, matcher, item = (placed or found)[0]
+    digests = []
+    for key in ("command", "commandWindows"):
+        hexes = HEX64.findall(item.get(key) or "")
+        if hexes:
+            digests.append(dict(zip(("hook", "build_view", "index"), hexes)) if len(hexes) == 3 else None)
+    return {"registered": bool(placed), "misplaced": len(found) - len(placed), "event": event, "matcher": matcher,
+            "async": bool(item.get("async")), "timeout": item.get("timeout"), "digests": digests}
 
 
 # ---------------------------------------------------------------- harness
 
 def is_dev_repo(path: Path) -> bool:
-    return (path / "dev-harness").is_dir() and (path / ".git").exists()
+    """개발 레포(Git checkout·ZIP 내려받기·git archive 모두). 제품 하네스에는 dev-harness 폴더가 없다."""
+    return (path / "dev-harness").is_dir()
 
 
 def resolve_harness(value: str | None, for_install: bool = False) -> Path:
@@ -248,6 +320,19 @@ def copy_app(harness: Path) -> tuple[Path, list[str]]:
     return target, changed
 
 
+def update_state(paths: hook.Paths, change) -> None:
+    """훅과 같은 OS 잠금 아래에서 상태 파일을 고친다(동시에 도는 훅의 기록을 덮어쓰지 않게)."""
+    lock = hook.Lock(paths)
+    if not lock.acquire(15):
+        raise ViewerError("다른 훅이 화면을 만드는 중이라 상태 파일을 고치지 못했습니다. 잠시 뒤 다시 실행하세요.")
+    try:
+        state = hook.read_state(paths)
+        if change(state) is not False:
+            hook.write_state(paths, state)
+    finally:
+        lock.release()
+
+
 def set_baseline(paths: hook.Paths) -> str | None:
     """설치 순간의 최신 export를 이미 본 것으로 둔다. 다시 설치할 때도(남은 상태가 있어도) 매번 한다.
 
@@ -256,18 +341,22 @@ def set_baseline(paths: hook.Paths) -> str | None:
     latest = hook.newest_export(paths)
     if latest is None:
         return None
-    state = hook.read_state(paths)
     key = hook.export_key(latest)
-    if state.get("last_key") == key:
-        return None
-    state.update({"last_key": key, "last_export": latest.name, "baseline": True})
-    state.pop("failed_key", None)
-    hook.write_state(paths, state)
-    return latest.name
+    moved = []
+
+    def change(state):
+        if state.get("last_key") == key:
+            return False
+        state.update({"last_key": key, "last_export": latest.name, "baseline": True})
+        state.pop("failed_key", None)
+        moved.append(latest.name)
+
+    update_state(paths, change)
+    return moved[0] if moved else None
 
 
 def codex_feature_layers(harness: Path) -> list[dict]:
-    """Codex의 [features] hooks(옛 이름 codex_hooks) 설정을 하네스·사용자 config.toml에서 읽는다.
+    """Codex의 [features] hooks(옛 이름 codex_hooks)를 하네스·사용자 config.toml에서 읽는다.
 
     관리자 requirements.toml·managed 설정은 위치가 환경마다 달라 읽지 않는다(결과에 그렇게 적는다).
     """
@@ -281,7 +370,8 @@ def codex_feature_layers(harness: Path) -> list[dict]:
         entry = {"layer": name, "path": str(path), "exists": path.is_file(), "hooks": None}
         if path.is_file() and tomllib:
             try:
-                features = tomllib.loads(path.read_text(encoding="utf-8-sig")).get("features") or {}
+                features = tomllib.loads(path.read_text(encoding="utf-8-sig")).get("features")
+                features = features if isinstance(features, dict) else {}
                 value = features.get("hooks", features.get("codex_hooks"))
                 entry["hooks"] = value if isinstance(value, bool) else None
             except (OSError, ValueError, UnicodeDecodeError) as exc:
@@ -290,8 +380,16 @@ def codex_feature_layers(harness: Path) -> list[dict]:
     return layers
 
 
+def codex_hooks_effective(layers: list[dict]) -> bool:
+    """신뢰한 프로젝트 설정이 사용자 설정보다 우선한다. 둘 다 없으면 Codex 기본값(켜짐)."""
+    for layer in layers:  # project, user 순서
+        if layer["hooks"] is not None:
+            return layer["hooks"]
+    return True
+
+
 def codex_hooks_disabled(harness: Path) -> bool:
-    return any(layer["hooks"] is False for layer in codex_feature_layers(harness))
+    return not codex_hooks_effective(codex_feature_layers(harness))
 
 
 # ---------------------------------------------------------------- commands
@@ -307,11 +405,10 @@ def cmd_install(args) -> int:
     harness = resolve_harness(args.harness, for_install=True)
     sources = selected(args)
     configs = {}
-    for source in sources:  # 모두 읽을 수 있을 때만 바꾼다
+    for source in sources:  # 선택한 CLI 설정을 모두 읽을 수 있을 때만 바꾼다
         path = harness.joinpath(*TARGETS[source]["file"])
         configs[source] = (path, load_config(path))
-        if "hooks" in configs[source][1]:
-            hooks_table(configs[source][1], path)
+        hooks_table(configs[source][1], path)
     app, changed = copy_app(harness)
     digests = app_digests(app)
     paths = hook.Paths(str(harness))
@@ -327,20 +424,41 @@ def cmd_install(args) -> int:
     for source in sources:
         path, config = configs[source]
         target = TARGETS[source]
-        how = place_ours(config, path, source, handler(source, digests))
+        how, notes = place_ours(config, path, source, handler(source, digests))
         save_config(path, config)
         rel = "/".join(target["file"])
         print(f"[{target['name']}] {rel}에 PostToolUse({target['matcher']}) 훅을 {how}했습니다. "
               f"다른 훅 {count_others(config)}개는 내용과 위치를 그대로 둡니다.")
+        for note in notes:
+            print(f"  {note}")
         if source == "claude":
             print("  다음: 이 하네스 폴더에서 Claude Code를 새로 열고 질문하세요. export가 저장되면 브라우저가 한 번 열립니다.")
         else:
             print("  다음: 이 하네스 폴더에서 `codex --search`를 열고 `/hooks`에서 이 훅을 검토·신뢰(trust)하세요.")
             print("        신뢰하기 전에는 실행되지 않습니다. 뷰어 파일을 갱신하면 명령의 지문이 바뀌어 다시 신뢰해야 합니다.")
-            print("        Codex에서는 동기 훅이라 셸 명령마다 약 0.5초가 더 걸립니다. 신뢰 우회 옵션은 쓰지 마세요.")
-            off = [layer for layer in codex_feature_layers(harness) if layer["hooks"] is False]
-            for layer in off:
-                print(f"  주의: {layer['path']}의 [features] hooks = false라 Codex가 훅을 실행하지 않습니다.")
+            print("        Codex에서는 동기 훅이라 셸 명령마다 약 0.65초가 더 걸립니다. 신뢰 우회 옵션은 쓰지 마세요.")
+            if codex_hooks_disabled(harness):
+                print("  주의: [features] hooks = false(프로젝트 설정이 없으면 사용자 설정 기준)라 Codex가 훅을 실행하지 않습니다.")
+    # 공유 파일이 바뀌었을 수 있으니, 이번에 고르지 않은 CLI에 이미 등록된 항목도 새 지문으로 맞춘다.
+    for source in (s for s in TARGETS if s not in sources):
+        target = TARGETS[source]
+        path = harness.joinpath(*target["file"])
+        try:
+            config = load_config(path)
+            info = registered(config, source)
+            if not (info["registered"] or info.get("misplaced")):
+                continue
+            if all(d == digests for d in info.get("digests") or [None]):
+                continue
+            how, notes = place_ours(config, path, source, handler(source, digests))
+            save_config(path, config)
+        except ViewerError as exc:
+            print(f"[{target['name']}] 주의: 이미 등록된 훅의 지문을 새 파일에 맞추지 못했습니다. 그 CLI의 훅은 실행되지 않습니다. {exc}")
+            continue
+        print(f"[{target['name']}] 이미 등록된 훅도 새 파일 지문으로 갱신했습니다."
+              + (" Codex에서는 `/hooks`에서 다시 신뢰해야 실행됩니다." if source == "codex" else ""))
+        for note in notes:
+            print(f"  {note}")
     if not shutil.which("uv"):
         print("주의: uv가 PATH에 없습니다. 훅 명령은 uv로 Python 3.12를 실행합니다.")
     return 0
@@ -355,7 +473,7 @@ def cmd_uninstall(args) -> int:
             print(f"[{target['name']}] {'/'.join(target['file'])} 없음 · 지울 훅이 없습니다.")
             continue
         config = load_config(path)
-        removed = remove_ours(config, path)
+        removed, notes = remove_ours(config, path, target["keep_positions"])
         if not removed:
             print(f"[{target['name']}] 이 뷰어의 훅이 없습니다.")
             continue
@@ -364,7 +482,9 @@ def cmd_uninstall(args) -> int:
             print(f"[{target['name']}] 훅 {removed}개를 지우고 빈 {'/'.join(target['file'])}를 삭제했습니다.")
         else:
             save_config(path, config)
-            print(f"[{target['name']}] 훅 {removed}개를 지웠습니다. 다른 훅의 내용과 위치(빈 자리표시 포함)는 그대로 둡니다.")
+            print(f"[{target['name']}] 훅 {removed}개를 지웠습니다. 다른 훅의 내용과 위치는 그대로 둡니다.")
+        for note in notes:
+            print(f"  {note}")
     print("뷰어 파일과 runtime-data/visual-viewer의 화면·insights는 남겨 둡니다(필요 없으면 직접 지우세요).")
     return 0
 
@@ -372,7 +492,6 @@ def cmd_uninstall(args) -> int:
 def cmd_open(args) -> int:
     harness = resolve_harness(args.harness)
     paths = hook.Paths(str(harness))
-    latest = None
     if args.export:
         export = Path(args.export).expanduser().resolve()
     else:
@@ -384,16 +503,23 @@ def cmd_open(args) -> int:
     try:
         summary = build_view.generate(export, insights, args.focus or "auto", out_dir=Path(paths.out),
                                       insights_dir=None if insights else Path(paths.out))
-    except (OSError, ValueError, KeyError, TypeError, SystemExit) as exc:
+    except (Exception, SystemExit) as exc:  # noqa: BLE001 - 사람에게 이유를 보여주고 traceback은 내지 않는다
         raise ViewerError(f"화면을 만들지 못했습니다({export.name}): {type(exc).__name__}: {exc}") from exc
-    if latest is not None:
-        state = hook.read_state(paths)
-        key = hook.export_key(latest)
-        state.update({"last_key": key, "built_key": key, "last_export": export.name, "insights": summary["insights"],
+    stat = export.stat()
+    key = f"{export.name}:{stat.st_mtime_ns}:{stat.st_size}"
+    in_exports = Path(paths.exports).resolve() == export.parent
+
+    def change(state):
+        # 화면에 그린 export를 기록한다. 최신이 아닌 export를 열었으면 훅이 최신을 다시 그리도록 last_key는 두지 않는다.
+        state.update({"built_key": key if in_exports else f"{export.name}:manual", "insights": summary["insights"],
                       "insights_file": summary.get("insights_file"), "warnings": summary["warnings"]})
-        state.pop("failed_key", None)
-        state.pop("baseline", None)
-        hook.write_state(paths, state)
+        latest = hook.newest_export(paths)
+        if in_exports and latest is not None and hook.export_key(latest) == key:
+            state.update({"last_key": key, "last_export": export.name})
+            state.pop("failed_key", None)
+            state.pop("baseline", None)
+
+    update_state(paths, change)
     index = Path(summary["outputs"]["index"]).resolve()
     if not args.no_browser:
         import webbrowser
@@ -418,13 +544,14 @@ def cmd_status(args) -> int:
         except ViewerError as exc:
             info = {"registered": False, "error": str(exc)}
         info["file"] = "/".join(target["file"])
-        if info.get("registered"):
-            info["files_match_command"] = bool(current) and info.get("digests") == current
-            info.pop("digests", None)
+        if "digests" in info:
+            info["files_match_command"] = bool(current) and bool(info["digests"]) and all(d == current for d in info["digests"])
+            del info["digests"]
         report[source] = info
-    report["codex_features"] = codex_feature_layers(harness)
-    report["codex_hooks_disabled"] = any(layer["hooks"] is False for layer in report["codex_features"])
-    report["codex_features_note"] = "관리자 requirements.toml·managed 설정은 확인하지 않았습니다."
+    layers = codex_feature_layers(harness)
+    report["codex_features"] = layers
+    report["codex_hooks_disabled"] = not codex_hooks_effective(layers)
+    report["codex_features_note"] = "프로젝트 설정이 사용자 설정보다 우선합니다. 관리자 requirements.toml·managed 설정은 확인하지 않았습니다."
     latest = hook.newest_export(paths)
     state = hook.read_state(paths)
     built = Path(paths.out, "view-data.js").is_file() and bool(state.get("built_key"))
@@ -437,9 +564,9 @@ def cmd_status(args) -> int:
     report["view_warnings"] = len(state.get("warnings") or []) if built else 0
     report["opened_sessions"] = len(state.get("opened_sessions") or [])
     try:
-        lines = Path(paths.error_log).read_text(encoding="utf-8").strip().splitlines()
-        report["last_error"] = next((line for line in reversed(lines) if line[:2].isdigit()), lines[-1] if lines else None)
-    except (OSError, UnicodeDecodeError):
+        lines = [line for line in Path(paths.error_log).read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
+        report["last_error"] = lines[-1] if lines else None
+    except OSError:
         report["last_error"] = None
     report["uv_on_path"] = bool(shutil.which("uv"))
     print(json.dumps(report, ensure_ascii=False, indent=1))
@@ -465,10 +592,11 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("status", help="설치·갱신 상태")
     p.add_argument("harness", nargs="?", help="하네스 폴더 (설치된 하네스 안의 viewer.py라면 생략 가능)")
     args = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except (AttributeError, ValueError):
-        pass
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     commands = {"install": cmd_install, "uninstall": cmd_uninstall, "open": cmd_open, "status": cmd_status}
     try:
         return commands[args.command](args)

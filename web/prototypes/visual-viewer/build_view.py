@@ -61,7 +61,11 @@ INSIGHTS_WHY = {
     "mismatch": "insights 파일의 session_id가 이 export와 달라 쓰지 않았습니다.",
     "other_turn": "같은 세션의 insights는 있지만 다른 turn(turn_id)용이라 쓰지 않았습니다.",
     "stale": "insights가 현재 결과에 없는 근거 ID를 가리켜(다른 turn용으로 보임) 쓰지 않았습니다.",
+    "unbound": "같은 세션의 insights는 있지만 turn_id가 없고 이 세션에 turn이 여러 개라, 어느 turn의 해석인지 알 수 없어 쓰지 않았습니다.",
+    "invalid": "insights 파일의 형식이 README의 insights 형식과 달라 쓰지 않았습니다.",
 }
+INSIGHTS_APPLIED = {"matched": "turn_id 일치", "single_turn": "turn이 하나뿐인 세션", "given": "직접 지정",
+                    "unverified_turn": "직접 지정 · turn 미확인"}
 
 HARNESS_STEPS = [
     {"icon": "📚", "title": "자료 조회", "text": "선택한 모델의 저장된 리뷰·공식 사양·설명서를 정확한 버전으로 조회합니다. `evidence-retrieval`"},
@@ -96,6 +100,10 @@ PAGES = [
 ]
 
 warnings: list[str] = []
+
+
+class IntegrityError(ValueError):
+    """설치 때 고정한 파일 지문과 다르다. 훅은 이 export를 실패로 묶어 두지 않고 다시 설치를 기다린다."""
 
 
 def warn(msg: str) -> None:
@@ -224,6 +232,8 @@ def read_turns(export: dict) -> list[dict]:
             result = (current or {}).get("result") or {}
         last = cands[-1] if cands else {}
         accepted_result = good[-1].get("result") or {} if good else {}
+        # 무효 turn에 보여줄 결과: 마지막 후보가 승인된 경우만(그 뒤에 거절된 후보가 있으면 승인 결과가 없던 것이다).
+        last_ok = bool(last) and accepted(last) and st.get("status") != "cancelled"
         history = st.get("result_history") or []
         req_input = (requests.get(st.get("turn_id")) or {}).get("input") or {}
         usage = t.get("usage") or []
@@ -247,7 +257,11 @@ def read_turns(export: dict) -> list[dict]:
             "constraints": inp.get("constraints") or {},
             "result": result,
             "accepted_result": accepted_result,
+            "invalid_result": (last.get("result") or {}) if last_ok else {},
+            "invalid_validation": (last.get("validation") or {}) if last_ok else {},
             "validation": (current or {}).get("validation") or {},
+            "last_result": last.get("result") or {},
+            "last_accepted": bool(last) and accepted(last),
             "last_validation": last.get("validation") or {},
             "rejection": rejection_of(last),
             "evidence": len(accepted_result.get("evidence_refs") or []),
@@ -268,8 +282,13 @@ def current_row(rows: list[dict]) -> dict:
 
 
 def turnless_requests(export: dict, rows: list[dict]) -> list[dict]:
-    """turn을 만들지 못하고 멈춘 요청(needs_input·research_required·held 등). 마지막 turn 뒤의 후속인지 표시한다."""
+    """turn을 만들지 못하고 멈춘 요청(needs_input·research_required·held 등).
+
+    export에는 요청 시각이 없고 requests 순서도 시간 순서가 아니다(request_key 순). 그래서 prior_turn_id가 마지막
+    turn인 요청만 '마지막 turn 뒤'라고 말할 수 있고, 나머지는 순서를 모른다고 표시한다. 어느 것이 최신인지 고르지 않는다.
+    """
     last_turn = rows[-1]["turn_id"] if rows else None
+    number = {r["turn_id"]: f"T{r['n']}" for r in rows}
     found = []
     for r in export.get("requests") or []:
         if r.get("turn_id"):
@@ -280,30 +299,80 @@ def turnless_requests(export: dict, rows: list[dict]) -> list[dict]:
         events = r.get("events") or []
         event_reason = next((str((e.get("input") or {}).get("reason")) for e in reversed(events) if (e.get("input") or {}).get("reason")), "")
         model = inp.get("model_id") or (family_label(inp.get("product_family")) if inp.get("product_family") else "미지정")
+        prior = inp.get("prior_turn_id")
+        after_last = bool(last_turn) and prior == last_turn
+        if not rows:
+            where = "turn 없음 · 요청 순서 미확인"
+        elif after_last:
+            where = f"마지막 turn({number[last_turn]}) 뒤"
+        else:
+            where = f"prior_turn_id {number.get(prior, prior or '없음')} · 순서 미확인"
         found.append({"question": inp.get("question") or "", "model": model, "status": resp.get("status") or "pending",
                       "code": reason.get("code") or "", "reason": reason.get("message") or event_reason,
-                      "events": events, "after_last": inp.get("prior_turn_id") == last_turn if last_turn else True})
+                      "events": events, "after_last": after_last, "where": where})
     return found
 
 
+def turnless_chip(reqs: list[dict]) -> dict:
+    after = sum(1 for r in reqs if r["after_last"])
+    statuses = ", ".join(f"{STATUS_LABEL.get(s, s)} {sum(1 for r in reqs if r['status'] == s)}" for s in dict.fromkeys(r["status"] for r in reqs))
+    text = (f"마지막 turn 뒤 turn 없는 요청 {after}건" + (f" 외 {len(reqs) - after}건" if len(reqs) > after else "")
+            if after else f"turn 없는 요청 {len(reqs)}건 · 순서 미확인")
+    return {"text": f"{text} ({statuses})", "tone": "orange"}
+
+
+def insights_shape_errors(ins) -> list[str]:
+    """README의 insights 형식과 다른 부분. 형식이 다른 파일은 화면을 깨뜨리지 않도록 쓰지 않는다."""
+    if not isinstance(ins, dict):
+        return ["최상위"]
+    errors = []
+
+    def dict_list(value, keys=()):
+        return isinstance(value, list) and all(isinstance(x, dict) and all(k in x for k in keys) for x in value)
+
+    groups = ins.get("groups")
+    if groups is not None and not (dict_list(groups, ("key", "label")) and all(isinstance(g.get("source_ids", []), list) for g in groups)):
+        errors.append("groups")
+    facet = ins.get("facet")
+    if facet is not None and not (isinstance(facet, dict) and isinstance(facet.get("values", {}), dict) and isinstance(facet.get("order", []), list)):
+        errors.append("facet")
+    for key, keys in (("kpis", ()), ("funnel", ("label",)), ("excluded", ("kind", "ids", "text")), ("pages", ())):
+        if ins.get(key) is not None and not dict_list(ins[key], keys):
+            errors.append(key)
+    for key in ("keywords", "unresolved"):
+        if ins.get(key) is not None and not isinstance(ins[key], list):
+            errors.append(key)
+    for key in ("node_titles", "concept_titles", "feature_tags", "concept_channels"):
+        if ins.get(key) is not None and not isinstance(ins[key], dict):
+            errors.append(key)
+    if ins.get("captions") is not None and not (isinstance(ins["captions"], dict) and all(isinstance(v, dict) for v in ins["captions"].values())):
+        errors.append("captions")
+    steps = ins.get("concept_steps")
+    if steps is not None and not (isinstance(steps, dict) and all(dict_list(v) for v in steps.values())):
+        errors.append("concept_steps")
+    return errors
+
+
 def classify_insights(export: dict | None, insights: dict) -> str:
-    """matched: 같은 turn, session: 같은 세션(turn_id 없음), other_turn, mismatch, given: export 없이 직접 준 파일."""
+    """matched: 같은 turn, single_turn: turn_id는 없지만 turn이 하나뿐인 세션, unbound: turn_id 없이 turn이 여럿,
+    other_turn·mismatch: 다른 turn·세션, given: export 없이 직접 준 파일."""
     if export is None:
         return "given"
     sid = insights.get("session_id")
     if sid and sid != export.get("session_id"):
         return "mismatch"
+    rows = read_turns(export)
     turn = insights.get("turn_id")
     if turn:
-        rows = read_turns(export)
         return "matched" if rows and turn == current_row(rows)["turn_id"] else "other_turn"
-    return "session" if sid else "given"
+    return "single_turn" if len(rows) <= 1 else "unbound"
 
 
 def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, str]:
-    """같은 세션의 insights-*.json 중 turn_id가 현재 turn과 같은 것, 없으면 turn_id가 없는 것을 고른다."""
+    """같은 세션의 insights-*.json 중 turn_id가 현재 turn과 같은 것을 고른다. turn_id가 없는 파일은 turn이 하나뿐인
+    세션에만 쓴다(turn이 여럿이면 어느 turn의 해석인지 알 수 없다). 형식이 다른 파일은 경고하고 건너뛴다."""
     best = None
-    other_turn = False
+    seen = set()
     for path in sorted(Path(insights_dir).glob("insights-*.json")):
         try:
             data = load_json(path)
@@ -312,16 +381,24 @@ def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, 
             continue
         if not isinstance(data, dict) or data.get("session_id") != export.get("session_id"):
             continue
+        shape = insights_shape_errors(data)
+        if shape:
+            warn(f"insights {path.name}의 형식이 README와 달라 쓰지 않았습니다: {', '.join(shape)}")
+            seen.add("invalid")
+            continue
         state = classify_insights(export, data)
-        if state == "other_turn":
-            other_turn = True
+        if state in ("other_turn", "unbound"):
+            seen.add(state)
             continue
         rank = 0 if state == "matched" else 1
         if best is None or rank < best[0]:
             best = (rank, path, data, state)
     if best:
         return best[1], best[2], best[3]
-    return None, {}, "other_turn" if other_turn else "missing"
+    for state in ("unbound", "other_turn", "invalid"):
+        if state in seen:
+            return None, {}, state
+    return None, {}, "missing"
 
 
 # ---------------------------------------------------------------- context
@@ -336,19 +413,22 @@ class Ctx:
             raise SystemExit("export에 turn이 없습니다.")
         self.cur = current_row(self.rows)
         self.turnless = turnless_requests(export, self.rows)
-        self.pending = [r for r in self.turnless if r["after_last"]]
+        # 요청 순서를 알 수 없으므로 turn 없이 멈춘 요청은 모두 앞에 드러낸다(마지막 turn 뒤인지는 아는 것만 표시).
+        self.pending = self.turnless
         self.invalid = not self.cur["valid"]
         if self.cur["status"] == "cancelled":
-            self.result = {}
-        elif self.invalid:
-            self.result = self.cur["accepted_result"]  # 무효 표시와 함께 보여준다
+            self.result, self.validation = {}, {}
+        elif self.invalid:  # 무효 표시와 함께, 무효 직전에도 승인 결과였던 것만 보여준다
+            self.result, self.validation = self.cur["invalid_result"], self.cur["invalid_validation"]
         else:
-            self.result = self.cur["result"]
+            self.result, self.validation = self.cur["result"], self.cur["validation"]
         self.has_result = bool(self.result)
-        self.validation = self.cur["validation"]
         self.evidence = self.result.get("evidence_refs") or []
         self.ev = {e["source_id"]: e for e in self.evidence}
-        self.synthetic = any(e.get("synthetic") or (e.get("origin") or {}).get("representation") == "synthetic" for e in self.evidence)
+        # 합성 자료 표시는 보여주는 결과뿐 아니라 모든 후보·자료 버전에서 찾는다(거절·취소·진행 중이어도 표시).
+        all_refs = [e for r in self.rows for cand in r["candidates"] for e in (cand.get("result") or {}).get("evidence_refs") or []]
+        self.synthetic = (any(e.get("synthetic") or (e.get("origin") or {}).get("representation") == "synthetic" for e in all_refs)
+                          or any("synthetic" in (r["data_version"] or "") for r in self.rows))
         self.claims = []
         for key in ("pains", "existing_features", "remaining_pains", "concepts"):
             self.claims.extend(self.result.get(key) or [])
@@ -368,6 +448,9 @@ class Ctx:
             warn(f"insights {insights_file or ''}가 현재 결과에 없는 근거를 가리켜 쓰지 않았습니다: {', '.join(missing[:8])}"
                  + (" 외" if len(missing) > 8 else ""))
             insights, insights_state = {}, "stale"
+        if insights_state == "unverified_turn":
+            warn(f"insights {insights_file or ''}에 turn_id가 없어 이 turn의 해석인지 확인하지 못했습니다(turn이 여러 개인 세션). "
+                 "제목·지표·단계가 다른 turn의 것일 수 있습니다.")
         self.ins = insights
         self.insights_state = insights_state
         self.insights_file = insights_file if insights else None
@@ -419,18 +502,29 @@ class Ctx:
 
 # ---------------------------------------------------------------- shared blocks
 
+def turn_reason(c: Ctx) -> str:
+    """현재 turn이 완료가 아닌 이유: 취소 기록 → 마지막 후보 거절 → 결과(또는 마지막 후보)의 validation_findings 순."""
+    cur = c.cur
+    if cur["cancellation"]:
+        cx = cur["cancellation"]
+        return (f"취소 사유: {cx.get('reason') or '미기록'} (취소 전 상태 {status_text(cx.get('prior_status'))}"
+                + (", 실행 중단은 확인 안 됨" if cx.get("native_execution_controlled") is False else "") + ")")
+    if cur["rejection"]:
+        return f"저장 도구가 마지막 후보를 거절했습니다: {rejection_text(cur['rejection'])}"
+    findings = c.result.get("validation_findings") or cur["last_result"].get("validation_findings") or []
+    if findings:
+        return f"결과에 적힌 사유: {clip(str(findings[0]))}"
+    if not cur["cands"]:
+        return "아직 저장된 후보가 없습니다."
+    return "결과에 사유가 기록되지 않았습니다."
+
+
 def no_result_blocks(c: Ctx, what: str) -> list[dict]:
     """승인된 현재 결과가 없을 때(거절·취소·보류 전 등) 그 화면 대신 보여준다."""
-    why = ""
-    if c.cur["cancellation"]:
-        why = f" 취소 사유: {c.cur['cancellation'].get('reason') or '미기록'}."
-    elif c.cur["rejection"]:
-        why = f" 마지막 후보 거절: {rejection_text(c.cur['rejection'])}."
-    elif not c.cur["cands"]:
-        why = " 아직 저장된 후보가 없습니다."
     rejected = any(not accepted(cand) for cand in c.cur["candidates"])
     return [{"type": "callout", "tone": "warning",
-             "text": f"현재 승인된 결과가 없어 이 화면({what})은 비워 두었습니다. 상태: **{status_text(c.cur['status'])}**.{why}"
+             "text": f"현재 승인된 결과가 없어 이 화면({what})은 비워 두었습니다. 상태: **{status_text(c.cur['status'])}**"
+                     + (" · 무효" if c.invalid else "") + f". {turn_reason(c)}"
                      + (" 거절된 후보는 '업무 기록' 화면의 후보 표에 사유와 함께 있습니다." if rejected else "")}]
 
 
@@ -447,35 +541,33 @@ def status_blocks(c: Ctx) -> list[dict]:
     blocks: list[dict] = []
     cur = c.cur
     if c.pending:
-        blocks.append({"type": "callout", "tone": "warning",
-                       "text": f"**최근 요청 {len(c.pending)}건은 업무 turn 없이 멈췄습니다.** 아래 결과·화면은 그 전 turn(T{c.rows[-1]['n']})의 기록입니다."})
+        after = [r for r in c.pending if r["after_last"]]
+        unknown = len(c.pending) - len(after)
+        parts = []
+        if after:
+            parts.append(f"**마지막 turn(T{c.rows[-1]['n']}) 뒤에 turn 없이 멈춘 요청 {len(after)}건이 있습니다.** 아래 turn 결과는 그 요청의 답이 아닙니다.")
+        if unknown:
+            parts.append(f"**turn 없이 멈춘 요청 {unknown}건이 있습니다.** export에는 요청 시각이 없어 이 요청이 마지막 turn보다 "
+                         "나중인지 알 수 없습니다. 아래 turn 결과가 최신 요청의 답이 아닐 수 있습니다.")
+        blocks.append({"type": "callout", "tone": "warning", "text": " ".join(parts)})
         blocks.append({"type": "table", "count": False, "columns": [
             {"key": "q", "label": "질문", "kind": "wide"}, {"key": "model", "label": "모델", "kind": "mono"},
-            {"key": "status", "label": "상태", "kind": "pill"}, {"key": "why", "label": "멈춘 이유", "kind": "wide"}],
+            {"key": "status", "label": "상태", "kind": "pill"}, {"key": "why", "label": "멈춘 이유", "kind": "wide"},
+            {"key": "where", "label": "위치"}],
             "rows": [{"q": r["question"], "model": r["model"], "status": {"text": status_text(r["status"]), "tone": STATUS_TONE.get(r["status"], "gray")},
-                      "why": (f"`{r['code']}` " if r["code"] else "") + (r["reason"] or "사유 미기록")} for r in c.pending],
-            "source": "requests[].response.reason·events (turn_id 없음)"})
+                      "why": (f"`{r['code']}` " if r["code"] else "") + (r["reason"] or "사유 미기록"), "where": r["where"]} for r in c.pending],
+            "source": "requests[] 중 turn_id가 없는 요청 · export 순서는 시간 순서가 아닙니다(마지막 turn 뒤 여부는 prior_turn_id로만 판단)"})
     if c.invalid:
         blocks.append({"type": "callout", "tone": "warning",
                        "text": f"**현재 유효한 결과가 없습니다.** 마지막 turn T{cur['n']}은 무효입니다(사유 `{cur['invalidation'] or '미기록'}`). "
-                               "화면은 무효 처리 전 마지막 승인 결과를 보여주며 현재 결과로 쓰면 안 됩니다."})
+                               + ("화면은 무효 처리 전 마지막 승인 결과를 보여주며 현재 결과로 쓰면 안 됩니다." if c.has_result
+                                  else "무효 처리 전에도 승인된 결과가 없어 보여줄 결과가 없습니다.")})
     if cur["status"] != "completed" or not c.has_result:
-        if cur["cancellation"]:
-            cx = cur["cancellation"]
-            reason = (f"취소 사유: {cx.get('reason') or '미기록'} (취소 전 상태 {status_text(cx.get('prior_status'))}"
-                      + (", 실행 중단은 확인 안 됨" if cx.get("native_execution_controlled") is False else "") + ")")
-        elif cur["rejection"] and not c.has_result:
-            reason = f"저장 도구가 마지막 후보를 거절했습니다: {rejection_text(cur['rejection'])}"
-        elif not cur["cands"]:
-            reason = "아직 저장된 후보가 없습니다."
-        else:
-            findings = c.result.get("validation_findings") or []
-            reason = clip(findings[0]) if findings else "결과에 사유가 기록되지 않았습니다."
         blocks.append({"type": "callout", "tone": "warning",
-                       "text": f"현재 결과는 **{status_text(cur['status'])}** 상태입니다. {reason}"
+                       "text": f"{'마지막 turn' if c.pending else '현재 결과'}는 **{status_text(cur['status'])}** 상태입니다. {turn_reason(c)}"
                                + (" (검토 메모 전체는 '후기 선별' 화면에 있습니다)" if c.result.get("validation_findings") else "")})
     if c.synthetic:
-        blocks.append({"type": "callout", "tone": "info", "text": "이 결과의 근거는 **합성 시험 자료(synthetic)**입니다. 실제 고객·제품 근거가 아닙니다."})
+        blocks.append({"type": "callout", "tone": "info", "text": "이 세션의 근거 자료는 **합성 시험 자료(synthetic)**입니다. 실제 고객·제품 근거가 아닙니다."})
     return blocks
 
 
@@ -500,7 +592,11 @@ def decision_note_blocks(c: Ctx) -> list[dict]:
 
 
 def insights_notice(c: Ctx) -> list[dict]:
-    """의견 묶음을 그리지 못한 이유(insights 없음·다른 세션·다른 turn·근거 불일치)와 만드는 방법을 알린다."""
+    """의견 묶음을 그리지 못한 이유(insights 없음·다른 세션·다른 turn·근거 불일치)와 만드는 방법을 알린다.
+    insights를 썼다면 어느 파일을 어떤 근거로 붙였는지 보여준다."""
+    if c.insights_file and c.insights_state in INSIGHTS_APPLIED:
+        return [{"type": "chips", "items": [{"text": f"insights {c.insights_file} · {INSIGHTS_APPLIED[c.insights_state]} · 모델 해석",
+                                             "tone": "orange" if c.insights_state == "unverified_turn" else "purple"}]}]
     if c.insights_state not in INSIGHTS_WHY:
         return []
     sid = str(c.export.get("session_id") or "")
@@ -657,7 +753,7 @@ def page_screening(c: Ctx) -> list[dict]:
     if not c.has_result:
         return no_result_blocks(c, "후기 선별")
     ins = c.ins
-    blocks: list[dict] = []
+    blocks: list[dict] = stale_blocks(c)
     funnel = []
     for f in ins.get("funnel") or []:
         value = c.resolve(f)
@@ -903,21 +999,22 @@ def page_history(c: Ctx) -> list[dict]:
             {"key": "when", "label": "위치"}],
             "rows": [{"q": r["question"], "model": r["model"], "status": {"text": status_text(r["status"]), "tone": STATUS_TONE.get(r["status"], "gray")},
                       "why": (f"`{r['code']}` " if r["code"] else "") + (r["reason"] or "사유 미기록"),
-                      "when": "마지막 turn 뒤(최근)" if r["after_last"] else "이전 요청"} for r in c.turnless],
-            "source": "requests[] 중 turn_id가 없는 요청 · 마지막 turn 뒤 여부는 prior_turn_id로 판단"}]
+                      "when": r["where"]} for r in c.turnless],
+            "source": "requests[] 중 turn_id가 없는 요청 · export에 요청 시각이 없어 순서는 prior_turn_id가 마지막 turn인 경우만 압니다"}]
     cand_rows = []
     for r in rows:
         for cand in r["candidates"]:
             res, ok = cand.get("result") or {}, accepted(cand)
             rej = rejection_of(cand)
-            is_current = ok and r is c.cur and c.has_result and res == c.result
+            shown = ok and r is c.cur and c.has_result and res == c.result
+            note = ("무효 결과(현재 아님)" if c.invalid else "현재 결과") if shown else ("역사적 기록" if ok else "거절 후보(현재 결과 아님)")
             cand_rows.append({
                 "t": f"T{r['n']}", "v": f"v{cand.get('result_version', '?')}", "key": cand.get("result_key", ""),
                 "status": {"text": status_text(res.get("status")), "tone": STATUS_TONE.get(res.get("status"), "gray") if ok else "gray"},
                 "check": {"text": "승인" if ok else f"거절 · {rej['code']}", "tone": "green" if ok else "red"},
                 "why": "" if ok else rejection_text(rej),
                 "ev": len(res.get("evidence_refs") or []),
-                "note": "현재 결과" if is_current else ("역사적 기록" if ok else "거절 후보(현재 결과 아님)"),
+                "note": note,
             })
     if cand_rows:
         blocks.append({"type": "expander", "icon": "🗂️", "title": f"저장된 후보 {len(cand_rows)}개 (거절·수정 후보 포함)",
@@ -1007,14 +1104,29 @@ def page_export(c: Ctx) -> list[dict]:
     checks = [(val, "structural_valid", "구조 검사"), (val, "contract_valid", "저장 승인(계약 검사)"),
               (review, "contract_valid", "검토 기록 계약"), (review, "reported_reasoning_consistent", "검토 기록 정합성"),
               (review, "can_finalize_reported_result", "완료 보고 가능")]
-    chips = [{"text": ("✓ " if src.get(k) else "✗ ") + label, "tone": "green" if src.get(k) else "red"} for src, k, label in checks if k in src]
+    # 보여주는 결과가 없으면 마지막 후보의 검사를 보이되, 그 후보가 거절인지·승인됐지만 현재 결과가 아닌지 구분한다.
+    if c.has_result:
+        check_title, dim = "저장 검사" + (" (무효 처리된 결과)" if c.invalid else ""), False
+    elif not cur["cands"]:
+        check_title, dim = "저장 검사 (저장된 후보 없음)", False
+    elif cur["rejection"]:
+        check_title, dim = "저장 검사 (마지막 거절 후보)", False
+    else:
+        check_title, dim = "저장 검사 (마지막 저장 후보 · 현재 결과 아님)", True
+    chips = [{"text": ("✓ " if src.get(k) else "✗ ") + label, "tone": "gray" if dim else ("green" if src.get(k) else "red")}
+             for src, k, label in checks if k in src]
+    if dim:
+        chips.insert(0, {"text": f"현재 결과 아님: turn 상태 {status_text(cur['status'])} · 완료 보고 대상 아님", "tone": "red"})
     if cur["rejection"] and not c.has_result:
         chips.append({"text": f"거절: {cur['rejection']['code']}", "tone": "red"})
     if "planning_detail_complete" in val:
         chips.append({"text": ("✓ " if val["planning_detail_complete"] else "✗ ") + "세부 필드 있음 (필드 존재 검사일 뿐, 평가 통과 아님)",
-                      "tone": "green" if val["planning_detail_complete"] else "red"})
+                      "tone": "gray" if dim else ("green" if val["planning_detail_complete"] else "red")})
     if review.get("completion_scope"):
         chips.append({"text": "완료 범위: " + ("기획 초안" if review["completion_scope"] == "planning_draft_only" else review["completion_scope"]), "tone": "blue"})
+    if val:
+        chips.append({"text": f"확인한 근거 {val.get('checked_sources', review.get('checked_sources', '?'))}건", "tone": "blue"})
+    check_blocks = [{"type": "chips", "items": chips}] if chips else [{"type": "callout", "tone": "info", "text": "저장된 후보가 없어 저장 검사 기록이 없습니다."}]
     calls = usage.get("recorded_calls")
     head = (f"마지막 저장: **{status_text(cur['status'])}** · valid={str(cur['valid']).lower()} · 근거 {len(c.evidence)}건 · 수정 {cur['revisions']}회"
             if c.has_result else f"승인된 결과 없음: **{status_text(cur['status'])}** · 후보 {cur['cands']}개"
@@ -1024,8 +1136,8 @@ def page_export(c: Ctx) -> list[dict]:
         {"type": "callout", "tone": "warning",
          "text": f"semantic_status: **{c.export.get('semantic_status', '미기록')}** · acceptance_ready: **{str(c.export.get('acceptance_ready')).lower()}**. "
                  "검토 통과는 원문 의미·성능·효과의 자동 증명이 아닙니다."},
-        {"type": "section", "text": "저장 검사" + ("" if c.has_result else " (마지막 거절 후보)")},
-        {"type": "chips", "items": chips + [{"text": f"확인한 근거 {val.get('checked_sources', review.get('checked_sources', '?'))}건", "tone": "blue"}]},
+        {"type": "section", "text": check_title},
+        *check_blocks,
         {"type": "section", "text": "세션 export"},
         {"type": "files", "items": [
             {"label": "파일", "value": c.export_path.name},
@@ -1120,10 +1232,9 @@ def build(c: Ctx | None, ins: dict, focus: str | None) -> dict:
         usage = c.export.get("usage_summary") or {}
         name = c.export_path.name
         status = []
-        if c.pending:
-            last = c.pending[-1]
-            status.append({"text": f"최근 요청 {status_text(last['status'])} · turn 없음", "tone": STATUS_TONE.get(last["status"], "orange")})
-        status += [{"text": ("이전 결과 " if c.pending else "") + status_text(c.cur["status"]), "tone": STATUS_TONE.get(c.cur["status"], "gray")},
+        if c.pending:  # 어느 요청이 최신인지 고르지 않는다(export에 요청 시각이 없다)
+            status.append(turnless_chip(c.pending))
+        status += [{"text": ("마지막 turn " if c.pending else "") + status_text(c.cur["status"]), "tone": STATUS_TONE.get(c.cur["status"], "gray")},
                    {"text": "valid" if c.cur["valid"] else "invalid", "tone": "green" if c.cur["valid"] else "red"}]
         if not c.has_result:
             status.append({"text": "승인된 결과 없음", "tone": "red"})
@@ -1176,7 +1287,9 @@ def build_requests_only(export: dict, export_path: Path, ins: dict, focus: str |
         })
     raw = export_path.read_bytes()
     usage = export.get("usage_summary") or {}
-    last_status = reqs[-1]["status"] if reqs else None
+    # export에는 요청 시각이 없고 순서도 시간 순서가 아니다. 상태가 하나로 같을 때만 그 상태로 안내한다.
+    kinds = list(dict.fromkeys(r["status"] for r in reqs))
+    only_status = kinds[0] if len(kinds) == 1 else None
     reasons = [row["why"] for row in rows if row["why"] != "사유 미기록"]
     blocks = [
         {"type": "lead", "text": "이 export에는 업무 turn이 없습니다. 요청 기록만 있어 근거·대조·제안 화면은 만들지 않았습니다. "
@@ -1189,7 +1302,7 @@ def build_requests_only(export: dict, export_path: Path, ins: dict, focus: str |
             {"key": "q", "label": "질문", "kind": "wide"}, {"key": "status", "label": "상태", "kind": "pill"},
             {"key": "why", "label": "멈춘 이유", "kind": "wide"}, {"key": "events", "label": "기록", "kind": "chips"},
             {"key": "detail", "label": "기록 내용(앞부분)", "kind": "wide"},
-        ], "rows": rows, "source": "requests[].input·response.reason·events"},
+        ], "rows": rows, "source": "requests[].input·response.reason·events · R 번호는 export 순서이며 시간 순서가 아닙니다(요청 시각 미기록)"},
         {"type": "section", "text": "세션 export"},
         {"type": "files", "items": [
             {"label": "파일", "value": export_path.name},
@@ -1201,7 +1314,8 @@ def build_requests_only(export: dict, export_path: Path, ins: dict, focus: str |
             {"label": "의미 검토", "value": export.get("semantic_status", "미기록"), "note": "acceptance_ready=" + str(export.get("acceptance_ready")).lower()},
         ]},
     ]
-    caption = REQUEST_CAPTION.get(last_status, "업무 turn 없이 멈춘 요청 기록입니다. 근거·제안 화면은 만들지 않았습니다.")
+    caption = REQUEST_CAPTION.get(only_status) or ("업무 turn 없이 멈춘 요청 기록입니다. 요청마다 멈춘 이유가 다르며, 어느 요청이 "
+                                                   "최신인지는 export에 기록되지 않았습니다. 근거·제안 화면은 만들지 않았습니다.")
     pages = [{"id": "overview", "nav": "요청 기록", "icon": "🏠", "title": "요청 기록 (turn 없음)", "title_icon": "📋",
               "caption": {"title": "01 · 입력: 요청은 저장됐지만 업무 turn이 없습니다", "text": caption},
               "blocks": blocks}]
@@ -1220,7 +1334,8 @@ def build_requests_only(export: dict, export_path: Path, ins: dict, focus: str |
         "app": {"title": "LG AX 상품기획", "subtitle": "하네스 시각자료 뷰어", "icon": "📊"},
         "context": {"meta": ins.get("meta") or "요청 기록 · 저장된 실행 결과", "file": {"name": export_path.name, "size": human_size(len(raw))},
                     "loaded": f"요청 {len(rows)}건 · turn 0개",
-                    "status": [{"text": f"turn 없음 · {status_text(last_status)}", "tone": STATUS_TONE.get(last_status, "orange")},
+                    "status": [{"text": f"turn 없음 · {status_text(only_status)}" if only_status else turnless_chip(reqs)["text"],
+                                "tone": STATUS_TONE.get(only_status, "orange")},
                                {"text": f"의미 검토 {export.get('semantic_status', '미기록')}", "tone": "orange"}],
                     "footer": [f"🆔 Session: `{str(export.get('session_id', ''))[:16]}…`"]},
         "pages": pages,
@@ -1243,7 +1358,7 @@ def auto_focus(export: dict | None) -> str | None:
         return "overview"
     rows = read_turns(export)
     cur = current_row(rows)
-    if any(r["after_last"] for r in turnless_requests(export, rows)):
+    if turnless_requests(export, rows):  # 순서를 모르는 멈춘 요청이 있으면 먼저 보여준다
         return "overview"
     ok = cur["valid"] and cur["status"] == "completed" and bool(cur["result"])
     return "dashboard" if ok else "overview"
@@ -1263,11 +1378,18 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
     insights_file = None
     if insights_path:
         insights = load_json(insights_path)
-        state = classify_insights(export, insights)
         insights_file = Path(insights_path).name
+        shape = insights_shape_errors(insights)
+        if shape:
+            warn(f"insights {insights_file}의 형식이 README와 달라 쓰지 않았습니다: {', '.join(shape)}")
+            insights, state = {}, "invalid"
+        else:
+            state = classify_insights(export, insights)
         if state in ("mismatch", "other_turn"):
             warn(f"insights {insights_file}의 {'session_id' if state == 'mismatch' else 'turn_id'}가 이 export와 달라 쓰지 않았습니다.")
             insights = {}
+        elif state == "unbound":  # 사람이 직접 지정한 파일은 쓰되, turn을 확인하지 못했다고 화면에 적는다
+            state = "unverified_turn"
     elif insights_dir and export is not None:
         path, insights, state = pick_insights(Path(insights_dir), export)
         insights_file = path.name if path else None
@@ -1286,7 +1408,7 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
 
     html = (HERE / "index.html").read_bytes()
     if index_sha256 and hashlib.sha256(html).hexdigest() != index_sha256:
-        raise ValueError("index.html이 설치 때와 다릅니다. viewer.py install로 다시 설치하세요.")
+        raise IntegrityError("index.html이 설치 때와 다릅니다. viewer.py install로 다시 설치하세요.")
     out_dir.mkdir(parents=True, exist_ok=True)
     page = HERE / "index.html"
     if out_dir.resolve() != HERE:

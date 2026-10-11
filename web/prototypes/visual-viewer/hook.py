@@ -4,8 +4,9 @@
 `.codex/hooks.json`(PostToolUse, Bash, 동기)에 등록한다. 두 CLI 모두 훅 입력 JSON을 stdin으로 준다.
 이 파일은 `<하네스>/web/prototypes/visual-viewer/`에 있고 하네스 위치는 자기 위치로 정한다.
 
-- 등록된 명령은 이 파일의 SHA-256이 설치 때와 같을 때만 이 파일을 실행하고, 인자로 받은 build_view.py·
-  index.html의 SHA-256이 맞을 때만 그 파일을 쓴다. 파일이 바뀌면 아무것도 실행하지 않고 로그만 남긴다.
+- 등록된 명령은 이 파일의 SHA-256이 설치 때와 같을 때만 이 파일을 실행하고(다르면 명령이 로그에 한 줄 남긴다),
+  인자로 받은 build_view.py·index.html의 SHA-256이 맞을 때만 그 파일을 쓴다(다르면 실행하지 않고 로그만 남긴다).
+- Codex용 명령은 uv·Python이 시작하지 못해도 exit 0·무출력이 되도록 셸에서 감싸고 오류를 같은 로그에 붙인다.
 - 표준 라이브러리만 쓴다. 항상 exit 0이며 stdout·stderr에 쓰지 않는다(모델 문맥에 아무것도 넣지 않음).
   오류는 `runtime-data/visual-viewer/hook-error.log`에만 남긴다.
 - 업무·모델·Tool을 실행하지 않는다. `runtime-data/exports`에 아직 그리지 않은 export가 있을 때만
@@ -228,9 +229,9 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
                 break
             try:
                 summary = rebuild(paths, latest.path, hashes)
-            except IntegrityError:
-                raise
             except (Exception, SystemExit) as exc:  # noqa: BLE001
+                if isinstance(exc, IntegrityError) or type(exc).__name__ == "IntegrityError":
+                    raise  # 지문 불일치는 export 탓이 아니다: 실패로 묶지 않고 로그만 남긴다(다시 설치하면 그린다)
                 # 쓰는 중인 export를 읽었을 수 있어 한 번 더 본다. 두 번 실패하면 export·insights가 바뀔 때까지 다시 하지 않는다.
                 attempts[key] = attempts.get(key, 0) + 1
                 if attempts[key] < 2:
