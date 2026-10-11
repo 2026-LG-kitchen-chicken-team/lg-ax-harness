@@ -1,0 +1,209 @@
+{
+  "version": "product-skills-v1",
+  "agent": "agents/product-planning.md",
+  "data_path": "data/business/empty",
+  "skills": [
+    {
+      "name": "evidence-retrieval",
+      "description": "질문에서 지정하거나 해석한 제품군 또는 정확 모델의 실제 리뷰·공식 사양·설명서를 정확한 버전으로 조회할 때 사용한다.",
+      "path": "skills/evidence-retrieval/SKILL.md",
+      "operations": [
+        "doctor",
+        "list_models",
+        "open_request",
+        "open_request_bundle",
+        "resolve_request",
+        "resolve_request_bundle",
+        "record_request_research",
+        "current_request",
+        "prepare_planning_input",
+        "retrieve_reviews",
+        "retrieve_product_facts",
+        "select_evidence",
+        "match_product_scope"
+      ],
+      "files": [
+        {
+          "path": "skills/evidence-retrieval/scripts/run.py",
+          "sha256": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28"
+        },
+        {
+          "path": "skills/evidence-retrieval/SKILL.md",
+          "sha256": "df55583cac12d2d49b198e545a2e7934e5ad0747b1fae19526933370e7894766"
+        }
+      ]
+    },
+    {
+      "name": "web-evidence-collection",
+      "description": "저장 근거 부족·자료 갱신·모델 또는 문서 연결 불명확 시 실제 고객 후기 원문과 공식 제품 자료를 외부에서 확보할 때 사용한다.",
+      "path": "skills/web-evidence-collection/SKILL.md",
+      "operations": [
+        "fetch_web_page",
+        "capture_web_page",
+        "import_web_evidence"
+      ],
+      "files": [
+        {
+          "path": "skills/web-evidence-collection/scripts/run.py",
+          "sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9"
+        },
+        {
+          "path": "skills/web-evidence-collection/SKILL.md",
+          "sha256": "c0f418643cb82f7dcebbe319e758f76d0a41c923dc90dedbdd8f4ca0e4b7ab9f"
+        }
+      ]
+    },
+    {
+      "name": "needs-structuring",
+      "description": "확보한 실제 후기에서 현재 제품의 불편·사용 맥락·상충 의견을 원문 근거에 연결해 정리할 때 사용한다.",
+      "path": "skills/needs-structuring/SKILL.md",
+      "operations": [
+        "select_evidence",
+        "validate_source_refs"
+      ],
+      "files": [
+        {
+          "path": "skills/needs-structuring/scripts/run.py",
+          "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d"
+        },
+        {
+          "path": "skills/needs-structuring/SKILL.md",
+          "sha256": "8b4dafb9a7640c2974de992e218da9e39c5800f51b9b2b16fc2e88676ec75b61"
+        }
+      ]
+    },
+    {
+      "name": "feature-comparison",
+      "description": "원문으로 확인한 불편을 같은 정확 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다.",
+      "path": "skills/feature-comparison/SKILL.md",
+      "operations": [
+        "match_product_scope",
+        "retrieve_product_facts",
+        "select_evidence"
+      ],
+      "files": [
+        {
+          "path": "skills/feature-comparison/scripts/run.py",
+          "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e"
+        },
+        {
+          "path": "skills/feature-comparison/SKILL.md",
+          "sha256": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d"
+        }
+      ]
+    },
+    {
+      "name": "concept-writing",
+      "description": "실제 근거와 기존 기능 대조로 확인된 남은 불편에 대해 조건을 지키는 상품기획 콘셉트를 작성할 때 사용한다.",
+      "path": "skills/concept-writing/SKILL.md",
+      "operations": [
+        "validate_constraints",
+        "validate_source_refs"
+      ],
+      "files": [
+        {
+          "path": "skills/concept-writing/scripts/run.py",
+          "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd"
+        },
+        {
+          "path": "skills/concept-writing/SKILL.md",
+          "sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174"
+        }
+      ]
+    },
+    {
+      "name": "review-and-revise",
+      "description": "상품기획 후보의 원문 의미·모델·기존 기능 중복·가정·제약을 검토하고 최초 생성과 최대2회 수정을 저장할 때 사용한다.",
+      "path": "skills/review-and-revise/SKILL.md",
+      "operations": [
+        "validate_result_contract",
+        "review_product_result",
+        "start_turn",
+        "get_turn",
+        "save_result",
+        "save_reviewed_result",
+        "save_and_export",
+        "export_session",
+        "current_request",
+        "record_usage",
+        "cancel_turn",
+        "begin_invocation",
+        "finish_invocation"
+      ],
+      "files": [
+        {
+          "path": "skills/review-and-revise/references/payload.md",
+          "sha256": "0d5484ec44d47ff0835e5b1b24be0c4eeb87bbbdde8def4b3da605062a36959b"
+        },
+        {
+          "path": "skills/review-and-revise/scripts/run.py",
+          "sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8"
+        },
+        {
+          "path": "skills/review-and-revise/SKILL.md",
+          "sha256": "cb5db79a53d6ac2b48b437fe88d9cc07cc80503b5880fbd83cfdcb2e7eede7ad"
+        }
+      ]
+    }
+  ],
+  "shared_files": [
+    {
+      "path": "agents/product-planning.md",
+      "sha256": "6b60562c01bd2d1ece7a6639cbeab37dedf02b43c579c0064a5175916f898dae"
+    },
+    {
+      "path": "product-tools/cli.py",
+      "sha256": "e024673debdacf7df17fe3a74635cbc81a844ab3543b16c53eca77ad51b9ac94"
+    },
+    {
+      "path": "product-tools/product_tools/__init__.py",
+      "sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68"
+    },
+    {
+      "path": "product-tools/product_tools/contracts.py",
+      "sha256": "91ccbdb108d5bab6156eba78c4cb70f7fddbf6a86ef9ee17630120bb9a20e3ca"
+    },
+    {
+      "path": "product-tools/product_tools/conversation.py",
+      "sha256": "88fba5afa762cc3995f2f0dfab3e9fd0c15daae85af5486d3842240c31a9aee3"
+    },
+    {
+      "path": "product-tools/product_tools/dataset.py",
+      "sha256": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e"
+    },
+    {
+      "path": "product-tools/product_tools/planning.py",
+      "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd"
+    },
+    {
+      "path": "product-tools/product_tools/state.py",
+      "sha256": "85511f482eec4698f0d62960ffeab893f926b18cfde8556349a02b1245ed1766"
+    },
+    {
+      "path": "product-tools/product_tools/tools.py",
+      "sha256": "9e57660751c3df371cdf247f2895fab40690e3af642043f9964ea73b76064444"
+    },
+    {
+      "path": "product-tools/product_tools/web_evidence.py",
+      "sha256": "f09778ad71a9405122d2be14e4bbd578d3daf25c2232d6457dc5dfb978b4c4f4"
+    },
+    {
+      "path": "docs/contracts/common-tools.md",
+      "sha256": "0f410c706f2f96a2af23f0d5387f2df192369db8f1a7f41770a4f7764fae49b4"
+    },
+    {
+      "path": "docs/contracts/product-planning.md",
+      "sha256": "9de2ca730c0a281993ec5e971a0398da0f56e979fe30867977a6ff3b71d638e8"
+    },
+    {
+      "path": "docs/contracts/web-evidence.md",
+      "sha256": "d7cb56d4ac8c24e758ebacb4bc292964685dc4b389718480043be32fd34538dd"
+    },
+    {
+      "path": "docs/contracts/codex-product.md",
+      "sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54"
+    }
+  ],
+  "native_installation_verified": false,
+  "native_discovery_verified": false
+}

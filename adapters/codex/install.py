@@ -1,0 +1,104 @@
+"""Create/check an isolated Codex product folder. No auth or model invocation."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def digest(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def source_files(root):
+    manifest = json.loads((root / "skills/manifest.json").read_text(encoding="utf-8"))
+    listed = manifest["shared_files"] + [f for s in manifest["skills"] for f in s["files"]]
+    for entry in listed:
+        path = (root / entry["path"]).resolve(strict=True)
+        if not path.is_relative_to(root) or digest(path.read_bytes()) != entry["sha256"]:
+            raise ValueError("Changed/missing source asset: " + entry["path"])
+    paths = {entry["path"] for entry in listed} | {"skills/manifest.json"}
+    data = (root / manifest.get("data_path", "data/business/lg-research-v3")).resolve(strict=True)
+    if not data.is_relative_to((root / "data/business").resolve()):
+        raise ValueError("Business data must stay below data/business")
+    paths.update(p.relative_to(root).as_posix() for p in data.iterdir() if p.is_file())
+    paths.update(["THIRD_PARTY_NOTICES.md", "vendor/codex-harness/LICENSE", "vendor/codex-harness/NOTICE"])
+    return manifest, sorted(paths)
+
+
+def install(target, root=ROOT):
+    root = root.resolve(strict=True)
+    target = Path(target).expanduser().resolve()
+    if target == root or target.is_relative_to(root) or root.is_relative_to(target):
+        raise ValueError("Product target must be outside the development repository")
+    if target.exists():
+        raise ValueError("Target already exists; install into a new folder without overwriting state")
+    for parent in target.parents:
+        if (parent / ".git").exists():
+            raise ValueError("Target has an ancestor Git project; choose an isolated folder")
+    manifest, paths = source_files(root)
+    entries = []
+    target.mkdir(parents=True)
+    # No recursive cleanup on failure: leave partial output for inspection, never reuse it.
+    def write(relative, raw, source=None, source_sha=None, change="unchanged"):
+        path = target / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        entries.append({"path": relative, "sha256": digest(raw), "source": source, "source_sha256": source_sha, "transformation": change})
+    for relative in paths:
+        source = root / relative
+        raw = source.read_bytes()
+        write(relative, raw, relative, digest(raw))
+    for skill in manifest["skills"]:
+        for entry in skill["files"]:
+            relative = entry["path"]
+            raw = (root / relative).read_bytes()
+            change = "unchanged"
+            if relative.endswith("SKILL.md"):
+                raw = raw.decode("utf-8").replace("](../../docs/", "](../../../docs/").replace("python skills/", "python .agents/skills/").encode("utf-8")
+                change = "Rewrite relative contract links and commands for .agents/skills installation"
+            write(".agents/" + relative, raw, relative, entry["sha256"], change)
+    for name in ("AGENTS.md", "README.md", "pyproject.toml", "uv.lock", ".gitignore", "product-doctor.py"):
+        source = root / "adapters/codex/templates" / name
+        raw = source.read_bytes()
+        write(name, raw, source.relative_to(root).as_posix(), digest(raw), "Product-only template")
+    record = {"format": "codex-product-install-v1", "source_manifest_sha256": digest((root / "skills/manifest.json").read_bytes()),
+              "files": entries, "skills": [s["name"] for s in manifest["skills"]],
+              "scope": "regular project files only; auth/global settings not copied; discovery/quality require actual native tests"}
+    (target / "product-install.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    return {"target": str(target), "installed_skills": len(manifest["skills"]), "files": len(entries), "native_verified": False}
+
+
+def check(target):
+    target = Path(target).resolve(strict=True)
+    manifest = json.loads((target / "product-install.json").read_text(encoding="utf-8"))
+    errors = []
+    for entry in manifest["files"]:
+        path = (target / entry["path"]).resolve()
+        if not path.is_relative_to(target) or not path.is_file() or digest(path.read_bytes()) != entry["sha256"]:
+            errors.append("Changed/missing installed file: " + entry["path"])
+    return {"errors": errors, "scope": "installed file integrity only; not native invocation/quality"}
+
+
+def main():
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--target", type=Path, required=True)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    try:
+        result = check(args.target) if args.check else install(args.target)
+        print(json.dumps(result, ensure_ascii=False))
+        return int(bool(result.get("errors")))
+    except (OSError, ValueError, KeyError) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
