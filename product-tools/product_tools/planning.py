@@ -74,11 +74,14 @@ def review_product_result(dataset, payload):
     matched = set()
     for match in items(assessment["feature_matches"], "feature_matches"):
         obj(match, ("remaining_pain_id", "pain_id", "feature_source_ids", "resolution", "rationale"))
-        rid = match["remaining_pain_id"]
-        if rid not in remaining_ids or rid in matched or match["pain_id"] not in pain_ids:
+        rid = identifier(match["remaining_pain_id"], "remaining_pain_id")
+        pain_id = identifier(match["pain_id"], "pain_id")
+        if rid not in remaining_ids or rid in matched or pain_id not in pain_ids:
             fail("invalid_assessment", "Remaining pain must link to an observed pain exactly once")
         matched.add(rid)
         refs = items(match["feature_source_ids"], "feature_source_ids")
+        for source_id in refs:
+            identifier(source_id, "feature_source_id")
         if len(set(refs)) != len(refs) or not set(refs) <= cited:
             fail("invalid_assessment", "Feature comparison sources must be cited and unique")
         if any(dataset.source(s)["kind"] != "product_fact" for s in refs):
@@ -97,11 +100,13 @@ def review_product_result(dataset, payload):
     concept_ids = {c["id"] for c in result["concepts"]}
     for link in items(assessment["concept_links"], "concept_links", 3):
         obj(link, ("concept_id", "remaining_pain_ids", "duplicates_existing", "geometry_required", "geometry_known", "geometry_source_ids", "rationale"))
-        cid = link["concept_id"]
+        cid = identifier(link["concept_id"], "concept_id")
         if cid not in concept_ids or cid in linked:
             fail("invalid_assessment", "Unknown or duplicate concept linkage")
         linked.add(cid)
         needs = items(link["remaining_pain_ids"], "remaining_pain_ids")
+        for remaining_id in needs:
+            identifier(remaining_id, "remaining_pain_id")
         if not needs or len(set(needs)) != len(needs) or not set(needs) <= remaining_ids:
             fail("invalid_assessment", "Each concept must address an identified remaining pain")
         if link["duplicates_existing"] is not None and type(link["duplicates_existing"]) is not bool:
@@ -110,6 +115,8 @@ def review_product_result(dataset, payload):
             if type(link[field]) is not bool:
                 fail("invalid_assessment", field + " must be boolean")
         geometry = items(link["geometry_source_ids"], "geometry_source_ids")
+        for source_id in geometry:
+            identifier(source_id, "geometry_source_id")
         if len(set(geometry)) != len(geometry) or not set(geometry) <= cited:
             fail("invalid_assessment", "Geometry sources must be unique cited sources")
         if any(dataset.source(s)["kind"] != "product_fact" for s in geometry):

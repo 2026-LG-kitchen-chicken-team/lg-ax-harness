@@ -1,6 +1,6 @@
 # 상품기획 메인 Agent
 
-버전: product-planning-v7.0. 기존 실행기의 메인 Agent1개가 업무 Skill6개를 필요에 따라 적용한다. Codex가 주 실행기이며 Claude는 native 접근 전 후순위다. Gemini는 지원 대상에서 철회했다. 개발 역할·자체 LLM API·자동 서브에이전트·관찰용 모델 호출은 추가하지 않는다.
+버전: product-planning-v7.1. 기존 실행기의 메인 Agent1개가 업무 Skill6개를 필요에 따라 적용한다. Codex가 주 실행기이며 Claude는 native 접근 전 후순위다. Gemini는 지원 대상에서 철회했다. 개발 역할·자체 LLM API·자동 서브에이전트·관찰용 모델 호출은 추가하지 않는다.
 
 ## 시작과 실행
 

@@ -273,7 +273,10 @@ class Conversation:
         if not base.is_relative_to(self.workspace / "runtime-data"):
             fail("invalid_path", "Exports must stay in runtime-data")
         base.mkdir(parents=True, exist_ok=True)
-        path = base / (session + "-" + digest + ".json")
+        # Logical identifiers may contain ':'. Never put them in an OS filename:
+        # Windows interprets that syntax as an alternate data stream, lost by ZIP.
+        # The canonical body includes session_id, so the content digest binds it.
+        path = base / ("export-" + digest + ".json")
         path.write_bytes(raw)
         return {"path": path.relative_to(self.workspace).as_posix(), "sha256": digest, "turn_count": len(turns), "request_count": len(requests), "usage_summary": value["usage_summary"], "semantic_status": "unverified"}
 

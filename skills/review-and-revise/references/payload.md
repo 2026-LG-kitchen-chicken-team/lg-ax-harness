@@ -13,7 +13,7 @@ save_reviewed_result 입력은6필수 필드와 선택 response_mode다. 일반 
 이 빈 held는 부족 이유를 판단했을 때만 쓴다. completed에는 근거 있는 불편·기존 기능·남은 불편·콘셉트와 검토 연결이 필요하다. result<=32KiB, stdin/파일<=64KiB. refs는 사용한 source만 복사하며 인용만 늘리고 claim에서 사용하지 않으면 unused_evidence로 실패한다.
 
 - pains/existing_features/remaining_pains: `{id,text,source_ids:["원문ID"]}`. id는 전체 result 안에서 유일하다.
-- concepts: 위3필드 + `{requirements:["검증 가능한 조건"],requires_hardware:false,assumptions:["미확인 조건"]}`. 최대3개이며 근거 없는 수량 채우기는 금지다.
+- concepts: 위3필드 + `{requirements:["검증 가능한 조건"],requires_hardware:false,assumptions:["미확인 조건"]}`. 최대3개이며 근거 없는 수량 채우기는 금지다. 각 concept의 requirements와 assumptions는 각각 최대10개, 각 항목은 최대1000자다. 중복 한계를 합쳐 간결하게 쓰되 중요한 미확인을 삭제하거나 확정값으로 바꾸지 않는다. result.assumptions 전체를 concept에 그대로 복제하지 말고 해당 제안의 조건만 포함한다.
 - 새 업무의 concepts에는 `implementation_steps:["구현·인수 순서"]`와 `validation_plan:{metric,baseline,method,success_criterion,business_value,status:"planned_not_measured"}`도 작성한다. 구버전 초안은 선택 필드 없이 읽을 수 있으나 planning_detail_complete=false다. 이 값은 필드 존재 검사이며 효과·평가 충족 인증이 아니다. 검증 계획이 실제 고객 효과·사업 실적이라고 설명하지 않는다.
 - claim_checks: 모든 claim마다 `{claim_id,source_ids,support_status:"supported|unsupported|uncertain 중 한 값",scope_relation:"current_model|previous_product|unclear 중 한 값",rationale:"원문 대조 이유"}`. source_ids 순서도 claim과 같아야 한다.
 - feature_matches: 남은 불편마다 `{remaining_pain_id,pain_id,feature_source_ids:["인용한 제품 사실ID"],resolution:"resolved|partially_resolved|unresolved|uncertain 중 한 값",rationale}`.

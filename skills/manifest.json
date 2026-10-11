@@ -133,7 +133,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "beb4f18e2e190d83b3a7147ba93b7feb66bd8df39efeb99ebb45e642b7609437"
+          "sha256": "0d5484ec44d47ff0835e5b1b24be0c4eeb87bbbdde8def4b3da605062a36959b"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -149,7 +149,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "a44d8a53ab37f14b2015fc773b13eeed0fc8883729590f0b85b4b7b723b59b9b"
+      "sha256": "6b60562c01bd2d1ece7a6639cbeab37dedf02b43c579c0064a5175916f898dae"
     },
     {
       "path": "product-tools/cli.py",
@@ -165,7 +165,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "b5901c7a55e008ac45c9d993858d9b18b38fffeb54f84ecc02d3e66b931afbc1"
+      "sha256": "88fba5afa762cc3995f2f0dfab3e9fd0c15daae85af5486d3842240c31a9aee3"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -173,7 +173,7 @@
     },
     {
       "path": "product-tools/product_tools/planning.py",
-      "sha256": "e7beefa202a358b0e1d46baa71309fc659a237422c95e66b1817ea9d254028a2"
+      "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd"
     },
     {
       "path": "product-tools/product_tools/state.py",

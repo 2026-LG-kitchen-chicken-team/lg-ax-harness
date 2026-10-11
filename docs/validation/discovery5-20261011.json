@@ -1,0 +1,203 @@
+{
+  "date": "2026-10-11",
+  "frozen_product_version": "product-planning-v7.0",
+  "current_product_version": "product-planning-v7.1",
+  "current_delta": "Generic ID/export bug fixes and concept payload limits; not native-retested",
+  "official_questions": false,
+  "independent_holdout": false,
+  "baseline_comparison": false,
+  "planned_inputs": 5,
+  "original_native_attempts": 4,
+  "original_outcomes": [
+    {
+      "id": "D01",
+      "execution": "timeout",
+      "delivery": "failed",
+      "terminal_status": null,
+      "planning_completed": false,
+      "semantic_passed": null,
+      "overall_passed": false,
+      "raw_result_sha256": "24547dd8af13b48b1ad89e981cbfcadfc6180b2b19ebeab223d0a456b411b954",
+      "findings": [
+        "observed_new_model_registration: Expected contained relative path"
+      ],
+      "additional_checks": {
+        "saved_request_scope_and_followup_history": null,
+        "frozen_case_and_actual_prompt": true,
+        "observed_new_model_registration": false
+      },
+      "additional_integrity_passed": false,
+      "registration_check_interpretation": "Unavailable from final delivery: timeout left no final data_path in result. False is the mechanical audit result, not proof that import failed.",
+      "partial_registration_review": "Actual import/catalog/source inspected independently; original final delivery still failed. D01 additionally verified against R01 preserved registration."
+    },
+    {
+      "id": "D02",
+      "execution": "not_run",
+      "delivery": "not_run",
+      "terminal_status": null,
+      "planning_completed": false,
+      "semantic_passed": null,
+      "overall_passed": false,
+      "raw_result_sha256": "e3eca87bc4b4031e3f808d58483893b3e641b4a3e68f7fb100cbad924a685f6c",
+      "findings": [],
+      "additional_checks": {
+        "saved_request_scope_and_followup_history": null,
+        "frozen_case_and_actual_prompt": true,
+        "observed_new_model_registration": null
+      },
+      "additional_integrity_passed": true
+    },
+    {
+      "id": "D03",
+      "execution": "succeeded",
+      "delivery": "contract_and_delivery_passed",
+      "terminal_status": "completed",
+      "planning_completed": true,
+      "semantic_passed": true,
+      "overall_passed": true,
+      "raw_result_sha256": "442aca40c812188a5b7672a81f6d2e91ec271536e08b1b8067d97e0792af1be8",
+      "findings": [],
+      "additional_checks": {
+        "frozen_case_and_actual_prompt": true,
+        "observed_new_model_registration": null,
+        "saved_request_scope_and_followup_history": true
+      },
+      "additional_integrity_passed": true
+    },
+    {
+      "id": "D04",
+      "execution": "timeout",
+      "delivery": "failed",
+      "terminal_status": null,
+      "planning_completed": false,
+      "semantic_passed": false,
+      "overall_passed": false,
+      "raw_result_sha256": "ec8a7caafb7a4b667a8fe725afc864d657f3bf566fd0965155607c1cb8ef4472",
+      "findings": [
+        "Official-source attribution checked only: observed support_quotes and declared summaries are separated.",
+        "Rejected candidate preserved, not approved: concept.assumptions has 11 items, exceeding existing limit 10. No final delivery."
+      ],
+      "additional_checks": {
+        "saved_request_scope_and_followup_history": null,
+        "frozen_case_and_actual_prompt": true,
+        "observed_new_model_registration": null
+      },
+      "additional_integrity_passed": true
+    },
+    {
+      "id": "D05",
+      "execution": "timeout",
+      "delivery": "failed",
+      "terminal_status": null,
+      "planning_completed": false,
+      "semantic_passed": false,
+      "overall_passed": false,
+      "raw_result_sha256": "e2300de8bdc67f7da9f1f324812959407f1da4cb6cb5ed4816e19911fb92b1f9",
+      "findings": [
+        "Approved held draft and export preserve unknown internal fit; no final delivery.",
+        "observed_new_model_registration: Expected contained relative path"
+      ],
+      "additional_checks": {
+        "saved_request_scope_and_followup_history": null,
+        "frozen_case_and_actual_prompt": true,
+        "observed_new_model_registration": false
+      },
+      "additional_integrity_passed": false,
+      "registration_check_interpretation": "Unavailable from final delivery: timeout left no final data_path in result. False is the mechanical audit result, not proof that import failed.",
+      "partial_registration_review": "Actual import/catalog/source inspected independently; original final delivery still failed. D01 additionally verified against R01 preserved registration."
+    }
+  ],
+  "original_overall_pass": false,
+  "frozen_plan_sha256": "9d0f7dc69120573f5543d17bdc47cf64b23b4e6f983e39225867d12af48e0299",
+  "collector_source_sha256": "492e3b5b68f4987f08dfa4c0b041103a1f019a2b93b7e4165b4680674011b6da",
+  "additional_auditor_sha256": "256cbd7d8bb0b275b5073f05ed1e870f3e3dbbffb3e14bf904c114a8c7da7685",
+  "additional_recovery": {
+    "original_result_sha256": "24547dd8af13b48b1ad89e981cbfcadfc6180b2b19ebeab223d0a456b411b954",
+    "recovery_result_sha256": "0987e9e72186b8dd23a82e68cf1a27380f0a317bc95f4e68501f2fdd9abb4dcf",
+    "original_timeout_retained": true,
+    "same_native_session": true,
+    "same_original_business_request": true,
+    "final_export_database_match": true,
+    "original_observed_registration": true,
+    "recovery_seconds": 191.92,
+    "additional_usage": {
+      "input_tokens": 459003,
+      "cached_input_tokens": 444288,
+      "output_tokens": 6583,
+      "reasoning_output_tokens": 1270
+    },
+    "semantic_review": {
+      "id": "R01",
+      "raw_result_sha256": "0987e9e72186b8dd23a82e68cf1a27380f0a317bc95f4e68501f2fdd9abb4dcf",
+      "scores": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "critical_errors": [],
+      "findings": [],
+      "reviewer": "/root/hardcoding_current_scope",
+      "scope": "Frozen v7.0 recovery only, not original D01 success or current v7.1 native acceptance"
+    },
+    "full_backend_usage_verified": false
+  },
+  "combined_usage": {
+    "observed_session_totals": {
+      "input_tokens": {
+        "known_sum": 5058109,
+        "unknown_runs": 0
+      },
+      "cached_input_tokens": {
+        "known_sum": 4714752,
+        "unknown_runs": 0
+      },
+      "output_tokens": {
+        "known_sum": 49112,
+        "unknown_runs": 0
+      },
+      "reasoning_output_tokens": {
+        "known_sum": 11994,
+        "unknown_runs": 0
+      }
+    },
+    "attempts_without_native_id": [],
+    "backend_call_count": null,
+    "billing": null,
+    "human_time": null,
+    "observed_session_usage_fields_complete": true,
+    "native_attempt_coverage": true,
+    "mandatory_numeric_fields": [
+      "input_tokens",
+      "cached_input_tokens",
+      "output_tokens",
+      "reasoning_output_tokens"
+    ],
+    "full_backend_usage_verified": false
+  },
+  "native_inputs_including_recovery": 5,
+  "unique_native_sessions": 4,
+  "full_backend_usage_verified": false,
+  "current_code_checks": {
+    "product_tests": 174,
+    "existing_eval_tests": 117,
+    "new_eval_tests": 28,
+    "product_receipt": "20d789ba670749ac9e858b8423e33908",
+    "actual_exit_codes": [
+      0,
+      0,
+      0
+    ]
+  },
+  "limits": [
+    "Timeouts retained; D02 not executed",
+    "D04 candidate rejected; D05 held saved but final not delivered",
+    "R01 adds 191.92 seconds after D01 420.61 seconds; not original first-attempt success",
+    "Native observations are frozen v7.0; latest v7.1 needs independent native acceptance",
+    "Claude latest, teammate web source and full billing unavailable; human comparison excluded by user"
+  ],
+  "human_effort_comparison": "Excluded by user on 2026-10-11; not an outstanding task, no percentage claim"
+}
