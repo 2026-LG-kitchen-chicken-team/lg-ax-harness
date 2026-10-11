@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-12",
+  "agent_version": "product-planning-v7.4",
+  "source_fingerprint": "73ec3fc2ac5931ed70bba7785dc31ef52c24493c32b8128b16060326793697e9",
+  "native_case": "codex-U02",
+  "native_id": "01a12bb8-2d57-71a3-920a-9540fbd4d653",
+  "actual_snapshot_sha256": "55576fd52c521b1a0bd8ee3b65f9dd6d1962a7758888154fce2e2649aa0ffa56",
+  "scope": "general code read/export from an isolated copy of an actual timed-out native snapshot; not a native final answer, planning recovery, backend stop or additional model test",
+  "current_request_status": "held",
+  "request_version": 2,
+  "original_question_preserved": true,
+  "counts_before": {
+    "conversation_requests": 1,
+    "request_events": 2,
+    "turns": 0,
+    "results": 0,
+    "web_pages": 4
+  },
+  "counts_after": {
+    "conversation_requests": 1,
+    "request_events": 2,
+    "turns": 0,
+    "results": 0,
+    "web_pages": 4
+  },
+  "export_sha256": "eceba5b2bf4a9f8027fa6f2b6ac7aba961705e61aae0f8e14177e7843e40946b",
+  "export_hash_matches": true,
+  "original_snapshot_unchanged": true,
+  "additional_product_model_calls": 0,
+  "native_case_status_remains": "failed_due_timeout"
+}

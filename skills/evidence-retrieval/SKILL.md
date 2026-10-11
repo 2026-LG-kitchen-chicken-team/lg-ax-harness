@@ -11,7 +11,9 @@ description: "질문에서 지정하거나 해석한 제품군 또는 정확 모
 
 저장 자료로 시작할 때 `open_request_bundle`을 사용하면 기존 open_request와 같은 handle·상태 및 정확한 scope의 리뷰/사실/원문을 한 번에 받는다. 원문은 evidence_refs에 한 번만 있으며 records는 종류 metadata다. 단일 모델은 각 조회20개, 제품군은 모델 수로 분할한 전체 최대40개 원문과 출력 상한으로 잘릴 수 있으므로 retrieval.truncated/byte_truncated/omitted_source_ids를 확인한다. 긍정·상충 의견도 판단한다. 원문이 이미 있으면 select_evidence로 중복하지 않는다.
 
-turn 전 외부 조사 필요성 판단과 bundle의 누락/잘림/추가 사실 조회에만 `retrieve_reviews`와 `retrieve_product_facts`를 정확한 scope로 실행한다. 필요한 주제만 좁혀 조회하며 literal 검색은 의미 검색이 아니다.
+turn 전 외부 조사 필요성 판단과 bundle의 누락/잘림/추가 사실 조회에만 `retrieve_reviews`와 `retrieve_product_facts`를 정확한 scope로 실행한다. 필요한 주제만 좁혀 조회하며 literal 검색은 의미 검색이 아니다. 주요 기획 근거의 저장 발췌가 실제 영향·발생 조건·긍정/회피·유보·시점/모델 귀속을 판단할 만큼 충분한지 먼저 확인한다. 중요한 문맥이 발췌 밖일 가능성이 있으면 turn 전에 같은 원URL의 주변 문단만 제한적으로 관측·별도 등록하고 같은 request를 resolve_request_bundle로 연결한다. 전체 원문 수집을 강제하지 않는다.
+
+truncated=false/omitted_source_ids 없음은 bundle 전달 범위의 완전성이다. 원페이지나 판단에 필요한 문맥 전체를 확인했다는 뜻이 아니다. 원문이 refs 내부에 한 번 있다는 원칙과 turn 전 부분 조회/최종 bundle 사이의 일부 텍스트 중복 가능성을 구분한다. 이미 받은 정확 refs의 반복 조회는 하지 않되 필요한 주변 문맥은 좁혀 관측한다. prior_turn_id 후속은 선택 생략만으로 조사 대기 상태가 보장되지 않으므로 현재 request/turn 상태를 확인한다.
 
 bundle에 없는 검토 원문만 `select_evidence`로 가져온다. 이미 받은 정확한 원문 지문·URL·위치는 변형 없이 사용한다. 긍정 의견을 불편으로 바꾸지 않는다. turn 전 자료 부족·갱신 필요·옵션 혼합은 메인에 반환해 외부 조사 또는 보류로 연결한다. 시작 뒤 새 부족이면 원래 --data/자료 버전으로 held 사유를 저장·export하고, 새 자료 등록/반영은 다음 실제 추가 입력이 도착한 뒤 그 입력의 turn 시작 전에 한다. 이미 외부 변경으로 turn이 무효화됐으면 그 오류와 이력을 보존하며 실제 새 사용자 입력 없이 새 turn을 만들지 않는다.
 

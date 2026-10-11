@@ -23,6 +23,8 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 `ProductResult`는 status/pains/existing_features/remaining_pains/concepts/assumptions/evidence_refs/validation_findings/revisions/usage_summary다. 불편·기능·남은 불편은 id/text/source_ids, 콘셉트는 이 필드와 requirements/requires_hardware/assumptions를 갖는다. 콘셉트 최대 3개·필수 근거·추가 하드웨어 금지 등의 구조 규칙을 검사한다. 보류/오류/추가 입력 요청에는 사유가 필요하다. 결과 스스로 사용량을 보증할 수 없으며 `usage_summary.status=unknown`으로 두고 관측 호출을 별도로 기록한다.
 
+2026-10-12 선택 필드 `decision_notes`는 판단에 사용한 원문 사실·AI 해석·미확인을 claim으로 위장하지 않고 보존한다. 최대10개 `{text,source_ids,basis}`이며 text<=2000자, 고유 source_ids<=20개, basis는 source_fact/ai_interpretation/unverified다. 첫 두 basis는 nonempty source_ids, unverified는 빈 배열을 허용한다. 모든 사용 ID는 정확 refs·모델 snapshot과 일치해야 하며 refs는 claim 또는 note에서 사용해야 한다. 기존 필드 생략과 무근거 보류를 허용한다. AI 신고 basis는 공식 직접 인용/의미 인증이 아니며 semantic_status=unverified/acceptance_ready=false와 completed의 concept/assessment 조건을 유지한다.
+
 검사 결과의 `contract_valid=true`는 코드 계약 통과다. `semantic_status=unverified`, `acceptance_ready=false`를 함께 반환한다. 반대 주장에 실제 출처를 붙이는 오류, 기존 기능 중복, 제외 불편의 의미, 제조 가능성, 시장 효과는 별도 근거 검토·실제 AI 평가가 필요하다. `completed`도 제출자가 요청한 업무 상태이며 심사 품질 통과를 뜻하지 않는다.
 
 ## 호출·크기·오류 계약

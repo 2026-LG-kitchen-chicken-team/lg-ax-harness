@@ -1,0 +1,384 @@
+{
+  "date": "2026-10-12",
+  "final_source_fingerprint": "73ec3fc2ac5931ed70bba7785dc31ef52c24493c32b8128b16060326793697e9",
+  "final_totals": {
+    "codex": {
+      "planned": 11,
+      "executed": 10,
+      "not_run": 1,
+      "native_sessions": 8,
+      "passed": 8,
+      "failed": 2,
+      "observed_usage": {
+        "input_tokens": 10823246,
+        "cached_input_tokens": 10037760,
+        "output_tokens": 107164,
+        "reasoning_output_tokens": 34121
+      },
+      "usage_scope": "observed sums include failed and incomplete turns; not full backend or billing totals",
+      "incomplete_usage_cases": [
+        "U02"
+      ],
+      "backend_model_calls": null,
+      "backend_billing": null,
+      "cost_usd": null,
+      "development_usage_included": false
+    },
+    "claude": {
+      "planned": 3,
+      "executed": 3,
+      "not_run": 0,
+      "native_sessions": 2,
+      "passed": 2,
+      "failed": 1,
+      "observed_usage": {
+        "input_total": 2800935,
+        "noncached_input_tokens": 60,
+        "cache_creation_input_tokens": 116817,
+        "cache_read_input_tokens": 2684058,
+        "output_tokens": 28004
+      },
+      "usage_scope": "observed sums include failed and incomplete turns; not full backend or billing totals",
+      "incomplete_usage_cases": [],
+      "backend_model_calls": null,
+      "backend_billing": null,
+      "cost_usd": null,
+      "development_usage_included": false
+    }
+  },
+  "separate_v73_totals": {
+    "codex": {
+      "executed": 8,
+      "native_sessions": 6,
+      "observed_usage": {
+        "input_tokens": 7789481,
+        "cached_input_tokens": 7226112,
+        "output_tokens": 80499,
+        "reasoning_output_tokens": 26995
+      },
+      "cost_usd": null,
+      "backend_model_calls": null
+    },
+    "claude": {
+      "executed": 3,
+      "native_sessions": 2,
+      "observed_usage": {
+        "input_total": 3044883,
+        "input_tokens": 64,
+        "cache_creation_input_tokens": 127359,
+        "cache_read_input_tokens": 2917460,
+        "output_tokens": 32262
+      },
+      "cost_usd": null,
+      "backend_model_calls": null
+    }
+  },
+  "separate_v73_observations": [
+    {
+      "engine": "codex",
+      "id": "codex-R01",
+      "native_id": "01a12b8e-ec53-7253-a87d-39ebb700cbcc",
+      "elapsed_seconds": 333.31,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 1164889,
+        "cached_input_tokens": 1073536,
+        "output_tokens": 14011,
+        "reasoning_output_tokens": 4251
+      },
+      "result_sha256": "62e6e42ee862a2972befa57d9277090a30b337b0c0457727d0692cb701a6e726",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-R02",
+      "native_id": "01a12b93-fe3d-7682-b7f6-9531dce17bd3",
+      "elapsed_seconds": 271.76,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 628183,
+        "cached_input_tokens": 554752,
+        "output_tokens": 11668,
+        "reasoning_output_tokens": 2987
+      },
+      "result_sha256": "7b7f714c7e9f23f1402a8ee4e9a399d0523b1fb1db3e6961e7cb68d9ab8e39ba",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-R03",
+      "native_id": "01a12b93-fe3d-7682-b7f6-9531dce17bd3",
+      "elapsed_seconds": 107.45,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 381795,
+        "cached_input_tokens": 364416,
+        "output_tokens": 4930,
+        "reasoning_output_tokens": 1727
+      },
+      "result_sha256": "7b41d897973b130c6307e5210ec10405a275e221c979adc029a43c81223377c6",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-R04",
+      "native_id": "01a12ba2-a17c-7a52-8b93-03ceaf9025f5",
+      "elapsed_seconds": 248.44,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 767714,
+        "cached_input_tokens": 689664,
+        "output_tokens": 10671,
+        "reasoning_output_tokens": 2632
+      },
+      "result_sha256": "ce9b2af1c79f02b7ae1b63e3368c2fd5bc56993edd8516c8eda178aa7addee64",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-R05",
+      "native_id": "01a12b99-c98e-78b2-8f33-95c26a3f62c4",
+      "elapsed_seconds": 165.11,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 417293,
+        "cached_input_tokens": 359424,
+        "output_tokens": 7343,
+        "reasoning_output_tokens": 2659
+      },
+      "result_sha256": "e499f0ac21f7c821f420b43f74a5371e873a028a69abd62fa71e04e409126cb4",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-R06",
+      "native_id": "01a12b99-c98e-78b2-8f33-95c26a3f62c4",
+      "elapsed_seconds": 107.03,
+      "acceptance": "failed",
+      "usage": {
+        "input_tokens": 462348,
+        "cached_input_tokens": 449152,
+        "output_tokens": 5019,
+        "reasoning_output_tokens": 2066
+      },
+      "result_sha256": "8aab1bae277f4a465848d63007c8e7ec8e847f8fbb15d1381786b403e4dbd509",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-U01",
+      "native_id": "01a12b9d-f24d-7691-811a-f89b7eb0ba72",
+      "elapsed_seconds": 306.82,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 615736,
+        "cached_input_tokens": 540672,
+        "output_tokens": 13329,
+        "reasoning_output_tokens": 4752
+      },
+      "result_sha256": "40caa24b58cdb8f9fd3490cfb763a3acd599eba2adbace6ac63f1e7c1290cbef",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "codex",
+      "id": "codex-U02",
+      "native_id": "01a12ba6-6cc4-7851-a5e4-eee839146ae9",
+      "elapsed_seconds": 352.12,
+      "acceptance": "failed",
+      "usage": {
+        "input_tokens": 3351523,
+        "cached_input_tokens": 3194496,
+        "output_tokens": 13528,
+        "reasoning_output_tokens": 5921
+      },
+      "result_sha256": "9c12538ca470c34571d50cd60857d27f57a12e77feb3e9c398533a7196d8480b",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "claude",
+      "id": "claude-R02",
+      "native_id": "c48576e1-2868-4c26-b9f4-be8dc4c5dd84",
+      "elapsed_seconds": 133.004,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 18,
+        "cache_creation_input_tokens": 56178,
+        "cache_read_input_tokens": 746518,
+        "output_tokens": 13635,
+        "input_total": 802714
+      },
+      "result_sha256": "edb50f1d63e64d7c95bf014d9dc7294779cbb5c69bb3f01396ef88984943c1e5",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "claude",
+      "id": "claude-R03",
+      "native_id": "c48576e1-2868-4c26-b9f4-be8dc4c5dd84",
+      "elapsed_seconds": 58.995,
+      "acceptance": "contract_and_delivery_passed",
+      "usage": {
+        "input_tokens": 6,
+        "cache_creation_input_tokens": 6676,
+        "cache_read_input_tokens": 321032,
+        "output_tokens": 6237,
+        "input_total": 327714
+      },
+      "result_sha256": "adeb109e313dc98be68a8593dd8f85ad2bfffd1213b8cfe13c213a2671043dbc",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    },
+    {
+      "engine": "claude",
+      "id": "claude-U02",
+      "native_id": "14f642b8-a129-409c-af20-e31c37f3d893",
+      "elapsed_seconds": 177.886,
+      "acceptance": "pending_request_delivered",
+      "usage": {
+        "input_tokens": 40,
+        "cache_creation_input_tokens": 64505,
+        "cache_read_input_tokens": 1849910,
+        "output_tokens": 12390,
+        "input_total": 1914455
+      },
+      "result_sha256": "89a90228033cb3102640e59cc9510be146e2002e5a6ca3c32e40d0741f3656d4",
+      "scope": "separate v7.3 diagnostic run; failures included; not part of final-version success count"
+    }
+  ],
+  "implementation_events": [
+    {
+      "method": "scoped_contract_read",
+      "implementation": "agents/product-planning.md:15",
+      "engine": "codex",
+      "case": "R01",
+      "native_id": "01a12ba6-f6ee-7913-a3ec-e8e85993d69f",
+      "artifact": "native.jsonl",
+      "artifact_sha256": "4a93b1fb95d13d57b9b2fa70194ea606f457e4048dbd0cf0f1d6511c0d8ba13c",
+      "record_line": 22,
+      "item_id": "item_10",
+      "details": {
+        "exit_code": 0,
+        "output_bytes": 2308,
+        "whole_native_context_limit_verified": false
+      }
+    },
+    {
+      "method": "integrated_bundle",
+      "implementation": "product-tools/product_tools/conversation.py:25",
+      "engine": "codex",
+      "case": "R03",
+      "native_id": "01a12ba0-ce04-7212-bef5-439769e6b49f",
+      "artifact": "native.jsonl",
+      "artifact_sha256": "4df2518267d45534993e53977cbca7c554186fb18ff6c2f9853a3654b377b558",
+      "record_line": 8,
+      "item_id": "item_3",
+      "details": {
+        "metadata_records": 4,
+        "evidence_refs": 4,
+        "byte_truncated": false,
+        "whole_source_context_verified": false
+      }
+    },
+    {
+      "method": "compact_save_export",
+      "implementation": "product-tools/product_tools/state.py:229",
+      "engine": "codex",
+      "case": "R01",
+      "native_id": "01a12ba6-f6ee-7913-a3ec-e8e85993d69f",
+      "artifact": "native.jsonl",
+      "artifact_sha256": "4a93b1fb95d13d57b9b2fa70194ea606f457e4048dbd0cf0f1d6511c0d8ba13c",
+      "record_line": 53,
+      "item_id": "item_27",
+      "details": {
+        "exit_code": 0,
+        "output_bytes": 2669,
+        "latest_result_reprinted": false,
+        "semantic_status": "unverified",
+        "acceptance_ready": false
+      }
+    },
+    {
+      "method": "bounded_web_preview",
+      "implementation": "product-tools/product_tools/web_evidence.py:245",
+      "engine": "codex",
+      "case": "R01",
+      "native_id": "01a12ba6-f6ee-7913-a3ec-e8e85993d69f",
+      "artifact": "native.jsonl",
+      "artifact_sha256": "4a93b1fb95d13d57b9b2fa70194ea606f457e4048dbd0cf0f1d6511c0d8ba13c",
+      "record_line": 40,
+      "item_id": "item_19",
+      "details": {
+        "preview_characters": 3200,
+        "start_character": 800,
+        "truncated": true,
+        "cached": false
+      }
+    },
+    {
+      "method": "local_query_cache_hit",
+      "implementation": "product-tools/product_tools/state.py:368",
+      "engine": "codex",
+      "case": "R03",
+      "native_id": "01a12ba0-ce04-7212-bef5-439769e6b49f",
+      "artifact": "native.jsonl",
+      "artifact_sha256": "4df2518267d45534993e53977cbca7c554186fb18ff6c2f9853a3654b377b558",
+      "record_line": 8,
+      "item_id": "item_3",
+      "details": {
+        "review_cache_hit": true,
+        "fact_cache_hit": true,
+        "business_reuse_eligible": false
+      }
+    },
+    {
+      "method": "failed_import_and_repair",
+      "implementation": "product-tools/product_tools/web_evidence.py",
+      "engine": "codex",
+      "case": "R04",
+      "native_id": "01a12bae-8f1b-7be0-b94c-3fba59d3d669",
+      "artifact": "native.jsonl",
+      "artifact_sha256": "0f4fa09364cb903fdeb6a96b43aaa7da5452c17ccf3e5fb6e38744b1c2b2b25c",
+      "record_line": 50,
+      "item_id": null,
+      "details": {
+        "initial_exit_code": 1,
+        "initial_error": "scope_mismatch",
+        "repaired_record_line": 52,
+        "repair_exit_code": 0,
+        "business_candidate_revision_limit_exhaustion_observed": false
+      }
+    },
+    {
+      "method": "local_query_cache_hit",
+      "implementation": "product-tools/product_tools/state.py:368",
+      "engine": "claude",
+      "case": "R03",
+      "native_id": "f6e79532-f107-4f0f-bfcf-1898d92625fb",
+      "artifact": "claude-native.jsonl",
+      "artifact_sha256": "fabfdc5480b511bcc7648864e812255f55ed4a46c888db9344622683ffe20327",
+      "record_line": 96,
+      "details": {
+        "review_cache_hit": true,
+        "fact_cache_hit": true,
+        "business_reuse_eligible": false
+      }
+    }
+  ],
+  "mechanical_pre_native_failures": {
+    "count": 6,
+    "native_id_observed": false,
+    "usage": null,
+    "model_call_count": null,
+    "reason": "collector directory already existed before executor creation; original artifacts preserved; not an automatic model retry"
+  },
+  "limits": {
+    "baseline_comparison_verified": false,
+    "general_token_saving_rate": null,
+    "human_saving_rate": null,
+    "full_backend_usage": null,
+    "billing_cost": null,
+    "development_usage": null,
+    "local_cache_and_provider_cache_are_distinct": true,
+    "web_snapshot_native_cache_hit_observed": false,
+    "business_result_automatic_reuse_verified": false,
+    "official_bonus_awarded": null
+  }
+}

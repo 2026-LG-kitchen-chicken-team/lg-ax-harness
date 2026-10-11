@@ -1,0 +1,28 @@
+{
+  "agent_version": "product-planning-v7.4",
+  "source_fingerprint": "73ec3fc2ac5931ed70bba7785dc31ef52c24493c32b8128b16060326793697e9",
+  "native_case": "codex-C01",
+  "native_id": "01a12ba0-ce04-7212-bef5-439769e6b49f",
+  "actual_snapshot_sha256": "fe6930f1eae33c4173b40e3343be8c3c58d384193a3d8fe71e93712df35aecfa",
+  "scope": "general-code attempts against an isolated copy of the actual cancelled native snapshot; not additional AI/native/backend-stop validation",
+  "probes": [
+    {
+      "name": "saved_candidate_replay",
+      "status": "rejected",
+      "error_code": "terminal_turn"
+    },
+    {
+      "name": "new_candidate_write",
+      "status": "rejected",
+      "error_code": "terminal_turn"
+    },
+    {
+      "name": "new_tool_invocation",
+      "status": "rejected",
+      "error_code": "terminal_turn"
+    }
+  ],
+  "candidates_state_and_counts_preserved": true,
+  "original_snapshot_unchanged": true,
+  "additional_product_model_calls": 0
+}

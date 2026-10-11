@@ -1,0 +1,1101 @@
+{
+  "date": "2026-10-12",
+  "agent_version": "product-planning-v7.4",
+  "source_fingerprint": "73ec3fc2ac5931ed70bba7785dc31ef52c24493c32b8128b16060326793697e9",
+  "source_files": {
+    "THIRD_PARTY_NOTICES.md": "f7f438d5c43e1e54115fb5cc99fcd18aea6283c5913b2729ef68812c9bdffc6e",
+    "adapters/codex/install.py": "c20202fde98a5c4a62e6cda9542ca8587c9704a386b5b2bb74dc4e5a68ebb50f",
+    "adapters/codex/templates/.gitignore": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516",
+    "adapters/codex/templates/AGENTS.md": "15e2ed88cb28e4256b3683880edbccc1fc30fe87a522031d4f7e8b52f1202d90",
+    "adapters/codex/templates/README.md": "136e8ded0cfaee399ace805601be43196d9c98ab4ae9ab44edf63578b1dc9eff",
+    "adapters/codex/templates/product-doctor.py": "1d3907a30692e567e0474958607c165ad42062e74ae992f54f425d5971b13b19",
+    "adapters/codex/templates/pyproject.toml": "18c242cb312177d87a0617790f75572b07c94c4344ba793949b09c94a1d46b45",
+    "adapters/codex/templates/uv.lock": "9bca97496ed07b2b5f71be3f26011f45bf9e9822f58bea69af9a9f26d64e3988",
+    "agents/product-planning.md": "9558f4552ac1e95f1987b727da4d0aa2189462b199495fd8a32a0dcfa14de858",
+    "data/business/empty/manifest.json": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a",
+    "data/business/empty/models.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "data/business/empty/sources.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/contracts/codex-product.md": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54",
+    "docs/contracts/common-tools.md": "048eb1ecc916598189f3529bdca0a8229983398d429a16debfa6cf074880b9ff",
+    "docs/contracts/product-planning.md": "374ec19cbe28a8eadba49196ad4c217bfb785bc02f34bed8a011d72219c0f25c",
+    "docs/contracts/web-evidence.md": "d7cb56d4ac8c24e758ebacb4bc292964685dc4b389718480043be32fd34538dd",
+    "product-tools/cli.py": "e024673debdacf7df17fe3a74635cbc81a844ab3543b16c53eca77ad51b9ac94",
+    "product-tools/product_tools/__init__.py": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68",
+    "product-tools/product_tools/contracts.py": "d45c0677328e1fce39e63998cc6131fc5e71edbd41bccdaa3068a5ce82a0ee01",
+    "product-tools/product_tools/conversation.py": "a9a28b98fd5fa94aa117c22bdcd7dcb706b39f1e822b2efebd1519f4b9fd6ed2",
+    "product-tools/product_tools/dataset.py": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e",
+    "product-tools/product_tools/payload.py": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e",
+    "product-tools/product_tools/planning.py": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd",
+    "product-tools/product_tools/state.py": "85511f482eec4698f0d62960ffeab893f926b18cfde8556349a02b1245ed1766",
+    "product-tools/product_tools/tools.py": "1cae4712bf3cfdc8f3d41b222f7d335da0ae4d3c6495a6039d9fb503c99f0fa2",
+    "product-tools/product_tools/web_evidence.py": "f09778ad71a9405122d2be14e4bbd578d3daf25c2232d6457dc5dfb978b4c4f4",
+    "skills/concept-writing/SKILL.md": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174",
+    "skills/concept-writing/scripts/run.py": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+    "skills/evidence-retrieval/SKILL.md": "8d05bb9a94a7d8ca29918dfc9978a807b89da7b9a2174b3124724ee3ee0b7023",
+    "skills/evidence-retrieval/scripts/run.py": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28",
+    "skills/feature-comparison/SKILL.md": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d",
+    "skills/feature-comparison/scripts/run.py": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+    "skills/manifest.json": "be44cfcddcbbed429899b743c2a24353d33b593eae4719f7561687185238a78a",
+    "skills/needs-structuring/SKILL.md": "d5b70b6a771733c4bbd958d9041dad033611ab47a790ca6a75e500427e3c9f18",
+    "skills/needs-structuring/scripts/run.py": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+    "skills/review-and-revise/SKILL.md": "fef1c6acf43fe98f1f646246957af34a8d51c2d6ec81984b9b98917477b93d31",
+    "skills/review-and-revise/references/payload.md": "4dcec360787be7196316283feadde3971d245e9b5b7ab50864c1833e861a29a3",
+    "skills/review-and-revise/scripts/run.py": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8",
+    "skills/web-evidence-collection/SKILL.md": "1de200004b5a1a587e1955e96826ffc6486300be8b3589c26f01a75d8ac88298",
+    "skills/web-evidence-collection/scripts/run.py": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9",
+    "vendor/codex-harness/LICENSE": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b",
+    "vendor/codex-harness/NOTICE": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37",
+    "adapters/common/install.py": "1f48cb0e5e24e6642dfb6d87f670f801d3ea50c76966964362b1239a7d8f8f67",
+    "adapters/common/product-doctor.py": "0bbaeb4c8813fca81283e00eb38473b919cb2aa1ef8dca972faf9e72a7dd3a4e",
+    "adapters/claude/templates/CLAUDE.md": "52af551341424b44843391308f06f227d64918899a29ad4fbe61b5e603d07e22"
+  },
+  "seed_fingerprints": {
+    "data/business/lg-kitchen-v4": "6199767ef215a7499d41444ad99fad0671c353eb8bd6e470a9ac43fa21646787",
+    "data/business/empty": "25e8f55eb30d38652fe437334ff924f983dfc2c53650f9a059a578cb7ab43ac5"
+  },
+  "scope": "bounded disclosed diagnostic inputs, not blind holdout or official judge problem set; R/U are retests, V01/V02 first execution expressions",
+  "limits": {
+    "codex_inputs": 10,
+    "claude_inputs": 3,
+    "seconds": 420,
+    "automatic_retry": false,
+    "parallel_native": 2,
+    "total_inputs": 13
+  },
+  "axes": [
+    "목적/제약",
+    "정확 모델/버전",
+    "불편→기능→제안",
+    "출처 의미",
+    "미확인/보류",
+    "최종·저장 정합",
+    "실행/검증 계획"
+  ],
+  "totals": {
+    "codex": {
+      "planned": 11,
+      "executed": 10,
+      "not_run": 1,
+      "native_sessions": 8,
+      "passed": 8,
+      "failed": 2,
+      "observed_usage": {
+        "input_tokens": 10823246,
+        "cached_input_tokens": 10037760,
+        "output_tokens": 107164,
+        "reasoning_output_tokens": 34121
+      },
+      "usage_scope": "observed sums include failed and incomplete turns; not full backend or billing totals",
+      "incomplete_usage_cases": [
+        "U02"
+      ],
+      "backend_model_calls": null,
+      "backend_billing": null,
+      "cost_usd": null,
+      "development_usage_included": false
+    },
+    "claude": {
+      "planned": 3,
+      "executed": 3,
+      "not_run": 0,
+      "native_sessions": 2,
+      "passed": 2,
+      "failed": 1,
+      "observed_usage": {
+        "input_total": 2800935,
+        "noncached_input_tokens": 60,
+        "cache_creation_input_tokens": 116817,
+        "cache_read_input_tokens": 2684058,
+        "output_tokens": 28004
+      },
+      "usage_scope": "observed sums include failed and incomplete turns; not full backend or billing totals",
+      "incomplete_usage_cases": [],
+      "backend_model_calls": null,
+      "backend_billing": null,
+      "cost_usd": null,
+      "development_usage_included": false
+    }
+  },
+  "results": [
+    {
+      "engine": "codex",
+      "id": "R01",
+      "category": "known",
+      "question": "DUBJ2EA의 실제 사용 불편과 기존 세척 기능을 비교해 개선안 한 개를 검토해줘. 출처와 적용 한계, 효과 확인 방법도 보여줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "completed",
+      "native_id": "01a12ba6-f6ee-7913-a3ec-e8e85993d69f",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 293.74,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 766833,
+        "cached_input_tokens": 701056,
+        "output_tokens": 12950,
+        "reasoning_output_tokens": 3369,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "동일후기 URL1건의 코스·긍정·유보·간접정보 문맥 보존",
+          "정확모델/공식기능/공용FAQ/AI가설 구분",
+          "7support_quote 연속snapshot구간·exactref/DB/export 일치",
+          "실제결함·통제조건·눈가림 평가·총작업량·조치 기준은 미측정 계획"
+        ],
+        "limits": [
+          "PDP open Internal Error 후 공통fetch 성공; clipped snapshot2",
+          "실물/시장/설명서/서비스지원UI전체 미확인",
+          "semantic_status unverified 유지"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "08848def9882af9389ef7556596a6eeb651659a3f8c89ca1f385a6ea63e27ca7",
+        "prompt_sha256": "930f0162ddfd5e1dd7b28e3e4c96f47baae8908372f87a1ea6f11602c02577b3",
+        "final_sha256": "06e736652c0cdc933731816cb9cb85ef0ba7559cd39d83e22f14bd91f12aad0d",
+        "raw_sha256": "bb4f4cb0405efd5cd086b67e67d5c536bd7afbe08c8f25bdfa8ffeafd89ea6e0",
+        "stdout_sha256": "4a93b1fb95d13d57b9b2fa70194ea606f457e4048dbd0cf0f1d6511c0d8ba13c",
+        "stderr_sha256": "71e74abaa46afe2df6f8c3927828d8356e3e28792cc85854e8e73792f9f53ef1"
+      },
+      "planning_completed": true,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "R02",
+      "category": "known",
+      "question": "전자레인지의 실제 사용 불편을 찾아 기존 기능과 비교하고, 하드웨어를 바꾸지 않는 개선안 한 개와 실행·검증 계획을 보여줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "completed",
+      "native_id": "01a12ba0-ce04-7212-bef5-439769e6b49f",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 289.67,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 701804,
+        "cached_input_tokens": 635648,
+        "output_tokens": 12726,
+        "reasoning_output_tokens": 3680,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "원질문/제약 보존",
+          "정확 모델/버전 귀속",
+          "사용 조건·기능 무지장·회피·가격 유보 보존",
+          "같은 URL/작성자 발췌를 독립 고객 수로 합산하지 않음",
+          "공식 요약과 AI 가설 분리·중복 null",
+          "strict pointer/export/DB 일치",
+          "사전 확인 관문·조건별 분모/안전한 지표·planned_not_measured"
+        ],
+        "limits": [
+          "snapshot clipped; 전체 페이지·지원 양식·실물 미검증",
+          "초기 runtime-data rg exit1 포함",
+          "저장 semantic_status unverified 유지"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "f17ee8a1ae223383dc85b459d24d7d511700e88a08845d5f7f1b47e6ca9fb445",
+        "prompt_sha256": "b2b6c7c0442d8249260195af2377d9547403cb6871dc5693f9c8e90bb1f94c78",
+        "final_sha256": "54b33cfc8c501ce3c5ed3e9abda27f52077f36b2b874256d146832ffdf33f836",
+        "raw_sha256": "3e0c81fdaaa2a66a7a1369b5a6eb7c45eeebde06c5ab820c71f5605f420fbb64",
+        "stdout_sha256": "1ea5a952956923553489bc9df254291522bd8de97c2eff91724bc19771a7f33e",
+        "stderr_sha256": "3a611e8a599160679afb26a8a6b35e7d7fb7ee9431b52419ce515efcf6e8a275"
+      },
+      "planning_completed": true,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "R03",
+      "category": "known",
+      "question": "집에서 쓰는 가로 34cm 접시를 그 전자레인지에 넣어 사용해도 될까?",
+      "parent": "R02",
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "needs_input",
+      "native_id": "01a12ba0-ce04-7212-bef5-439769e6b49f",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 113.45,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 516081,
+        "cached_input_tokens": 501760,
+        "output_tokens": 4949,
+        "reasoning_output_tokens": 2148,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": true,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          null,
+          2,
+          2,
+          2,
+          null
+        ],
+        "na_reasons": {
+          "2": "적합/안전 후속으로 신규 불편/개선안 요청 없음",
+          "6": "사업 구현계획 요청 없음"
+        },
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "원형·지름34cm·평평한 배치 조건부 계산만 유지",
+          "다른 형상·회전·재질·안전 미확인",
+          "exact source summary와 AI 계산 분리",
+          "needs_input의 실제 근거 전달",
+          "같은 native/prior·strict pointer/export/DB 일치"
+        ],
+        "limits": [
+          "부모 R02는 catalog 변경으로 현재 valid=false인 역사 결과; 원래 후보/assessment/export 보존",
+          "추가 질문 Tool accepted는 사용자 응답이 아님"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "da35a3b85ecf5ec854732f6920a6c7e98a5d18da41c1a429480f84d13db82c04",
+        "prompt_sha256": "e437bc1712bab9c276586bcdff6e74ba9e9931668cbdad0bd076ec281b8ba72d",
+        "final_sha256": "f087cad7d25f126d7a3b9322b2bf2e8bbc4453f471203b3696e46234780d9f94",
+        "raw_sha256": "fa2653954769b1361ad5aec888f33d4f1de9e412e3834cf4421241d9d38737e8",
+        "stdout_sha256": "4df2518267d45534993e53977cbca7c554186fb18ff6c2f9853a3654b377b558",
+        "stderr_sha256": "2344b27e7f5ad79f59a2d701c51b851c54a5584e7a76cb8b9935fd48f379a953"
+      },
+      "planning_completed": false,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "R04",
+      "category": "known",
+      "question": "MW23GD 전자레인지의 실제 사용 불편을 조사하고 기존 기능과 비교한 개선안 한 개를 검토해줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "completed",
+      "native_id": "01a12bae-8f1b-7be0-b94c-3fba59d3d669",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 346.64,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 1452161,
+        "cached_input_tokens": 1340672,
+        "output_tokens": 15150,
+        "reasoning_output_tokens": 5723,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "empty→정확MW23GD identity→실제모델1/사실3/후기레코드4등록→동일request resolve",
+          "고유후기3/동일후기긍정·불편 분모와상반시야선호 구분",
+          "MFL68822520 Rev.22_090525 적용범위·현재설정·모델별차이 구분",
+          "7support_quote snapshot 연속구간/exactrefs/strict pointer/export/DB일치",
+          "실물/중복관문·균형비교·예외조건·정답검토와 품질/시간 기준 planned_not_measured"
+        ],
+        "limits": [
+          "처음scope_mismatch import exit1/PDFscreenshot InternalError/초기rgexit1 포함",
+          "후기exact구매확인/시장대표성/실물안전/효과/전체backendunknown"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "218584463a59de3fb00551461a15fceca0c81b08645cc7f4ec45075f31d1a8b0",
+        "prompt_sha256": "0c1cb7d4f47bbb8f381affcadf9dd678f47e759ffefb2c38b135e0d8e71f497d",
+        "final_sha256": "debef0d32203116f813d57678852e237157175fe3d5badb407bf62a4f1c418e3",
+        "raw_sha256": "3696c683bb0323c64767c14eab318f85b1579f8a623ff950a42a090260260d17",
+        "stdout_sha256": "0f4fa09364cb903fdeb6a96b43aaa7da5452c17ccf3e5fb6e38744b1c2b2b25c",
+        "stderr_sha256": "879e01f3a23505658990a86fc3186716533227e4ab71372e7fdc6c0eb34c388e"
+      },
+      "planning_completed": true,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "R05",
+      "category": "known",
+      "question": "T876MQQ012 냉장실에 높이 360mm 용기를 세워 넣을 수 있는 배치안을 검토해줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "failed",
+      "acceptance_error": "Exactly one receipt or pending-request pointer required",
+      "not_run_reason": null,
+      "terminal_status": null,
+      "native_id": "01a12bab-7338-7382-9169-0a739babd250",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 203.55,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 836620,
+        "cached_input_tokens": 761856,
+        "output_tokens": 8015,
+        "reasoning_output_tokens": 3229,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 0,
+      "whole_fences_strict_json": false,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          null,
+          2,
+          2,
+          0,
+          2
+        ],
+        "na_reasons": {
+          "2": "근거부족 수납 적합성 요청, 신규기획 대상아님"
+        },
+        "semantic_pass": false,
+        "strict_json_pass": false,
+        "critical_errors": [],
+        "reasons": [
+          "360mm 배치승인 보류 및 정확모델/공용설명서/실측절차 타당",
+          "실제 current held request·export·DB 일치",
+          "최종 JSON fence0; 파일링크는 필수 inline pointer 대체불가"
+        ],
+        "limits": [
+          "request1/turn0/candidate0",
+          "http_301/PDFscreenshot InternalError 실제관측",
+          "기본R06 사전조건불충족 미실행"
+        ]
+      },
+      "normalized_score_14": 11.667,
+      "fingerprints": {
+        "result_sha256": "8c3e5df35ec74027f07d0566ff579ea761135a03efc718e3eaebce76be956a08",
+        "prompt_sha256": "bdb380831906f085982e88cb4d392f07654fb824cb91b96f04659deff55ae362",
+        "final_sha256": "5bd9ca89050546d25979396f20b6a02c986c6ea7d8666739db14b2bda21505cc",
+        "raw_sha256": "6ee96ffd1b4be374064696dec0f1a68d68da713ae8055207ab74c50e080d69f9",
+        "stdout_sha256": "23df54c9f35f3b9eab776baba741c28d5cc15be9704c8b52478647a87ccabcd1",
+        "stderr_sha256": "477aebb746bee813b7b7c4ffa74c95c3dfc84bd3434eeda793ff3ed450bc22e4"
+      },
+      "planning_completed": null,
+      "overall_pass": false
+    },
+    {
+      "engine": "codex",
+      "id": "R06",
+      "category": "cancel",
+      "question": "그 요청은 취소해줘. 지금까지 남긴 내용은 보관해줘.",
+      "parent": "R05",
+      "supplemental": false,
+      "execution_status": "not_run",
+      "acceptance": "not_run",
+      "acceptance_error": null,
+      "not_run_reason": "Actual parent did not deliver",
+      "terminal_status": null,
+      "native_id": null,
+      "model": null,
+      "effort": null,
+      "elapsed_seconds": null,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": null,
+      "protected_unchanged": null,
+      "followup_native_linked": null,
+      "json_fences": 0,
+      "whole_fences_strict_json": false,
+      "review": null,
+      "normalized_score_14": null,
+      "fingerprints": {
+        "result_sha256": "def6a08af12547b5a119f1f9e46a5263fe2be3e541ebb4971738892a63c0c350",
+        "prompt_sha256": null,
+        "final_sha256": null,
+        "raw_sha256": null,
+        "stdout_sha256": null,
+        "stderr_sha256": null
+      },
+      "planning_completed": null,
+      "overall_pass": false
+    },
+    {
+      "engine": "codex",
+      "id": "U01",
+      "category": "unused_expression",
+      "question": "냉장고 사용자가 일상적으로 번거로워하는 일을 찾아서, 부품 추가 없이 가능한 개선안 하나와 실행 계획을 검토해줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "completed",
+      "native_id": "01a12bb3-da14-7781-b79d-9c1d9382adb3",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 283.28,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 860931,
+        "cached_input_tokens": 765696,
+        "output_tokens": 11801,
+        "reasoning_output_tokens": 3460,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/candidate_trace_review",
+        "scores": [
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2
+        ],
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "정확모델3구분/기획은T876MQQ012에한정·이전삼성경험전이안함",
+          "적재그림자실제근거·반복탐색/위치표수요는가설로조건화",
+          "6후기ID발췌수 vs독립고객/발생률구분·원문긍정/기대/2인수용조건 보존",
+          "기존ThinQ/UP/안내중복null·반복과업과중복확인을착수조건",
+          "strictwholeJSON/actualfinal/DBexport/결과assessment/refsSHA일치",
+          "8가구2주교차비교·과업분모·수동정정부담·오위치·미갱신·중단조건 planned_not_measured"
+        ],
+        "limits": [
+          "고객수요/수동부담 대비 실제효과미검증·조건부기획초안",
+          "commandexit-1 실패뒤문맥저장exit0보존",
+          "U01은v73기실행표현이라최종unused아님",
+          "외부283.28s vsnative281.275s 시간경계다름",
+          "read_command_indicators0은실제읽기0아님/전체backendunknown"
+        ]
+      },
+      "normalized_score_14": 13.0,
+      "fingerprints": {
+        "result_sha256": "23c812a2b4c72120078e683aab707e601b27ce42e9f9c2d0f4b83e4dae50a87a",
+        "prompt_sha256": "1c6e2dc98c127d6a17e04ffe01848db9e22cb5a9120ac3e9297b8935e692afd7",
+        "final_sha256": "70a59f4e7dc891f229323c21a8224a15716d30cc28552938451e7d786060b1a2",
+        "raw_sha256": "fe8c6b8479a423f937ee78a913322a084f3d02a141705c7159c61ca61f642b2e",
+        "stdout_sha256": "61688024a60c55d9aae97185a5731eb235ee1786325e1dcc3ec586ffab45fd9d",
+        "stderr_sha256": "ffbabc4482680a61f59f432329b44e15640cee8aad8638031e3355b21f2ba0dc"
+      },
+      "planning_completed": true,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "U02",
+      "category": "unused_expression",
+      "question": "H874GBC111의 실제 사용자 경험을 조사해서 개선안 하나와 실행·검증 계획을 제안해줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "timeout",
+      "acceptance": "failed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": null,
+      "native_id": "01a12bb8-2d57-71a3-920a-9540fbd4d653",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 420.52,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 4010043,
+        "cached_input_tokens": 3851008,
+        "output_tokens": 15257,
+        "reasoning_output_tokens": 5560,
+        "scope": "last partial native usage observed before timeout; not a completed turn total; backend/billing unverified",
+        "native_turn_completed": false
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 0,
+      "whole_fences_strict_json": false,
+      "review": {
+        "reviewer": "/root/candidate_trace_review",
+        "scores": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "na_reasons": {
+          "0": "timeout으로 native 최종 답변 없음; 의미 판정 미실시",
+          "1": "timeout으로 native 최종 답변 없음; 의미 판정 미실시",
+          "2": "timeout으로 native 최종 답변 없음; 의미 판정 미실시",
+          "3": "timeout으로 native 최종 답변 없음; 의미 판정 미실시",
+          "4": "timeout으로 native 최종 답변 없음; 의미 판정 미실시",
+          "5": "timeout으로 native 최종 답변 없음; 의미 판정 미실시",
+          "6": "timeout으로 native 최종 답변 없음; 의미 판정 미실시"
+        },
+        "semantic_pass": false,
+        "strict_json_pass": false,
+        "critical_errors": [],
+        "semantic_review": "not_completed_due_timeout",
+        "reasons": [
+          "420.52초 timeout/process exit1/turn.completed·final.txt 없음",
+          "import scope_mismatch·보류 reason 길이 초과 후 held 사건과 export 저장",
+          "로컬 final-delivery와 request/export/DB 일치하지만 native 최종 전달 아님",
+          "기획turn/results0·공식 기획 후보 없음"
+        ],
+        "limits": [
+          "MCP25개 completed20/failed5; 브라우저 오류 포함",
+          "로컬PID트리 taskkill exit0는 backend 종료 인증 아님",
+          "4010043 input/15257 output은 timeout 이전 마지막 부분 누적 관측이며 완료 turn 총량 아님",
+          "재실행0; 전체backend/추가소비/청구 unknown"
+        ]
+      },
+      "normalized_score_14": null,
+      "fingerprints": {
+        "result_sha256": "8e22f5fd7a0a725028b2d5fa77e881a7faea90074c304a07cd8a6dda74fc71a9",
+        "prompt_sha256": "a5f30c3b050c6068af3879a8c9153325f3a7f3a60cde6b9869364dc7a3268a95",
+        "final_sha256": null,
+        "raw_sha256": "cb75b3c6204fe6b63093d54e075d4b4147004bf07a6213422969971bf5691158",
+        "stdout_sha256": "f416de5cf5f2d281aca2d053ec72c6a7fbe7a96308c8dcfaf857849f3f1c4199",
+        "stderr_sha256": "c4cdb68df84306103f9b0eca1639dc75a892f0857ded89eb4c1bac0386d626b0"
+      },
+      "planning_completed": null,
+      "overall_pass": false
+    },
+    {
+      "engine": "claude",
+      "id": "R02",
+      "category": "known",
+      "question": "전자레인지의 실제 사용 불편을 찾아 기존 기능과 비교하고, 하드웨어를 바꾸지 않는 개선안 한 개와 실행·검증 계획을 보여줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "completed",
+      "native_id": "f6e79532-f107-4f0f-bfcf-1898d92625fb",
+      "model": "claude-opus-5-5",
+      "effort": "extra (observed UI)",
+      "elapsed_seconds": 112.534,
+      "time_basis": "native user timestamp to main assistant end_turn timestamp; UI startup excluded",
+      "observed_usage": {
+        "input_total": 882385,
+        "noncached_input_tokens": 20,
+        "cache_creation_input_tokens": 53395,
+        "cache_read_input_tokens": 828970,
+        "output_tokens": 11297,
+        "unknown_messages": {
+          "input_tokens": 0,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 0
+        },
+        "scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/candidate_trace_review",
+        "scores": [
+          2,
+          2,
+          1,
+          1,
+          2,
+          2,
+          1
+        ],
+        "semantic_pass": false,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "후기1건/정확MWJ25E/제약·중복null·미측정 보존",
+          "strict wholeJSON/pointer/export/DB일치",
+          "cooking기능무지장·접촉회피·가격마감 유보 주변문맥 미관측/계획누락",
+          "실제결함 검출/누락률·정상품오판정률·결함확인후적절조치 평가 불충분"
+        ],
+        "limits": [
+          "generic문맥확인지침이 실제원URL관측으로이행되지않음",
+          "nativeassistant10고유ID 관측;전체backend/청구unknown"
+        ]
+      },
+      "normalized_score_14": 11.0,
+      "fingerprints": {
+        "result_sha256": "402061a7acdddb61ba06498d1409b617bac997861828694397b9a4be1ec724a3",
+        "prompt_sha256": "c5a937bd638c61f2f4e8d903c0c1049d6576924c75400352d28ef3f997eb4923",
+        "final_sha256": "e31c97219921355865bcf8aeb0d31ced3fdbd03bf30cdc02bc923fc0cf17e206",
+        "raw_sha256": "4bb8b9bc8e992d5c2bcde77966f3eb7f75cc87e74052248b280ce564359dc8f4",
+        "stdout_sha256": null,
+        "stderr_sha256": null
+      },
+      "planning_completed": true,
+      "overall_pass": false
+    },
+    {
+      "engine": "claude",
+      "id": "R03",
+      "category": "known",
+      "question": "집에서 쓰는 가로 34cm 접시를 그 전자레인지에 넣어 사용해도 될까?",
+      "parent": "R02",
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "held",
+      "native_id": "f6e79532-f107-4f0f-bfcf-1898d92625fb",
+      "model": "claude-opus-5-5",
+      "effort": "extra (observed UI)",
+      "elapsed_seconds": 61.439,
+      "time_basis": "native user timestamp to main assistant end_turn timestamp; UI startup excluded",
+      "observed_usage": {
+        "input_total": 538348,
+        "noncached_input_tokens": 10,
+        "cache_creation_input_tokens": 7401,
+        "cache_read_input_tokens": 530937,
+        "output_tokens": 6484,
+        "unknown_messages": {
+          "input_tokens": 0,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 0
+        },
+        "scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/closure_eval_design",
+        "scores": [
+          2,
+          2,
+          null,
+          1,
+          2,
+          2,
+          null
+        ],
+        "na_reasons": {
+          "2": "기획안아닌접시적합성후속",
+          "6": "기획실행계획요청아님"
+        },
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "가로34cm를원형지름으로확정안함·형태높이미확인",
+          "내부치수vs입구/대각/회전/재질/가열안전 구분 보류",
+          "같은native/actualprior·역사후보보존·strictJSON/export/DB일치",
+          "원문사실(공식스펙저장요약)과따옴표한계문장 귀속이모호하여출처축1점"
+        ],
+        "limits": [
+          "공식직접문구로명시적단정중대오류는없지만원문/요약/AI분리완전해결아님",
+          "최종URL없으나exportexactrefsURL보존",
+          "개발자읽기오류2회복구(StopIteration/SQLiteuri);추가모델호출아님"
+        ]
+      },
+      "normalized_score_14": 12.6,
+      "fingerprints": {
+        "result_sha256": "23a779431aac49ec102bace7aa805686c90214ac3766335d0cb68db43adad0fe",
+        "prompt_sha256": "6f42899344dd9e962eaaeeaf826514dcb228ec9c2317d2edde508252b7544b65",
+        "final_sha256": "9f6ba11a3ca9ef5d712e7c8b0e8bbdd121cc5052141b7e482b47f94cce773bf7",
+        "raw_sha256": "fabfdc5480b511bcc7648864e812255f55ed4a46c888db9344622683ffe20327",
+        "stdout_sha256": null,
+        "stderr_sha256": null
+      },
+      "planning_completed": false,
+      "overall_pass": true
+    },
+    {
+      "engine": "claude",
+      "id": "U02",
+      "category": "unused_expression",
+      "question": "H874GBC111의 실제 사용자 경험을 조사해서 개선안 하나와 실행·검증 계획을 제안해줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "pending_request_delivered",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "held",
+      "native_id": "c517e98f-44cd-46ee-b393-7442260e189f",
+      "model": "claude-opus-5-5",
+      "effort": "extra (observed UI)",
+      "elapsed_seconds": 127.578,
+      "time_basis": "native user timestamp to main assistant end_turn timestamp; UI startup excluded",
+      "observed_usage": {
+        "input_total": 1380202,
+        "noncached_input_tokens": 30,
+        "cache_creation_input_tokens": 56021,
+        "cache_read_input_tokens": 1324151,
+        "output_tokens": 10223,
+        "unknown_messages": {
+          "input_tokens": 0,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 0
+        },
+        "scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/closure_eval_design",
+        "scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1
+        ],
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "정확H874GBC111 PDP확인·유사철자모델제외·긍정후기3/표시344 범위만관측",
+          "근거없는불편·개선안으로대체안함·held타당",
+          "http_301 실패와nativebrowser성공 구분·같은요청재개절차 구체화",
+          "strictwholeJSON/pointer/export/DB일치",
+          "개선안구현단계/지표/비교기준/성공조건 미완료"
+        ],
+        "limits": [
+          "13/14는보류응답진단통과, 사용자상품기획요청완료아님",
+          "127.578s종료/420초timeout 미발동; 시간안에못봤다는표현을한도소진으로확대금지",
+          "UnicodeDecodeError1복구포함",
+          "고유고객ID/구매인증/협찬/전체backend·청구unknown"
+        ]
+      },
+      "normalized_score_14": 13.0,
+      "fingerprints": {
+        "result_sha256": "eea589acac9a27733f3b9fff7734fb30a1eff53d8758e8dc0bb2da1cbae00e25",
+        "prompt_sha256": "738304a5f556f4cc3e05cbbe2e9e485cc9d2a70e87e2f9b0a06b47271eb32a5a",
+        "final_sha256": "9e16f61d505c9adc5dcc4ce938ff659d0274d0002442429677144c3a61fb5d64",
+        "raw_sha256": "01da58ef3bf07c60c203087f8168b25f94fe952b169c9b522ee74e0ebe42f3dd",
+        "stdout_sha256": null,
+        "stderr_sha256": null
+      },
+      "planning_completed": false,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "V01",
+      "category": "first_execution_expression",
+      "question": "식기세척기를 다 쓰고 나서 사용자가 번거로워하는 일을 실제 후기로 찾아줘. 현 기능으로 해결되는 부분을 먼저 가르고, 남는 문제에 부품 추가 없이 개선안 하나를 기획해줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "completed",
+      "native_id": "01a12bb7-617c-7f71-ae19-4d02e5d47e1d",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 269.53,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 627000,
+        "cached_input_tokens": 549760,
+        "output_tokens": 11956,
+        "reasoning_output_tokens": 2899,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "사용후물고임/각도고민→개인배치메모가설·1안·부품없음",
+          "첫사용조건·냄새원인유보·물얼룩긍정·고유후기1건 보존",
+          "공식저장요약과원문/AI과업가설 분리·실제닦기/시간 관측아님",
+          "기존문열림/고온건조/통살균/ThinQ 존재vs해소/현재설정 구분·중복null",
+          "strictwholeJSON/actualreceipt/export/DB/result/assessment 일치",
+          "기존안내vs메모교차비교·입력조회부담·잔수/잔여물/손상·발견조치·미발견 planned_not_measured"
+        ],
+        "limits": [
+          "첫공개표현·기존자료사용서 blindholdout아님",
+          "실물/효과미측정·표본수판정기준실행전확정·단종모델범위",
+          "PDP InternalError후공통fetch성공;command24exit0을웹오류0으로확대안함"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "4a665d73fe408975ffe9ed463aebaeaefde06da9f510aa221c980022db6300fc",
+        "prompt_sha256": "26ea1bab479075b211fe604f2c1bc2867b82af9d10bdbc54aeaf689a16447e61",
+        "final_sha256": "4d1979e09f2acdbbfc24cc207529fe10d7acdd84e5a1636d9d44411ccb880caa",
+        "raw_sha256": "7aafa3a0eca34310cee6f0f7779dd1b56f61b3269f17acbec0e344a3dbebb745",
+        "stdout_sha256": "18f7c43472e711ae7b3c8ed98874353dc043f29b0ec073d4a556d8b7543507fb",
+        "stderr_sha256": "2701777db8be2d273c8202ba8c99db8052f35568ff2bac4a96869319acc61489"
+      },
+      "planning_completed": true,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "V02",
+      "category": "first_execution_expression",
+      "question": "전자레인지의 사용 경험에서 서로 상반되는 의견이 있는지 찾아 비교해줘. 불편이라고 볼 근거가 부족하면 그 이유와 다음 확인 절차를 알려줘.",
+      "parent": null,
+      "supplemental": false,
+      "execution_status": "succeeded",
+      "acceptance": "contract_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "held",
+      "native_id": "01a12bbb-7f40-7183-aa1c-811bb6795b00",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 243.29,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 649558,
+        "cached_input_tokens": 541312,
+        "output_tokens": 10355,
+        "reasoning_output_tokens": 3027,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": null,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          null,
+          2,
+          2,
+          2,
+          2
+        ],
+        "na_reasons": {
+          "2": "상반 평가 비교·확인 요청이며 신규 개선안 요구 없음"
+        },
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "MWJ25E 정확 scope·2022 후기/제조 버전 한계",
+          "동일 증상의 직접 반대와 서로 다른 평가 속성을 구분",
+          "기능 지장 없음·회피·디자인 긍정·가격/선물 맥락 보존",
+          "후기 레코드5개/고유 원후기URL2개를 고객 수로 확대하지 않음",
+          "인용5건 연속snapshot 일치·공식저장요약/AI판단 분리",
+          "strict JSON/후보/assessment/export/DB/SHA일치",
+          "정상조건/증상/재시도/서비스 판단·분모 확인은 미실행 계획"
+        ],
+        "limits": [
+          "비교 답변 완료·개선안 판단 held; 실제 상품기획안 없음",
+          "초기 runtime-data 누락 command exit1 이후22개 exit0",
+          "개발자 공개 첫 표현·기존자료이며 blind holdout 아님",
+          "전체backend/청구/실물효과 unknown"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "8298a628b82ded2c47a378b5b7d7a7768194ce8f3cb5f130f189c98fe3ecc6fc",
+        "prompt_sha256": "4b53d50f930cb8f5fadfe0fd8503b1b6de4c704714d121b4443af6e59563982b",
+        "final_sha256": "b0db3efddb158a5b7909dbda77ab7013d7bce74cc96090ba15bc0d0519cc3b81",
+        "raw_sha256": "6d0932283c852808c489f8d71b7d3c140a5a78232660efa07b13975bffb69a97",
+        "stdout_sha256": "b1416a417788e4663dc8f5f9d40e09579513f0cbd3ec0a313d76bd749ed6303e",
+        "stderr_sha256": "3c81a275c103ae744e785929470c4720c6415c02142a226d4fb7aebf95c694fe"
+      },
+      "planning_completed": false,
+      "overall_pass": true
+    },
+    {
+      "engine": "codex",
+      "id": "C01",
+      "category": "cancel",
+      "question": "그 접시 적합성의 추가 확인 요청은 취소해줘. 지금까지 남긴 내용은 보관해줘.",
+      "parent": "R03",
+      "supplemental": true,
+      "execution_status": "succeeded",
+      "acceptance": "cancellation_and_delivery_passed",
+      "acceptance_error": null,
+      "not_run_reason": null,
+      "terminal_status": "cancelled",
+      "native_id": "01a12ba0-ce04-7212-bef5-439769e6b49f",
+      "model": "gpt-6.1-sol",
+      "effort": "ultra",
+      "elapsed_seconds": 75.06,
+      "time_basis": "executor monotonic wallclock including process startup and native final exit",
+      "observed_usage": {
+        "input_tokens": 402215,
+        "cached_input_tokens": 388992,
+        "output_tokens": 4005,
+        "reasoning_output_tokens": 1026,
+        "scope": "observed native session delta; cached input is a subset of input and reasoning is a subset of output; backend/billing unverified",
+        "native_turn_completed": true
+      },
+      "protected_unchanged": true,
+      "followup_native_linked": true,
+      "json_fences": 1,
+      "whole_fences_strict_json": true,
+      "review": {
+        "reviewer": "/root/bundle_latency_contract",
+        "scores": [
+          2,
+          2,
+          null,
+          null,
+          2,
+          2,
+          null
+        ],
+        "na_reasons": {
+          "2": "실제기존요청취소, 신규불편/기획없음",
+          "3": "신규사실/인용/집계없음·기존근거보존확인",
+          "6": "추가조사종료, 신규기획계획없음"
+        },
+        "semantic_pass": true,
+        "strict_json_pass": true,
+        "critical_errors": [],
+        "reasons": [
+          "실제R03needs_input→cancelled/동일native·targethandle·reason exactC01질문",
+          "새업무turn0/기존후보·assessment·revision0/resultversion1/history 보존",
+          "strictwholeJSON/actualcancelresponse/export/DB일치",
+          "native_controlledfalse/backendstopnull·업무재사용false 유지"
+        ],
+        "limits": [
+          "기본R05failed/turn0·R06notrun 대체아님",
+          "native로그에는취소후쓰기거절시도없음;별도일반코드복사snapshot프로브로3종차단검증",
+          "전체backend/청구unknown"
+        ]
+      },
+      "normalized_score_14": 14.0,
+      "fingerprints": {
+        "result_sha256": "8888d219da38f71b589aff6a22a9083f30d8e66896937711094f6c9d4e455c90",
+        "prompt_sha256": "e0582f0deac4c8dfd6ec2b2f6ee30600a728583c2b2740c1d6e60c2a99e3a9f7",
+        "final_sha256": "89c0c9a09cdc80263c3b1a74f8bbf3edc5ea5e110cd1f1b4588d549994e3ee01",
+        "raw_sha256": "b15751e5a7821dfd46dc8740de31c3ef681b522ef85d9a7815ae8f3128c5525d",
+        "stdout_sha256": "8d8c22d39659c30a0c46f5d22132c22ce03c8003d5f7ebacbc88959d079c5fa1",
+        "stderr_sha256": "ae3a57c8a6dba79fb6fbd16437842e77b40a25aea15139f84580dca7abd7650e"
+      },
+      "planning_completed": null,
+      "overall_pass": true
+    }
+  ],
+  "claims": {
+    "general_accuracy": null,
+    "token_saving_rate": null,
+    "operating_cost": null,
+    "human_saving_rate": null,
+    "official_bonus_awarded": null,
+    "final_submission_accepted": false,
+    "semantic_status": "unverified",
+    "acceptance_ready": false
+  }
+}

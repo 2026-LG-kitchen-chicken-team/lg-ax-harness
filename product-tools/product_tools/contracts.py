@@ -210,7 +210,7 @@ def claim(value, concept=False):
                 fail("invalid_input", "Model-authored validation plans cannot certify measured effects")
 
 def product_result(value, planning):
-    obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"))
+    obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"), optional=("decision_notes",))
     if value["status"] not in ("completed", "needs_input", "held", "failed", "cancelled"):
         fail("invalid_input", "Unknown result status")
     integer(value["revisions"], "revisions", 0, 2)
@@ -228,6 +228,16 @@ def product_result(value, planning):
             text(item, key)
     if value["status"] != "completed" and not value["validation_findings"]:
         fail("invalid_input", "Non-completed result requires reasons")
+    for note in items(value.get("decision_notes", []), "decision_notes", 10):
+        obj(note, ("text", "source_ids", "basis"))
+        text(note["text"], "decision note", 2000)
+        if note["basis"] not in ("source_fact", "ai_interpretation", "unverified"):
+            fail("invalid_input", "Unknown model-reported decision basis")
+        source_ids = items(note["source_ids"], "decision source_ids", 20)
+        for source_id in source_ids:
+            identifier(source_id, "source_id")
+        if len(set(source_ids)) != len(source_ids) or (not source_ids and note["basis"] != "unverified"):
+            fail("invalid_input", "Fact/interpretation notes need unique nonempty source_ids")
     for ref in items(value["evidence_refs"], "evidence_refs", 40):
         evidence_ref(ref)
     if not planning["constraints"]["hardware_allowed"] and any(c["requires_hardware"] for c in value["concepts"]):

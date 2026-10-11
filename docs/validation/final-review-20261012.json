@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-12",
+  "run_id": "quality-final-gate-v2-20261012",
+  "reviewer": "/root/closure_eval_design",
+  "task_id": "final-integrity-review",
+  "status": "accepted",
+  "findings": [],
+  "scope": "implementation/bounded regression/evidence integrity; not all native answer semantic approval",
+  "bound_receipt_id": "f6b50612cdb548b1b2dfea620a019fa2",
+  "bound_receipt_sha256": "9e12c7c8b279fb31965118725053506b476d71245ca76adfcf293d51d444560d",
+  "bound_check_status": "passed",
+  "bound_check_exit_code": 0,
+  "bound_check_seconds": 29.4866,
+  "bound_input_files": 94,
+  "input_hash_mismatches": [],
+  "bound_log_hashes": {
+    "stdout.log": {
+      "path": ".harness/checks/f6b50612cdb548b1b2dfea620a019fa2/stdout.log",
+      "sha256": "47d47c438acdaa8cffc5b94dd57c095da1fa80f166e22644715d8074430e1f04",
+      "original_bytes": 7357,
+      "truncated": false
+    },
+    "stderr.log": {
+      "path": ".harness/checks/f6b50612cdb548b1b2dfea620a019fa2/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_bytes": 0,
+      "truncated": false
+    }
+  },
+  "actual_tests": {
+    "product": 189,
+    "evaluation": 128,
+    "evals": 28,
+    "total": 345,
+    "exit_codes": [
+      0,
+      0,
+      0
+    ]
+  },
+  "source_fingerprint": "73ec3fc2ac5931ed70bba7785dc31ef52c24493c32b8128b16060326793697e9",
+  "product_source_files": 45,
+  "native_result_records": 14,
+  "native_failures_preserved": true,
+  "corrected_report_event": {
+    "engine": "claude",
+    "case": "R03",
+    "artifact": "claude-native.jsonl",
+    "record_line": 96,
+    "type": "user/tool_result",
+    "previous_line91_was_call": true
+  },
+  "v1_gate_status": "failed_report_reference_corrected",
+  "v1_receipt_reused": false,
+  "development_ledger_complete_errors": [],
+  "additional_product_native_calls": 0,
+  "additional_product_model_calls": 0,
+  "development_usage": null,
+  "limits": [
+    "Independent incremental evidence check, not renewed full semantic assessment",
+    "Known native pointer/timeout/Claude quality failures unchanged",
+    "Backend billing/cost/saving unknown",
+    "Publication/finalsubmission not certified by this gate"
+  ]
+}
