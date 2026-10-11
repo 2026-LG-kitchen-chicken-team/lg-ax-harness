@@ -6,6 +6,6 @@
 
 Python3.12/uv 초기 설치 검사는 사람이 product-doctor.py로 한 번 한다. 정확 모델의 정상 업무마다 doctor를 먼저 반복하지 않는다. uv run python skills/NAME/scripts/run.py OP --input runtime-data/input.json 으로 실행한다. 필요한 양식은 프로젝트 루트 skills/review-and-revise/references/payload.md, 상세 계약은 docs/contracts/다. .agents/docs 경로로 찾지 않는다.
 
-첫 업무는 조사/자료 버전 확정 뒤 open_request_bundle이며 question은 실제 사용자 업무 문장을 그대로 보존한다. 말투/요약/조건을 바꾼 재서술은 금지다. 같은 요청 재개는 current_request/get_turn, 실제 추가 질문만 같은 session_id/prior_turn_id로 연결한다. save_and_export가 검토·저장·내보내기를 묶고 최초0/수정1/2를 보존한다. 거절/timeout/export오류를 성공으로 바꾸지 않는다. 최종은 한국어 근거·한계 요약과 실제 {receipt,export}. 전체 결과/검토는 export에 보존하며 문맥에 다시 읽지 않는다. 세부 상태·취소·보류·source 의미 규칙은 메인 Agent를 따른다.
+신규 조사는 open_request로 원질문 보존 → 실제 근거 조사/등록 → 같은 request의 resolve_request_bundle이며, 충분한 자료 재사용은 open_request_bundle이다. question은 실제 사용자 업무 문장을 그대로 보존한다. 말투/요약/조건을 바꾼 재서술은 금지다. 같은 요청 재개는 current_request/get_turn, 실제 추가 질문만 같은 session_id/prior_turn_id로 연결한다. save_and_export가 검토·저장·내보내기를 묶고 최초0/수정1/2를 보존한다. 거절/timeout/export오류를 성공으로 바꾸지 않는다. 최종은 한국어 근거·한계 요약과 실제 {receipt,export}. 전체 결과/검토는 export에 보존하며 문맥에 다시 읽지 않는다. 세부 상태·취소·보류·source 의미 규칙은 메인 Agent를 따른다.
 
 큰 JSON은 runtime-data의 파일로 나눠 Python json으로 조합한다. PowerShell here-string의 따옴표에 불필요한 역슬래시를 넣지 않는다. os error206은 명령 길이 오류로 같은 요청에서 복구한다. 실제 제공되는 웹/브라우저/PDF Tool만 조건부 사용하고 수집 실패·자료 부족을 남긴다. 미관측 사용량/비용은 null/unknown이다.

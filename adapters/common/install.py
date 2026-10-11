@@ -79,7 +79,7 @@ uv run python product-doctor.py
 {profile["cli"]}
 ```
 
-첫 질문: `T876MQQ012를 기준으로 수납·정리 개선안을 만들어줘. 하드웨어 추가 없이.`
+기본 catalog는 비어 있다. 첫 질문: `냉장고 사용 불편을 실제 리뷰에서 조사하고 새 부품 없이 개선할 안을 제안해줘.`
 추가 질문: `이전 안을 장보기 전에 쓰는 3단계 안내로 구체화해줘. 조건은 유지해.`
 업무 Skill은 {profile["skills"]}의6개이며 개발 역할/Skill은 포함하지 않는다.
 세션·요청 키는 공통 Tool이 만든다. 결과의 출처·held/needs_input·runtime-data/exports를 확인한다.

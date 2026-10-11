@@ -73,6 +73,21 @@ class StateStore:
 
     @contextmanager
     def transaction(self):
+        # Compose request resolution with start_turn atomically on this connection.
+        # A savepoint rolls back only its own work; the outer transaction still
+        # owns the write lock and final commit.
+        if self.db.in_transaction:
+            name = "nested_" + uuid.uuid4().hex
+            self.db.execute("SAVEPOINT " + name)
+            try:
+                yield
+            except BaseException:
+                self.db.execute("ROLLBACK TO " + name)
+                self.db.execute("RELEASE " + name)
+                raise
+            else:
+                self.db.execute("RELEASE " + name)
+            return
         self.db.execute("BEGIN IMMEDIATE")
         try:
             yield

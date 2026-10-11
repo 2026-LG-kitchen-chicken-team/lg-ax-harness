@@ -1,6 +1,6 @@
 # 공통 자료·입출력·상태 도구
 
-2026-10-11 현재 계약: product_family는 refrigerator/microwave/dishwasher이며 exact catalog 모델과 일치해야 한다(family_mismatch). runtime engine은 codex/claude/fixture/null이며 Gemini 신규 요청은 거부한다. concept의 선택 필드 implementation_steps와 validation_plan(metric/baseline/method/success_criterion/business_value/status)을 검사한다. 새 업무 지침은 둘 다 작성하며 status는 planned_not_measured만 허용한다. planning_detail_complete는 필드 존재만 확인하며 효과/평가 통과 인증이 아니다. 구버전 결과는 호환하고 없으면 false다. 기본자료·동작·신규 검증은 [v4](../data/kitchen-v4.md)를 따른다. 아래 날짜별 내역은 당시 기록이다.
+2026-10-11 현재 계약: product_family는 개방된 식별자이며 exact catalog 모델과 일치해야 한다(family_mismatch). runtime engine은 codex/claude/fixture/null이며 Gemini 신규 요청은 거부한다. concept의 선택 필드 implementation_steps와 validation_plan(metric/baseline/method/success_criterion/business_value/status)을 검사한다. 새 업무 지침은 둘 다 작성하며 status는 planned_not_measured만 허용한다. planning_detail_complete는 필드 존재만 확인하며 효과/평가 통과 인증이 아니다. 구버전 결과는 호환하고 없으면 false다. 기본 자료는 빈 data/business/empty이며 신규 자료는 실제 관측 후 등록한다. v4는 과거 시험 자료다. 아래 날짜별 내역은 당시 기록이다.
 
 Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가 모델 API·Agent 실행 루프·벡터 DB·플러그인·MCP는 필요하지 않다. 현재 소규모 자료는 모델·버전 필터와 문자 검색으로 처리한다. 검색 품질·자료량이 이를 넘으면 같은 계약을 유지하며 조회 구현을 바꾼다. 기존 LG 작업물은 재사용하지 않았다.
 

@@ -4,7 +4,7 @@ import json
 import re
 
 CONTRACT_VERSION = "product-contract-v1"
-DEFAULT_DATA_PATH = "data/business/lg-kitchen-v4"
+DEFAULT_DATA_PATH = "data/business/empty"
 MAX_BYTES = 65536
 MAX_PLANNING_BYTES = 12288
 MAX_RESULT_BYTES = 32768
@@ -81,7 +81,9 @@ def items(value, name, maximum=20):
     return value
 
 SCOPE_FIELDS = ("model_id", "model_version", "document_version")
-PRODUCT_FAMILIES = ("refrigerator", "microwave", "dishwasher")
+def product_family(value):
+    """An AI/user-selected category key, not an allowlist of demo products."""
+    return identifier(value, "product_family")
 
 def scope(value):
     obj(value, SCOPE_FIELDS)
@@ -96,8 +98,7 @@ def planning_input(value):
         identifier(value[field], field)
     for field in ("question", "target_customer", "context"):
         text(value[field], field)
-    if value["product_family"] not in PRODUCT_FAMILIES:
-        fail("unsupported_family", "Supported families: refrigerator, microwave, dishwasher")
+    product_family(value["product_family"])
     scopes = items(value["model_scope"], "model_scope", 5)
     if not scopes:
         fail("needs_input", "At least one exact model/version/document scope is required")

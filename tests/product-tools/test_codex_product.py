@@ -160,12 +160,12 @@ class ProductConversationTests(unittest.TestCase):
         self.assertEqual(follow["input"]["model_scope"][0]["document_version"], alternative["document_version"])
         self.assertFalse(self.store.get_turn(turn["session_id"], turn["turn_id"])["valid"])
 
-    def test_unknown_model_is_needs_input_without_fake_turn(self):
+    def test_unknown_model_requires_research_without_fake_turn(self):
         result = self.conversation.open_request({"question": "미확인 모델", "model_id": "NONEXISTENT", "user_submitted": True})
-        self.assertEqual(result["status"], "needs_input")
+        self.assertEqual(result["status"], "research_required")
         self.assertIsNone(result["turn_id"])
         self.assertEqual(self.store.db.execute("SELECT count(*) FROM turns").fetchone()[0], 0)
-        self.assertEqual(self.conversation.current_request({k: result[k] for k in ("session_id", "request_key")})["status"], "needs_input")
+        self.assertEqual(self.conversation.current_request({k: result[k] for k in ("session_id", "request_key")})["status"], "research_required")
 
     def test_bundle_exact_sources_once_and_replay_preserves_counter(self):
         payload = {"question": "storage", "model_id": "B502S33", "session_id": "bundle", "request_key": "one", "user_submitted": True}

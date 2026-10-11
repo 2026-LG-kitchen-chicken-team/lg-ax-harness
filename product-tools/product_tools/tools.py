@@ -7,10 +7,8 @@ class ProductTools:
 
     def list_models(self, payload):
         obj(payload, ("product_family",))
-        from .contracts import PRODUCT_FAMILIES
-        family = payload["product_family"]
-        if family not in PRODUCT_FAMILIES:
-            fail("unsupported_family", "Supported families: refrigerator, microwave, dishwasher")
+        from .contracts import product_family
+        family = product_family(payload["product_family"])
         models = [m for m in self.dataset.models if m["product_family"] == family]
         return {"product_family": family, "models": models, "data_version": self.dataset.version,
                 "dataset_fingerprint": self.dataset.fingerprint, "coverage": "catalog_cases_only",
@@ -41,7 +39,7 @@ class ProductTools:
                 if len(candidates) != len(selected):
                     fail("family_mismatch", "All preserved scopes must belong to the requested family")
             if not candidates:
-                fail("needs_input", "No catalog sources for this product family")
+                fail("research_required", "No observed sources for this family; research and register matching models before planning")
             if len(candidates) > 5 or len({m["model_id"] for m in candidates}) != len(candidates):
                 fail("needs_input", "Catalog exceeds five models or has multiple snapshots; narrow the range/version")
             model = None

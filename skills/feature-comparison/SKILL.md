@@ -1,6 +1,6 @@
 ---
 name: feature-comparison
-description: "원문으로 확인한 불편을 같은 냉장고·전자레인지·식기세척기 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다."
+description: "원문으로 확인한 불편을 같은 정확 모델의 기존 기능·사용 조건과 대조해 남은 문제를 판단할 때 사용한다."
 ---
 
 # 기존 기능 대조
@@ -12,3 +12,5 @@ existing_features/remaining_pains와 feature_matches를 작성한다. 불확실�
 product_family는 catalog의 정확 모델과 일치해야 한다. 다른 제품군/모델의 기능·불편을 섞지 않는다. 용량 L, 식기 인원수, 외형 치수, 조리실/선반 유효 공간은 서로 대체하지 않는다. 안전 관련 사용법은 해당 모델 공식 안내를 근거로 하며 새로운 가열/세척 성능을 검증된 사실로 만들지 않는다.
 
 bundle 사실을 유지한다. 추가/잘림/문서 변경과 단독 실행 때만 정확 scope로 필요한 조회를 한다. 실행: `uv run python skills/feature-comparison/scripts/run.py OP --input JSON_PATH`. OP: match_product_scope/retrieve_product_facts/select_evidence. 의미는 네이티브 모델이 판단한다.
+
+중복 검증 자료가 없으면 duplicates_existing=null이며 false로 확정하지 않는다. factual_summary의 분석 문구를 공식 문구로 인용하지 않는다. 원문 support_quote가 말한 사실만 제조사에 귀속하고, 기능이 불편을 완전히 해결하는지는 별도 AI 판단으로 표시한다.

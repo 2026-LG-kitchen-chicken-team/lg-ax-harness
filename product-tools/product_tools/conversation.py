@@ -2,7 +2,7 @@
 import hashlib
 from pathlib import Path
 import uuid
-from .contracts import canonical, fail, identifier, obj, strict_json, text
+from .contracts import canonical, fail, identifier, integer, obj, strict_json, text
 
 
 class Conversation:
@@ -12,6 +12,14 @@ class Conversation:
         store.db.execute("""CREATE TABLE IF NOT EXISTS conversation_requests(
             session_id TEXT NOT NULL, request_key TEXT NOT NULL, payload TEXT NOT NULL,
             turn_id TEXT, response TEXT, PRIMARY KEY(session_id,request_key))""")
+        columns = {r[1] for r in store.db.execute("PRAGMA table_info(conversation_requests)")}
+        if "request_version" not in columns:
+            store.db.execute("ALTER TABLE conversation_requests ADD COLUMN request_version INTEGER NOT NULL DEFAULT 0")
+        store.db.execute("""CREATE TABLE IF NOT EXISTS request_events(
+            session_id TEXT NOT NULL, request_key TEXT NOT NULL, event_key TEXT NOT NULL,
+            version INTEGER NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL,
+            PRIMARY KEY(session_id,request_key,event_key),
+            FOREIGN KEY(session_id,request_key) REFERENCES conversation_requests(session_id,request_key))""")
 
     def open_request_bundle(self, payload):
         """Open the same request and return exact local sources once, with bounds.
@@ -20,6 +28,12 @@ class Conversation:
         handle retains the existing state, including stale/terminal/exhausted.
         """
         response = self.open_request(payload)
+        return self._bundle(response)
+
+    def resolve_request_bundle(self, payload):
+        return self._bundle(self.resolve_request(payload))
+
+    def _bundle(self, response):
         if "turn" not in response:
             return response
         turn = response["turn"]
@@ -75,6 +89,12 @@ class Conversation:
                 "validation": {k: v for k, v in strict_json(latest[1]).items() if k not in ("assessment", "review")} if latest else None}
 
     def open_request(self, payload):
+        # Initial row and pending/bound state must be one snapshot too: a
+        # research writer cannot commit between INSERT and initial _pending.
+        with self.store.transaction():
+            return self._open_request(payload)
+
+    def _open_request(self, payload):
         obj(payload, ("question", "user_submitted"), ("model_id", "product_family", "scope_mode", "model_version", "document_version", "session_id", "request_key", "prior_turn_id", "constraints", "runtime"))
         text(payload["question"], "question")
         if payload["user_submitted"] is not True:
@@ -91,7 +111,7 @@ class Conversation:
             if old and old[0] != raw:
                 fail("request_conflict", "The same request handle has changed input")
             if not old:
-                self.store.db.execute("INSERT INTO conversation_requests VALUES(?,?,?,NULL,NULL)", (session, key, raw))
+                self.store.db.execute("INSERT INTO conversation_requests(session_id,request_key,payload) VALUES(?,?,?)", (session, key, raw))
         if old and old[1]:
             # A completed follow-up can have two near-limit results. Resuming needs
             # the current result only; keep the prior turn as a historical handle.
@@ -99,7 +119,10 @@ class Conversation:
                             | {"valid_for_current_context": self.store.get_turn(session, previous["turn_id"])["valid"]}) if previous else None
             return {"reused_request": True, "turn": self.store.get_turn(session, old[1]), "previous": prior_handle}
         if old and old[2]:
-            return strict_json(old[2])
+            return self.current_request({"session_id": session, "request_key": key})
+        return self._bind_request(session, key, payload, previous)
+
+    def _bind_request(self, session, key, payload, previous):
         prior_input = previous["input"] if previous else {}
         family = payload.get("product_family", prior_input.get("product_family"))
         prior_family_mode = prior_input.get("scope_mode") == "family_catalog"
@@ -142,9 +165,10 @@ class Conversation:
             planning = self.store.tools.prepare_planning_input(prepared)["input"]
         except Exception as exc:
             from .contracts import ToolError
-            if not isinstance(exc, ToolError) or exc.code not in ("unknown_model", "unknown_scope", "needs_input", "unsupported_family"):
+            if not isinstance(exc, ToolError) or exc.code not in ("unknown_model", "unknown_scope", "needs_input", "research_required"):
                 raise
-            return self._pending(session, key, "needs_input", exc.code, str(exc))
+            status = "needs_input" if exc.code == "needs_input" else "research_required"
+            return self._pending(session, key, status, exc.code, str(exc))
         if previous:
             planning["context"] += " Previous turn " + previous["turn_id"] + " is historical reference; recheck user conditions."
         turn = self.store.start_turn(planning, True)
@@ -155,20 +179,76 @@ class Conversation:
         return {"reused_request": turn["reused_request"], "turn": turn, "previous": previous}
 
     def _pending(self, session, key, status, code, reason):
-        response = {"session_id": session, "request_key": key, "turn_id": None, "status": status, "reason": {"code": code, "message": reason}, "semantic_status": "unverified"}
+        version = self.store.db.execute("SELECT request_version FROM conversation_requests WHERE session_id=? AND request_key=?", (session, key)).fetchone()[0]
+        response = {"session_id": session, "request_key": key, "research_id": self._research_id(session, key), "request_version": version, "turn_id": None, "status": status, "reason": {"code": code, "message": reason}, "semantic_status": "unverified"}
         with self.store.transaction():
             self.store.db.execute("UPDATE conversation_requests SET response=? WHERE session_id=? AND request_key=?", (canonical(response), session, key))
         return response
 
+    @staticmethod
+    def _research_id(session, key):
+        return "research-" + hashlib.sha256(canonical([session, key]).encode("utf-8")).hexdigest()
+
+    def _event(self, payload, kind, action):
+        session, key, event = (identifier(payload[k], k) for k in ("session_id", "request_key", "event_key"))
+        integer(payload["expected_request_version"], "expected_request_version", low=0)
+        raw = canonical(payload)
+        with self.store.transaction():
+            row = self.store.db.execute("SELECT * FROM conversation_requests WHERE session_id=? AND request_key=?", (session, key)).fetchone()
+            if not row:
+                fail("request_not_found", "Unknown conversation request")
+            old = self.store.db.execute("SELECT kind,payload FROM request_events WHERE session_id=? AND request_key=? AND event_key=?", (session, key, event)).fetchone()
+            if old:
+                if old[0] != kind or old[1] != raw:
+                    fail("request_conflict", "Event key reused with different content")
+                return self.current_request({"session_id": session, "request_key": key})
+            if row["turn_id"]:
+                fail("request_already_bound", "Use the existing turn; resolution cannot reset data or revision limits")
+            if row["request_version"] != payload["expected_request_version"]:
+                fail("request_version_conflict", "Reread current_request before changing this request")
+            version = row["request_version"] + 1
+            self.store.db.execute("INSERT INTO request_events VALUES(?,?,?,?,?,?)", (session, key, event, version, kind, raw))
+            self.store.db.execute("UPDATE conversation_requests SET request_version=? WHERE session_id=? AND request_key=?", (version, session, key))
+            return action(session, key, strict_json(row["payload"]))
+
+    def record_request_research(self, payload):
+        obj(payload, ("session_id", "request_key", "event_key", "expected_request_version", "status", "reason", "observation_refs"))
+        if payload["status"] not in ("research_required", "researching", "held", "needs_input", "failed"):
+            fail("invalid_input", "Unknown research status")
+        text(payload["reason"], "reason")
+        if not isinstance(payload["observation_refs"], list) or len(payload["observation_refs"]) > 20:
+            fail("invalid_input", "observation_refs must be a bounded list of observed snapshot IDs")
+        for ref in payload["observation_refs"]:
+            identifier(ref, "observation_ref")
+        # This journal does not invent API usage. Full native session counters
+        # must be attached by the evaluator; exports mark this gap explicitly.
+        return self._event(payload, "research", lambda s, k, original: self._pending(s, k, payload["status"], "research_observation", payload["reason"]))
+
+    def resolve_request(self, payload):
+        obj(payload, ("session_id", "request_key", "event_key", "expected_request_version", "selection"))
+        obj(payload["selection"], (), ("model_id", "product_family", "scope_mode", "model_version", "document_version"))
+        def bind(session, key, original):
+            selection = payload["selection"]
+            # Selection supplements the AI interpretation; never rewrite the
+            # user's original question, constraints, runtime or follow-up link.
+            for field in ("model_id", "product_family", "scope_mode", "model_version", "document_version"):
+                if field in original and field in selection and original[field] != selection[field]:
+                    fail("request_conflict", "Resolution contradicts an explicit original selection")
+            merged = {**original, **selection}
+            previous = self.historical(session, original["prior_turn_id"]) if "prior_turn_id" in original else None
+            return self._bind_request(session, key, merged, previous)
+        return self._event(payload, "resolution", bind)
+
     def current_request(self, payload):
         obj(payload, ("session_id", "request_key"))
         session, key = (identifier(payload[k], k) for k in ("session_id", "request_key"))
-        row = self.store.db.execute("SELECT turn_id,response FROM conversation_requests WHERE session_id=? AND request_key=?", (session, key)).fetchone()
+        row = self.store.db.execute("SELECT turn_id,response,request_version FROM conversation_requests WHERE session_id=? AND request_key=?", (session, key)).fetchone()
         if not row:
             fail("request_not_found", "Unknown conversation request")
         if row[0]:
-            return {"turn": self.store.get_turn(session, row[0]), "reused_request": True}
-        return strict_json(row[1]) if row[1] else {"session_id": session, "request_key": key, "status": "pending", "turn_id": None}
+            return {"turn": self.store.get_turn(session, row[0]), "reused_request": True, "request_version": row[2], "research_id": self._research_id(session, key)}
+        value = strict_json(row[1]) if row[1] else {"session_id": session, "request_key": key, "status": "pending", "turn_id": None}
+        return {**value, "request_version": row[2], "research_id": self._research_id(session, key)}
 
     def export_session(self, payload):
         obj(payload, ("session_id",))
@@ -183,7 +263,9 @@ class Conversation:
                               "candidates": [{"result_key": r["result_key"], "result_version": r["result_version"], "result": strict_json(r["payload"]), "validation": strict_json(r["validation_json"])} for r in self.store.db.execute("SELECT * FROM results WHERE turn_id=? ORDER BY result_version", (row["turn_id"],))],
                               "usage": [strict_json(r[0]) for r in self.store.db.execute("SELECT payload FROM usage WHERE turn_id=?", (row["turn_id"],))],
                               "invocations": [dict(r) for r in self.store.db.execute("SELECT * FROM invocations WHERE turn_id=?", (row["turn_id"],))]})
-        value = {"session_id": session, "requests": [{"input": strict_json(r["payload"]), "turn_id": r["turn_id"], "response": strict_json(r["response"]) if r["response"] else None} for r in requests],
+        value = {"session_id": session, "requests": [{"input": strict_json(r["payload"]), "turn_id": r["turn_id"], "request_version": r["request_version"], "response": strict_json(r["response"]) if r["response"] else None,
+                 "events": [{"kind": e["kind"], "version": e["version"], "input": strict_json(e["payload"])} for e in self.store.db.execute("SELECT * FROM request_events WHERE session_id=? AND request_key=? ORDER BY version", (session, r["request_key"]))],
+                 "research_usage": {"status": "unknown", "coverage": "not measured by request journal; native session evidence required"}} for r in requests],
                  "turns": histories, "usage_summary": self.store.usage_summary(session), "semantic_status": "unverified", "acceptance_ready": False}
         raw = canonical(value).encode("utf-8")
         digest = hashlib.sha256(raw).hexdigest()

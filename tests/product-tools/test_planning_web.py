@@ -105,7 +105,7 @@ class PlanningWebTests(unittest.TestCase):
         return {"research_id": "research", "page_id": page, "url": "https://www.lge.co.kr/refrigerators/t876mqq012", "observed_text": content, "native_tool_name": "test_fixture_not_actual_browser"}
 
     def test_private_or_credential_url_and_redirect_target_rejected(self):
-        for url in ("http://www.lge.co.kr/", "https://127.0.0.1/", "https://www.lge.co.kr.evil.example/", "https://user:pass@www.lge.co.kr/", "https://www.lge.co.kr:8443/"):
+        for url in ("http://www.lge.co.kr/", "https://127.0.0.1/", "https://user:pass@www.lge.co.kr/", "https://www.lge.co.kr:8443/"):
             self.error("unsupported_url", public_url, url)
 
     def test_url_type_is_checked_before_manual_parser_and_reservation(self):

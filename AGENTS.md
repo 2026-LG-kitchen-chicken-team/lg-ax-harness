@@ -16,6 +16,8 @@
 
 ## 현재 상태와 원본
 
+- 최신 사용자 승인(2026-10-11): 요청 기반 조사·신규 모델 등록으로 확장했다. 기본 출품 catalog는 data/business/empty이며 특정 등록 사례를 자동 선택하지 않는다. open_request로 원문 보존 → 실제 조사/등록 → 같은 request의 resolve_request_bundle을 사용한다. 과거 v4 자료/평가 결과는 재현용이다. 최신 구현·검증·외부 의존성 상태는 docs/validation/request-driven-20261011.md를 우선한다. Claude 중복 미확인 null·공식 원문/해석 분리 지침을 적용한다. 아래 과거 단계 설명은 해당 버전의 이력이다.
+
 - 2026-10-10에 OpenSpec을 교체하고 Codex 중심 개발 역할·Skill·검사 실행기를 구축했다. 실제 인수검사 상태는 `docs/validation/development-harness.md`를 따른다. Codex 업무 설치·실제 연결은 docs/validation/codex-product.md를 따르며 Claude/Gemini·심사 품질/효과·최종 제출은 미완료다.
 - 요구 원본은 `docs/competition-requirements.md`, 기술 결정은 `docs/decisions/stack-selection.md`, 개발 체계 작업 상태 원본은 `docs/plans/development-harness.md`다.
 - 출품 실행·시연 계약은 `docs/plans/product-harness.md`, AI 직접 입력 평가는 `docs/evaluation/judge-input-cases.md`다.

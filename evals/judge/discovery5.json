@@ -1,0 +1,89 @@
+{
+  "kind": "request_driven_focused_regression",
+  "official_questions": false,
+  "independent_holdout": false,
+  "existing_model_ids": [
+    "S836GBB122",
+    "B502S33",
+    "T876MQQ012",
+    "MWJ25E",
+    "DUBJ2EA"
+  ],
+  "limits": {
+    "native_cap": 5,
+    "parallel": 1,
+    "seconds": 420,
+    "automatic_retry": false
+  },
+  "cases": [
+    {
+      "id": "D01",
+      "chain_id": "C01",
+      "parent_id": null,
+      "model_id": "MW23GD",
+      "product_family": "microwave",
+      "require_registration": true,
+      "question": "LG MW23GD 자료를 찾아 실제 사용 불편을 분석하고 기존 기능과 비교한 개선안 한 개를 기획해줘. 새 부품 없이 적용할 단계와 효과 확인 방법도 알려줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      }
+    },
+    {
+      "id": "D02",
+      "chain_id": "C01",
+      "parent_id": "D01",
+      "model_id": "MW23GD",
+      "product_family": "microwave",
+      "question": "앞 기획을 이어갈게. 새 부품을 추가하거나 제품의 조작부를 변경하지 않을 거야. 이 조건에 맞게 검토하고 이전안에서 적용하기 어려운 부분도 알려줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      }
+    },
+    {
+      "id": "D03",
+      "chain_id": "C03",
+      "parent_id": null,
+      "model_id": "MWJ25E",
+      "product_family": "microwave",
+      "seed_data_path": "data/business/lg-kitchen-v4",
+      "question": "MWJ25E 실제 후기를 바탕으로 불편과 기존 기능을 비교하고 새 부품 없는 개선안 한 개와 구현·검증 방법을 제안해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      }
+    },
+    {
+      "id": "D04",
+      "chain_id": "C04",
+      "parent_id": null,
+      "model_id": "DUBJ2EA",
+      "product_family": "dishwasher",
+      "seed_data_path": "data/business/lg-kitchen-v4",
+      "question": "DUBJ2EA의 실제 사용 불편과 기존 세척 기능을 비교해 개선안 한 개를 검토해줘. 출처와 적용 한계, 효과 확인 방법도 보여줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      }
+    },
+    {
+      "id": "D05",
+      "chain_id": "C05",
+      "parent_id": null,
+      "model_id": "H874GBC111",
+      "product_family": "refrigerator",
+      "require_registration": true,
+      "question": "LG H874GBC111에 300×250×200mm 용기를 넣고 쓰려면 어떤 조건을 확인해야 하는지 정확한 자료로 판단해줘.",
+      "constraints": {
+        "max_concepts": 1,
+        "hardware_allowed": false,
+        "exclude_pains": []
+      }
+    }
+  ]
+}

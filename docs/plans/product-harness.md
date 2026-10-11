@@ -1,5 +1,8 @@
 # 출품용 상품기획 하네스의 실행·시연 계약
 
+2026-10-11 신규 요청 기반 경로(v7.0): 사용자가 새 모델 조사·등록까지 확장하도록 승인했다. 기본 설치는 빈 catalog이며 native AI가 질문을 해석해 실제 근거를 조사하고 정확 모델/출처를 등록한다. open_request 원문 보존 → 연구 사건 → 같은 요청 resolve_request_bundle → 기획/검토/저장으로 연결한다. 특정 질문·제품 enum·기본5모델 답안 선택 경로를 사용하지 않는다. Claude 중복 미확인 null·공식 원문/해석 분리 지침을 보완했다. 현재 구현/코드 검증과 실제 AI 검증은 [최신 작업 기록](../validation/request-driven-20261011.md)으로 구분한다. 아래 과거 기본자료·미채택·대기 설명은 당시 이력이다.
+
+
 ## 현재 범위
 
 2026-10-11 사용자 변경: 냉장고·전자레인지·식기세척기의 실제 불편 기반 상품기획. 제품군 일반명으로 시작하는 family_catalog와 특정 모델로 좁히는 exact_model을 구분한다. 제품군 후속은 전체 범위를 유지하고 각 주장·대조·기획의 근거는 같은 정확 모델/버전에 귀속한다. 일반 입력10개와 기존 모델코드50개는 버전별 별도 회귀다. 기본 lg-kitchen-v4·5모델/8후기/26사실, catalog family와 exact scope 일치 검사. Agent1개·업무5Skill+조건부 외부 조사1Skill 유지. 구현 단계와 검증 계획은 concept의 implementation_steps/validation_plan으로 저장하며 planned_not_measured만 허용한다. 구버전 결과 호환은 유지한다. Codex 기준, Gemini 철회, Claude native 후순위. 아래 냉장고3모델/세 실행기 내용은 이전 범위의 이력이며 최신 [결정](../decisions/kitchen-scope-20261011.md)·[v4 근거](../data/kitchen-v4.md)를 우선한다. 웹은 팀이 개발 중이고 원본 미수신 상태다.

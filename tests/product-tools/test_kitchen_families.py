@@ -48,12 +48,13 @@ class KitchenFamilyTests(unittest.TestCase):
             self.tools.validate_result_contract(planning,{})
         self.assertEqual(caught.exception.code,"family_mismatch")
 
-    def test_unsupported_family_and_withdrawn_runtime_rejected(self):
+    def test_open_family_identifier_still_requires_matching_catalog_and_runtime(self):
         planning=self.prepared("B502S33")
         planning["product_family"]="washing_machine"
+        planning_input(planning)  # Category identifiers are open; scope consistency is not.
         with self.assertRaises(ToolError) as caught:
-            planning_input(planning)
-        self.assertEqual(caught.exception.code,"unsupported_family")
+            self.data.check_input(planning)
+        self.assertEqual(caught.exception.code,"family_mismatch")
         planning=self.prepared("B502S33")
         planning["runtime"]["engine"]="gemini"
         with self.assertRaises(ToolError):
