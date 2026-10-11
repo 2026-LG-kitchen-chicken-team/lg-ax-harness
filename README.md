@@ -8,8 +8,7 @@
 
 2026-10-11 신규 요청 기반 경로(v7.0): 사용자가 새 모델 조사·등록까지 확장하도록 승인했다. 기본 설치는 빈 catalog이며 native AI가 질문을 해석해 실제 근거를 조사하고 정확 모델/출처를 등록한다. open_request 원문 보존 → 연구 사건 → 같은 요청 resolve_request_bundle → 기획/검토/저장으로 연결한다. 특정 질문·제품 enum·기본5모델 답안 선택 경로를 사용하지 않는다. Claude 중복 미확인 null·공식 원문/해석 분리 지침을 보완했다. 현재 구현/코드 검증과 실제 AI 검증은 [최신 작업 기록](docs/validation/request-driven-20261011.md)으로 구분한다. 아래 과거 기본자료·미채택·대기 설명은 당시 이력이다.
 
-
-최신 제품 배포: [v0.6.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.6.0) · [제품 전용 스냅샷·원격/다운로드 검증](docs/validation/product-v0.6.0.md). 69파일 ZIP과 부모 없는 제품 태그의 바이트, 다운로드·체크섬·GitHub digest를 대조했다. 실제 8입력은 최종 키 접미사 수정 전 동결본이며 최종 수정은 코드 검사로 확인했다. 아래 v0.5.0/v0.4.0/v0.3.0 검사는 과거 checkpoint다.
+최신 제품 배포: [v0.7.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.7.0) · [제품 전용 스냅샷·원격/다운로드 검증](docs/validation/product-v0.7.0.md).69파일 ZIP·부모 없는 제품 태그의 바이트·다운로드/체크섬/GitHub digest를 실제 대조했다. 같은 v7.4 원본 제한 회귀의 Codex8/10·Claude2/3 통과와 실패 범위를 공개한다. 아래 v0.6.0 및 이전 검사 수치는 과거 checkpoint다.
 
 2026-10-11 Claude 회신: [최길웅의 v0.3.0 네 입력·첨부 검토](docs/validation/team-runs/records/20261011-claude-mail-review.md). export4개·실행 요약을 접수해 초안3/보류1과 후속 이력·출처를 대조했다. 최초 중복 판단의 모순과 공식 문구 귀속 오류를 기록했다. 환경·시간은 팀원 보고이며 전체 native 최종문/DB/요청별 usage는 미접수다. 최신 v6.1 Claude 제품군10입력·전체 품질/비용 인수와 별도 개발용 Claude 위임 인수는 미완료다.
 
