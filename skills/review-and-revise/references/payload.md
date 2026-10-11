@@ -1,5 +1,7 @@
 # 짧은 저장 양식
 
+bundle 응답의 candidate_template에는 현재 session_id/turn_id/result_key/expected_result_version/result/assessment가 들어 있다. 빈 status는 저장 불가이며 주장·원문 refs·검토·보류 이유는 AI가 작성한다. bundle 응답의 result_limits는 작성 상한 안내다. 복사 뒤 작성하며 현재 version이 바뀌면 오래된 양식으로 저장하지 않는다. 재생은 같은 key와 원문/assessment를 유지한다. 이 양식은 제품이나 질문을 선택하거나 답을 생성하지 않는다.
+
 양식 참고이며 업무 정답·실제 실행 기록이 아니다. 일반 업무는 open_request_bundle → 원문 판단/assessment → save_and_export다. 선행 validate/review/get_turn은 진단에만 한다. save_and_export는 아래6필수 필드(assessment 포함)로 저장 검사와 export를 묶고 {save,delivery_ready,export,export_error}를 반환한다. response_mode 없이 receipt를 자동 사용한다. accepted=false도 후보가 저장되고 export된다. 최종 JSON은 {receipt:save.receipt,export}다. export_error는 저장을 되돌리지 않으며 export_session으로 복구한다. stale replay는 delivery_ready=false다. 기존 save_reviewed_result와 export_session은 별도 호출로도 사용한다.
 
 open_request_bundle 입력: `{question:"실제 요청",model_id:"선택 모델",user_submitted:true}`. 후속에는 같은 session_id/prior_turn_id와 실제 추가 질문을 준다. constraints 기본값은 `{max_concepts:3,hardware_allowed:false,exclude_pains:[]}`. 전체 constraints를 지정할 때3필드를 모두 넣는다. bundle.scope는 조회 입력의 `scope`이며 PlanningInput의 배열 `model_scope`와 다르다. records는 종류 metadata, evidence_refs에 원문·URL·SHA가 한 번 들어 있다. omitted_source_ids/truncated이면 필요한 것만 좁혀 조회한다. 긍정/상충 의견을 누락하지 않는다.

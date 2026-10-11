@@ -68,6 +68,11 @@ def validate_cases(corpus):
 def accept_family(workspace, directory, observed, case, data, arm):
     """Verify delivered pointer against raw artifact AND latest live stored row."""
     text = final_message(directory, observed)
+    return accept_family_text(workspace, text, case, data, arm)
+
+
+def accept_family_text(workspace, text, case, data, arm):
+    """Artifact audit only; caller must independently prove native final delivery."""
     if arm == "baseline":
         pointer = final_object(text, ("artifact",))
         answer = artifact(workspace, pointer["artifact"])

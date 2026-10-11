@@ -47,7 +47,7 @@ def build(engine,target,archive,root=ROOT):
         parts=Path(name).parts
         if Path(name).is_absolute() or ".." in parts or any(p in parts for p in ("runtime-data",".harness",".venv",".git","__pycache__")) or Path(name).name.startswith(".env"):
             raise ValueError("Forbidden archive path: "+name)
-    manifest={"purpose":"submission_source_rehearsal_not_final_submission","runtime_profile":engine,"native_support":"see validation records; portable profiles unverified",
+    manifest={"purpose":"submission_source_rehearsal_not_final_submission","runtime_profile":engine,"native_support":"see release validation; file installation alone does not prove native support",
               "files":[{"path":name,"sha256":hashlib.sha256(raw).hexdigest()} for name,raw in sorted(files.items())],
               "excluded":"runtime DB/logs/auth/global settings/dependencies/development roles/evaluation rubrics/attachment PDFs",
               "limits":"No new AI/native discovery or effect validation; actual video/presentation/final submission requirements pending"}

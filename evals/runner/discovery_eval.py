@@ -203,12 +203,17 @@ def accept_pending(workspace, directory, observed, case, pointer, text):
 
 def accept_delivery(workspace, directory, observed, case):
     text = receipt.final_message(directory, observed)
+    return accept_delivery_text(workspace, text, case)
+
+
+def accept_delivery_text(workspace, text, case):
+    """Artifact audit only. This does not authenticate a native final message."""
     pointers = [p for p in receipt.json_objects(text) if set(p) in ({"receipt", "export"}, {"request", "export"})]
     if len(pointers) != 1:
         raise ValueError("Exactly one receipt or pending-request pointer required")
     pointer = pointers[0]
     if "request" in pointer:
-        return accept_pending(workspace, directory, observed, case, pointer, text)
+        return accept_pending(workspace, None, None, case, pointer, text)
     exported = receipt.artifact(workspace, pointer["export"])
     state = next(t["state"] for t in exported["turns"] if t["state"]["turn_id"] == pointer["receipt"]["turn_id"])
     if state["input"]["question"] != case["question"]:
@@ -217,7 +222,7 @@ def accept_delivery(workspace, directory, observed, case):
     if data.synthetic:
         raise ValueError("Native business discovery cannot use synthetic evidence")
     checked_case = {**case, "turns": [case["question"]], "scope_mode": "exact_model" if case.get("model_id") else "family_catalog"}
-    value = family.accept_family(workspace, directory, observed, checked_case, data, "product")
+    value = family.accept_family_text(workspace, text, checked_case, data, "product")
     value.update(terminal_status=value["answer"]["result"]["status"], planning_completed=value["answer"]["result"]["status"] == "completed",
                  data_path=str(data.root.relative_to(workspace)), data_fingerprint=data.fingerprint,
                  acceptance="contract_and_delivery_passed")

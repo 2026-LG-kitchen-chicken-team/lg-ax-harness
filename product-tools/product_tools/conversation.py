@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 import uuid
 from .contracts import canonical, fail, identifier, integer, obj, strict_json, text
+from .payload import candidate_template
 
 
 class Conversation:
@@ -61,7 +62,14 @@ class Conversation:
                 for record in found["records"]:
                     bundle["records"].append({k: record[k] for k in ("source_id", "kind", "model_id", "model_version", "document_version", "feature_key", "availability") if k in record})
                     bundle["evidence_refs"].append(self.store.dataset.reference(record))
-        value = {"reused_request": response["reused_request"], "turn": turn, "previous": previous, "bundle": bundle}
+        value = {"reused_request": response["reused_request"], "turn": turn, "previous": previous, "bundle": bundle,
+                 "candidate_template": candidate_template(turn),
+                 "result_limits": {"concepts": turn["input"]["constraints"]["max_concepts"],
+                                   "claims_per_section": 20, "concept_requirements": 10,
+                                   "concept_assumptions": 10, "implementation_steps": 8,
+                                   "result_bytes": 32768,
+                                   "template_status": "blank_invalid_until_authored",
+                                   "semantic_status": "unverified"}}
         # Leave headroom for the CLI envelope; never hide a committed handle due
         # to large sources. The omitted IDs remain visible for targeted retrieval.
         while len(canonical(value).encode("utf-8")) > 60000 and bundle["evidence_refs"]:

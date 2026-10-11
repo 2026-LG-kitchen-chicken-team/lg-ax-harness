@@ -90,3 +90,7 @@ S05 추가: open_request_bundle은 open_request와 동일 입력/멱등 계약�
 PlanningInput의 선택 scope_mode는 exact_model/family_catalog다. 구버전 입력은 유지한다. family_catalog는 같은 제품군의 명시적 model_scope(최대5개)를 보존한다. 빈 범위·복수 스냅샷·5개 초과는 좁혀야 하며 첫 모델/첫5개를 자동 선택하지 않는다. 식별자 없는 후속은 제품군 범위를 유지하고 명시적 모델 선택만 축소한다. 다른 제품군 선택은 해당 자료로 새 범위를 만든다.
 
 각 pain/existing_feature/remaining_pain/concept의 근거는 한 exact scope에만 귀속한다. pain→remaining→feature 대조, concept→remaining→geometry 연결도 같은 scope로 검사한다. 가족 결과는 모델별 제한 사례를 모은 기획이며 전체 제품군 공통 문제·발생률·시장 수요를 입증하지 않는다. 치수/보유 제품 안전 판단은 정확 모델 및 내부 치수 등이 확인될 때만 한다. 전자레인지/식기세척기 등록 모델이 각각1개라는 자료 한계를 밝혀야 한다.
+
+## 빈 후보 양식 추가(v7.2)
+
+open_request_bundle/resolve_request_bundle 응답의 candidate_template은 현재 turn의 handle/version과 빈 result/assessment를 제공한다. status는 빈 값이므로 그대로 저장하면 거절되고 시도에 포함된다. AI가 실제 판단으로 채워야 한다. result_limits는 기존 배열/크기 상한 안내이며 질문/제품/답안을 선택하지 않는다. 후보3회 소진·실패·취소·오래된 turn에는 양식을 반환하지 않으며 같은 version의 재조회는 같은 key다. 이 필드도 전체 응답63000바이트 예산에 포함한다. 이미 저장한 후보의 재전송에는 기존 key와 같은 원문/assessment를 쓴다. 시간 배분은 Agent 지침이고 원격 종료 강제는 native 실행기/평가 transport의 책임이다.

@@ -1,11 +1,13 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+2026-10-11 최신 v7.2: Codex·Claude Desktop Code 각각4입력/3대화의 실제 저장·최종 전달을 확인했다. 초안2/기획 보류5/조사 보류1이며 의미 품질 전체 통과가 아니다. 제품180·평가128개 및 새69파일 ZIP 설치/재설치 검사 exit0. 원질문/발췌 범위 지침과 빈 후보 양식·시간 배분을 보완했다. Claude의 최종 공식 문구 귀속·자체 시간 표시·후기 맥락/검증 지표·접근 복구 안내에는 한계가 남았다. [실제 결과·토큰·남은 작업](docs/validation/claude-codex-v72-20261011.md)을 현재 상태로 우선한다. 아래 날짜별 문단은 각 버전 당시의 이력이며 과거 미인수 상태·검사 수를 최신 결과와 합산하지 않는다. 사람 비교·Gemini는 제외하며 팀 웹 원본과 영상/최종 제출은 별도다.
+
 2026-10-11 최신 v7.1: 빈 catalog에서 실제 질문→조사·등록→같은 요청 기획 경로를 구현하고 열린 이슈5건을 전수 검토해 #4/#5를 수정했다. 제품174·평가145개 일반 코드 검사 통과. 동결 v7.0 실제 진단은 완료1/시간초과3/미실행1, 별도 같은 요청 복구1건 완료이며 최신 v7.1 native·Claude·웹 연결 인수는 미완료다. 사람 대비 절감효과 측정은 사용자 선택으로 제외했다. [구현/진단 결과](docs/validation/request-driven-20261011.md) · [이슈 검토](docs/validation/open-issues-20261011.md). 아래 기록은 각 당시 버전의 이력이다.
 
 2026-10-11 신규 요청 기반 경로(v7.0): 사용자가 새 모델 조사·등록까지 확장하도록 승인했다. 기본 설치는 빈 catalog이며 native AI가 질문을 해석해 실제 근거를 조사하고 정확 모델/출처를 등록한다. open_request 원문 보존 → 연구 사건 → 같은 요청 resolve_request_bundle → 기획/검토/저장으로 연결한다. 특정 질문·제품 enum·기본5모델 답안 선택 경로를 사용하지 않는다. Claude 중복 미확인 null·공식 원문/해석 분리 지침을 보완했다. 현재 구현/코드 검증과 실제 AI 검증은 [최신 작업 기록](docs/validation/request-driven-20261011.md)으로 구분한다. 아래 과거 기본자료·미채택·대기 설명은 당시 이력이다.
 
 
-최신 제품 배포: [v0.4.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.4.0) · [제품만의68파일·원격/다운로드 검증](docs/validation/product-v0.4.0.md). 제품군 일반 입력·후속 범위 보존을 추가했다. 아래 v0.3.0 검사는 과거 checkpoint다.
+이전 제품 배포: [v0.5.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.5.0) · [제품 전용 스냅샷·원격/다운로드 검증](docs/validation/product-v0.5.0.md). 현재 v7.2와 이 배포의 코드/검증 범위는 구분한다. 아래 v0.4.0/v0.3.0 검사는 과거 checkpoint다.
 
 2026-10-11 Claude 회신: [최길웅의 v0.3.0 네 입력·첨부 검토](docs/validation/team-runs/records/20261011-claude-mail-review.md). export4개·실행 요약을 접수해 초안3/보류1과 후속 이력·출처를 대조했다. 최초 중복 판단의 모순과 공식 문구 귀속 오류를 기록했다. 환경·시간은 팀원 보고이며 전체 native 최종문/DB/요청별 usage는 미접수다. 최신 v6.1 Claude 제품군10입력·전체 품질/비용 인수와 별도 개발용 Claude 위임 인수는 미완료다.
 
@@ -45,7 +47,7 @@ $harness 요구·결정·작업 목록과 diff를 읽고 이번 작업을 진행
 
 현재 Codex 0.162.0에 노출된 도구는 custom role 선택·close를 지원하지 않는다. 메인이 역할 TOML의 developer_instructions와 작업 packet을 네이티브 위임 메시지에 넣는 fallback을 사용한다. TOML sandbox/model 자동 적용을 검증했다고 주장하지 않는다. 읽기 전용 역할은 수정하지 않고, 한 checkout의 파일/Git 쓰기는 한 작성자가 담당한다.
 
-Claude 팀원은 로그인된 Claude Code로 이 레포를 열고 `/harness`를 사용한다. `.claude/agents` 6개와 `.claude/skills` 9개를 제공하며, 사본 정적/동기화 검사를 통과했다. 이 PC에는 Claude CLI가 없어 실제 Claude 발견·위임·인수인계는 팀원 검증이 남아 있다.
+Claude 팀원은 로그인된 Claude Code로 이 레포를 열고 `/harness`를 사용한다. `.claude/agents` 6개와 `.claude/skills` 9개를 제공하며, 사본 정적/동기화 검사를 통과했다. 최신 출품용 업무4입력은 로그인된 Desktop Code에서 검증했고, 독립 CLI는 버전이 확인됐으나 로그인되지 않았다. 개발용 Claude 발견·위임·인수인계는 별도 미인수다.
 
 ## 구성
 

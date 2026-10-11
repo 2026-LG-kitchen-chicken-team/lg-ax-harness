@@ -133,7 +133,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "0d5484ec44d47ff0835e5b1b24be0c4eeb87bbbdde8def4b3da605062a36959b"
+          "sha256": "8b5898e15e6060353cb817dd1dd29d0a99a8bf98c22238f9e5a9c70caf91f915"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -141,7 +141,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "cb5db79a53d6ac2b48b437fe88d9cc07cc80503b5880fbd83cfdcb2e7eede7ad"
+          "sha256": "60e9973abf9630005c7c4bb01fd9062721aa780fbeca0a5406beb40007502a70"
         }
       ]
     }
@@ -149,7 +149,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "6b60562c01bd2d1ece7a6639cbeab37dedf02b43c579c0064a5175916f898dae"
+      "sha256": "6face0ef2d8e8155d1b3850307d4786e912dda74e00b8a7a73ebc62e03b5f83e"
     },
     {
       "path": "product-tools/cli.py",
@@ -165,11 +165,15 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "88fba5afa762cc3995f2f0dfab3e9fd0c15daae85af5486d3842240c31a9aee3"
+      "sha256": "a1860c3f575aabc40c9a78ca6f39c84c8fa7b7ae7fe4ea342337cda6a522c681"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
       "sha256": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e"
+    },
+    {
+      "path": "product-tools/product_tools/payload.py",
+      "sha256": "f74811c989b99e87d9cad7bd66903f5726ef5d2ad3922a52df708654f1ccd804"
     },
     {
       "path": "product-tools/product_tools/planning.py",
@@ -189,7 +193,7 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "0f410c706f2f96a2af23f0d5387f2df192369db8f1a7f41770a4f7764fae49b4"
+      "sha256": "9ddb014647f0fdf66acc8351afbf953d7b581b436564dd68bdc53ab721ab0f8f"
     },
     {
       "path": "docs/contracts/product-planning.md",
