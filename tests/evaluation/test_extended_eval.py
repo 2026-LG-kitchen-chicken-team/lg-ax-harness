@@ -60,7 +60,10 @@ class ExtendedTests(unittest.TestCase):
             second=subprocess.run(command,cwd=target,input=payload,text=True,encoding="utf-8",capture_output=True,timeout=15)
             self.assertEqual(second.returncode,0,second.stderr)
             self.assertTrue(json.loads(second.stdout)["ok"])
-            self.assertEqual(len(ex.inspect_history(target)["turns"]),1)
+            # Production now starts with no registered models. Recovery saves
+            # the request for research, rather than fabricating a planning turn.
+            self.assertEqual(json.loads(second.stdout)["result"]["status"], "research_required")
+            self.assertEqual(len(ex.inspect_history(target)["turns"]),0)
             self.assertFalse(ex.installed_integrity(ROOT,target,injection)["errors"])
             wrapper.write_text("unexpected tamper",encoding="utf-8")
             self.assertTrue(ex.installed_integrity(ROOT,target,injection)["errors"])
