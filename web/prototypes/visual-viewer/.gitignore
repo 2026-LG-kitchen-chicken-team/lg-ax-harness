@@ -1,0 +1,6 @@
+# 실제 업무 결과가 들어가는 생성물은 Git에 넣지 않는다.
+view-data.js
+view-data.js.tmp
+report-*.html
+# 실제 결과를 해석한 insights는 메일·접근 제한 링크로 공유한다(합성 예시는 명시 후 -f로 추가).
+insights-*.json
