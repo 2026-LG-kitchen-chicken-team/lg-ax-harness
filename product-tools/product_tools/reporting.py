@@ -584,6 +584,7 @@ def _docx_table(document, headers, rows, highlights=(), total_rows=()):
             tcpr.append(margins)
             for paragraph in cell.paragraphs:
                 paragraph.paragraph_format.space_after = Pt(3)
+                paragraph.paragraph_format.keep_with_next = ridx == 0
                 for run in paragraph.runs:
                     run.font.size = Pt(10)
                     run.font.bold = ridx == 0 or ridx-1 in total_rows

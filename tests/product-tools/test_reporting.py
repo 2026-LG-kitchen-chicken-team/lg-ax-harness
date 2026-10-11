@@ -262,6 +262,11 @@ class ReportingRenderTests(unittest.TestCase):
                 self.assertIn("tblHeader",xml)
                 self.assertIn("cantSplit",xml)
                 self.assertIn("B42318",xml)
+                tree = ET.fromstring(xml)
+                for table in tree.findall(".//w:tbl",reporting.NS):
+                    header = table.find("w:tr",reporting.NS)
+                    for paragraph in header.findall(".//w:p",reporting.NS):
+                        self.assertIsNotNone(paragraph.find("w:pPr/w:keepNext",reporting.NS))
                 rels = archive.read("word/_rels/document.xml.rels").decode()
                 self.assertIn("!E",rels)
             self.assertFalse(list(Path(temporary).glob(".reader-*")))
