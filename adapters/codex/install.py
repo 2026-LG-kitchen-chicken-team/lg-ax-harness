@@ -7,6 +7,8 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+REVIEWER_SOURCE = "agents/product-evidence-reviewer.md"
+REVIEWER_NAME = "product_evidence_reviewer"
 
 
 def digest(raw):
@@ -29,6 +31,35 @@ def source_files(root):
     return manifest, sorted(paths)
 
 
+def reviewer_assets(root, engine):
+    """Render project-native role files from one registered instruction source."""
+    manifest = json.loads((root / "skills/manifest.json").read_text(encoding="utf-8"))
+    entry = next((x for x in manifest["shared_files"] if x["path"] == REVIEWER_SOURCE), None)
+    source = root / REVIEWER_SOURCE
+    if entry is None or not source.is_file() or digest(source.read_bytes()) != entry["sha256"]:
+        raise ValueError("Missing/changed registered product reviewer asset: " + REVIEWER_SOURCE)
+    instructions = source.read_text(encoding="utf-8")
+    if engine == "codex":
+        templates = ((".codex/config.toml", "adapters/codex/templates/config.toml"),
+                     (".codex/agents/product-evidence-reviewer.toml", "adapters/codex/templates/product-evidence-reviewer.toml"))
+    elif engine == "claude":
+        templates = ((".claude/agents/product-evidence-reviewer.md", "adapters/claude/templates/product-evidence-reviewer.md"),)
+    else:
+        raise ValueError("Unsupported reviewer runtime")
+    assets = []
+    for target, relative in templates:
+        template = root / relative
+        raw = template.read_bytes()
+        text = raw.decode("utf-8")
+        if "{{instructions}}" in text:
+            # Escape TOML multiline literal delimiters without changing the role text.
+            value = instructions.replace("\\", "\\\\").replace('"', '\\"') if target.endswith(".toml") else instructions
+            text = text.replace("{{instructions}}", value)
+        assets.append((target, text.encode("utf-8"), relative, digest(raw),
+                       [{"path": REVIEWER_SOURCE, "sha256": entry["sha256"]}]))
+    return assets
+
+
 def install(target, root=ROOT):
     root = root.resolve(strict=True)
     target = Path(target).expanduser().resolve()
@@ -40,14 +71,18 @@ def install(target, root=ROOT):
         if (parent / ".git").exists():
             raise ValueError("Target has an ancestor Git project; choose an isolated folder")
     manifest, paths = source_files(root)
+    native_assets = reviewer_assets(root, "codex")
     entries = []
     target.mkdir(parents=True)
     # No recursive cleanup on failure: leave partial output for inspection, never reuse it.
-    def write(relative, raw, source=None, source_sha=None, change="unchanged"):
+    def write(relative, raw, source=None, source_sha=None, change="unchanged", source_inputs=None):
         path = target / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(raw)
-        entries.append({"path": relative, "sha256": digest(raw), "source": source, "source_sha256": source_sha, "transformation": change})
+        entry = {"path": relative, "sha256": digest(raw), "source": source, "source_sha256": source_sha, "transformation": change}
+        if source_inputs:
+            entry["source_inputs"] = source_inputs
+        entries.append(entry)
     for relative in paths:
         source = root / relative
         raw = source.read_bytes()
@@ -65,8 +100,11 @@ def install(target, root=ROOT):
         source = root / "adapters/codex/templates" / name
         raw = source.read_bytes()
         write(name, raw, source.relative_to(root).as_posix(), digest(raw), "Product-only template")
+    for relative, raw, source, source_sha, inputs in native_assets:
+        write(relative, raw, source, source_sha, "Product reviewer only; model/effort inherited; native invocation unverified", inputs)
     record = {"format": "codex-product-install-v1", "source_manifest_sha256": digest((root / "skills/manifest.json").read_bytes()),
               "files": entries, "skills": [s["name"] for s in manifest["skills"]],
+              "native_agents": [REVIEWER_NAME], "native_verified": False,
               "scope": "regular project files only; auth/global settings not copied; discovery/quality require actual native tests"}
     (target / "product-install.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return {"target": str(target), "installed_skills": len(manifest["skills"]), "files": len(entries), "native_verified": False}
@@ -80,6 +118,12 @@ def check(target):
         path = (target / entry["path"]).resolve()
         if not path.is_relative_to(target) or not path.is_file() or digest(path.read_bytes()) != entry["sha256"]:
             errors.append("Changed/missing installed file: " + entry["path"])
+    if "native_agents" in manifest:
+        if manifest["native_agents"] != [REVIEWER_NAME]:
+            errors.append("Invalid product-native agent list")
+        actual = sorted(p.name for p in (target / ".codex/agents").glob("*.toml"))
+        if actual != ["product-evidence-reviewer.toml"]:
+            errors.append("Unexpected/missing product-native agent file")
     return {"errors": errors, "scope": "installed file integrity only; not native invocation/quality"}
 
 
