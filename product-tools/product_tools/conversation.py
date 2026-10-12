@@ -410,7 +410,9 @@ class Conversation:
                     if not path.is_file() or path.suffix.lower() not in (".png", ".jpg", ".jpeg"):
                         fail("invalid_report_plan", "Image must be an existing PNG/JPEG file")
                     assets.append({"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
-        return hashlib.sha256(canonical({"plan": authored, "assets": assets, "context_sources": context_sources or []}).encode("utf-8")).hexdigest()
+        from .reporting import REPORTING_PROFILE
+        return hashlib.sha256(canonical({"plan": authored, "assets": assets, "context_sources": context_sources or [],
+                                        "reporting_profile": REPORTING_PROFILE}).encode("utf-8")).hexdigest()
 
     def _deliver_current(self, session, turn, version, options):
         """Bind files to a valid saved version and reuse intact output on replay.

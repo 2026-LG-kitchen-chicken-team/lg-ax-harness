@@ -56,6 +56,8 @@ bundle 응답의 candidate_template은 현재 handle/version에 연결한 빈 �
 
 이미지가 필요한 작업은 skills/concept-writing/references/concept-images.md를 읽고 실제 제공되는 이미지 Tool/Skill/플러그인으로 제작·검토한다. 생성 파일과 실제 도구·참조 출처를 기록한다. 기능 부재나 실패는 이미지가 요청된 경우에만 해당 요청의 사유로 남긴다. 설치된 Skill만으로 가용성을 가정하지 않으며 일반 렌더러는 제공된 파일만 삽입한다.
 
+본문 출처에는 긴 자료명·위치·메타데이터를 반복하지 않는다. block의 source_ids를 유지하고 렌더러의 문서 전체 출처 번호와 끝 출처 목록을 사용한다. 같은 출처를 재인용해도 번호는 같으며, 출처 목록의 웹 원문·자료집 셀 연결과 원문 보존을 검수한다. 상세 작성 규칙은 report-writing.md의 출처 표시 절을 따른다.
+
 ## 저장·후속·최종
 
 review-and-revise에서 result/assessment와 report_plan을 원문과 대조한 뒤 save_and_export를 한 번 호출한다. 제품 최종 출력은 기존 6필드에 report:true를 명시하고 선택 report_plan_path/open_folder를 전달한다. 하위 API의 report 기본값은 false다. 보고서 본문은 runtime-data의 별도 내부 report_plan_path로 전달할 수 있어 업무 저장 JSON의 64KiB 제한 때문에 줄이지 않는다. 구조/검토 선행 검사는 진단에만 한다. 이 Tool은 같은 save_reviewed_result 검사와 export_session을 묶은 일반 코드다. 파일 생성도 의미 정확성을 보증하지 않으며 semantic_status=unverified, acceptance_ready=false를 유지한다.

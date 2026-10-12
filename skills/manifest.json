@@ -143,7 +143,7 @@
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
-          "sha256": "ac51e6665008d74160874ac57624a5285d525d1b1526f4ca951d1fadc5887f03"
+          "sha256": "929ecfe863a56da8d40540bbaf74623b04441cebb0f093b94e749158f5db7afc"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -159,7 +159,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "467817f8ce5d90dd2b374172ccb14aaf87c2c25734016da96caec88a126fe4fc"
+      "sha256": "9215c4de3f670ba99707ac5e2bf91624372e109ed957f923c757e199d1b6ba69"
     },
     {
       "path": "product-tools/cli.py",
@@ -175,7 +175,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "39313b4f6565c0035ed825722a4549218526edfc370c59af5045909d7580622f"
+      "sha256": "d0bc2d171938cf60c75889d9b36b9273d76606a74d6d48956df29bbedc8021f5"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -195,7 +195,7 @@
     },
     {
       "path": "product-tools/product_tools/reporting.py",
-      "sha256": "caf9896c8e77186f83d289d29b83f5d8f0c967abe66ca6283ebaefd96a403eb9"
+      "sha256": "054693bccc3da18e7ff07cebbac281de0426438e1fb22622184e8072c89f4f8f"
     },
     {
       "path": "product-tools/product_tools/state.py",
@@ -227,7 +227,7 @@
     },
     {
       "path": "docs/contracts/reader-deliverables.md",
-      "sha256": "4c8ae55acbfc7e770b1276861dde3fa3750250819787c963c4e6a32fbd7238d8"
+      "sha256": "510de2c48d16a1392d1a5fc39d6d8b8e901091504ac2c94a993c4945fff8f6e4"
     },
     {
       "path": "product-tools/requirements.in",

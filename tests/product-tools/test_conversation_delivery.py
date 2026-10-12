@@ -74,6 +74,19 @@ class ReaderConversationTests(unittest.TestCase):
             self.assertTrue(self.conv.deliver_result(self.recovery_payload())["ready"])
         self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
 
+    def test_updated_reporting_profile_rebuilds_same_saved_version_and_preserves_prior_files(self):
+        with patch("product_tools.delivery.create_deliverables", side_effect=self.create):
+            first = self.conv.save_and_export(self.payload)["report"]
+            with patch("product_tools.reporting.REPORTING_PROFILE", "new-citation-profile"):
+                updated = self.conv.deliver_result(self.recovery_payload())
+                reused = self.conv.deliver_result(self.recovery_payload())
+        self.assertTrue(updated["ready"])
+        self.assertFalse(updated["reused"])
+        self.assertTrue(reused["reused"])
+        self.assertNotEqual(first["directory"], updated["directory"])
+        self.assertTrue(Path(first["files"][0]["path"]).is_file())
+        self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
+
     def test_modified_reader_file_is_preserved_and_rebuilt_in_new_folder(self):
         with patch("product_tools.delivery.create_deliverables", side_effect=self.create):
             first = self.conv.save_and_export(self.payload)["report"]

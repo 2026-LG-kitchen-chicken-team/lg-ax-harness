@@ -218,7 +218,7 @@ class ReportingRenderTests(unittest.TestCase):
                 citations = [c for row in ws for c in row if c.hyperlink]
                 self.assertEqual(len(citations),5)
                 self.assertEqual([c.value for c in citations],
-                                 [s["title"]+" 원문" for s in plan["sources"]])
+                                 [f"출처 [{i}] · 자료집 원문" for i in range(1,6)])
                 self.assertTrue(all(c.data_type == "s" for c in citations))
                 self.assertTrue(all(c.data_type != "f" for row in ws for c in row))
                 image = ws._images[0]
@@ -342,6 +342,61 @@ class ReportingRenderTests(unittest.TestCase):
             raw = next(Path(f["path"]) for f in result["files"] if f["kind"] == "xlsx")
             ws = load_workbook(raw).active
             self.assertEqual([ws.cell(7,i).value for i in (3,4,6,7)],["미기재"]*4)
+
+    def test_numbered_sources_reuse_identity_preserve_shared_url_excerpts_and_exact_cells(self):
+        from openpyxl import load_workbook
+        from pypdf import PdfReader
+        plan = {"title":"출처 연결 검증", "summary":[], "sources":[
+            {"id":"first", "kind":"other", "title":"제품 문서 첫 절", "location":"첫 절", "text":"원문 가"*250, "url":"https://example.org/manual"},
+            {"id":"second", "kind":"other", "title":"제품 문서 둘째 절", "location":"둘째 절", "text":"다른 절 원문", "url":"https://example.org/manual"}],
+            "sections":[{"title":"분석", "blocks":[
+                {"type":"paragraph", "text":"둘째 절 판단", "source_ids":["second"]},
+                {"type":"paragraph", "text":"첫 절 판단", "source_ids":["first"]},
+                {"type":"paragraph", "text":"같은 둘째 절 재인용", "source_ids":["second"]}]}]}
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)/"reader"
+            result = reporting.render_report(plan, target)
+            self.assertTrue(result["ready"], result)
+            self.assertEqual(result["checks"]["reference_count"], 2)
+            self.assertGreaterEqual(result["checks"]["pdf_internal_links"], 3)
+            with zipfile.ZipFile(target/"02_최종 보고서/보고서.docx") as z:
+                root = ET.fromstring(z.read("word/document.xml"))
+                anchors = [h.attrib.get("{"+reporting.NS["w"]+"}anchor") for h in root.findall(".//w:hyperlink",reporting.NS)]
+                self.assertEqual([a for a in anchors if a], ["report_source_1", "report_source_2", "report_source_1"])
+                bookmarks = root.findall(".//w:bookmarkStart",reporting.NS)
+                self.assertEqual(len(bookmarks),2)
+                titles = [e.text for e in root.findall(".//w:t",reporting.NS)]
+                self.assertIn("[1] 제품 문서 둘째 절", titles)
+                self.assertIn("[2] 제품 문서 첫 절", titles)
+                self.assertNotIn("첫 절", titles)  # not repeated after the literal title
+            raw = load_workbook(target/"01_자료집/01_참고 자료.xlsx").active
+            doc = reporting._adapt_plan(plan)
+            rows, mapping = reporting._source_rows(doc["sources"])
+            for source in doc["sources"]:
+                info = mapping[source["id"]]
+                self.assertEqual("".join(raw.cell(info["row"]+i,5).value for i in range(info["chunks"])),source["text"])
+            pdf = PdfReader(target/"02_최종 보고서/보고서.pdf")
+            uris = [str(a.get_object().get("/A",{}).get("/URI","")) for p in pdf.pages for a in p.get("/Annots",[])]
+            for source in doc["sources"]:
+                cell = "E"+str(mapping[source["id"]]["row"])
+                self.assertTrue(any(u.endswith("!"+cell) for u in uris))
+
+    def test_missing_word_citations_and_pdf_citations_to_another_valid_source_are_rejected(self):
+        from reportlab.platypus import Paragraph
+        plan = multi_source_plan()
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch.object(reporting, "_docx_anchor_link", return_value=None):
+                missing = reporting.render_report(plan, Path(temporary)/"missing-word-links")
+            self.assertFalse(missing["ready"])
+            self.assertEqual(missing["checks"]["errors"][0]["code"], "reporting_verification_failed")
+            def wrong_target(text, *args, **kwargs):
+                if text.startswith("출처 "):
+                    text = text.replace('href="#report_source_1"', 'href="#report_source_2"')
+                return Paragraph(text, *args, **kwargs)
+            with patch("reportlab.platypus.Paragraph", side_effect=wrong_target):
+                wrong = reporting.render_report(plan, Path(temporary)/"wrong-pdf-target")
+            self.assertFalse(wrong["ready"])
+            self.assertEqual(wrong["checks"]["errors"][0]["code"], "reporting_verification_failed")
 
 
 if __name__ == "__main__":

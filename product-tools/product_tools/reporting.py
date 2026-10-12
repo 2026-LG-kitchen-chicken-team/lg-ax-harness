@@ -24,6 +24,7 @@ RED = "B42318"
 GREY = "737373"
 LINE = "D9D9D9"
 FONT = "맑은 고딕"
+REPORTING_PROFILE = "numbered-sources-v3"
 NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
 
 
@@ -201,6 +202,14 @@ def _adapt_plan(plan):
                              for v in doc.get("unfulfilled_requests", [])]
     for source in doc["sources"]:
         source["source_id"] = source["id"]
+    # One report-wide number per exact evidence record, in first-citation order.
+    # Shared URLs do not imply the same excerpt, document section or reviewer.
+    source_by_id = {s["id"]: s for s in doc["sources"]}
+    cited_ids = list(dict.fromkeys(sid for section in doc["sections"]
+                                  for block in section["blocks"] for sid in block.get("source_ids", [])))
+    doc["references"] = [source_by_id[sid] for sid in cited_ids]
+    for number, source in enumerate(doc["references"], 1):
+        source["reference_number"] = number
     labels = {"review": "고객 후기", "product_document": "제품 자료", "market": "시장 자료",
               "survey": "설문 자료", "interview": "인터뷰 자료", "usability": "사용성 자료", "other": "참고 자료"}
     groups = {}
@@ -421,7 +430,7 @@ def _write_libraries(doc, folder, deps):
                 source = records[sid]
                 info = source_links[sid]
                 cell = ws.cell(citation_row,2)
-                _cell_text(cell, source["title"]+" 원문")
+                _cell_text(cell, f"출처 [{source['reference_number']}] · 자료집 원문")
                 cell.hyperlink = info["file"]+"#'"+info["sheet"]+"'!"+info["cell"]
                 _sheet_note(ws,citation_row,cell.value,13 if block["type"] == "chart" else len(block["headers"])+1)
                 citation_row += 1
@@ -535,18 +544,80 @@ def _docx_sources(document, ids, sources, links):
     paragraph = document.add_paragraph()
     paragraph.paragraph_format.space_after = 10
     paragraph.add_run("출처 ")
-    for idx, (source, local, cell) in enumerate(_source_targets(ids, sources, links)):
+    for idx, sid in enumerate(ids):
         if idx:
-            paragraph.add_run(" · ")
-        if source.get("url"):
-            _docx_link(paragraph, source["title"], source["url"])
-        else:
-            paragraph.add_run(source["title"])
-        paragraph.add_run(" "+source.get("location", "")+" ")
-        _docx_link(paragraph, "자료집 원문 "+cell, local)
+            paragraph.add_run(", ")
+        number = sources[sid]["reference_number"]
+        _docx_anchor_link(paragraph, f"[{number}]", f"report_source_{number}")
     for run in paragraph.runs:
         from docx.shared import Pt
         run.font.size = Pt(9)
+
+
+def _docx_anchor_link(paragraph, label, anchor):
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    hyperlink = OxmlElement("w:hyperlink")
+    hyperlink.set(qn("w:anchor"), anchor)
+    run = OxmlElement("w:r")
+    props = OxmlElement("w:rPr")
+    for tag, value in (("w:color", GREY), ("w:sz", "18")):
+        prop = OxmlElement(tag)
+        prop.set(qn("w:val"), value)
+        props.append(prop)
+    run.append(props)
+    text = OxmlElement("w:t")
+    text.text = label
+    run.append(text)
+    hyperlink.append(run)
+    paragraph._p.append(hyperlink)
+
+
+def _reference_notes(source):
+    # Full provenance stays literal in the raw workbook. Display only the
+    # model/document/time labels when our canonical normalizer supplies them.
+    model = source.get("model", "")
+    parts = model.split(" / ")
+    prefixes = ("모델 ", "문서 버전 ", "관찰일: ", "게시일: ")
+    selected = [p for p in parts if p.startswith(prefixes) and not p.startswith("모델 버전 ")]
+    return " · ".join(selected) if selected else model
+
+
+def _reference_location(source):
+    location = source.get("location", "")
+    return location if location and location not in source["title"] else ""
+
+
+def _docx_references(document, doc, links):
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    from docx.shared import Pt
+    if not doc["references"]:
+        return
+    document.add_heading("출처 목록", level=1)
+    document.add_paragraph("본문의 출처 번호를 누르면 해당 자료로 이동합니다. 전체 원문과 상세 수집 정보는 자료집의 연결된 셀에서 확인할 수 있습니다.")
+    for source in doc["references"]:
+        number = source["reference_number"]
+        paragraph = document.add_paragraph(f"[{number}] {source['title']}")
+        paragraph.paragraph_format.keep_with_next = True
+        start, end = OxmlElement("w:bookmarkStart"), OxmlElement("w:bookmarkEnd")
+        start.set(qn("w:id"), str(number))
+        start.set(qn("w:name"), f"report_source_{number}")
+        end.set(qn("w:id"), str(number))
+        paragraph._p.insert(1 if paragraph._p.pPr is not None else 0, start)
+        paragraph._p.append(end)
+        for detail in (_reference_location(source), _reference_notes(source)):
+            if detail:
+                note = document.add_paragraph(detail)
+                note.paragraph_format.keep_with_next = True
+                for run in note.runs:
+                    run.font.size = Pt(9)
+        paragraph = document.add_paragraph()
+        if source.get("url"):
+            _docx_link(paragraph, "웹 원문", source["url"])
+            paragraph.add_run(" · ")
+        _, local, cell = next(_source_targets([source["id"]], {source["id"]: source}, links))
+        _docx_link(paragraph, "자료집 원문 ("+cell+")", local)
 
 
 def _column_weights(headers, rows):
@@ -775,11 +846,16 @@ def _write_docx(doc, target, sources, links, temp):
         document.add_heading(section["title"], level=1)
         for block in section["blocks"]:
             if block["type"] == "paragraph":
-                document.add_paragraph(block["text"])
+                paragraph = document.add_paragraph(block["text"])
+                paragraph.paragraph_format.keep_with_next = bool(block.get("source_ids"))
             elif block["type"] == "table":
                 title = document.add_paragraph(block["title"])
                 title.paragraph_format.keep_with_next = True
-                _docx_table(document, block["headers"], block["rows"], block.get("highlight_cells", []), block.get("total_rows", []))
+                table = _docx_table(document, block["headers"], block["rows"], block.get("highlight_cells", []), block.get("total_rows", []))
+                if block.get("source_ids"):
+                    for cell in table.rows[-1].cells:
+                        for paragraph in cell.paragraphs:
+                            paragraph.paragraph_format.keep_with_next = True
             elif block["type"] == "image":
                 from PIL import Image as PILImage
                 with PILImage.open(block["path"]) as image:
@@ -815,6 +891,7 @@ def _write_docx(doc, target, sources, links, temp):
         document.add_heading(gap["title"],level=1)
         document.add_paragraph(gap["request"])
         document.add_paragraph(gap["reason"])
+    _docx_references(document, doc, links)
     document.save(target)
 
 
@@ -892,14 +969,11 @@ def _write_pdf(doc, target, sources, links):
         flow.extend((result,Spacer(1,10)))
     def citations(ids):
         labels = []
-        for source,local,cell in _source_targets(ids,sources,links):
-            label = html.escape(source["title"])
-            if source.get("url"):
-                label = '<link href="'+html.escape(quote(source["url"],safe=":/?=&%#"),quote=True)+'">'+label+'</link>'
-            label += " "+html.escape(source.get("location", ""))+ ' <link href="'+html.escape(local,quote=True)+'">자료집 원문 '+html.escape(cell)+'</link>'
-            labels.append(label)
+        for sid in ids:
+            number = sources[sid]["reference_number"]
+            labels.append(f'<link href="#report_source_{number}">[{number}]</link>')
         if labels:
-            flow.append(Paragraph("출처 "+" · ".join(labels),source_style))
+            flow.append(Paragraph("출처 "+", ".join(labels),source_style))
     flow.append(p(doc["title"],title))
     for paragraph in doc.get("summary", []):
         flow.append(p(paragraph))
@@ -931,6 +1005,8 @@ def _write_pdf(doc, target, sources, links):
                     flow.append(p("단위 "+block["unit"]))
                 if block.get("caption"):
                     flow.append(p(block["caption"]))
+            if block.get("source_ids") and flow and hasattr(flow[-1], "getPlainText"):
+                flow[-1].keepWithNext = True
             citations(block.get("source_ids",[]))
             if keep_figure:
                 if block_index == 0:
@@ -939,10 +1015,37 @@ def _write_pdf(doc, target, sources, links):
                 flow[block_start:] = [KeepTogether(figure)]
     for gap in doc["requested_gaps"]:
         flow.extend((p(gap["title"],heading),p(gap["request"]),p(gap["reason"])))
+    if doc["references"]:
+        flow.append(p("출처 목록", heading))
+        flow.append(p("본문의 출처 번호를 누르면 해당 자료로 이동합니다. 전체 원문과 상세 수집 정보는 자료집의 연결된 셀에서 확인할 수 있습니다.", source_style))
+        for source in doc["references"]:
+            number = source["reference_number"]
+            label = f'<a name="report_source_{number}"/>[{number}] '+html.escape(source["title"])
+            reference = Paragraph(label, ParagraphStyle("Reference", parent=normal, fontSize=10, leading=14, keepWithNext=True))
+            reference.reference_number = number
+            reference.reference_title = f"[{number}] "+source["title"]
+            flow.append(reference)
+            for detail in (_reference_location(source), _reference_notes(source)):
+                if detail:
+                    flow.append(p(detail, ParagraphStyle("ReferenceNote", parent=source_style, spaceAfter=3, keepWithNext=True)))
+            _, local, cell = next(_source_targets([source["id"]], sources, links))
+            labels = []
+            if source.get("url"):
+                labels.append('<link href="'+html.escape(quote(source["url"],safe=":/?=&%#"),quote=True)+'">웹 원문</link>')
+            labels.append('<link href="'+html.escape(local,quote=True)+'">자료집 원문 ('+html.escape(cell)+')</link>')
+            flow.append(Paragraph(" · ".join(labels), source_style))
     def footer(canvas,pdfdoc):
         canvas.setFont(font,8)
         canvas.drawRightString(A4[0]-57.6,33,str(pdfdoc.page))
-    SimpleDocTemplate(str(target),pagesize=A4,leftMargin=57.6,rightMargin=57.6,topMargin=57.6,bottomMargin=57.6,title=doc["title"],author="").build(flow,onFirstPage=footer,onLaterPages=footer)
+    class ReaderPDF(SimpleDocTemplate):
+        def afterFlowable(self, item):
+            number = getattr(item, "reference_number", None)
+            if number is not None:
+                key = f"report_source_{number}"
+                if number == 1:
+                    self.canv.addOutlineEntry("출처 목록", key, level=0, closed=False)
+                self.canv.addOutlineEntry(item.reference_title, key, level=1, closed=False)
+    ReaderPDF(str(target),pagesize=A4,leftMargin=57.6,rightMargin=57.6,topMargin=57.6,bottomMargin=57.6,title=doc["title"],author="").build(flow,onFirstPage=footer,onLaterPages=footer)
 
 
 def _verify(stage, doc, outputs, links, deps):
@@ -974,6 +1077,26 @@ def _verify(stage, doc, outputs, links, deps):
                 for grid in root.findall(".//w:tblGrid",NS):
                     if sum(int(c.attrib["{"+NS["w"]+"}w"]) for c in grid) > usable+8:
                         fail("reporting_verification_failed", "Word table exceeds page width")
+                bookmarks = {e.attrib.get("{"+NS["w"]+"}name") for e in root.findall(".//w:bookmarkStart", NS)}
+                anchors = [e.attrib["{"+NS["w"]+"}anchor"] for e in root.findall(".//w:hyperlink", NS)
+                           if "{"+NS["w"]+"}anchor" in e.attrib]
+                if path.parent.name == "02_최종 보고서":
+                    expected = [f"report_source_{next(s['reference_number'] for s in doc['references'] if s['id'] == sid)}"
+                                for section in doc["sections"] for block in section["blocks"] for sid in block.get("source_ids", [])]
+                    if anchors != expected or any(anchor not in bookmarks for anchor in anchors):
+                        fail("reporting_verification_failed", "Word citation number/destination missing or mismatched")
+                    markers = [(h.attrib["{"+NS["w"]+"}anchor"], "".join(e.text or "" for e in h.findall(".//w:t", NS)))
+                               for h in root.findall(".//w:hyperlink", NS) if "{"+NS["w"]+"}anchor" in h.attrib]
+                    if markers != [(anchor, "["+anchor.rsplit("_", 1)[1]+"]") for anchor in expected]:
+                        fail("reporting_verification_failed", "Word citation label mismatch")
+                    rels = ET.fromstring(z.read("word/_rels/document.xml.rels"))
+                    by_rel = {r.attrib.get("Id"): r.attrib.get("Target") for r in rels}
+                    targets = {by_rel.get(h.attrib.get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"))
+                               for h in root.findall(".//w:hyperlink", NS)}
+                    for source in doc["references"]:
+                        local = next(_source_targets([source["id"]], {source["id"]: source}, links))[1]
+                        if local not in targets or (source.get("url") and source["url"] not in targets):
+                            fail("reporting_verification_failed", "Word original URL/cell link missing")
             checks["docx_count"] += 1
     pdf = PdfReader(str(stage/"02_최종 보고서/보고서.pdf"))
     extracted = "\n".join(page.extract_text() or "" for page in pdf.pages)
@@ -986,9 +1109,48 @@ def _verify(stage, doc, outputs, links, deps):
     checks["pdf_pages"] = len(pdf.pages)
     uris = [str(a.get_object().get("/A",{}).get("/URI","")) for page in pdf.pages for a in page.get("/Annots",[])]
     checks["pdf_links"] = len([u for u in uris if u])
+    page_refs = {page.indirect_reference.idnum for page in pdf.pages}
+    internal = []
+    for page in pdf.pages:
+        for item in page.get("/Annots", []):
+            annotation = item.get_object()
+            action = annotation.get("/A", {})
+            destination = annotation.get("/Dest") or (action.get("/D") if action.get("/S") == "/GoTo" else None)
+            if destination is not None:
+                if isinstance(destination, str):
+                    destination = pdf.named_destinations.get(destination)
+                    if destination is None:
+                        fail("reporting_verification_failed", "PDF citation destination missing")
+                    destination = destination.dest_array
+                if not destination or getattr(destination[0], "idnum", None) not in page_refs:
+                    fail("reporting_verification_failed", "PDF citation destination page missing")
+                internal.append(destination)
+    def outlines(items):
+        for item in items:
+            if isinstance(item, list):
+                yield from outlines(item)
+            else:
+                yield item
+    def destination_key(destination):
+        return tuple((item.idnum, item.generation) if hasattr(item, "idnum")
+                     else float(item) if isinstance(item, (int, float)) else str(item) for item in destination)
+    entries = {entry.title: entry.dest_array for entry in outlines(pdf.outline)}
+    reference_destinations = {}
+    for source in doc["references"]:
+        label = f"[{source['reference_number']}] "+source["title"]
+        if label not in entries:
+            fail("reporting_verification_failed", "PDF reference entry missing")
+        reference_destinations[source["id"]] = destination_key(entries[label])
+    expected = [reference_destinations[sid] for section in doc["sections"]
+                for block in section["blocks"] for sid in block.get("source_ids", [])]
+    if [destination_key(d) for d in internal] != expected:
+        fail("reporting_verification_failed", "PDF citation number/destination missing or mismatched")
+    checks["pdf_internal_links"] = len(internal)
+    checks["reference_count"] = len(doc["references"])
     cited = {sid for section in doc["sections"] for block in section["blocks"] for sid in block.get("source_ids",[])}
     for sid in cited:
-        if not any("01_%EC%9E%90%EB%A3%8C%EC%A7%91" in uri and quote(links[sid]["file"]) in uri for uri in uris):
+        expected = next(_source_targets([sid], {sid: next(s for s in doc["sources"] if s["id"] == sid)}, links))[1]
+        if expected not in uris:
             fail("reporting_verification_failed", "PDF original-cell link missing")
     for source in doc["sources"]:
         link = links[source["source_id"]]
