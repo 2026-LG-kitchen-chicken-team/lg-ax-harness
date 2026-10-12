@@ -1,15 +1,16 @@
 // View mode switch for comparing the three layouts on the same data: A app, B slides, C one-page poster.
 import { useCallback, useLayoutEffect, useState, type ReactNode } from 'react'
-import { LayoutDashboard, LayoutGrid, Presentation } from 'lucide-react'
+import { GalleryVerticalEnd, LayoutDashboard, LayoutGrid, Presentation } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-export type Mode = 'app' | 'slides' | 'poster'
+export type Mode = 'app' | 'slides' | 'poster' | 'editorial'
 const MODES: { id: Mode; label: string; icon: typeof LayoutGrid }[] = [
   { id: 'app', label: 'A 앱', icon: LayoutDashboard },
   { id: 'slides', label: 'B 슬라이드', icon: Presentation },
   { id: 'poster', label: 'C 한 장', icon: LayoutGrid },
+  { id: 'editorial', label: 'D 전시', icon: GalleryVerticalEnd },
 ]
-const isMode = (m: unknown): m is Mode => m === 'app' || m === 'slides' || m === 'poster'
+const isMode = (m: unknown): m is Mode => m === 'app' || m === 'slides' || m === 'poster' || m === 'editorial'
 
 export function useMode(): [Mode, (m: Mode) => void] {
   const [mode, set] = useState<Mode>(() => {

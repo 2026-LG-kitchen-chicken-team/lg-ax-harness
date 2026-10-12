@@ -735,7 +735,7 @@ class BuildViewTests(TempCase):
         self.assertIn("window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = ", text)
         self.assertIn('"id": "story"', text)
         # 공유용 B·C 파일은 처음 열 때의 보기를 담는다(받은 사람 브라우저의 기억과 상관없이)
-        for mode in ("slides", "poster"):
+        for mode in ("slides", "poster", "editorial"):
             build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode=mode)
             self.assertIn(f'window.LGAX_DEFAULT_MODE = "{mode}"; window.LGAX_VIEW = ', report.read_text(encoding="utf-8"))
         with self.assertRaises(SystemExit):
