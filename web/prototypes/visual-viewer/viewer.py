@@ -5,6 +5,7 @@
     uv run python web/prototypes/visual-viewer/viewer.py uninstall --claude|--codex|--both <하네스 폴더>
     uv run python web/prototypes/visual-viewer/viewer.py open --latest [<하네스 폴더>]
     uv run python web/prototypes/visual-viewer/viewer.py status [<하네스 폴더>]
+    uv run python web/prototypes/visual-viewer/viewer.py selftest [--claude|--codex] [<하네스 폴더>]
 
 - install: 뷰어 파일을 `<하네스>/web/prototypes/visual-viewer/`에 복사하고(이미 그 자리면 생략), 훅을
   `.claude/settings.local.json` 또는 `.codex/hooks.json`에 합친다. 기존 설정·다른 훅은 지우거나 옮기지 않는다.
@@ -24,7 +25,10 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -49,10 +53,17 @@ LOG_POSIX = "runtime-data/visual-viewer"
 START_LOG = "hook-start-error.log"  # Codex 셸이 쓰는 uv·Python 시작 오류(마지막 실행분만)
 # Codex는 Windows에서 commandWindows를 버전·설정에 따라 cmd(`COMSPEC /C "<명령>"`, 0.146) 또는 사용자 셸인 PowerShell
 # (`powershell.exe|pwsh.exe -NoProfile -Command <명령>`, 0.162)로 실행한다. 두 셸에서 똑같이 해석되는 명령은
-# "상대 경로 실행 파일 + 16진수 인자"뿐이라, 셸 문법이 필요한 일(작업 폴더 실행 파일 검색 끄기, 출력 버리기, 시작 오류
-# 기록, 항상 exit 0)은 하네스 `.codex\`의 실행기(.cmd)가 한다. `.codex\`는 Codex 샌드박스가 쓰기를 막는 폴더다.
+# "상대 경로 실행 파일 + 16진수 인자"뿐이라, 셸 문법이 필요한 일은 하네스 `.codex\`의 실행기(.cmd)가 한다.
+# `.codex\`는 Codex 샌드박스가 쓰기를 막는 폴더다. 실행기가 하는 일:
+# - 작업 폴더 실행 파일 검색 끄기, 출력 버리기, 시작 오류 기록, 항상 exit 0
+# - 빠른 길: 가장 최근 export 이름이 hook.py가 마지막으로 처리한 이름(.hook-last-export)과 같으면 Python 없이 끝낸다.
+#   비교는 지연 확장으로 해서 샌드박스가 쓸 수 있는 파일 내용이 명령으로 해석되지 않는다. 다르거나 모르면 Python으로 넘어간다.
+# - 인터프리터: 샌드박스가 쓸 수 없는 %SystemRoot%\System32에서 `uv python find --system`으로 가상 환경이 아닌 Python 3.12를
+#   찾아 직접 `-I -B`로 실행한다. 하네스 .venv·.python-version·.pth는 쓰이지 않는다. 하네스 경로는 인자로 넘긴다.
 LAUNCHER_REL = (".codex", "visual-viewer-hook.cmd")
-_LAUNCHER_CODE = ("import hashlib,os,sys,time;d=os.getcwd();h=sys.argv.pop(2);"
+MARKER = ".hook-last-export"
+FIND_PYTHON = "uv python find --system --no-config --no-python-downloads 3.12"
+_LAUNCHER_CODE = ("import hashlib,os,sys,time;d=os.path.abspath(sys.argv.pop(2));h=sys.argv.pop(2);"
                   "p=os.path.join(d,'web','prototypes','visual-viewer','hook.py');"
                   "l=os.path.join(d,'runtime-data','visual-viewer','hook-error.log');"
                   "b=open(p,'rb').read() if os.path.isfile(p) else b'';"
@@ -61,27 +72,45 @@ _LAUNCHER_CODE = ("import hashlib,os,sys,time;d=os.getcwd();h=sys.argv.pop(2);"
                   "time.ctime()+' hook.py is missing or differs from the installed fingerprint. Run viewer.py install again.'+chr(10))")
 LAUNCHER_TEXT = "\r\n".join([
     "@echo off",
-    "rem LG AX visual viewer - Codex hook launcher written by viewer.py install. Do not edit, reinstall instead.",
+    "rem LG AX visual viewer - Codex Stop hook launcher written by viewer.py install. Do not edit, reinstall instead.",
     "rem Arguments: codex, then SHA-256 of hook.py, build_view.py, index.html and this file. Always exits 0 silently.",
-    "setlocal",
+    "setlocal EnableExtensions DisableDelayedExpansion",
     "set NoDefaultCurrentDirectoryInExePath=1",
-    'cd /d "%~dp0.."',
-    'if not exist "runtime-data\\visual-viewer\\" md "runtime-data\\visual-viewer" 2>nul',
-    # call: uv가 .cmd·.bat 껍데기여도 제어가 돌아와 아래 exit /b 0이 실행된다(call 없이 부르면 돌아오지 않는다).
-    f'call {UV_PREFIX} "{_LAUNCHER_CODE}" codex %2 %3 %4 1>nul 2>"runtime-data\\visual-viewer\\{START_LOG}"',
+    'cd /d "%~dp0.." || exit /b 0',
+    'set "H=%CD%"',
+    'set "OUT=%CD%\\runtime-data\\visual-viewer"',
+    'if not exist "%OUT%\\" md "%OUT%" 2>nul',
+    "rem Fast path: nothing new when the newest export is the one hook.py last processed.",
+    'set "NEWEST="',
+    'for /f "delims=" %%F in (\'dir /b /a-d /o-d "runtime-data\\exports\\*.json" 2^>nul\') do if not defined NEWEST set "NEWEST=%%F"',
+    "if not defined NEWEST exit /b 0",
+    'set "SEEN="',
+    f'if exist "%OUT%\\{MARKER}" set /p SEEN=<"%OUT%\\{MARKER}"',
+    "setlocal EnableDelayedExpansion",
+    'if /i "!NEWEST!"=="!SEEN!" exit /b 0',
+    "endlocal",
+    "rem Interpreter: a non-virtual-environment Python 3.12 found from a folder the sandbox cannot write.",
+    'cd /d "%SystemRoot%\\System32"',
+    'set "PY="',
+    f'for /f "delims=" %%P in (\'{FIND_PYTHON} 2^>"%OUT%\\{START_LOG}"\') do if not defined PY set "PY=%%P"',
+    "if not defined PY exit /b 0",
+    f'"%PY%" -I -B -c "{_LAUNCHER_CODE}" codex "%H%\\." %2 %3 %4 1>nul 2>>"%OUT%\\{START_LOG}"',
     "exit /b 0",
     "",
 ])
 TARGETS = {
     "claude": {"file": (".claude", "settings.local.json"), "event": "PostToolUse", "matcher": "Bash|PowerShell",
                "name": "Claude Code", "async": True, "timeout": 60, "keep_positions": False},
-    # codex-cli 0.146은 SessionEnd 외의 async 훅을 "async hooks are not supported yet"로 건너뛴다. 동기로 둔다.
+    # Codex는 답변이 끝날 때 한 번 도는 Stop(동기)에 둔다. 셸 명령마다 도는 PostToolUse의 지연이 없다.
+    # Stop은 0.146.0·0.162.1 모두에 있고 matcher를 쓰지 않는다. 0.146은 async 훅을 건너뛰므로 동기로 둔다.
     # 신뢰 키가 `이벤트:묶음 번호:처리기 번호` 위치라서 다른 훅의 위치를 지킨다.
-    "codex": {"file": (".codex", "hooks.json"), "event": "PostToolUse", "matcher": "Bash",
+    "codex": {"file": (".codex", "hooks.json"), "event": "Stop", "matcher": None,
               "name": "Codex CLI", "async": False, "timeout": 30, "keep_positions": True},
 }
 PLACEHOLDER = {"type": "command", "command": ""}  # Codex는 빈 명령을 건너뛰지만 그 자리 번호는 센다
 HEX64 = re.compile(r"[0-9a-f]{64}")
+# 이 뷰어의 훅을 실제로 확인한 CLI 버전. 다른 버전이면 status가 경고하고 selftest·/hooks 재확인을 안내한다.
+TESTED_VERSIONS = {"codex": ("0.162.1",), "claude": ("2.1.289",)}
 
 
 class ViewerError(Exception):
@@ -135,16 +164,27 @@ def codex_commands(digests: dict) -> dict:
 
     셸의 stderr(uv·Python 시작 오류)는 hook-error.log가 아닌 hook-start-error.log에 매번 덮어쓴다. Windows cmd의
     리다이렉트는 파일을 쓰기 공유 없이 열어 두므로, 같은 파일이면 hook.py의 로그 쓰기가 막힌다.
-    - command(macOS·Linux, sh -c): 출력은 버리고 시작 오류만 남긴 뒤 exit 0.
+    - command(macOS·Linux, sh -c): 실행기와 같은 일(빠른 길, `/`에서 가상 환경이 아닌 Python 3.12 찾기, 출력 버리기,
+      시작 오류 기록, exit 0)을 sh 문법으로 한다.
     - commandWindows: `.codex\\visual-viewer-hook.cmd codex <지문 4개>`. cmd·Windows PowerShell 5.1·pwsh 7이 같게
       읽는다. 지문이 명령에 있으니 뷰어 파일이나 실행기가 바뀌면 Codex가 다시 신뢰를 요구한다.
     """
-    core = hook_command("codex", digests)
+    posix = (f'H="$(pwd)"; O="$H/{LOG_POSIX}"; mkdir -p "$O" 2>/dev/null; '
+             f'N="$(ls -t "$H/runtime-data/exports/" 2>/dev/null | grep "[.]json$" | head -n 1)"; [ -n "$N" ] || exit 0; '
+             f'[ "$N" = "$(cat "$O/{MARKER}" 2>/dev/null)" ] && exit 0; cd / || exit 0; '
+             f'P="$({FIND_PYTHON} 2>"$O/{START_LOG}")" || exit 0; '
+             f'"$P" -I -B -c "{_LAUNCHER_CODE}" codex "$H" {digests["hook"]} {digests["build_view"]} {digests["index"]} '
+             f'>/dev/null 2>>"$O/{START_LOG}"; exit 0')
     return {
-        "command": f"mkdir -p {LOG_POSIX} 2>/dev/null; {core} >/dev/null 2>{LOG_POSIX}/{START_LOG}; exit 0",
+        "command": posix,
         "commandWindows": (f"{LAUNCHER_REL[0]}\\{LAUNCHER_REL[1]} codex {digests['hook']} {digests['build_view']} "
                            f"{digests['index']} {launcher_digest()}"),
     }
+
+
+def where(source: str) -> str:
+    target = TARGETS[source]
+    return f"{target['event']}({target['matcher']})" if target["matcher"] else target["event"]
 
 
 def handler(source: str, digests: dict) -> dict:
@@ -275,7 +315,7 @@ def place_ours(config: dict, path: Path, source: str, new: dict) -> tuple[str, l
         return "갱신", notes
     notes = remove_positions(config, positions, target["keep_positions"])
     if positions:
-        notes.append(f"다른 이벤트·matcher에 있던 이 뷰어 항목 {len(positions)}개를 {target['event']}({target['matcher']})로 옮겼습니다.")
+        notes.append(f"다른 이벤트·matcher에 있던 이 뷰어 항목 {len(positions)}개를 {where(source)}로 옮겼습니다.")
     table = config.setdefault("hooks", {})
     groups = table.setdefault(target["event"], [])
     for group in groups:
@@ -287,7 +327,7 @@ def place_ours(config: dict, path: Path, source: str, new: dict) -> tuple[str, l
             if not group["hooks"]:
                 group["hooks"] = [new]
                 return "추가(이전 자리)", notes
-    groups.append({"matcher": target["matcher"], "hooks": [new]})
+    groups.append({"matcher": target["matcher"], "hooks": [new]} if target["matcher"] else {"hooks": [new]})
     return "추가", notes
 
 
@@ -482,7 +522,7 @@ def cmd_install(args) -> int:
         how, notes = place_ours(config, path, source, handler(source, digests))
         save_config(path, config)
         rel = "/".join(target["file"])
-        print(f"[{target['name']}] {rel}에 PostToolUse({target['matcher']}) 훅을 {how}했습니다. "
+        print(f"[{target['name']}] {rel}에 {where(source)} 훅을 {how}했습니다. "
               f"다른 훅 {count_others(config)}개는 내용과 위치를 그대로 둡니다.")
         for note in notes:
             print(f"  {note}")
@@ -491,7 +531,7 @@ def cmd_install(args) -> int:
         else:
             print("  다음: 이 하네스 폴더에서 `codex --search`를 열고 `/hooks`에서 이 훅을 검토·신뢰(trust)하세요.")
             print("        신뢰하기 전에는 실행되지 않습니다. 뷰어 파일을 갱신하면 명령의 지문이 바뀌어 다시 신뢰해야 합니다.")
-            print("        Codex에서는 동기 훅이라 셸 명령마다 약 0.65초가 더 걸립니다. 신뢰 우회 옵션은 쓰지 마세요.")
+            print("        답변이 끝날 때(Stop) 한 번 돌고, 새 export가 없으면 Python 없이 바로 끝납니다. 신뢰 우회 옵션은 쓰지 마세요.")
             if codex_hooks_disabled(harness):
                 print("  주의: [features] hooks = false(프로젝트 설정이 없으면 사용자 설정 기준)라 Codex가 훅을 실행하지 않습니다.")
     # 공유 파일이 바뀌었을 수 있으니, 이번에 고르지 않은 CLI에 이미 등록된 항목도 새 지문으로 맞춘다.
@@ -591,6 +631,27 @@ def cmd_open(args) -> int:
     return 0
 
 
+def cli_version(name: str) -> str | None:
+    """`<cli> --version`의 x.y.z. 없으면 None. 대화 세션을 열지 않는다(짧은 시간 제한)."""
+    exe = shutil.which(name)
+    if not exe:
+        return None
+    try:
+        proc = subprocess.run([exe, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=8)
+    except (OSError, subprocess.TimeoutExpired):
+        return "확인 실패"
+    found = re.search(r"\d+\.\d+\.\d+", proc.stdout + proc.stderr)
+    return found.group(0) if found else "확인 실패"
+
+
+def version_report() -> tuple[dict, list[str]]:
+    versions = {"codex": cli_version("codex"), "claude": cli_version("claude")}
+    warnings = [f"{name} {version}은(는) 확인한 버전({', '.join(TESTED_VERSIONS[name])})이 아닙니다. "
+                f"`viewer.py selftest`를 실행하고 {'/hooks' if name == 'codex' else '/hooks 화면'}에서 훅을 다시 확인하세요."
+                for name, version in versions.items() if version and version not in TESTED_VERSIONS[name]]
+    return versions, warnings
+
+
 def cmd_status(args) -> int:
     harness = resolve_harness(args.harness)
     paths = hook.Paths(str(harness))
@@ -641,8 +702,133 @@ def cmd_status(args) -> int:
     report["last_error"] = latest_line[1] if latest_line else None
     report["last_error_file"] = latest_line[2] if latest_line else None
     report["uv_on_path"] = bool(shutil.which("uv"))
+    report["cli_versions"], report["version_warnings"] = version_report()
+    report["tested_versions"] = TESTED_VERSIONS
     print(json.dumps(report, ensure_ascii=False, indent=1))
     return 0
+
+
+# ---------------------------------------------------------------- selftest
+
+def git_bash() -> str | None:
+    if os.name != "nt":
+        return shutil.which("bash")
+    candidates = []
+    git = shutil.which("git")
+    if git:
+        root = Path(git).resolve().parents[1]
+        candidates += [root / "bin" / "bash.exe", root / "usr" / "bin" / "bash.exe"]
+    candidates.append(Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Git" / "bin" / "bash.exe")
+    found = next((str(c) for c in candidates if c.is_file()), None)
+    if found:
+        return found
+    which = shutil.which("bash")
+    return which if which and "system32" not in which.lower() else None  # WSL bash는 쓰지 않는다
+
+
+def selftest_shells(source: str, item: dict) -> list[tuple[str, object]]:
+    """CLI가 이 OS에서 훅을 실행하는 셸들과 실행 인자(문자열이면 raw 명령줄). 없는 셸은 빼고 이름만 남긴다."""
+    shells = []
+    if os.name == "nt":
+        system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
+        powershell = os.path.join(system, "WindowsPowerShell", "v1.0", "powershell.exe")
+        pwsh = shutil.which("pwsh") or r"C:\Program Files\PowerShell\7\pwsh.exe"
+        if source == "codex":
+            command = item["commandWindows"]
+            comspec = os.environ.get("COMSPEC") or os.path.join(system, "cmd.exe")
+            shells.append(("cmd", f'{comspec} /C "{command}"'))  # codex 0.146(그리고 세션 셸이 없을 때)
+            shells.append(("powershell", [powershell, "-NoProfile", "-Command", command]))  # codex 0.162 기본
+            shells.append(("pwsh", [pwsh, "-NoProfile", "-Command", command] if os.path.isfile(pwsh) else None))
+        else:
+            command = item["command"]
+            bash = git_bash()
+            shells.append(("git-bash", [bash, "-c", command] if bash else None))  # Claude Code 기본
+            shells.append(("powershell", [powershell, "-NoProfile", "-Command", command]))  # Git Bash가 없을 때
+    else:
+        shells.append(("sh", ["/bin/sh", "-c", item["command"]]))
+        bash = shutil.which("bash")
+        shells.append(("bash", [bash, "-c", item["command"]] if bash else None))
+    return shells
+
+
+def synthetic_export(name: str) -> dict:
+    return {"session_id": f"selftest-{name}", "turns": [], "semantic_status": "unverified", "acceptance_ready": False,
+            "usage_summary": {"status": "unknown"},
+            "requests": [{"input": {"question": "[합성 시험 자료] viewer.py selftest"}, "turn_id": None, "request_version": 0,
+                          "events": [], "response": {"status": "needs_input", "reason": {"code": "selftest", "message": "synthetic"}},
+                          "research_usage": {"status": "unknown"}}]}
+
+
+def cmd_selftest(args) -> int:
+    """등록된 정확한 훅 명령을 각 셸에서 임시 사본으로 실행한다. 실제 화면·상태는 건드리지 않고 브라우저·모델을 쓰지 않는다."""
+    harness = resolve_harness(args.harness)
+    wanted = [s for s in ("claude", "codex") if getattr(args, s) or args.both] or list(TARGETS)
+    entries = {}
+    for source in wanted:
+        target = TARGETS[source]
+        config = load_config(harness.joinpath(*target["file"]))
+        table = config.get("hooks") if isinstance(config.get("hooks"), dict) else {}
+        items = [h for g in table.get(target["event"]) or [] if isinstance(g, dict) and g.get("matcher") == target["matcher"]
+                 for h in (g.get("hooks") or []) if is_ours(h)]
+        if items:
+            entries[source] = items[0]
+        elif source in [s for s in ("claude", "codex") if getattr(args, s) or args.both]:
+            raise ViewerError(f"{target['name']} 훅이 등록되어 있지 않습니다. install을 먼저 실행하세요.")
+    if not entries:
+        raise ViewerError("등록된 훅이 없습니다. install을 먼저 실행하세요.")
+    results = []
+    with tempfile.TemporaryDirectory(prefix="lgax-viewer-selftest-") as tmp:
+        copy = Path(tmp) / "harness"
+        app = copy.joinpath(*APP_REL)
+        app.mkdir(parents=True)
+        (copy / "product-tools").mkdir()
+        (copy / "AGENTS.md").write_text("# viewer selftest copy\n", encoding="utf-8")
+        for name in APP_FILES:
+            if harness.joinpath(*APP_REL, name).is_file():
+                shutil.copyfile(harness.joinpath(*APP_REL, name), app / name)
+        if harness.joinpath(*LAUNCHER_REL).is_file():
+            copy.joinpath(LAUNCHER_REL[0]).mkdir()
+            shutil.copyfile(harness.joinpath(*LAUNCHER_REL), copy.joinpath(*LAUNCHER_REL))
+        exports = copy / "runtime-data" / "exports"
+        exports.mkdir(parents=True)
+        paths = hook.Paths(str(copy))
+        base_env = {k: v for k, v in os.environ.items() if k != "CLAUDE_PROJECT_DIR"}
+        base_env["LGAX_VIEWER_NO_OPEN"] = "1"
+        for source, item in entries.items():
+            for shell, argv in selftest_shells(source, item):
+                row = {"cli": source, "shell": shell}
+                if argv is None:
+                    results.append({**row, "result": "skip", "reason": "이 PC에 없는 셸"})
+                    continue
+                name = f"{source}-{shell}"
+                export = exports / f"export-selftest-{name}.json"
+                export.write_text(json.dumps(synthetic_export(name), ensure_ascii=False), encoding="utf-8")
+                stamp = time.time() + len(results) + 1
+                os.utime(export, (stamp, stamp))
+                payload = ({"session_id": f"selftest-{name}", "turn_id": "selftest", "hook_event_name": "Stop", "stop_hook_active": False,
+                            "last_assistant_message": "[합성 시험 자료] selftest", "cwd": str(copy)} if source == "codex"
+                           else {"session_id": f"selftest-{name}", "hook_event_name": "PostToolUse", "tool_name": "Bash", "cwd": str(copy)})
+                env = dict(base_env, CLAUDE_PROJECT_DIR=str(copy)) if source == "claude" else base_env
+                started = time.perf_counter()
+                try:
+                    proc = subprocess.run(argv, input=json.dumps(payload).encode("utf-8"), capture_output=True, cwd=copy, env=env, timeout=120)
+                except (OSError, subprocess.TimeoutExpired) as exc:
+                    results.append({**row, "result": "fail", "reason": f"{type(exc).__name__}: {exc}"})
+                    continue
+                state = hook.read_state(paths)
+                built = state.get("last_export") == export.name and f"{source}:selftest-{name}" in (state.get("opened_sessions") or [])
+                ok = proc.returncode == 0 and not proc.stdout and not proc.stderr and built
+                row.update(result="pass" if ok else "fail", exit=proc.returncode, output_bytes=len(proc.stdout) + len(proc.stderr),
+                           view_rebuilt=built, seconds=round(time.perf_counter() - started, 2))
+                if not ok:
+                    logs = [Path(paths.error_log), Path(paths.out, START_LOG)]
+                    last = [line for f in logs if f.is_file() for line in f.read_bytes().decode("utf-8", "replace").splitlines() if line.strip()]
+                    row["reason"] = (proc.stderr or proc.stdout).decode("utf-8", "replace").strip()[:300] or (last[-1] if last else "기록 없음")
+                results.append(row)
+    failed = [r for r in results if r["result"] == "fail"]
+    print(json.dumps({"harness": str(harness), "results": results, "ok": not failed,
+                      "note": "임시 사본·합성 export로 실행했습니다. 실제 화면·상태·브라우저·모델은 쓰지 않았습니다."}, ensure_ascii=False, indent=1))
+    return 1 if failed else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -663,13 +849,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("harness", nargs="?", help="하네스 폴더 (설치된 하네스 안의 viewer.py라면 생략 가능)")
     p = sub.add_parser("status", help="설치·갱신 상태")
     p.add_argument("harness", nargs="?", help="하네스 폴더 (설치된 하네스 안의 viewer.py라면 생략 가능)")
+    p = sub.add_parser("selftest", help="등록된 훅 명령을 각 셸에서 임시 사본으로 실행해 본다(CLI 업데이트 뒤)")
+    p.add_argument("--claude", action="store_true", help="Claude Code 훅만")
+    p.add_argument("--codex", action="store_true", help="Codex 훅만")
+    p.add_argument("--both", action="store_true", help="둘 다(기본: 등록된 것 모두)")
+    p.add_argument("harness", nargs="?", help="하네스 폴더 (설치된 하네스 안의 viewer.py라면 생략 가능)")
     args = ap.parse_args(argv)
     for stream in (sys.stdout, sys.stderr):
         try:
             stream.reconfigure(encoding="utf-8")
         except (AttributeError, ValueError):
             pass
-    commands = {"install": cmd_install, "uninstall": cmd_uninstall, "open": cmd_open, "status": cmd_status}
+    commands = {"install": cmd_install, "uninstall": cmd_uninstall, "open": cmd_open, "status": cmd_status, "selftest": cmd_selftest}
     try:
         return commands[args.command](args)
     except ViewerError as exc:

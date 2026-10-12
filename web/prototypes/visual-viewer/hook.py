@@ -44,6 +44,8 @@ class Paths:
         self.state = os.path.join(self.out, ".hook-state.json")
         self.lock = os.path.join(self.out, ".hook.lock")
         self.error_log = os.path.join(self.out, "hook-error.log")
+        # Codex 실행기의 빠른 길이 읽는 표시: 마지막으로 처리한(그렸거나 설치 때 본) export 파일 이름 한 줄.
+        self.marker = os.path.join(self.out, ".hook-last-export")
 
 
 class IntegrityError(Exception):
@@ -76,6 +78,7 @@ def write_state(paths: Paths, state: dict) -> None:
     for attempt in range(20):
         try:
             os.replace(tmp, paths.state)
+            write_marker(paths, state)
             return
         except PermissionError:
             time.sleep(0.05 * (attempt + 1))
@@ -84,6 +87,28 @@ def write_state(paths: Paths, state: dict) -> None:
     except OSError:
         pass
     raise PermissionError(f"상태 파일을 바꾸지 못했습니다: {paths.state}")
+
+
+def write_marker(paths: Paths, state: dict) -> None:
+    """상태의 last_key가 가리키는 export 이름을 표시 파일에 쓴다(상태를 쓴 뒤에만).
+
+    표시는 빠른 길의 최적화일 뿐이다. 쓰지 못하면 지워서, 실행기가 Python으로 넘어가게 한다(새 export를 놓치지 않게).
+    """
+    name = str(state.get("last_key") or "").rsplit(":", 2)[0]
+    try:
+        if not name:
+            if os.path.exists(paths.marker):
+                os.remove(paths.marker)
+            return
+        tmp = f"{paths.marker}.{os.getpid()}.tmp"
+        with open(tmp, "w", encoding="utf-8", newline="") as f:
+            f.write(name)
+        os.replace(tmp, paths.marker)
+    except OSError:
+        try:
+            os.remove(paths.marker)
+        except OSError:
+            pass
 
 
 def newest_export(paths: Paths):

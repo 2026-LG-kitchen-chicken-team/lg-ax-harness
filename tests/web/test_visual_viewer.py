@@ -773,6 +773,23 @@ class HookTests(TempCase):
             opened.assert_not_called()
         self.assertEqual(list(self.h.out.glob(".hook-state.json.*.tmp")), [])
 
+    def test_marker_follows_processed_export_only(self):  # round 5 fast path
+        paths = hook.Paths(str(self.h.root))
+        first = self.h.add("microwave")
+        with mock.patch.object(hook, "open_browser"):
+            self.run_hook({"session_id": "s"}, "codex")
+        self.assertEqual(Path(paths.marker).read_text(encoding="utf-8"), first.name)
+        (self.h.exports / "export-zz-broken.json").write_text("{", encoding="utf-8")
+        os.utime(self.h.exports / "export-zz-broken.json", (time.time() + 100, time.time() + 100))
+        self.run_hook({"session_id": "s"}, "codex")
+        self.assertEqual(Path(paths.marker).read_text(encoding="utf-8"), first.name)  # 실패한 export는 표시하지 않는다
+        later = self.h.add("dishwasher", "export-zzz-later.json")
+        os.utime(later, (time.time() + 200, time.time() + 200))
+        run_viewer("install", "--codex", str(self.h.root))  # 설치 기준점도 표시한다
+        self.assertEqual(Path(paths.marker).read_text(encoding="utf-8"), later.name)
+        hook.write_state(paths, {})
+        self.assertFalse(os.path.exists(paths.marker))
+
     def test_os_lock_excludes_second_holder_and_frees_on_release(self):
         paths = hook.Paths(str(self.h.root))
         first, second = hook.Lock(paths), hook.Lock(paths)
@@ -845,12 +862,21 @@ class InstalledHookProcessTests(TempCase):
 
     def entry(self, rel):
         config = json.loads((self.h.root / rel).read_text(encoding="utf-8"))
-        return [h for g in config["hooks"]["PostToolUse"] for h in g["hooks"] if viewer.is_ours(h)][0]
+        return [h for groups in config["hooks"].values() for g in groups for h in g["hooks"] if viewer.is_ours(h)][0]
 
     def python_part(self, entry):
-        m = re.search(r'python -I -B -c "(.*)" (claude|codex) ([0-9a-f]{64}) ([0-9a-f]{64})', entry["command"])
-        self.assertIsNotNone(m, entry["command"])
-        return [sys.executable, "-I", "-B", "-c", m.group(1), m.group(2), m.group(3), m.group(4)]
+        """등록된 명령의 Python 부분만 그 지문·인자 그대로(Codex는 하네스 경로를 인자로 받는다)."""
+        command = entry["command"]
+        m = re.search(r'python -I -B -c "(.*)" claude ([0-9a-f]{64}) ([0-9a-f]{64})', command)
+        if m:
+            return [sys.executable, "-I", "-B", "-c", m.group(1), "claude", m.group(2), m.group(3)]
+        m = re.search(r'-I -B -c "(.*)" codex "\$H" ([0-9a-f]{64}) ([0-9a-f]{64}) ([0-9a-f]{64})', command)
+        self.assertIsNotNone(m, command)
+        return [sys.executable, "-I", "-B", "-c", m.group(1), "codex", str(self.h.root), m.group(2), m.group(3), m.group(4)]
+
+    def stop(self, session, **extra):
+        return {"session_id": session, "turn_id": "t1", "hook_event_name": "Stop", "stop_hook_active": False,
+                "last_assistant_message": f"{SYNTH} 답변", "cwd": str(self.h.root), **extra}
 
     def env(self, **extra):
         environment = {k: v for k, v in os.environ.items() if k not in ("CLAUDE_PROJECT_DIR",) and k.lower() != "nodefaultcurrentdirectoryinexepath"}
@@ -867,11 +893,13 @@ class InstalledHookProcessTests(TempCase):
     def log_size(self):
         return self.log.stat().st_size if self.log.exists() else 0
 
-    def test_codex_entry_is_synchronous_hardened_and_flags_pinned(self):  # codex-hook-01, hooks-new-01, codex-hook-02, tests-docs-new-3
+    def test_codex_entry_is_stop_sync_hardened_and_flags_pinned(self):  # round 5: Stop, fast path, no venv interpreter
+        config = json.loads((self.h.root / ".codex/hooks.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(config["hooks"]), ["Stop"])  # 셸 명령마다 도는 PostToolUse에는 없다
+        self.assertNotIn("matcher", config["hooks"]["Stop"][0])
         self.assertNotIn("async", self.codex)
         self.assertEqual(self.codex["timeout"], 30)
         self.assertEqual((self.claude.get("async"), self.claude["timeout"]), (True, 60))
-        # Windows: cmd·PowerShell 5.1·pwsh가 같게 읽는 "상대 경로 실행기 + 16진수 인자"만 둔다(셸 연산자 없음)
         windows = self.codex["commandWindows"]
         self.assertRegex(windows, r"^\.codex\\visual-viewer-hook\.cmd codex( [0-9a-f]{64}){4}$")
         launcher = self.h.root / ".codex" / "visual-viewer-hook.cmd"
@@ -879,27 +907,29 @@ class InstalledHookProcessTests(TempCase):
         self.assertEqual(windows.split()[-1], hashlib.sha256(launcher.read_bytes()).hexdigest())
         digests = viewer.app_digests(self.h.root / "web/prototypes/visual-viewer")
         self.assertEqual(windows.split()[2:5], [digests["hook"], digests["build_view"], digests["index"]])
-        for line in ("set NoDefaultCurrentDirectoryInExePath=1", 'cd /d "%~dp0.."', "exit /b 0",
-                     ' codex %2 %3 %4 1>nul 2>"runtime-data\\visual-viewer\\hook-start-error.log"'):
-            self.assertIn(line, text)
-        self.assertLess(text.index("set NoDefaultCurrentDirectoryInExePath=1"), text.index("uv run "))
+        order = ["set NoDefaultCurrentDirectoryInExePath=1", 'cd /d "%~dp0.."', "dir /b /a-d /o-d", 'if /i "!NEWEST!"=="!SEEN!" exit /b 0',
+                 'cd /d "%SystemRoot%\\System32"', viewer.FIND_PYTHON, '"%PY%" -I -B -c "', 'codex "%H%\\." %2 %3 %4 1>nul 2>>"%OUT%\\hook-start-error.log"']
+        self.assertEqual([text.index(part) for part in order], sorted(text.index(part) for part in order))
+        self.assertIn("setlocal EnableDelayedExpansion", text)  # 표시 파일 내용은 지연 확장으로만 비교
+        self.assertNotIn("%SEEN%", text)
+        self.assertNotIn("uv run", text)
         self.assertTrue(text.rstrip().endswith("exit /b 0"))
-        self.assertIn(" >/dev/null 2>runtime-data/visual-viewer/hook-start-error.log; exit 0", self.codex["command"])
-        self.assertTrue(self.codex["command"].endswith("; exit 0"))
-        for redirecting in (text.split(" -I -B -c ")[1].split('" codex ')[1], self.codex["command"].rsplit('" codex ', 1)[1]):
+        posix = self.codex["command"]
+        for part in ('cd / || exit 0', viewer.FIND_PYTHON, '"$P" -I -B -c "', 'codex "$H"', '>/dev/null 2>>"$O/hook-start-error.log"; exit 0'):
+            self.assertIn(part, posix)
+        self.assertNotIn("uv run", posix)
+        for redirecting in (text.split(" -I -B -c ")[1].split('" codex ')[1], posix.rsplit('" codex ', 1)[1]):
             self.assertNotIn("hook-error.log", redirecting)  # 셸 리다이렉트가 hook.py의 로그 파일을 잡지 않는다
-        for command in (self.claude["command"], self.codex["command"], text):
-            self.assertIn("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c", command)
-        for command in (self.claude["command"], self.codex["command"]):
+        self.assertIn("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c", self.claude["command"])
+        for command in (self.claude["command"], posix):
             self.assertEqual(len(set(re.findall(r"[0-9a-f]{64}", command))), 3)
 
-    def test_codex_post_tool_use_payload_triggers_rebuild(self):  # codex-hook-01
+    def test_codex_stop_payload_triggers_rebuild(self):  # codex-hook-01, round 5
         self.h.add("microwave")
-        payload = {"session_id": "x1", "turn_id": "t1", "hook_event_name": "PostToolUse", "tool_name": "Bash",
-                   "tool_input": {"command": "uv run python .agents/skills/review-and-revise/scripts/run.py"}, "cwd": str(self.h.root)}
-        self.assertSilentZero(self.call(self.python_part(self.codex), payload, self.h.root))
+        self.assertSilentZero(self.call(self.python_part(self.codex), self.stop("x1"), self.h.root))
         self.assertEqual(self.h.state()["opened_sessions"], ["codex:x1"])
         self.assertTrue((self.h.out / "view-data.js").is_file())
+        self.assertEqual((self.h.out / ".hook-last-export").read_text(encoding="utf-8"), EXPORTS["microwave"].name)
         self.h.add("dishwasher")
         self.assertSilentZero(self.call(self.python_part(self.claude), {"session_id": "c1", "tool_name": "PowerShell"}, Path.home(),
                                         env={"CLAUDE_PROJECT_DIR": str(self.h.root)}))
@@ -912,7 +942,7 @@ class InstalledHookProcessTests(TempCase):
             with self.subTest(name=name):
                 original = (app / name).read_bytes()
                 (app / name).write_bytes(original + b"\n<!-- tampered -->\n" if name.endswith(".html") else original + b"\nTAMPERED = True\n")
-                self.assertSilentZero(self.call(self.python_part(self.codex), {"session_id": "x"}, self.h.root))
+                self.assertSilentZero(self.call(self.python_part(self.codex), self.stop("x"), self.h.root))
                 self.assertFalse((self.h.out / "view-data.js").exists())
                 self.assertIn(needle, self.log.read_text(encoding="utf-8"))
                 self.assertFalse(json.loads(run_viewer("status", str(self.h.root))[1])["codex"]["files_match_command"])
@@ -965,8 +995,8 @@ class InstalledHookProcessTests(TempCase):
             self.skipTest("Windows PowerShell not available")
         self.claude_run("powershell", lambda c: ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", c])
 
-    def check_codex_windows(self, shell):  # E2E 0.162.1 PowerShell, hooks-new-01, codex-hook-02, round 3 logging
-        """정확한 commandWindows를 Codex처럼 실행: exit 0·무출력, 새 export 재생성, 심은 uv.cmd 무시, 오류가 status 로그에 남음."""
+    def check_codex_windows(self, shell):  # E2E 0.162.1 PowerShell, hooks-new-01, codex-hook-02, round 3 logging, round 5 fast path
+        """정확한 commandWindows를 Codex처럼 실행: exit 0·무출력, 새 export 재생성, 빠른 길, 심은 uv.cmd·표시 파일 무시, 오류 기록."""
         if os.name != "nt":
             self.skipTest("commandWindows runs only on Windows")
         if not windows_shell(shell):
@@ -975,11 +1005,12 @@ class InstalledHookProcessTests(TempCase):
         app = self.h.root / "web/prototypes/visual-viewer"
 
         def run(session, **env):
-            proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps({"session_id": session, "turn_id": "t"}).encode(),
-                                self.env(**env), shell)
+            proc = codex_runner(self.codex["commandWindows"], self.h.root, json.dumps(self.stop(session)).encode(), self.env(**env), shell)
             self.assertSilentZero(proc)
             return json.loads(run_viewer("status", str(self.h.root))[1])
 
+        run(f"{shell}-0")  # export 없음: 아무것도 하지 않는다
+        self.assertFalse((self.h.out / "view-data.js").exists())
         self.h.add("microwave")
         run(f"{shell}-1")
         self.assertIn(f"codex:{shell}-1", self.h.state()["opened_sessions"])
@@ -991,15 +1022,27 @@ class InstalledHookProcessTests(TempCase):
         self.assertFalse(marker.exists(), "uv.cmd in the harness root ran")
         self.assertEqual(self.h.state()["last_export"], EXPORTS["dishwasher"].name)
         (self.h.root / "uv.cmd").unlink()
+        # 빠른 길: 새 export가 없으면 Python을 시작하지 않는다(바꾼 hook.py가 있어도 로그가 늘지 않음)
         original = (app / "hook.py").read_bytes()
         (app / "hook.py").write_bytes(original + b"\n# tampered\n")
+        before = self.log_size()
+        run(f"{shell}-fast")
+        self.assertEqual(self.log_size(), before)
+        # 새 export는 빠른 길이 건너뛰지 않는다
         self.h.add("refrigerator")
         report = run(f"{shell}-3")
         self.assertIn("hook.py is missing or differs", report["last_error"])
         self.assertEqual(report["last_error_file"], "hook-error.log")
         (app / "hook.py").write_bytes(original)
+        # 샌드박스가 쓸 수 있는 표시 파일에 명령을 넣어도 실행되지 않고, 비교가 틀리면 Python으로 넘어간다
+        pwned = self.h.root / "pwned.txt"
+        (self.h.out / ".hook-last-export").write_text(f'x" == "x" echo pwned> "{pwned}" & rem "', encoding="ascii")
+        report = run(f"{shell}-inject")
+        self.assertFalse(pwned.exists())
+        self.assertEqual(self.h.state()["last_export"], EXPORTS["refrigerator"].name)
         original = (app / "build_view.py").read_bytes()
         (app / "build_view.py").write_bytes(original + b"\nTAMPERED = True\n")
+        self.h.add("held")
         self.assertIn("build_view.py가 설치 때와 다릅니다", run(f"{shell}-4")["last_error"])
         (app / "build_view.py").write_bytes(original)
         broken = self.h.exports / "export-zz-broken.json"
@@ -1027,7 +1070,7 @@ class InstalledHookProcessTests(TempCase):
     def test_codex_windows_command_under_pwsh(self):
         self.check_codex_windows("pwsh")
 
-    def test_codex_posix_command_in_sh(self):  # hooks-new-01 (macOS·Linux form; checked with Git Bash on Windows)
+    def test_codex_posix_command_in_sh(self):  # hooks-new-01, round 5 (macOS·Linux form; checked with Git Bash on Windows)
         bash = git_bash()
         if not bash:
             self.skipTest("Git Bash / sh not found")
@@ -1037,15 +1080,57 @@ class InstalledHookProcessTests(TempCase):
         script.write_text("#!/bin/sh\necho 'error: fake uv failure' >&2\nexit 2\n", encoding="ascii", newline="\n")
         script.chmod(0o755)
         tools = Path(bash).resolve().parents[1] / "usr" / "bin" if os.name == "nt" else Path("/usr/bin")
-        proc = self.call([bash, "-c", self.codex["command"]], {"session_id": "p"}, self.h.root,
+        self.h.add("held")
+        proc = self.call([bash, "-c", self.codex["command"]], self.stop("p"), self.h.root,
                          env={"PATH": os.pathsep.join([str(fake), str(tools), os.path.dirname(bash)])})
         self.assertSilentZero(proc)
         self.assertIn("fake uv failure", self.start_log.read_text(encoding="utf-8", errors="replace"))
         self.assertIn("fake uv failure", json.loads(run_viewer("status", str(self.h.root))[1])["last_error"])
         self.need_uv()
         self.h.add("microwave")
-        self.assertSilentZero(self.call([bash, "-c", self.codex["command"]], {"session_id": "p2", "turn_id": "t"}, self.h.root))
+        self.assertSilentZero(self.call([bash, "-c", self.codex["command"]], self.stop("p2"), self.h.root))
         self.assertIn("codex:p2", self.h.state()["opened_sessions"])
+        app = self.h.root / "web/prototypes/visual-viewer"
+        (app / "hook.py").write_bytes((app / "hook.py").read_bytes() + b"\n# tampered\n")
+        before = self.log_size()
+        self.assertSilentZero(self.call([bash, "-c", self.codex["command"]], self.stop("p3"), self.h.root))
+        self.assertEqual(self.log_size(), before)  # 빠른 길: 새 export가 없으면 Python을 시작하지 않는다
+
+    def test_codex_interpreter_ignores_harness_venv(self):  # round 5: .venv route
+        """하네스에 심은 .venv(.pth)·.python-version·sitecustomize.py·uv.cmd가 Codex 훅에서 실행되지 않는다."""
+        self.need_uv()
+        venv = self.h.root / ".venv"
+        made = subprocess.run(["uv", "venv", "--quiet", "--python", "3.12", "--no-python-downloads", str(venv)], capture_output=True, timeout=120)
+        if made.returncode:
+            self.skipTest("uv venv could not create a Python 3.12 venv here")
+        site = next(venv.glob("Lib/site-packages")) if os.name == "nt" else next(venv.glob("lib/python3*/site-packages"))
+        ran = self.h.root / "venv-code-ran.txt"
+        (site / "zz_probe.pth").write_text(f"import os; open({str(ran)!r}, 'w').close()\n", encoding="utf-8")
+        (self.h.root / ".python-version").write_text("3.11\n", encoding="ascii")
+        (self.h.root / "sitecustomize.py").write_text(f"open({str(ran)!r}, 'w').close()\n", encoding="utf-8")
+        # 시험을 `uv run`으로 돌리면 VIRTUAL_ENV가 바깥 venv를 가리켜 대조가 하네스 .venv를 보지 않는다.
+        control_env = {k: v for k, v in self.env().items() if k != "VIRTUAL_ENV"}
+        control = subprocess.run("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -c pass",
+                                 shell=True, capture_output=True, cwd=self.h.root, env=control_env, timeout=120)
+        self.assertEqual(control.returncode, 0)
+        self.assertTrue(ran.exists(), "control: the planted .pth must run through the old `uv run` route")
+        ran.unlink()
+        planted = {"VIRTUAL_ENV": str(venv)}  # VIRTUAL_ENV가 심은 .venv를 가리켜도 쓰지 않는다
+        runners = [("python-part", lambda: self.call(self.python_part(self.codex), self.stop("v0"), self.h.root))]
+        if os.name == "nt":
+            for shell in ("cmd", "powershell", "pwsh"):
+                if windows_shell(shell):
+                    runners.append((shell, lambda shell=shell: codex_runner(self.codex["commandWindows"], self.h.root,
+                                                                            json.dumps(self.stop(shell)).encode(), self.env(**planted), shell)))
+        bash = git_bash()
+        if bash:
+            runners.append(("sh", lambda: self.call([bash, "-c", self.codex["command"]], self.stop("sh"), self.h.root, env=planted)))
+        for i, (label, run) in enumerate(runners):
+            with self.subTest(runner=label):
+                self.h.add(FAMILIES[i % 3][0], f"export-venv-{label}.json")
+                self.assertSilentZero(run())
+                self.assertFalse(ran.exists(), f"{label}: code planted in the harness ran")
+                self.assertEqual(self.h.state()["last_export"], f"export-venv-{label}.json")
 
     def test_install_for_one_cli_repins_the_other(self):  # hooks-new-02, installer-new-pinned-other-cli-silent, tests-docs-new-1
         src2 = Path(self.tmp.name) / "src2" / "web" / "prototypes" / "visual-viewer"
@@ -1062,7 +1147,7 @@ class InstalledHookProcessTests(TempCase):
         report = json.loads(run_viewer("status", str(self.h.root))[1])
         self.assertTrue(report["claude"]["files_match_command"] and report["codex"]["files_match_command"])
         self.h.add("microwave")
-        self.assertSilentZero(self.call(self.python_part(self.entry(".codex/hooks.json")), {"session_id": "after-update"}, self.h.root))
+        self.assertSilentZero(self.call(self.python_part(self.entry(".codex/hooks.json")), self.stop("after-update"), self.h.root))
         self.assertIn("codex:after-update", self.h.state()["opened_sessions"])
         (self.h.root / ".codex/hooks.json").write_text("{broken", encoding="utf-8")
         code, text = run_viewer("install", "--claude", str(self.h.root))
@@ -1076,6 +1161,7 @@ class InstallTests(TempCase):
     old = {"type": "command", "command": "C:/Users/someone/Python314/python.exe -I -S -B C:/Users/someone/h/runtime-data/visual-viewer/hook.py",
            "timeout": 30, "async": True}
     lint = {"matcher": "apply_patch", "hooks": [{"type": "command", "command": "echo lint", "timeout": 5}]}
+    stop_lint = {"hooks": [{"type": "command", "command": "echo stop-lint", "timeout": 5}]}
     mine = {"type": "command", "command": "echo mine", "timeout": 5}
 
     def write(self, rel, value, encoding="utf-8"):
@@ -1113,53 +1199,60 @@ class InstallTests(TempCase):
         report = json.loads(run_viewer("status", str(self.h.root))[1])
         self.assertEqual((report["claude"]["registered"], report["claude"]["misplaced"], report["claude"]["matcher"]), (True, 0, "Bash|PowerShell"))
 
-    def test_codex_entry_in_wrong_event_is_moved(self):  # installer-new-inplace-keeps-wrong-matcher-event
-        self.write(".codex/hooks.json", {"hooks": {"SessionEnd": [{"hooks": [dict(self.old, command=self.old["command"])]}], "PostToolUse": [self.lint]}})
+    def test_codex_entry_in_wrong_event_is_moved(self):  # installer-new-inplace-keeps-wrong-matcher-event, round 5 migration
+        self.write(".codex/hooks.json", {"hooks": {"SessionEnd": [{"hooks": [dict(self.old)]}], "PostToolUse": [self.lint]}})
         run_viewer("install", "--codex", str(self.h.root))
         config = self.load(".codex/hooks.json")
         self.assertNotIn("SessionEnd", config["hooks"])
-        self.assertEqual(config["hooks"]["PostToolUse"][0], self.lint)
-        self.assertTrue(viewer.is_ours(config["hooks"]["PostToolUse"][1]["hooks"][0]))
-        self.assertTrue(json.loads(run_viewer("status", str(self.h.root))[1])["codex"]["registered"])
+        self.assertEqual(config["hooks"]["PostToolUse"], [self.lint])
+        self.assertTrue(viewer.is_ours(config["hooks"]["Stop"][0]["hooks"][0]))
+        report = json.loads(run_viewer("status", str(self.h.root))[1])["codex"]
+        self.assertEqual((report["registered"], report["misplaced"], report["event"]), (True, 0, "Stop"))
+        # 이전 버전처럼 PostToolUse(Bash)에 있던 Codex 항목은 Stop으로 옮긴다(명령이 바뀌어 /hooks 재신뢰 필요)
+        self.write(".codex/hooks.json", {"hooks": {"PostToolUse": [{"matcher": "Bash", "hooks": [dict(self.old)]}]}})
+        code, text = run_viewer("install", "--codex", str(self.h.root))
+        self.assertIn("Stop로 옮겼습니다", text)
+        config = self.load(".codex/hooks.json")
+        self.assertEqual(list(config["hooks"]), ["Stop"])
 
     def test_codex_positions_are_preserved_for_groups_and_handlers(self):  # codex-hook-03, installer-new-handler-shift-on-uninstall
         rel = ".codex/hooks.json"
-        self.write(rel, {"hooks": {"PostToolUse": [{"matcher": "Bash", "hooks": [self.old]}, self.lint]}})
+        self.write(rel, {"hooks": {"Stop": [{"hooks": [self.old]}, self.stop_lint]}})
         self.assertEqual(run_viewer("install", "--codex", str(self.h.root))[0], 0)
-        groups = self.load(rel)["hooks"]["PostToolUse"]
+        groups = self.load(rel)["hooks"]["Stop"]
         self.assertTrue(viewer.is_ours(groups[0]["hooks"][0]))
-        self.assertEqual(groups[1], self.lint)
+        self.assertEqual(groups[1], self.stop_lint)
         self.assertEqual(run_viewer("uninstall", "--codex", str(self.h.root))[0], 0)
-        self.assertEqual(self.load(rel)["hooks"]["PostToolUse"], [{"matcher": "Bash", "hooks": []}, self.lint])
+        self.assertEqual(self.load(rel)["hooks"]["Stop"], [{"hooks": []}, self.stop_lint])
         self.assertIn("추가(이전 자리)", run_viewer("install", "--codex", str(self.h.root))[1])
-        groups = self.load(rel)["hooks"]["PostToolUse"]
+        groups = self.load(rel)["hooks"]["Stop"]
         self.assertTrue(viewer.is_ours(groups[0]["hooks"][0]))
-        self.assertEqual(groups[1], self.lint)
+        self.assertEqual(groups[1], self.stop_lint)
         # 같은 묶음 안 뒤쪽 처리기: 빈 명령 자리표시로 번호(:0:1)를 지킨다
         config = self.load(rel)
-        config["hooks"]["PostToolUse"][0]["hooks"].append(self.mine)
+        config["hooks"]["Stop"][0]["hooks"].append(self.mine)
         self.write(rel, config)
         code, text = run_viewer("uninstall", "--codex", str(self.h.root))
         self.assertIn("빈 명령 자리표시", text)
-        self.assertEqual(self.load(rel)["hooks"]["PostToolUse"][0]["hooks"], [viewer.PLACEHOLDER, self.mine])
+        self.assertEqual(self.load(rel)["hooks"]["Stop"][0]["hooks"], [viewer.PLACEHOLDER, self.mine])
         run_viewer("install", "--codex", str(self.h.root))
-        handlers = self.load(rel)["hooks"]["PostToolUse"][0]["hooks"]
+        handlers = self.load(rel)["hooks"]["Stop"][0]["hooks"]
         self.assertTrue(viewer.is_ours(handlers[0]))
         self.assertEqual(handlers[1], self.mine)
         # Claude는 위치 신뢰가 없어 자리표시를 남기지 않는다
         self.write(".claude/settings.local.json", {"hooks": {"PostToolUse": [{"matcher": "Bash|PowerShell", "hooks": [self.old, self.mine]}]}})
         run_viewer("uninstall", "--claude", str(self.h.root))
         self.assertEqual(self.load(".claude/settings.local.json")["hooks"]["PostToolUse"][0]["hooks"], [self.mine])
-        self.write(rel, {"hooks": {"PostToolUse": [self.lint]}})
+        self.write(rel, {"hooks": {"Stop": [self.stop_lint], "PostToolUse": [self.lint]}})
         run_viewer("install", "--codex", str(self.h.root))
         run_viewer("uninstall", "--codex", str(self.h.root))
-        self.assertEqual(self.load(rel), {"hooks": {"PostToolUse": [self.lint]}})
+        self.assertEqual(self.load(rel), {"hooks": {"Stop": [self.stop_lint], "PostToolUse": [self.lint]}})
 
     def test_codex_uninstall_deletes_own_file_and_keeps_config(self):
         toml = self.write(".codex/config.toml", "[agents]\nenabled = true\n")
         before = toml.read_bytes()
         run_viewer("install", "--codex", str(self.h.root))
-        self.assertIn('" codex ', self.load(".codex/hooks.json")["hooks"]["PostToolUse"][0]["hooks"][0]["command"])
+        self.assertIn('" codex ', self.load(".codex/hooks.json")["hooks"]["Stop"][0]["hooks"][0]["command"])
         self.assertTrue((self.h.root / ".codex/visual-viewer-hook.cmd").is_file())
         self.assertEqual(json.loads(run_viewer("status", str(self.h.root))[1])["codex"]["launcher"], ".codex/visual-viewer-hook.cmd")
         run_viewer("uninstall", "--codex", str(self.h.root))
@@ -1287,6 +1380,48 @@ class InstallTests(TempCase):
             self.assertFalse(viewer.codex_hooks_disabled(self.h.root))
             self.write(".codex/config.toml", "[features]\nhooks = false\n")
             self.assertTrue(viewer.codex_hooks_disabled(self.h.root))
+
+    def test_status_reports_cli_versions_against_tested_list(self):  # round 5 auto-update
+        run_viewer("install", "--both", str(self.h.root))
+        tested = {name: versions[0] for name, versions in viewer.TESTED_VERSIONS.items()}
+        with mock.patch.object(viewer, "cli_version", side_effect=lambda name: tested[name]):
+            report = json.loads(run_viewer("status", str(self.h.root))[1])
+        self.assertEqual((report["cli_versions"], report["version_warnings"]), (tested, []))
+        with mock.patch.object(viewer, "cli_version", side_effect=lambda name: {"codex": "9.9.9", "claude": None}[name]):
+            report = json.loads(run_viewer("status", str(self.h.root))[1])
+        self.assertEqual(len(report["version_warnings"]), 1)
+        self.assertIn("codex 9.9.9", report["version_warnings"][0])
+        self.assertIn("selftest", report["version_warnings"][0])
+        with mock.patch.object(viewer.shutil, "which", return_value=None):
+            self.assertIsNone(viewer.cli_version("codex"))
+
+    def test_selftest_runs_registered_commands_in_a_temp_copy(self):  # round 5 auto-update
+        if not shutil.which("uv"):
+            self.skipTest("uv not on PATH: the registered commands run through uv")
+        self.assertEqual(run_viewer("selftest", str(self.h.root))[0], 1)  # 아직 등록 전
+        real = self.h.add("microwave")
+        run_viewer("install", "--both", str(self.h.root))
+        state_before = (self.h.out / ".hook-state.json").read_bytes()
+        code, text = run_viewer("selftest", str(self.h.root))
+        report = json.loads(text)
+        self.assertEqual(code, 0, text)
+        ran = [r for r in report["results"] if r["result"] != "skip"]
+        self.assertTrue(ran)
+        self.assertTrue(all(r["result"] == "pass" and r["exit"] == 0 and r["output_bytes"] == 0 and r["view_rebuilt"] for r in ran))
+        self.assertEqual({r["cli"] for r in ran}, {"claude", "codex"})
+        for r in report["results"]:
+            if r["result"] == "skip":
+                self.assertEqual(r["reason"], "이 PC에 없는 셸")
+        self.assertEqual((self.h.out / ".hook-state.json").read_bytes(), state_before)  # 실제 상태·화면은 그대로
+        self.assertFalse((self.h.out / "view-data.js").exists())
+        self.assertEqual([p.name for p in self.h.exports.iterdir()], [real.name])
+        app = self.h.root / "web/prototypes/visual-viewer"
+        (app / "build_view.py").write_bytes((app / "build_view.py").read_bytes() + b"\n# changed after install\n")
+        code, text = run_viewer("selftest", "--codex", str(self.h.root))
+        self.assertEqual(code, 1)
+        failed = [r for r in json.loads(text)["results"] if r["result"] == "fail"]
+        self.assertTrue(failed)
+        self.assertTrue(all("build_view.py가 설치 때와 다릅니다" in r["reason"] for r in failed))
 
     def test_outputs_stay_in_ignored_runtime_data(self):
         self.assertEqual(Path(hook.Paths(str(self.h.root)).out).relative_to(self.h.root).parts[0], "runtime-data")

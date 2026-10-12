@@ -9,3 +9,4 @@ insights-*.json
 .hook.lock
 hook-error.log
 hook-start-error.log
+.hook-last-export
