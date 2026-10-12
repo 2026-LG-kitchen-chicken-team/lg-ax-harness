@@ -53,7 +53,7 @@ uv run python web/prototypes/visual-viewer/viewer.py uninstall --both
 
 - 훅은 업무·모델·Tool을 호출하지 않고 출력이 없다. Codex 훅은 항상 exit 0이다. 훅의 오류는 `runtime-data/visual-viewer/hook-error.log`에, Codex에서 uv·Python이 시작조차 못 한 오류는 같은 폴더의 `hook-start-error.log`에만 남는다.
 - 화면(`index.html`, `view-data.js`)·훅 상태·로그·insights는 모두 `<하네스>/runtime-data/visual-viewer/`에 생긴다. 실제 결과이므로 Git·공개 자료에 넣지 않는다.
-- 의견 묶음 도넛·구분별 막대·후기 원문 비교는 export에 없는 모델 해석이라 insights 파일(`runtime-data/visual-viewer/insights-<이름>.json`)이 있어야 그린다. 없거나 맞지 않으면 근거 대시보드 맨 위에 이유가 나온다.
+- 의견 묶음 도넛·구분별 막대·후기 원문 비교는 export에 없는 모델 해석이라 insights 파일(`runtime-data/visual-viewer/insights-<이름>.json`)이 있어야 그린다. 없거나 맞지 않으면 근거 대시보드 맨 위에 기획자용 한 줄 이유가, 맨 아래 접힌 `운영 안내`에 파일 위치·session_id·turn_id가 나온다.
 
 ## 파일과 동작
 
@@ -98,7 +98,8 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 
 요청·개요 / 근거 대시보드 / 후기 선별 / 기능 대조 / 제안 / 업무 기록 재생 / 근거 원문 / 내보내기의 8개 화면이다. [웹 연결 계약](../../../docs/contracts/team-web-kitchen.md)에 맞춰 다음을 표시한다.
 
-- 모든 화면: `저장된 실행 결과`, 상태(`기획 초안 완료(completed)`·수정 필요·보류·입력 필요·조사 필요·진행 중·실패·취소), valid, `의미 검토 unverified · 인수 전`, 합성 자료면 `합성 시험 자료`(보여줄 결과가 없어도 모든 후보·자료 버전에서 찾아 표시), 화면 생성 경고 수.
+- 모든 화면: `저장된 실행 결과`, 상태(`기획 초안 완료`·수정 필요·보류·입력 필요·조사 필요·진행 중·실패·취소), `유효`/`무효`(valid), `의미 검토 전 · 인수 전`(semantic_status unverified·acceptance_ready false), 합성 자료면 `합성 시험 자료`(보여줄 결과가 없어도 모든 후보·자료 버전에서 찾아 표시), 화면 생성 경고 수.
+- 기획자 말: 사이드바 칩·자막·지표 설명은 한국어로만 쓰고 원래 값(`status: completed` 등)은 마우스를 올리면 보이는 설명(tip)에 둔다. 표·내보내기 화면처럼 자세한 곳은 `기획 초안 완료(completed)`처럼 원래 값을 함께 적는다. 파일 경로·session_id·turn_id·명령은 접힌 운영 안내와 세션 정보에만 둔다.
 - **현재 결과는 저장 도구가 승인한 결과(`state.latest_result`)뿐이다.** 거절 후보(`validation.contract_valid=false`·`error`)는 현재 결과·제안으로 그리지 않고 업무 기록의 후보 표에 `거절 · <code>`와 사유(error·review.findings)로 남긴다. 승인된 결과가 없으면 근거·대조·제안 화면은 비우고 이유를 적는다. 내보내기의 저장 검사는 보여주는 결과의 검사, 없으면 마지막 후보의 검사를 `(마지막 거절 후보)`·`(마지막 저장 후보 · 현재 결과 아님)`·`(저장된 후보 없음)`으로 구분해 보인다.
 - **turn 없이 멈춘 요청(needs_input·research_required·held 등)은 모두 상태 맨 앞과 요청·개요 맨 위에 보인다.** export에는 요청 시각이 없고 requests 순서도 시간 순서가 아니다. prior_turn_id가 마지막 turn인 요청만 `마지막 turn 뒤`라고 쓰고, 나머지는 `순서 미확인`으로 적는다. 어느 요청이 최신인지 고르지 않으며 이전 turn은 `마지막 turn …`으로 표시한다.
 - 취소는 `state.cancellation`의 사유·취소 전 상태를 적고, 실행 중단은 확인되지 않았다고 표시한다. 모델이 쓴 `cancelled` 결과는 그 결과의 사유를 적는다.

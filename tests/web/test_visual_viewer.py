@@ -401,7 +401,8 @@ class BuildViewTests(TempCase):
         summary, view = self.build("reject1")
         self.assertEqual(summary["focus"], "overview")
         status = [c["text"] for c in view["context"]["status"]]
-        self.assertIn("수정 필요(needs_revision)", status)
+        self.assertIn("수정 필요", status)
+        self.assertIn("status: needs_revision", [c.get("tip") for c in view["context"]["status"]])
         self.assertIn("승인된 결과 없음", status)
         self.assertIn("review_not_finalizable", blob(page(view, "overview")))
         self.assertIn("unsupported_or_uncertain:p1", blob(page(view, "overview")))
@@ -424,8 +425,9 @@ class BuildViewTests(TempCase):
         summary, view = self.build("followup_held")
         self.assertEqual(summary["focus"], "overview")
         status = [c["text"] for c in view["context"]["status"]]
-        self.assertEqual(status[0], "마지막 turn 뒤 turn 없는 요청 1건 (보류 1)")
-        self.assertEqual(status[1], "마지막 turn 기획 초안 완료(completed)")
+        self.assertEqual(status[0], "마지막 결과 뒤 멈춘 요청 1건 (보류 1)")
+        self.assertEqual(status[1], "마지막 결과 기획 초안 완료")
+        self.assertEqual(view["context"]["status"][1]["tip"], "status: completed")
         overview = blob(page(view, "overview"))
         for text in ("마지막 turn(T1) 뒤에 turn 없이 멈춘 요청 1건", f"{SYNTH} 후속 ZZZ123", f"{SYNTH} HTTP403 보류 사유", "research_observation"):
             self.assertIn(text, overview)
@@ -436,8 +438,8 @@ class BuildViewTests(TempCase):
                 summary, view = self.build(key)
                 self.assertEqual(summary["focus"], "overview")
                 status = [c["text"] for c in view["context"]["status"]]
-                self.assertTrue(status[0].startswith("turn 없는 요청 1건 · 순서 미확인"), status)
-                self.assertTrue(status[1].startswith("마지막 turn "), status)
+                self.assertTrue(status[0].startswith("결과 없이 멈춘 요청 1건 · 순서 미확인"), status)
+                self.assertTrue(status[1].startswith("마지막 결과 "), status)
                 overview = blob(page(view, "overview"))
                 self.assertIn(question, overview)
                 self.assertIn("나중인지 알 수 없습니다", overview)
@@ -446,7 +448,7 @@ class BuildViewTests(TempCase):
                     self.assertNotIn(text, blob(view))
         summary, view = self.build("requests_mixed")
         self.assertEqual(summary["focus"], "overview")
-        self.assertEqual(view["context"]["status"][0]["text"], "turn 없는 요청 2건 · 순서 미확인 (" +
+        self.assertEqual(view["context"]["status"][0]["text"], "결과 없이 멈춘 요청 2건 · 순서 미확인 (" +
                          ", ".join(f"{build_view.STATUS_LABEL[s]} 1" for s in dict.fromkeys(
                              r["status"] for r in build_view.turnless_requests(export_of("requests_mixed"), []))) + ")")
         overview = blob(view["pages"][0])
@@ -611,9 +613,19 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
         export = self.h.add("refrigerator")
         summary, view = self.build(path=export)
         self.assertEqual(summary["insights"], "missing")
-        first = page(view, "dashboard")["blocks"][0]
-        self.assertIn("의견 묶음 화면에는 insights 파일이 필요합니다", first["text"])
-        self.assertIn(current_turn("refrigerator"), first["text"])
+        blocks = page(view, "dashboard")["blocks"]
+        self.assertIn("의견 묶음 차트는 없습니다", blocks[0]["text"])
+        self.assertIn("AI 해석 파일이 없습니다", blocks[0]["text"])
+        for internal in ("session_id", "turn_id", "insights-", "runtime-data", "viewer.py"):  # 기획자용 안내에 내부 용어를 넣지 않는다
+            self.assertNotIn(internal, blocks[0]["text"])
+        howto = blocks[-1]
+        self.assertEqual((howto["type"], howto["title"]), ("expander", "의견 묶음 차트를 그리려면 (운영 안내)"))
+        self.assertIn(current_turn("refrigerator"), blob(howto))
+        self.assertIn(export_of("refrigerator")["session_id"], blob(howto))
+        status = {c["text"]: c.get("tip") for c in view["context"]["status"]}
+        self.assertEqual(status["유효"], "valid: true")
+        self.assertEqual(status["의미 검토 전 · 인수 전"], "semantic_status: unverified · acceptance_ready: false")
+        self.assertNotIn("turn", view["pages"][0]["caption"]["text"] + page(view, "history")["caption"]["title"])
 
     def test_turn_bound_insights_draw_groups_and_bom_is_read(self):
         export = self.h.add("microwave")

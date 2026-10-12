@@ -899,7 +899,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: now
     const ok = $('#side-ok');
     ok.hidden = !ctx.loaded;
     ok.textContent = ctx.loaded ? '✅ ' + ctx.loaded : '';
-    $('#side-status').innerHTML = (ctx.status || [{ text: '데이터 없음' }]).map((s) => '<span class="side-pill ' + (s.tone ? tone(s.tone) : '') + '">' + esc(s.text) + '</span>').join('');
+    $('#side-status').innerHTML = (ctx.status || [{ text: '데이터 없음' }]).map((s) => '<span class="side-pill ' + (s.tone ? tone(s.tone) : '') + '"' + (s.tip ? ' title="' + esc(s.tip) + '"' : '') + '>' + esc(s.text) + '</span>').join('');
     $('#side-foot').innerHTML = (ctx.footer || []).map((f) => '<span>' + md(f) + '</span>').join('');
   }
 

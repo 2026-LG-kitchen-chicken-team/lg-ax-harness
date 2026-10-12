@@ -64,8 +64,21 @@ INSIGHTS_WHY = {
     "unbound": "같은 세션의 insights는 있지만 turn_id가 없고 이 세션에 turn이 여러 개라, 어느 turn의 해석인지 알 수 없어 쓰지 않았습니다.",
     "invalid": "insights 파일의 형식이 README의 insights 형식과 달라 쓰지 않았습니다.",
 }
+# 기획자에게 보이는 이유(한 줄). 파일·ID가 든 자세한 이유(INSIGHTS_WHY)는 접힌 운영 안내에 둔다.
+INSIGHTS_WHY_PLAIN = {
+    "missing": "이 결과에 맞는 AI 해석 파일이 없습니다.",
+    "mismatch": "AI 해석 파일이 다른 세션의 것이라 쓰지 않았습니다.",
+    "other_turn": "AI 해석 파일이 같은 세션의 다른 질문용이라 쓰지 않았습니다.",
+    "stale": "AI 해석 파일이 이 결과에 없는 근거를 가리켜(다른 질문용으로 보임) 쓰지 않았습니다.",
+    "unbound": "AI 해석 파일에 어느 질문용인지 적혀 있지 않고 이 세션에는 질문이 여러 개라 쓰지 않았습니다.",
+    "invalid": "AI 해석 파일의 형식이 맞지 않아 쓰지 않았습니다.",
+}
 INSIGHTS_APPLIED = {"matched": "turn_id 일치", "single_turn": "turn이 하나뿐인 세션", "given": "직접 지정",
                     "unverified_turn": "직접 지정 · turn 미확인"}
+SEMANTIC_LABEL = {"unverified": "의미 검토 전"}
+RESOLUTION_LABEL = {"resolved": "해소", "partially_resolved": "일부 해소", "unresolved": "미해소", "uncertain": "불확실"}
+SUPPORT_LABEL = {"supported": "뒷받침됨", "partially_supported": "일부 뒷받침", "unsupported": "뒷받침 안 됨", "uncertain": "불확실"}
+SCOPE_RELATION_LABEL = {"current_model": "현재 모델", "unclear": "모델 불명확", "other_model": "다른 모델"}
 
 HARNESS_STEPS = [
     {"icon": "📚", "title": "자료 조회", "text": "선택한 모델의 저장된 리뷰·공식 사양·설명서를 정확한 버전으로 조회합니다. `evidence-retrieval`"},
@@ -77,14 +90,14 @@ HARNESS_STEPS = [
 ]
 
 DEFAULT_CAPTIONS = {
-    "overview": ("입력: 모델과 질문, 조건을 확인합니다", "세션 ID와 요청 키는 도구가 만들었습니다."),
-    "dashboard": ("근거: 등록 근거 {evidence}건을 묶어 봅니다", "관측 건수이며 발생률이나 시장 수요가 아닙니다."),
-    "screening": ("선별: 근거로 쓴 후기와 제외한 후기", "제외한 후기는 사유와 함께 남겼습니다."),
+    "overview": ("입력: 모델과 질문, 조건을 확인합니다", "질문 원문과 조건은 저장된 그대로 보여줍니다."),
+    "dashboard": ("근거: 결과에 쓴 근거 {evidence}건을 셉니다", "관측 건수이며 발생률이나 시장 수요가 아닙니다."),
+    "screening": ("선별: 결과에 쓴 원문 근거", "인용은 저장된 원문 그대로이며 화면이 고치지 않습니다."),
     "compare": ("대조: 불편을 같은 모델의 기존 기능과 맞춰 봅니다", "기능이 있다고 불편이 해소된 것은 아닙니다."),
     "concepts": ("제안: 남은 불편에 연결한 제안", "효과·비용은 측정 전 미확정입니다."),
-    "history": ("기록: {turns}개 turn의 상태와 근거 수 변화", "보류 {held}건, 기획 초안 완료 {completed}건."),
-    "evidence": ("원문: 등록 근거 {evidence}건의 인용과 위치", "저장 도구가 인용·해시·위치를 저장 원문과 대조했습니다. 주장 뒷받침은 별도 검토 대상입니다."),
-    "export": ("산출물: 세션 기록을 export 파일로 남겼습니다", "검토 통과는 원문 의미·효과의 자동 증명이 아닙니다."),
+    "history": ("기록: 질문 {turns}개의 상태와 근거 수 변화", "보류 {held}건, 기획 초안 완료 {completed}건."),
+    "evidence": ("원문: 결과에 쓴 근거 {evidence}건의 인용과 위치", "저장할 때 인용문과 위치를 원문과 대조했습니다. 인용이 주장을 뒷받침하는지는 따로 검토합니다."),
+    "export": ("산출물: 세션 기록을 결과 파일(export)로 남겼습니다", "검토 통과는 원문 의미·효과의 자동 증명이 아닙니다."),
 }
 
 PAGES = [
@@ -162,6 +175,18 @@ def fill(template: str, values: dict) -> str:
 
 def status_text(status: str | None) -> str:
     return f"{STATUS_LABEL[status]}({status})" if status in STATUS_LABEL else (status or "미기록")
+
+
+def status_plain(status: str | None) -> str:
+    """사이드바 칩·지표 설명처럼 짧은 자리에 쓰는 한국어 상태. 원래 값은 칩의 tip으로 남긴다."""
+    return STATUS_LABEL.get(status, status or "미기록")
+
+
+def semantic_chip(export: dict) -> dict:
+    sem = export.get("semantic_status")
+    ready = export.get("acceptance_ready")
+    text = SEMANTIC_LABEL.get(sem, f"의미 검토 {sem or '미기록'}") + ("" if ready else " · 인수 전")
+    return {"text": text, "tone": "orange", "tip": f"semantic_status: {sem or '미기록'} · acceptance_ready: {str(ready).lower()}"}
 
 
 def family_label(family: str | None) -> str:
@@ -316,9 +341,10 @@ def turnless_requests(export: dict, rows: list[dict]) -> list[dict]:
 def turnless_chip(reqs: list[dict]) -> dict:
     after = sum(1 for r in reqs if r["after_last"])
     statuses = ", ".join(f"{STATUS_LABEL.get(s, s)} {sum(1 for r in reqs if r['status'] == s)}" for s in dict.fromkeys(r["status"] for r in reqs))
-    text = (f"마지막 turn 뒤 turn 없는 요청 {after}건" + (f" 외 {len(reqs) - after}건" if len(reqs) > after else "")
-            if after else f"turn 없는 요청 {len(reqs)}건 · 순서 미확인")
-    return {"text": f"{text} ({statuses})", "tone": "orange"}
+    text = (f"마지막 결과 뒤 멈춘 요청 {after}건" + (f" 외 {len(reqs) - after}건" if len(reqs) > after else "")
+            if after else f"결과 없이 멈춘 요청 {len(reqs)}건 · 순서 미확인")
+    return {"text": f"{text} ({statuses})", "tone": "orange",
+            "tip": "업무 turn을 만들지 못하고 멈춘 요청(requests[]의 turn_id 없음). export에 요청 시각이 없어 순서는 prior_turn_id로만 판단합니다."}
 
 
 def insights_shape_errors(ins) -> list[str]:
@@ -599,12 +625,26 @@ def insights_notice(c: Ctx) -> list[dict]:
                                              "tone": "orange" if c.insights_state == "unverified_turn" else "purple"}]}]
     if c.insights_state not in INSIGHTS_WHY:
         return []
-    sid = str(c.export.get("session_id") or "")
     return [{"type": "callout", "tone": "info", "text": (
-        f"**의견 묶음 화면에는 insights 파일이 필요합니다.** {INSIGHTS_WHY[c.insights_state]} 그래서 의견 묶음 도넛·구분별 막대·"
-        "후기 원문 비교를 그리지 않았고, 아래 지표는 결과 구조의 항목 수만 셉니다. 의견 묶음은 export에 없는 모델 해석입니다. "
-        f"보려면 `{INSIGHTS_HINT}`에 이 결과의 session_id `{sid}`와 turn_id `{c.cur['turn_id']}`, groups를 써 두세요"
-        "(README의 insights 형식). 다음 export 때나 `viewer.py open --latest`로 다시 만들 때 반영됩니다.")}]
+        f"**의견 묶음 차트는 없습니다.** 후기를 비슷한 의견끼리 묶는 일은 AI 해석이라 저장된 결과에 들어 있지 않습니다. "
+        f"{INSIGHTS_WHY_PLAIN[c.insights_state]} 아래 숫자와 차트는 저장된 결과의 항목을 그대로 센 것입니다.")}]
+
+
+def insights_howto(c: Ctx) -> list[dict]:
+    """의견 묶음을 그리는 방법(파일 위치·session_id·turn_id). 기획자 화면을 가리지 않도록 대시보드 맨 아래에 접어 둔다."""
+    if c.insights_file or c.insights_state not in INSIGHTS_WHY:
+        return []
+    sid = str(c.export.get("session_id") or "")
+    return [{"type": "expander", "icon": "🛠️", "title": "의견 묶음 차트를 그리려면 (운영 안내)", "blocks": [
+        {"type": "text", "text": f"{INSIGHTS_WHY[c.insights_state]} 의견 묶음 도넛·구분별 막대·후기 원문 비교는 export에 없는 모델 해석이라 "
+                                 "insights 파일이 있어야 그립니다."},
+        {"type": "steps", "items": [
+            f"`{INSIGHTS_HINT}` 파일에 groups(묶음 이름과 근거 ID 목록)를 씁니다(README의 insights 형식).",
+            "같은 파일에 아래 session_id와 turn_id를 그대로 적습니다. 다른 질문용 파일은 쓰지 않습니다.",
+            "다음 export 때나 `viewer.py open --latest`로 다시 만들 때 반영됩니다.",
+        ]},
+        {"type": "files", "items": [{"label": "session_id", "value": sid}, {"label": "turn_id", "value": c.cur["turn_id"]}]},
+    ]}]
 
 
 # ---------------------------------------------------------------- pages
@@ -620,24 +660,24 @@ def page_overview(c: Ctx) -> list[dict]:
     cited = {e.get("model_id") for e in c.evidence}
     excluded = cons.get("exclude_pains") or []
     blocks = [
-        {"type": "lead", "text": c.ins.get("lead") or "하네스가 저장한 세션 export를 읽어 근거·불편·기존 기능·제안 연결을 그린 화면입니다. 화면은 **저장된 실행 결과**만 보여주고 모델이나 업무를 다시 실행하지 않습니다."},
+        {"type": "lead", "text": c.ins.get("lead") or "하네스가 저장한 결과 파일(export)을 읽어 근거·불편·기존 기능·제안 연결을 그린 화면입니다. 화면은 **저장된 실행 결과**만 보여주고 모델이나 업무를 다시 실행하지 않습니다."},
         *status_blocks(c),
         {"type": "divider"},
         {"type": "heading", "icon": "🗂️", "text": "요청과 조건"},
         {"type": "metrics", "items": [
             {"label": "모델", "value": cur["model"], "note": family_label(cur["family"])},
-            {"label": "범위", "value": SCOPE_MODE.get(cur["scope_mode"], cur["scope_mode"] or "미기록"), "note": f"model_scope {len(cur['scope'])}개"},
+            {"label": "범위", "value": SCOPE_MODE.get(cur["scope_mode"], cur["scope_mode"] or "미기록"), "note": f"대상 모델 {len(cur['scope'])}개"},
             {"label": "제안 상한", "value": cons.get("max_concepts", "미기록"), "unit": "개" if "max_concepts" in cons else ""},
             {"label": "하드웨어 추가", "value": "허용" if cons.get("hardware_allowed") else "제외"},
             {"label": "자료 버전", "value": version_label(cur["data_version"]), "note": cur["data_version"] or ""},
-            {"label": "turn", "value": len(c.rows), "unit": "개", "note": statuses},
+            {"label": "질문(turn)", "value": len(c.rows), "unit": "개", "note": statuses},
         ]},
-        {"type": "chips", "title": "모델 범위(model_scope)", "items": [
+        {"type": "chips", "title": "대상 모델", "items": [
             {"text": s.get("model_id", "?") + (" · 결과 근거" if s.get("model_id") in cited else ""), "mono": True,
              "tone": "blue" if s.get("model_id") in cited else "gray",
              "tip": f"model_version {s.get('model_version')} · document_version {s.get('document_version')}"} for s in cur["scope"]]
          or [{"text": "기록 없음", "tone": "gray"}]},
-        {"type": "chips", "title": "제외한 불편(exclude_pains)",
+        {"type": "chips", "title": "제외한 불편 (사용자 조건)",
          "items": [{"text": p, "tone": "orange"} for p in excluded] or [{"text": "없음", "tone": "gray"}]},
         {"type": "quotes", "items": [{
             "quote": first["question"],
@@ -658,16 +698,17 @@ def page_overview(c: Ctx) -> list[dict]:
         {"type": "heading", "icon": "🚀", "text": "하네스 단계"},
         {"type": "text", "text": "출품 업무 Skill 6개의 구조 정의입니다. 이번 세션에서 각 Skill이 실행됐다는 기록은 아니며, Agent 수를 뜻하지도 않습니다."},
         {"type": "features", "items": HARNESS_STEPS},
-        {"type": "heading", "icon": "📋", "text": "이 화면 쓰는 법"},
-        {"type": "steps", "items": [
-            "CLI(Claude Code·Codex)에서 질문하면 하네스가 결과를 `runtime-data/exports`에 export로 저장합니다.",
-            "훅을 설치했다면 새 export가 생길 때 이 화면을 다시 만들고, CLI 세션마다 처음 한 번 브라우저를 엽니다.",
-            f"의견 묶음·자막·제외 사유는 export에 없는 모델 해석입니다. 같은 session_id·turn_id로 `{INSIGHTS_HINT}`를 쓰면 함께 그립니다.",
-            "브라우저를 열어 둔 채면 2초 안에 새 데이터로 바뀝니다. 훅이 없거나 화면을 닫았다면 아래 명령으로 직접 엽니다.",
-            "공유할 때는 `build_view.py --standalone`으로 데이터가 들어 있는 HTML 한 파일을 만듭니다.",
+        {"type": "expander", "icon": "📋", "title": "이 화면 쓰는 법 (설치·운영 안내)", "blocks": [
+            {"type": "steps", "items": [
+                "CLI(Claude Code·Codex)에서 질문하면 하네스가 결과를 `runtime-data/exports`에 결과 파일(export)로 저장합니다.",
+                "뷰어를 설치했다면 새 결과가 저장될 때 이 화면을 다시 만들고, CLI 세션마다 처음 한 번 브라우저를 엽니다.",
+                f"의견 묶음·자막·제외 사유는 결과 파일에 없는 AI 해석입니다. 같은 session_id·turn_id로 `{INSIGHTS_HINT}`를 쓰면 함께 그립니다.",
+                "브라우저를 열어 둔 채면 2초 안에 새 데이터로 바뀝니다. 화면을 닫았다면 아래 명령으로 직접 엽니다.",
+                "공유할 때는 `build_view.py --standalone`으로 데이터가 들어 있는 HTML 한 파일을 만듭니다.",
+            ]},
+            {"type": "code", "text": "# 하네스 폴더에서 실행 (표준 라이브러리만 사용, 모델·업무 호출 없음)\n"
+                                     "uv run python web/prototypes/visual-viewer/viewer.py open --latest"},
         ]},
-        {"type": "code", "text": "# 하네스 폴더에서 실행 (표준 라이브러리만 사용, 모델·업무 호출 없음)\n"
-                                 "uv run python web/prototypes/visual-viewer/viewer.py open --latest"},
         {"type": "expander", "icon": "🆔", "title": "세션 정보", "blocks": [{"type": "files", "items": [
             {"label": "session_id", "value": c.export.get("session_id", "미기록")},
             {"label": "현재 turn", "value": cur["turn_id"]},
@@ -693,15 +734,17 @@ def page_dashboard(c: Ctx) -> list[dict]:
     if not kpis:
         res = c.result
         kpis = [
-            {"label": "등록 근거", "value": len(c.evidence), "unit": "건", "tone": "blue", "note": "evidence_refs"},
+            {"label": "등록 근거", "value": len(c.evidence), "unit": "건", "tone": "blue", "note": "결과에 쓴 인용 근거", "source": "evidence_refs"},
             {"label": "후기 근거", "value": c.values["reviews"] if not unknown_type or c.values["reviews"] else "미확인",
              "unit": "건" if not unknown_type or c.values["reviews"] else "", "tone": "purple",
              "note": f"유형 미기록 {unknown_type}건 별도" if unknown_type else "후기 원문 발췌"},
-            {"label": "현재 불편", "value": len(res.get("pains") or []), "unit": "개", "tone": "red", "note": "pains"},
-            {"label": "기존 기능", "value": len(res.get("existing_features") or []), "unit": "개", "tone": "green", "note": "existing_features"},
-            {"label": "제안", "value": len(res.get("concepts") or []), "unit": "개", "tone": "orange", "note": status_text(c.cur["status"])},
+            {"label": "현재 불편", "value": len(res.get("pains") or []), "unit": "개", "tone": "red", "note": "근거에서 찾은 불편", "source": "pains"},
+            {"label": "기존 기능", "value": len(res.get("existing_features") or []), "unit": "개", "tone": "green", "note": "대조한 같은 모델 기능",
+             "source": "existing_features"},
+            {"label": "제안", "value": len(res.get("concepts") or []), "unit": "개", "tone": "orange", "note": status_plain(c.cur["status"]),
+             "source": f"concepts · 상태 {c.cur['status']}"},
         ]
-        kpi_source = "insights 없이 결과 구조의 항목 수를 센 값"
+        kpi_source = "저장된 결과의 항목 수 (AI 해석 없이 센 값)"
     groups = list(c.groups.values())
     blocks = stale_blocks(c) + insights_notice(c) + [{"type": "section", "text": "핵심 지표"}, {"type": "kpis", "items": kpis, "source": kpi_source}]
     if groups:
@@ -746,7 +789,7 @@ def page_dashboard(c: Ctx) -> list[dict]:
                                  "source": "source_id 접두어(REVIEW·SPEC 등), 없으면 origin.representation(원문 발췌·제품 사실)"}]},
         {"span": 1, "blocks": [claim_block]},
     ]})
-    return blocks
+    return blocks + insights_howto(c)
 
 
 def page_screening(c: Ctx) -> list[dict]:
@@ -857,7 +900,7 @@ def page_compare(c: Ctx) -> list[dict]:
     if matches:
         blocks.append({"type": "section", "text": "검토 기록의 대조 판단"})
         for fm in matches:
-            label = {"partially_resolved": "일부 해소", "resolved": "해소", "unresolved": "미해소"}.get(fm.get("resolution"), fm.get("resolution", ""))
+            label = RESOLUTION_LABEL.get(fm.get("resolution"), fm.get("resolution", ""))
             blocks.append({"type": "callout", "tone": "info",
                            "text": f"**{fm.get('pain_id')} → {fm.get('remaining_pain_id')} · {label}** {fm.get('rationale', '')}"})
     checks = assessment.get("claim_checks") or []
@@ -865,10 +908,11 @@ def page_compare(c: Ctx) -> list[dict]:
         blocks.append({"type": "expander", "icon": "🧾", "title": f"주장별 검토 기록 {len(checks)}개", "blocks": [{
             "type": "table",
             "columns": [{"key": "id", "label": "항목", "kind": "mono"}, {"key": "status", "label": "판정", "kind": "pill"},
-                        {"key": "scope", "label": "범위", "kind": "mono"}, {"key": "why", "label": "근거 요약", "kind": "wide"}],
-            "rows": [{"id": ch.get("claim_id"), "status": {"text": ch.get("support_status", "미기록"),
-                      "tone": "green" if ch.get("support_status") == "supported" else "orange"},
-                      "scope": ch.get("scope_relation"), "why": ch.get("rationale", "")} for ch in checks],
+                        {"key": "scope", "label": "범위"}, {"key": "why", "label": "근거 요약", "kind": "wide"}],
+            "rows": [{"id": ch.get("claim_id"), "status": {"text": SUPPORT_LABEL.get(ch.get("support_status"), ch.get("support_status") or "미기록"),
+                      "tone": "green" if ch.get("support_status") == "supported" else "orange", "tip": ch.get("support_status") or ""},
+                      "scope": SCOPE_RELATION_LABEL.get(ch.get("scope_relation"), ch.get("scope_relation")),
+                      "why": ch.get("rationale", "")} for ch in checks],
         }]})
     return blocks
 
@@ -1234,20 +1278,24 @@ def build(c: Ctx | None, ins: dict, focus: str | None) -> dict:
         status = []
         if c.pending:  # 어느 요청이 최신인지 고르지 않는다(export에 요청 시각이 없다)
             status.append(turnless_chip(c.pending))
-        status += [{"text": ("마지막 turn " if c.pending else "") + status_text(c.cur["status"]), "tone": STATUS_TONE.get(c.cur["status"], "gray")},
-                   {"text": "valid" if c.cur["valid"] else "invalid", "tone": "green" if c.cur["valid"] else "red"}]
+        status += [{"text": ("마지막 결과 " if c.pending else "") + status_plain(c.cur["status"]), "tone": STATUS_TONE.get(c.cur["status"], "gray"),
+                    "tip": f"status: {c.cur['status']}"},
+                   {"text": "유효" if c.cur["valid"] else "무효", "tone": "green" if c.cur["valid"] else "red",
+                    "tip": f"valid: {str(c.cur['valid']).lower()}" + ("" if c.cur["valid"] else f" · {c.cur['invalidation'] or '사유 미기록'}")}]
         if not c.has_result:
             status.append({"text": "승인된 결과 없음", "tone": "red"})
         if c.synthetic:
             status.append({"text": "합성 시험 자료", "tone": "purple"})
-        status.append({"text": f"의미 검토 {c.export.get('semantic_status', '미기록')}" + ("" if c.export.get("acceptance_ready") else " · 인수 전"),
-                       "tone": "orange"})
+        status.append(semantic_chip(c.export))
         if warnings:
             status.append({"text": f"화면 경고 {len(warnings)}", "tone": "orange"})
+        # 제품군 질문이면 모델 이름에 이미 제품군이 들어 있으니 한 번만 쓴다.
+        default_meta = "{model} · 자료 {version} · 저장된 실행 결과" if c.values["family"] in c.values["model"] else \
+            "{model} · {family} · 자료 {version} · 저장된 실행 결과"
         context = {
-            "meta": fill(ins.get("meta") or "{model} · {family} · 자료 {version} · 저장된 실행 결과", c.values),
+            "meta": fill(ins.get("meta") or default_meta, c.values),
             "file": {"name": name if len(name) <= 40 else f"{name[:22]}…{name[-14:]}", "size": human_size(c.export_path.stat().st_size)},
-            "loaded": f"근거 {len(c.evidence)}건 · turn {len(c.rows)}개",
+            "loaded": f"근거 {len(c.evidence)}건 · 질문 {len(c.rows)}개",
             "status": status,
             "footer": [f"🗄️ 기록된 호출 {usage['recorded_calls']}건" if usage.get("recorded_calls") else "🗄️ 사용량 기록 없음 (미측정)",
                        f"🆔 Session: `{c.export.get('session_id', '')[:16]}…`"],
@@ -1334,9 +1382,10 @@ def build_requests_only(export: dict, export_path: Path, ins: dict, focus: str |
         "app": {"title": "LG AX 상품기획", "subtitle": "하네스 시각자료 뷰어", "icon": "📊"},
         "context": {"meta": ins.get("meta") or "요청 기록 · 저장된 실행 결과", "file": {"name": export_path.name, "size": human_size(len(raw))},
                     "loaded": f"요청 {len(rows)}건 · turn 0개",
-                    "status": [{"text": f"turn 없음 · {status_text(only_status)}" if only_status else turnless_chip(reqs)["text"],
-                                "tone": STATUS_TONE.get(only_status, "orange")},
-                               {"text": f"의미 검토 {export.get('semantic_status', '미기록')}", "tone": "orange"}],
+                    "status": [{"text": f"결과 없음 · {status_plain(only_status)}" if only_status else turnless_chip(reqs)["text"],
+                                "tone": STATUS_TONE.get(only_status, "orange"),
+                                "tip": f"turn 없음 · status: {only_status}" if only_status else turnless_chip(reqs)["tip"]},
+                               semantic_chip(export)],
                     "footer": [f"🆔 Session: `{str(export.get('session_id', ''))[:16]}…`"]},
         "pages": pages,
         "warnings": list(warnings),
