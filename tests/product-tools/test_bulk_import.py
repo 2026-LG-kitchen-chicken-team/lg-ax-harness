@@ -171,6 +171,36 @@ class BulkImportTests(unittest.TestCase):
         self.assertEqual((result["status"], result["completed_count"]), ("failed", 0))
         self.assertEqual(result["error"]["code"], "terminal_turn")
 
+    def test_untimed_cancelled_and_failed_turns_cannot_register_a_new_catalog(self):
+        store = StateStore(self.root/"state.sqlite", self.empty)
+        self.addCleanup(store.close)
+        conv = Conversation(store, self.root)
+        request = conv.open_request({"question": "Untimed legacy fixture "+self.mid, "user_submitted": True,
+                                     "session_id": "untimed", "request_key": "untimed"})
+        conv.set_request_scope_policy({"session_id": "untimed", "request_key": "untimed",
+                                       "policy": {"mode": "explicit_model", "model_id": self.mid, "user_quote": self.mid}})
+        self.assertFalse(WorkflowAudit(store.db, self.root).active(request["research_id"]))
+        store.db.execute("INSERT INTO turns(turn_id,session_id,request_key,input_json,context_hash,dataset_hash,code_hash,status,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                         ("untimed-turn", "untimed", "untimed", "{}", "fixture", self.empty.fingerprint, store.code_hash, "cancelled", datetime.now(timezone.utc).isoformat()))
+        store.db.execute("UPDATE conversation_requests SET turn_id='untimed-turn' WHERE session_id='untimed'")
+        self.original["research_id"] = request["research_id"]
+        self.write()
+        # Make the generated observations genuinely belong to the untimed
+        # request. With the old clock-only guard these valid originals import.
+        self.web.db.execute("UPDATE web_pages SET research_id=? WHERE research_id='fixture'", (request["research_id"],))
+        self.web.db.commit()
+        for terminal in ("cancelled", "failed"):
+            with self.subTest(terminal=terminal):
+                store.db.execute("UPDATE turns SET status=? WHERE turn_id='untimed-turn'", (terminal,))
+                self.original["data_version"] = "untimed-"+terminal
+                self.write()
+                result = self.run_import("untimed-"+terminal)
+                self.assertEqual((result["status"], result["completed_count"]), ("failed", 0))
+                self.assertEqual(result["error"]["code"], "terminal_turn")
+                self.assertIsNone(result["last_valid_catalog"])
+                self.assertEqual(result["unprocessed_count"], 36)
+                self.assertFalse((self.root/"runtime-data/catalogs").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

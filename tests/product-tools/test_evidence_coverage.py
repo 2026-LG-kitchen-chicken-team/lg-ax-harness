@@ -181,6 +181,30 @@ class EvidenceCoverageTests(unittest.TestCase):
 
 
 class ShortClockTests(unittest.TestCase):
+    def test_early_finish_without_research_stop_closes_future_collection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = StateStore(root/"state.sqlite", Dataset(ROOT/"data/business/empty"))
+            try:
+                conv = Conversation(store, root)
+                start = datetime(2026, 10, 12, tzinfo=timezone.utc)
+                with patch("product_tools.workflow.utc_now", return_value=start):
+                    request = conv.open_product_workflow({"question": "Early-finish clock fixture", "user_submitted": True,
+                                                         "session_id": "finished", "request_key": "finished"})
+                audit = WorkflowAudit(store.db, root)
+                with patch("product_tools.workflow.utc_now", return_value=start+timedelta(seconds=50)):
+                    finished = audit.finish(request["research_id"])
+                self.assertIsNone(finished["research_stopped_at"])
+                self.assertFalse(finished["expired"])
+                self.assertFalse(finished["collection_reserve_active"])
+                with patch("product_tools.workflow.utc_now", return_value=start+timedelta(seconds=1000)):
+                    self.assertEqual(audit.status(request["research_id"])["elapsed_seconds"], 50)
+                    with self.assertRaises(ToolError) as caught:
+                        audit.collection_allowed(request["research_id"])
+                    self.assertEqual(caught.exception.code, "workflow_collection_closed")
+            finally:
+                store.close()
+
     def test_default_600_target_300_reserve_90_no_budget_reset(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

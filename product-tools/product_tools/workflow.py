@@ -57,7 +57,7 @@ class WorkflowAudit:
         if not self.active(research_id):
             return
         state = self.status(research_id)
-        if state["expired"] or state["research_stopped_at"] or state["collection_reserve_active"]:
+        if state["expired"] or state["finished_at"] or state["research_stopped_at"] or state["collection_reserve_active"]:
             fail("workflow_collection_closed", "Collection is closed; retain this request, save and deliver the observed scope")
 
     def snapshot(self, research_id, snapshot_id):

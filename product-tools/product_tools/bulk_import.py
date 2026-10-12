@@ -111,15 +111,16 @@ class BulkImporter:
             if research:
                 batch["research_id"] = research
             try:
-                if audit and audit.active(research):
-                    status = audit.status(research)
-                    if status["expired"] or status["finished_at"]:
-                        fail("workflow_expired", "Expired/finished original workflow cannot start another registration batch")
+                if audit:
                     request = audit.request(research)
                     if request[2] is not None:
                         turn = self.web.db.execute("SELECT status FROM turns WHERE turn_id=?", (request[2],)).fetchone()
                         if turn and turn[0] in ("cancelled", "failed"):
                             fail("terminal_turn", "The original turn is cancelled/failed; do not import into a replacement request")
+                    if audit.active(research):
+                        status = audit.status(research)
+                        if status["expired"] or status["finished_at"]:
+                            fail("workflow_expired", "Expired/finished original workflow cannot start another registration batch")
                 # Register manufacturer identities before touching dependent
                 # reviews/manual observations; a late bad review cannot discard
                 # an already-valid identity catalog.
