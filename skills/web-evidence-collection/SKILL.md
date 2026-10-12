@@ -5,6 +5,17 @@ description: "저장 근거 부족·자료 갱신·모델 또는 문서 연결 �
 
 # 외부 근거 조사
 
+## 충분한 자료와 일반 코드 분할 등록
+
+시간을 맞추려고 후기·조사 폭을 매우적게 줄이지 않는다. 긍정/부정·장기/사용조건·반례와 공식제품전반 사양·설명서를 여러원출처에서 확인하며, 수집목록건수는 원문보존·등록·전달·실제검토와 구분한다. 모르면 부족/접근실패로 기록한다. 일반코드로 원본보존·정확모델연결·중복처리·분할을 하고 큰페이지를 모델문맥에 통째출력하지 않는다.
+
+import_web_evidence_bulk 입력은 {input_path:"runtime-data/...json",import_key:"고유작업키"}이며 선택 data_version을 허용한다. 파일에는 기존 {research_id,data_version,new_models,observations} 원본을 넣는다. 16MiB까지읽고 identity source를먼저 등록한뒤 입력상대순서를유지해 최대10항목/64KiB batch로 나눈다. 원문텍스트·정확모델·문서버전·출처·SHA를 바꾸거나 모델접미부를 자동삭제하지 않는다. 정확identity 관측과 review source_scan journal을 먼저 저장해야 한다.
+
+응답 status=completed에서만 last_valid_catalog를 전체등록본으로 사용한다. partial_failure/failed/interrupted는 input_sha256/original_copy/audit_path·완료/미처리수와 마지막유효catalog를 보존하며 실패batch의 source_ids를 보고한다. 원자batch 실패라 정확오류항목이 미관측일수있다. 같은키캐시는 성공/실패를 재실행하지 않고 원본바이트/시작catalog변경을 거부한다. 자동새요청·시계리셋으로 재시도하지 않는다. last_valid_catalog를같은요청에결속하고 부족범위는 held로 전달한다. 부분출처를완료로꾸미지 않는다.
+
+기본workflow600초·목표300초이며 마지막90초에는 새수집이닫힌다. 이미보존자료의 등록·분석·검토·저장·파일전달을 남겨두고, 외부native 최종/process600초상한은 Tool시계와별도다. 과거명시1200~1800초는 호환이력이다.
+
+
 질문의 목표·제품군·정확 모델과 필요한 근거를 AI가 판단한다. 저장 자료의 충분성·현재성·범위가 맞을 때만 재사용한다. 미등록 모델을 등록 사례로 바꾸지 않는다. 새 조사는 open_product_workflow로 원질문과 전체 시계를 보존하거나 active-workflow.json의 원래 handle을 재사용한다. 응답의 research_id는 전체 session/request에서 생성된 값이며 새로 만들지 않는다. 수집 입력은 research_id/page_id/url, 선택 focus/preview_chars다. capture에는 실제 관측 observed_text/native_tool_name이 추가된다. import/공용 설명서 연결 필드가 필요할 때 docs/contracts/web-evidence.md의 해당 문단을 읽는다. 코드 전체를 읽어 양식을 추측하지 않는다.
 
 1. 실제 제공되는 native 검색으로 모델명과 부족 항목을 검색한다. 검색요약은 발견 용도다. 원문 페이지를 읽고 공식 exact 스펙·연결된 설명서·실제 후기 본문을 확보한다.
@@ -29,4 +40,4 @@ HTML 설명서는 실제 선택한 절의 본문만 관측하여 절별 page_id�
 
 시장 통계·경쟁 제품 문서는 대상 제품의 product_fact로 등록하지 않는다. 같은 research_id로 실제 원문을 capture하고, 보고서만 보강하는 `report_sources_path`의 관측 snapshot/짧은 정확 발췌/자료 대상/적용 범위를 작성한다. 상세 계약은 docs/contracts/reader-deliverables.md를 따른다. 이는 ProductResult의 대상 모델 근거·불편·기존 기능 검토를 대신할 수 없으며 경쟁 기능이 대상 제품에 없다는 증명도 아니다.
 
-실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence/configure_web_research다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.
+실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence/import_web_evidence_bulk/configure_web_research다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.

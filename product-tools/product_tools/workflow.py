@@ -23,6 +23,8 @@ class WorkflowAudit:
             research_id TEXT NOT NULL, event_key TEXT NOT NULL, kind TEXT NOT NULL,
             observed_at TEXT NOT NULL, payload TEXT NOT NULL,
             PRIMARY KEY(research_id,event_key))""")
+        if "target_checkpoint" not in {r[1] for r in db.execute("PRAGMA table_info(product_workflows)")}:
+            db.execute("ALTER TABLE product_workflows ADD COLUMN target_checkpoint TEXT")
 
     def request(self, research_id):
         identifier(research_id, "research_id")
@@ -35,11 +37,11 @@ class WorkflowAudit:
                 return row
         fail("research_not_registered", "Use the original saved request's research_id")
 
-    def start(self, research_id, budget_seconds=1800):
+    def start(self, research_id, budget_seconds=600, allow_new_bound_request=False):
         request = self.request(research_id)
-        integer(budget_seconds, "budget_seconds", 1200, 1800)
+        integer(budget_seconds, "budget_seconds", 300, 1800)
         row = self.db.execute("SELECT budget_seconds FROM product_workflows WHERE research_id=?", (research_id,)).fetchone()
-        if not row and request[2] is not None:
+        if not row and request[2] is not None and not allow_new_bound_request:
             fail("workflow_late_start", "Do not start a whole-request clock after binding an older untimed turn")
         if row and row[0] != budget_seconds:
             fail("workflow_conflict", "Original whole-request budget cannot be reset or extended")
@@ -55,7 +57,7 @@ class WorkflowAudit:
         if not self.active(research_id):
             return
         state = self.status(research_id)
-        if state["expired"] or state["research_stopped_at"]:
+        if state["expired"] or state["research_stopped_at"] or state["collection_reserve_active"]:
             fail("workflow_collection_closed", "Collection is closed; retain this request, save and deliver the observed scope")
 
     def snapshot(self, research_id, snapshot_id):
@@ -215,7 +217,7 @@ class WorkflowAudit:
             "SELECT observed_at,payload FROM product_workflow_events WHERE research_id=? ORDER BY observed_at,rowid", (research,))]
 
     def status(self, research):
-        row = self.db.execute("SELECT started_at,budget_seconds,research_stopped_at,finished_at,checkpoint FROM product_workflows WHERE research_id=?", (research,)).fetchone()
+        row = self.db.execute("SELECT started_at,budget_seconds,research_stopped_at,finished_at,checkpoint,target_checkpoint FROM product_workflows WHERE research_id=?", (research,)).fetchone()
         if not row:
             return {"tracked": False, "reason": "legacy/request without a measured product workflow"}
         started = datetime.fromisoformat(row[0])
@@ -234,6 +236,16 @@ class WorkflowAudit:
                 self.db.commit()
         else:
             checkpoint = strict_json(row[4]) if row[4] else None
+        target_checkpoint = strict_json(row[5]) if row[5] else None
+        if row[1] <= 600 and elapsed >= 300 and target_checkpoint is None:
+            target_checkpoint = {"observed_at": utc_now().isoformat(), "elapsed_seconds": round(elapsed, 3),
+                                 "due_at_seconds": 300, "method": "first workflow tool observation at or after target",
+                                 "remaining_seconds": max(0, round((deadline-end).total_seconds(), 3)),
+                                 "research_stopped": bool(row[2]), "recorded_events": len(events)}
+            was_in_transaction = self.db.in_transaction
+            self.db.execute("UPDATE product_workflows SET target_checkpoint=? WHERE research_id=?", (canonical(target_checkpoint), research))
+            if not was_in_transaction and self.db.isolation_level is not None:
+                self.db.commit()
         counts = self.counts(events, self.used_sources(research))
         for provider in counts["providers"]:
             provider["source_url_count"] = len(provider["source_urls"])
@@ -245,6 +257,13 @@ class WorkflowAudit:
                 "budget_seconds": row[1], "elapsed_seconds": round(elapsed, 3),
                 "remaining_seconds": max(0, round((deadline-end).total_seconds(), 3)), "expired": end > deadline,
                 "research_stopped_at": row[2], "finished_at": row[3], "twenty_minute_checkpoint": checkpoint,
+                "timing_contract": "short-request-v1" if row[1] <= 600 else "legacy-explicit-budget",
+                "target_seconds": min(300, row[1]), "final_delivery_reserve_seconds": 90 if row[1] <= 600 else None,
+                "collection_deadline": (deadline-timedelta(seconds=90)).isoformat() if row[1] <= 600 else deadline.isoformat(),
+                "collection_reserve_active": row[1] <= 600 and end >= deadline-timedelta(seconds=90),
+                "target_checkpoint": target_checkpoint,
+                "target_checkpoint_due": elapsed >= min(300, row[1]),
+                "native_deadline_enforcement": "not provided; local tool policy and file-finish clock only; native final/process exit needs external runner",
                 "research_seconds": round((datetime.fromisoformat(row[2])-started).total_seconds(), 3) if row[2] else None,
                 "stop": next((e["data"] for e in reversed(events) if e["kind"] == "research_stop"), None),
                 "counts": counts, "event_count": len(events),

@@ -34,7 +34,7 @@ class Conversation:
         """One product-name request, empty-catalog compatible, measured from entry."""
         obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds"))
         from .contracts import integer
-        integer(payload.get("budget_seconds", 1800), "budget_seconds", 1200, 1800)
+        integer(payload.get("budget_seconds", 600), "budget_seconds", 300, 1800)
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.store.db, self.workspace)
         with self.store.transaction():
@@ -47,7 +47,7 @@ class Conversation:
             if not research:
                 turn = response["turn"]
                 research = self._research_id(turn["session_id"], turn["request_key"])
-            status = audit.start(research, payload.get("budget_seconds", 1800))
+            status = audit.start(research, payload.get("budget_seconds", 600), allow_new_bound_request=True)
         return {**response, "research_id": research,
                 "workflow": status,
                 "next_action": "Interpret the original product name, investigate the whole exact product, then resolve this same request; do not ask for a pain when the product is clear"}
@@ -146,7 +146,26 @@ class Conversation:
             bundle["included_source_ids"].remove(removed)
             bundle["omitted_source_ids"].append(removed)
             bundle["byte_truncated"] = True
+        from .evidence_coverage import EvidenceCoverage
+        EvidenceCoverage(self.store).delivered(turn["session_id"], turn["turn_id"], bundle["evidence_refs"],
+                                               "bundle-" + fingerprint([turn["context_fingerprint"], bundle["evidence_refs"]]))
         return value
+
+    def evidence_inventory(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).evidence_inventory(payload)
+
+    def read_evidence_batch(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).read_evidence_batch(payload)
+
+    def record_evidence_review(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).record_evidence_review(payload)
+
+    def evidence_coverage(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).evidence_coverage(payload)
 
     def historical(self, session_id, turn_id):
         state = self.store.get_turn(session_id, turn_id)
@@ -346,6 +365,8 @@ class Conversation:
                 candidate["source_metadata"] = self._source_metadata(candidate["result"].get("evidence_refs", []))
             latest = histories[-1]["state"].get("latest_result")
             histories[-1]["source_metadata"] = self._source_metadata(latest.get("evidence_refs", []) if latest else [])
+            from .evidence_coverage import EvidenceCoverage
+            histories[-1]["evidence_coverage_history"] = EvidenceCoverage(self.store).history(row["turn_id"])
         value = {"session_id": session, "requests": [{"input": strict_json(r["payload"]), "turn_id": r["turn_id"], "request_version": r["request_version"], "response": strict_json(r["response"]) if r["response"] else None,
                  "events": [{"kind": e["kind"], "version": e["version"], "input": strict_json(e["payload"])} for e in self.store.db.execute("SELECT * FROM request_events WHERE session_id=? AND request_key=? ORDER BY version", (session, r["request_key"]))],
                  "research_usage": {"status": "unknown", "coverage": "not measured by request journal; native session evidence required"}} for r in requests],

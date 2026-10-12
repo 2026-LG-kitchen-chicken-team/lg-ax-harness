@@ -5,9 +5,18 @@ description: "질문에서 지정하거나 해석한 제품군 또는 정확 모
 
 # 저장 근거 조회
 
+## 전달·검토 범위 기록
+
+초기 bundle 3~4개만 읽고 기획을 끝내지 않는다. 새조사는 기본600초/목표300초·최종90초 수집마감이다. 같은 session_id/turn_id와 최종 --data를 유지해 evidence_inventory/evidence_coverage로 등록·완전본문전달·호출자신고검토·제외·누락을 확인한다. 이는 전체 웹 원문이나 고객 수·의미 충분성 인증이 아니다.
+
+read_evidence_batch 입력은 {session_id,turn_id,offset:0,limit:20}이고 선택 max_bytes(4096~63000)/source_ids를 허용한다. 반환 전체 reference는 줄이지 않으며 출력bytes에맞춰 실제 전달수/next_offset를 계산한다. next_offset가 null일 때까지 필요한 전체선택본문을 확인한다. initial bundle에서 실제 반환한 refs는 자동 전달장부에 기록되며 생략 refs는 기록되지 않는다. 중복전달은 고유source 수를 늘리지 않는다. 자료/code/version/context가 바뀌거나 취소되면 새coverage로 기존 검토를 재사용할 수 없다.
+
+record_evidence_review 입력은 {session_id,turn_id,review_key,records:[{source_id,disposition:"reviewed" 또는 "excluded",reason:구체적판단/제외이유}]}다. reviewed는 전체등록본문을 전달받은후에만 신고한다. excluded도 새600초 completed에서는본문전달이 필요하다. 초기사례밖의 긍정·부정·장기·조건·반례·설명서·사양의 의미/다양성은 AI가 실제 검토하고 부족을 표시한다. 의미미확인을 ID개수로 통과시키지 않는다. 모든선택catalog항목 전달·검토/제외기록이 없으면 completed를저장하지말고 같은turn의 held에 미검토범위를 남긴다. 기록은 export_session에 보존된다.
+
+
 브랜드·시장 미지정 제품군의 기본 대상은 국내 LG 모델이다. 명확한 다른 모델/브랜드/시장 요청은 같은 request의 set_request_scope_policy에 literal user_quote를 보존하고 해석한다. 제조사 국내 제품 정체성을 먼저 확인하며 모델 prefix·검색순위·한국어 설명서만으로 브랜드/판매국을 추정하지 않는다. 국내 LG 후보의 선택은 실제 접근 근거에 따라 AI가 판단한다.
 
-제품명에서 새 실제 조사를 시작할 때는 open_product_workflow를 사용하고 같은 요청의 record_workflow_event/workflow_status로 전체 예산·출처 이력·종료·분석 범위를 보존한다. 실행기 active-workflow.json이 있으면 원래 요청을 재사용한다. 상세 필드는 프로젝트 루트 docs/contracts/product-workflow.md다. 반환 bundle은 전체 원문이 아니며 retrieve_reviews/retrieve_product_facts의 offset/next_offset로 batch를 순회한다. 분석하지 않은 항목을 전량 분석으로 표시하지 않는다.
+제품명에서 새 실제 조사를 시작할 때는 open_product_workflow를 사용하고 같은 요청의 record_workflow_event/workflow_status로 전체 예산·출처 이력·종료·분석 범위를 보존한다. 실행기 active-workflow.json이 있으면 원래 요청을 재사용한다. 상세 필드는 프로젝트 루트 docs/contracts/product-workflow.md다. 반환 bundle은 전체 조사원문이 아니며 turn결속 read_evidence_batch의 offset/next_offset로 등록본문을 순회한다. turn전 진단에는 retrieve_reviews/retrieve_product_facts를 사용할 수 있다. 분석하지 않은 항목을 전량 분석으로 표시하지 않는다.
 
 독자용 자료집은 [보고서 작성](../review-and-revise/references/report-writing.md)의 실제 종류별 구성에 맞춘다. 확보한 원문·요약·모델/문서 버전·관측 범위·URL/위치를 보존하며 등록 ID는 내부 연결에만 사용한다. 비어 있는 조사 종류나 가상 통계로 파일을 채우지 않는다.
 
@@ -23,6 +32,6 @@ truncated=false/omitted_source_ids 없음은 bundle 전달 범위의 완전성�
 
 bundle에 없는 검토 원문만 `select_evidence`로 가져온다. 이미 받은 정확한 원문 지문·URL·위치는 변형 없이 사용한다. 긍정 의견을 불편으로 바꾸지 않는다. turn 전 자료 부족·갱신 필요·옵션 혼합은 메인에 반환해 외부 조사 또는 보류로 연결한다. 시작 뒤 새 부족이면 원래 --data/자료 버전으로 held 사유를 저장·export하고, 새 자료 등록/반영은 다음 실제 추가 입력이 도착한 뒤 그 입력의 turn 시작 전에 한다. 이미 외부 변경으로 turn이 무효화됐으면 그 오류와 이력을 보존하며 실제 새 사용자 입력 없이 새 turn을 만들지 않는다.
 
-실행: `uv run python skills/evidence-retrieval/scripts/run.py OP --input JSON_PATH`. OP는 doctor/list_models/open_request/open_request_bundle/resolve_request/resolve_request_bundle/record_request_research/current_request/prepare_planning_input/retrieve_reviews/retrieve_product_facts/select_evidence/match_product_scope다. 기본 자료는 빈 catalog다. 조사해 등록한 catalog는 `--data`로 명시하고 과거 평가 자료는 시험 때만 따로 선택한다. 필드는 review-and-revise의 프로젝트 루트 skills/review-and-revise/references/payload.md, 상세는 프로젝트 루트 docs/contracts/common-tools.md을 필요한 작업에 한해 읽는다. 제품군은 catalog의 모델에서 정하며 다른 제품군 scope를 섞지 않는다. 출력의 구조 검사와 불편의 실제 의미를 구분한다.
+실행: `uv run python skills/evidence-retrieval/scripts/run.py OP --input JSON_PATH`. OP는 evidence_inventory/read_evidence_batch/record_evidence_review/evidence_coverage/doctor/list_models/open_request/open_request_bundle/resolve_request/resolve_request_bundle/record_request_research/current_request/prepare_planning_input/retrieve_reviews/retrieve_product_facts/select_evidence/match_product_scope다. 기본 자료는 빈 catalog다. 조사해 등록한 catalog는 `--data`로 명시하고 과거 평가 자료는 시험 때만 따로 선택한다. 필드는 review-and-revise의 프로젝트 루트 skills/review-and-revise/references/payload.md, 상세는 프로젝트 루트 docs/contracts/common-tools.md을 필요한 작업에 한해 읽는다. 제품군은 catalog의 모델에서 정하며 다른 제품군 scope를 섞지 않는다. 출력의 구조 검사와 불편의 실제 의미를 구분한다.
 
 첫 사용자 질문은 원문 그대로 보존한다. 실제 후속만 session_id/prior_turn_id로 연결하고 제품군 후속의 전체 scope를 유지한다. 조사 진행은 동일 request에 기록하며 새 사용자 질문으로 꾸미지 않는다.

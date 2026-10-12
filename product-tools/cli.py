@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def dispatch(data, store, operation, payload):
     tools = ProductTools(data)
-    if operation in ("set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result"):
+    if operation in ("evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result"):
         return getattr(Conversation(store, ROOT), operation)(payload)
     if operation == "save_reviewed_result":
         obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment", "response_mode"))
@@ -26,11 +26,14 @@ def dispatch(data, store, operation, payload):
         return store.save_result(**payload, require_review=True)
     if operation == "review_product_result":
         return review_product_result(data, payload)
-    if operation in ("fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research"):
+    if operation in ("fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research"):
         web = WebEvidence(store.path, ROOT)
         try:
             if operation == "configure_web_research":
                 return web.configure(payload)
+            if operation == "import_web_evidence_bulk":
+                from product_tools.bulk_import import BulkImporter
+                return BulkImporter(web).run(data, payload)
             return web.import_evidence(data, payload) if operation == "import_web_evidence" else web.collect(payload, browser=operation == "capture_web_page")
         finally:
             web.close()
@@ -93,7 +96,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / DEFAULT_DATA_PATH)
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None

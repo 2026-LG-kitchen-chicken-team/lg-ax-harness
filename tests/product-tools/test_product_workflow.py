@@ -54,7 +54,7 @@ class ProductWorkflowTests(unittest.TestCase):
         self.conv = Conversation(self.store, self.root)
         self.original = {"question": "  테스트 제품 WF-TEST\n제품명만 입력한 원문  ",
                          "user_submitted": True, "session_id": "original-session", "request_key": "original-question"}
-        self.request = self.conv.open_product_workflow(self.original)
+        self.request = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.research = self.request["research_id"]
         self.audit = WorkflowAudit(self.store.db, self.root)
         self.web = WebEvidence(self.store.path, self.root)
@@ -106,7 +106,7 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertEqual(json.loads(stored), self.original)
         self.assertEqual(self.store.db.execute("SELECT COUNT(*) FROM turns").fetchone()[0], 0)
         self.now += timedelta(seconds=45)
-        replay = self.conv.open_product_workflow(self.original)
+        replay = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.assertEqual(replay["research_id"], self.research)
         self.assertEqual(replay["workflow"]["started_at"], self.started.isoformat())
         self.assertEqual(replay["workflow"]["elapsed_seconds"], 45)
@@ -122,11 +122,11 @@ class ProductWorkflowTests(unittest.TestCase):
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
         self.web = WebEvidence(self.store.path, self.root)
-        replay = self.conv.open_product_workflow(self.original)
+        replay = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.assertEqual((replay["workflow"]["started_at"], replay["workflow"]["elapsed_seconds"]),
                          (self.started.isoformat(), 70))
         self.error("workflow_conflict", self.conv.open_product_workflow, {**self.original, "budget_seconds": 1200})
-        for invalid in (True, 1199, 1801):
+        for invalid in (True, 299, 1801):
             self.error("invalid_input", self.conv.open_product_workflow, {**self.original, "budget_seconds": invalid})
         self.assertEqual(self.audit.status(self.research)["deadline"], (self.started + timedelta(seconds=1800)).isoformat())
 

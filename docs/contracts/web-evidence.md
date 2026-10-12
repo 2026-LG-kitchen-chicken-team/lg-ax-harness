@@ -62,3 +62,12 @@ HTTP403/redirect/미지원 형식/빈 자료/옵션 혼합을 숨기지 않는�
 spec_source_id는 같은 import observations의 product_fact/availability:present와 정확 scope가 같아야 한다. text=support_quote이며 실제 snapshot에 정확 모델 토큰이 있어야 한다. 모델 버전을 주장하면 해당 토큰도 필요하다. 치수·용량·배치 추정 metadata는 새 모델 등록에서 거부한다. identity_review는 제조사 근거를 직접 대조한 호출자 선언이며 코드가 공식성을 인증하지 않는다.
 
 기존 exact scope 덮어쓰기는 거부하며 최대20 scope, import당10개 관측이다. URL에 모델 문자열만 있는 것, 원문 없는 모델/출처 등록, source ID 재사용, 변조 snapshot은 거부한다. 모델·관측이 전부 검사를 통과해야 새 버전 폴더를 생성한다. 추후 저장 근거의 요약 문장은 공식 인용이 아니며 origin.support_quote로 돌아가 판단한다.
+
+
+## 2026-10-12: 파일 기반 bulk import
+
+`import_web_evidence_bulk` payload는 `{input_path:'runtime-data/...json',import_key, data_version?}`다. 파일은 기존 import의 `{data_version,observations,new_models?,research_id?}` 원본이며 최대 16MiB/1000 source observations/20 new exact scopes까지 읽는다. 명시 source_id는 중복 불가다. manufacturer identity의 spec_source_id observation을 먼저 별도 batch로 등록한 뒤 나머지 입력 상대 순서대로 최대10항목·64KiB 이하 batch로 전달한다. 각 immutable catalog version은 prefix-b0001 형식이며 원본 model/version/source_id/quote/location/journal을 수정하지 않는다. 정확 모델 접미부 자동 삭제나 원문 단축은 하지 않는다. 단일 항목이 기존 계약을 넘으면 실패를 남긴다.
+
+이 API는 원래 research_id와 literal snapshot/review source_scan journal 확인을 기존 importer에 위임한다. 브랜드/옵션/공식 귀속의 의미 판정은 코드 인증이 아니다. 실제 후기·설명서 범위를 줄여 시간 목표를 맞추지 않는다. source records/고유 후기/독립 고객은 다른 단위다. 기존 catalog 상한(20 scopes, catalog file1MiB 등)을 확대했다고 주장하지 않는다.
+
+응답에는 status, input_sha256, original_copy, audit_path, input_count, completed_count, unprocessed_count, failed_source_ids, last_valid_catalog/version/fingerprint가 있다. 원본 바이트·입력 순서·실제 등록 순서와 batch SHA/result/error를 runtime-data/bulk-imports에 보존한다. 각 batch는 원자적이며 실패 batch 전체 source_ids를 반환하고 정확 오류 항목은 미관측일 수 있다고 표시한다. 앞서 성공한 catalog는 남기고 failed/partial_failure 뒤 자동 재시작하지 않는다. 같은 import_key 재전송은 원본 SHA/시작catalog에 결속된 기존 결과만 반환하며 interrupted도 완료로 바꾸지 않는다. 최종 새catalog를 --data로 선택한 동일 request의 resolve_request_bundle을 사용하고 새 turn으로 한도를 우회하지 않는다.
