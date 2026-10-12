@@ -11,8 +11,10 @@ ADAPTER_FILES=(
     "common/install.py","common/package.py","common/product-doctor.py",
     "codex/install.py","codex/templates/AGENTS.md","codex/templates/README.md",
     "codex/templates/pyproject.toml","codex/templates/uv.lock",
+    "codex/templates/config.toml","codex/templates/product-evidence-reviewer.toml",
     "codex/templates/.gitignore","codex/templates/product-doctor.py",
     "claude/install.py","claude/templates/CLAUDE.md",
+    "claude/templates/product-evidence-reviewer.md",
 )
 
 

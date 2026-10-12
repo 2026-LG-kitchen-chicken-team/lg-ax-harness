@@ -5,11 +5,17 @@ description: "상품기획 후보의 원문 의미·모델·기존 기능 중복
 
 # 검토·수정·저장
 
+독립 검토를 선택할 때 prepare_review_packet(session_id/turn_id/candidate_path/packet_key)으로 6필드 후보의 불변 사본을 만든다. packet_path/packet_sha256과 실제 native deadline을 자식에게 전달하고 반환 뒤 verify_review_packet(session_id/turn_id/packet_path/packet_sha256)으로 현재 결속을 확인한다. packet ready는 원문 의미/후보 valid/save 승인 인증이 아니다. 수정은 별도 후보 파일에서 하고 불변 packet을 덮어쓰지 않는다.
+
 자료집·최종 문서는 [보고서 작성](references/report-writing.md)을 읽고 작성한다. 공개 형식은 프로젝트 루트 docs/contracts/reader-deliverables.md다. 합성 목업 검수는 실제 제품 업무의 완료 증거가 아니다. 실제 조사→분석→검토→저장→보고서 전달을 확인하고 가상 내용·수치는 복사하지 않는다. report_plan은 실제 조사 범위에 따라 자유롭게 구성하고 별도 runtime-data 내부 파일로 전달할 수 있다.
 
 메인 Agent의 공통 안전 규칙으로 원문을 대조해 result/assessment를 작성한다. 저장 필드는 프로젝트 루트의 skills/review-and-revise/references/payload.md를 읽는다. Skill이 .agents/skills 아래 발견돼도 docs는 프로젝트 루트 docs/contracts/다. 같은 본문/상세계약 재독해는 진단 때만 한다.
 
 bundle 응답의 candidate_template을 복사해 실제 판단으로 채운다. status는 빈 값이며 AI가 결정해야 한다. result_limits로 작성 중 배열/크기 상한을 확인한다. 한 실행 명령에서 Python json으로 파일 작성 후 save_and_export를 호출할 수 있다. 현재 delivery_ready=true면 독자용 report_ready와 실제 파일을 확인해 결과 폴더를 전달한다. 양식 복사가 의미 검토나 최종 확인을 대신하지 않는다.
+
+미확인을 `supported`/`false`로 바꾸어 저장 검사를 통과시키지 않는다. 남은 불편·콘셉트가 근거에서 출발한 조건부 가설이면 payload.md의 `claim_checks.qualification`을 **최초 후보에서** 실제 한계와 함께 작성한다. `basis:"conditional_draft"`, `limitations`, `original_statement_supported`는 주장별 AI 판단이며 자동 기본값이 아니다. 원문에 없는 제안은 마지막 값을 false로 유지하고 support_status=uncertain·scope_relation=unclear·resolution=uncertain·duplicates_existing=null을 보존할 수 있다. 지지 근거가 없거나 이미 해결·중복·치수 부족이면 qualification으로 우회하지 않고 valid held를 작성한다. 조건부/페이지 연결 귀속이 있는 후보는 최초 저장 전에 review_product_result로 한 번 진단하고, 같은 거절 이유를 읽지 않은 채 수정 한도를 소진하지 않는다.
+
+workflow의 finished_at/elapsed_seconds는 **코드 단계 종료**이며 최종 모델 응답 생성·GUI 전달까지 포함한 native 전체 시간이라고 쓰지 않는다. 최종 응답까지 외부 관측이 없으면 전체 시간은 미측정으로 남긴다. 마지막 거절 후보가 held가 된 경우와 accepted/valid인 held는 구분한다. 보고서 실패는 같은 현재 버전의 deliver_result로 복구하며, 보류라서 항상 보고서를 만들 수 없다고 일반화하거나 새 요청으로 수정 한도를 초기화하라고 안내하지 않는다.
 
 보류의 판단 근거도 decision_notes에 원문 사실·AI 해석·미확인으로 구분하고 정확 refs에 연결한다. 원문 직접 인용은 support_quote의 연속 구간이며 요약/판단은 공식 발언으로 표시하지 않는다. 후기의 실제 영향·발생/회피 조건·긍정·유보 문맥과 고유 후기 ID/분모를 확인한다. bundle의 truncated=false/누락 ID 없음만으로 원페이지나 판단 문맥 전체를 확인했다고 쓰지 않는다. 중요 문맥 미확인은 조건부 한계 또는 held에 반영한다. 최종 답변에도 이 구분과 사용한 URL/위치를 전달한다. 자체 추정 실행시간은 쓰지 않으며 외부 실제 기록이 없으면 미측정이다.
 

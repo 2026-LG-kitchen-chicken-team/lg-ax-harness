@@ -148,7 +148,7 @@ def prepare_job(job,plan):
     env=dict(os.environ);env.pop("VIRTUAL_ENV",None);env["PYTHONUTF8"]="1"
     sync=subprocess.run(["uv","sync","--locked"],cwd=ws,env=env,capture_output=True,timeout=90)
     if sync.returncode:raise RuntimeError("locked workspace preparation failed")
-    if job["provider"]=="codex":
+    if job["provider"]=="codex" and not job.get("product_reviewer",False):
       config=ws/".codex/config.toml";config.parent.mkdir(exist_ok=True)
       config.write_text('[features]\nmulti_agent = false\n[agents]\nenabled = false\n',encoding="utf-8")
     return ws
@@ -162,7 +162,8 @@ def run_job(job,plan,run_root):
     preparation_seconds=time.monotonic()-prepare_start
     if job["provider"]=="codex":
       command=[plan["codex"],"-a","never","exec","--sandbox","danger-full-access",
-        "--ignore-user-config","--skip-git-repo-check","--disable","multi_agent",
+        "--ignore-user-config","--skip-git-repo-check",
+        "--enable" if job.get("product_reviewer",False) else "--disable","multi_agent",
         "-c",'web_search="'+("live" if plan.get("mode")=="fresh_online_e2e" else "disabled")+'"',"-c",'model_reasoning_effort="'+job["effort"]+'"',
         "--model",job["model"],"--json","-C",str(ws),"-"]
     else:
@@ -173,11 +174,14 @@ def run_job(job,plan,run_root):
     prompt=(job["question"]+"\n\n[이번 평가 실행 조건]\n"+
       "이번 요청은 이 신규 프로젝트에서 관측·보존한 data/business/evaluation-v4 실제 자료만 재사용하는 기획 평가다. "+
       "제품의 기존 Agent·업무 Skill과 일반 코드 Tool을 사용해 판단·검토·현재 버전 저장·원문 자료집/최종 보고서 전달까지 수행해줘. "+
-      "이번 요청의 model_id는 "+job["product"]+"이며 관련 Tool에는 --data data/business/evaluation-v4를 명시해. "+
+      (("이번 요청의 model_id는 "+job["product"]+"이며 ") if job.get('product') else "제품군/정확 모델은 사용자 질문으로 해석하고 ")+"관련 Tool에는 --data data/business/evaluation-v4를 명시해. "+
       "새 웹 조사·외부 API·소스/설정 변경은 수행하지 마. 근거가 부족한 판단은 가설/보류로 밝혀. "+
       "상세 답안을 특정 문구로 맞추지 말고 실제 자료로 판단해. 내부 원문/계약 전체를 반복 출력하지 말고 필요한 부분을 읽어. "+
       "파일 물리 화면 검수 도구가 없으면 not_run으로 표시하고 최종 응답을 마쳐. 실행 전체 평가 상한은 "+
       str(plan["timeout_seconds"])+"초이며 관측하지 못한 실행시간·토큰·절감률을 만들지 마.")
+    if plan.get('mode')=='bounded_corpus':
+      prompt+=('\n목표300초/전체상한600초인 현재 workflow를 열고 실제 시계를 확인해. 선택 범위의 등록 자료 전체를 evidence_inventory/read_evidence_batch로 끝까지 전달받아 읽고 기록해. 처음3~4개를 전체로 취급하지 마. 소수 자료만 고르거나 원문 단축으로 시간을 줄이지 마. 코드 렌더러를 사용하고 HTML/프론트를 새로 만들지 마. 마지막90초는 저장·검사·최종 전달에 써. '
+        + ('후보가 준비되면 실제 네이티브 product_evidence_reviewer를 최대1명/1회 호출해 모델 귀속·기존 기능/해석·조건/반례를 독립 검토받아 반영해. 실제 자식 ID/반환/채택 여부를 남기고 자식에게90초를 넘겨 무한 대기하지 마. 이 조건은 A/B 검토자 있는 쪽이다.' if job.get('product_reviewer',False) else '이번 A/B는 단일 부모만 실행하는 쪽이므로 서브에이전트를 호출하지 마. 같은 기준으로 자체 검토해.'))
     if plan.get("mode")=="fresh_online_e2e":
       prompt=(job["question"]+"\n\n[운영 계측 조건]\n이번 실행은 최신 제품의 빈 catalog에서 실제 새 조사부터 기획·검토·저장·보고서·최종 응답 전달까지 계측한다. 목표300초, 외부 실행기 전체 상한600초다. "
         "Tool의 budget_seconds 허용범위1200~1800초와 외부 운영상한은 별도이며 허용하지 않는600을 API에 넣거나 소스를 변경하지 마. 실제 시작시각과 현재시각을 확인하고 최종 전달 시간을 남겨. "
@@ -224,7 +228,7 @@ def main():
     if len(identities)!=len(set(identities)):raise ValueError("Job IDs must be unique before any execution")
     run_root=Path(plan["run_root"]);run_root.mkdir(parents=True,exist_ok=True)
     jobs=[x for x in plan["jobs"] if x["provider"]==args.provider and (not args.jobs or x["id"] in args.jobs)]
-    ceiling=600 if plan.get("mode")=="fresh_online_e2e" else 420
+    ceiling=600 if plan.get("mode") in ('fresh_online_e2e','bounded_corpus') else 420
     if len(plan["jobs"])>30 or not 30<=plan["timeout_seconds"]<=ceiling:raise ValueError("Evaluation bound")
     outcomes=[]
     for job in jobs:

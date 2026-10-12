@@ -4,8 +4,10 @@
 vendor/codex-harness/** -text
 skills/** -text
 agents/product-planning.md -text
+agents/product-evidence-reviewer.md -text
 product-tools/** -text
 docs/contracts/** -text
 data/** -text
 adapters/codex/templates/** -text
+adapters/claude/templates/product-evidence-reviewer.md -text
 web/prototypes/visual-viewer/** -text

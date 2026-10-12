@@ -1,5 +1,7 @@
 # 공통 개발 지침
 
+2026-10-12 최신 후속: v7.5 자료 전체 전달·일괄 등록·600초 workflow·선택적 출품 근거 검토자·불변 packet을 구현했다. 최신 판정은 `docs/validation/evidence-throughput-20261012.md`, 결정은 `docs/decisions/evidence-throughput-20261012.md`를 우선한다. 메인1/업무Skill6/선택검토자1은 개발 역할6/Skill9와 다르다. 실제92후기+20사실은 격리 평가용이며 기본catalog는empty다. collected/registered/delivered/caller-reviewed·의미검토·대표성을 구분하고 시간 절감을 위해 원문 폭을 줄이지 않는다. Claude GUI 최신48자료 업무의 actual end_turn359.776초·저장/문서/최종전달은 확인했지만 child partial·물리검수not_run·전체backend청구unknown을 유지한다. Codex 이전36자료 성공과 최신native 시도를 합산하지 않는다. HTML·프론트는웹팀 소유이며이번에수정하지않았다. 아래의0.8.1 마감/Claude접근대기는당시이력이다.
+
 2026-10-12 최신 평가 조건: 원래20/49후기 catalog/export/log는 사용자 확인상 없으며 다시 요청하지 않는다. 자료·후기 폭을 줄여 시간 목표를 맞추지 않는다. 새 실제 조사 계측은 목표300초, native 최종 전달/process exit까지 외부 상한600초다. 현재 제품 내부1200~1800초 예산과 구분한다. 소규모 네 입력은 원인분리 진단이며 최종 모델 추천·대표성 평가가 아니다. docs/evaluation/model-effort-protocol-20261012.md의 최신 조건과 실제 결과를 따른다.
 
 2026-10-12 새 사용자 승인: 대겸 최신 product-v0.8.1/main 인수→실제 지연 원인 분리→Codex·Claude Code 여러 모델/추론 수준 비교와 객관 근거 기록을 진행한다. docs/evaluation/model-effort-protocol-20261012.md를 따른다. 이전 high 고정은 비교 기준이며 최종 권장이 아니다. 대화 맥락의 Skill 선택·선택적 출품 서브에이전트도 검토하되 현재 단일 Agent 구조와 후보/실제 native 위임을 구분한다. 제품/웹 팀 소유 범위를 유지하며 평가·진단은 별도 격리 설치에서 수행한다. 아래 v0.8.1 종료 지시는 대겸의 이전 작업 마감 이력이며 새 사용자 승인 범위를 막지 않는다.
