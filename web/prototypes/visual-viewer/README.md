@@ -105,7 +105,7 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 - 취소는 `state.cancellation`의 사유·취소 전 상태를 적고, 실행 중단은 확인되지 않았다고 표시한다. 모델이 쓴 `cancelled` 결과는 그 결과의 사유를 적는다.
 - 무효 turn은 `invalidation_reason`을 그대로 적고, 무효 직전에도 승인 결과였던 것만 `무효 처리된 결과` 표시와 함께 보여준다(모든 결과 화면·후보 표·저장 검사). 그 뒤 거절된 후보가 있었으면 승인 결과가 없던 것으로 본다.
 - turn 순서는 export의 순서(created_at)를 그대로 쓴다. 후보가 없는 turn도 제자리에 둔다.
-- product_family는 냉장고·전자레인지·식기세척기로 표시하고 모르는 값은 `미지원(값)`으로 둔다. 제품군 요청(scope_mode `family_catalog`)은 `냉장고 제품군 N개 모델`로 쓰고 model_scope 전체와 결과 근거 모델을 보여준다. 자료 버전과 model_scope 원문을 바꾸지 않는다. 사용자가 뺀 불편(`constraints.exclude_pains`)을 요청 조건에 보인다.
+- product_family는 냉장고·전자레인지·식기세척기로 표시하고 모르는 값은 `미지원(값)`으로 둔다. 제품군 요청(scope_mode `family_catalog`)은 `냉장고 제품군 N개 모델`로 쓰고 model_scope 전체와 결과 근거 모델을 보여준다. 요청·개요의 큰 글씨 칸에는 짧은 값만 둔다: 모델은 결과 근거 모델이 하나면 그 모델, 아니면 `N개`, 범위는 `제품군`·`모델 지정`이고 원래 이름(`제품군 카탈로그`)은 설명 줄에 둔다. 긴 값은 글씨를 줄이고 한국어 낱말 중간에서 줄을 바꾸지 않는다. 자료 버전과 model_scope 원문을 바꾸지 않는다. 사용자가 뺀 불편(`constraints.exclude_pains`)을 요청 조건에 보인다.
 - 불편→기존 기능→남은 불편→제안을 원문 ID로 연결한 열로 보여준다. 열 사이 화살표는 업무 순서이며 항목 간 관계는 assessment의 feature_matches·concept_links에 적힌 것만 표시한다.
 - concept의 `implementation_steps`·`validation_plan`을 표시하고 없으면 `미작성`, `planned_not_measured`는 `검증 계획 · 실측 전`으로 둔다.
 - v0.7.0의 `decision_notes`는 요청·개요 화면에 `판단 메모`(D1…)로 보여준다. basis는 `원문 사실`·`AI 해석`·`미확인`으로 옮기되 모델이 붙인 라벨이며 공식 인용·의미 검증이 아니라고 적는다. 근거 원문 표의 연결 항목에도 D 번호가 붙는다.

@@ -218,7 +218,8 @@ code {
 .metrics { display: flex; flex-wrap: wrap; gap: 18px; --kc: 5; }
 .metric { flex: 0 0 calc((100% - (var(--kc) - 1) * 18px) / var(--kc)); min-width: 0; }
 .metric small { display: block; font-size: .82rem; color: var(--muted); }
-.metric .mv { font-size: 1.85rem; line-height: 1.25; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.metric .mv { font-size: 1.85rem; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.metric .mv.long { font-size: 1.3rem; line-height: 1.35; }
 .metric .mn { font-size: .78rem; color: var(--muted); }
 
 .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; --kc: 5; }
@@ -532,6 +533,8 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: now
     return { step, top, ticks };
   }
   const tick = (v) => (v >= 10000 ? nf.format(v / 1000) + 'k' : nf.format(v));
+  // Rough width in em: CJK characters are about 1em, Latin and digits about half. Long metric values get a smaller size.
+  const textEm = (s) => Array.from(String(s)).reduce((a, ch) => a + (ch.charCodeAt(0) >= 0x2e80 ? 1 : 0.58), 0);
   const fillOf = (t) => 'fill:var(--t-' + tone(t) + ')';
   const strokeOf = (t) => 'stroke:var(--t-' + tone(t) + ')';
   const tipAttr = (s) => ' data-tip="' + esc(s) + '"';
@@ -829,7 +832,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: now
         return '<div class="features">' + (b.items || []).map((f) => '<div class="feature"><b>' + (f.icon ? '<span aria-hidden="true">' + esc(f.icon) + '</span>' : '') + esc(f.title) + '</b><p>' + md(f.text) + '</p></div>').join('') + '</div>';
       case 'steps': return '<ol class="steps">' + (b.items || []).map((s) => '<li>' + md(s) + '</li>').join('') + '</ol>';
       case 'metrics':
-        return '<div class="metrics">' + (b.items || []).map((m) => '<div class="metric"><small>' + esc(m.label) + '</small><div class="mv">' + num(m.value) + (m.unit ? ' ' + esc(m.unit) : '') + '</div>' + (m.note ? '<div class="mn">' + esc(m.note) + '</div>' : '') + '</div>').join('') + '</div>';
+        return '<div class="metrics">' + (b.items || []).map((m) => '<div class="metric"><small>' + esc(m.label) + '</small><div class="mv' + (textEm(String(m.value) + (m.unit || '')) > 5.2 ? ' long' : '') + '">' + num(m.value) + (m.unit ? ' ' + esc(m.unit) : '') + '</div>' + (m.note ? '<div class="mn">' + esc(m.note) + '</div>' : '') + '</div>').join('') + '</div>';
       case 'kpis':
         return '<div class="kpis">' + (b.items || []).map((k) => '<div class="kpi"' + (k.source ? ' title="출처: ' + esc(k.source) + '"' : '') + '><small>' + esc(k.label) + '</small><div class="kv ' + tone(k.tone) + '">' + (k.emoji ? '<span aria-hidden="true">' + esc(k.emoji) + '</span> ' : '') + num(k.value) + (k.unit ? '<span class="u">' + esc(k.unit) + '</span>' : '') + '</div>' + (k.note ? '<div class="kn">' + esc(k.note) + '</div>' : '') + '</div>').join('') + '</div>' + srcHTML(b.source);
       case 'donut': case 'bars': case 'hbars': case 'line': {

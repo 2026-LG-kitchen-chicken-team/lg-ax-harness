@@ -47,6 +47,7 @@ STATUS_TONE = {"completed": "green", "held": "orange", "needs_input": "orange", 
 STATUS_LABEL = {"completed": "기획 초안 완료", "held": "보류", "needs_input": "입력 필요", "failed": "실패", "cancelled": "취소",
                 "needs_revision": "수정 필요", "pending": "진행 중", "research_required": "조사 필요"}
 SCOPE_MODE = {"exact_model": "정확 모델", "family_catalog": "제품군 카탈로그"}
+SCOPE_SHORT = {"exact_model": "모델 지정", "family_catalog": "제품군"}  # 개요의 큰 글씨 칸용. 원래 이름은 설명 줄에 둔다.
 USAGE_STATUS = {"unknown": "미측정", "measured": "측정", "partially_measured": "일부 측정"}
 FAMILY = {"refrigerator": ("냉장고", "🧊"), "microwave": ("전자레인지", "🍲"), "dishwasher": ("식기세척기", "🍽️")}
 PLAN_STATUS = {"planned_not_measured": "실측 전"}
@@ -233,9 +234,14 @@ def known_sum(usage: list[dict], field: str) -> tuple[int | None, int]:
     return (sum(known) if known else None), len(usage) - len(known)
 
 
+def family_request(req_input: dict, inp: dict) -> bool:
+    scope = inp.get("model_scope") or []
+    return inp.get("scope_mode") == "family_catalog" or (len(scope) > 1 and not req_input.get("model_id"))
+
+
 def model_label(req_input: dict, inp: dict) -> str:
     scope = inp.get("model_scope") or []
-    if inp.get("scope_mode") == "family_catalog" or (len(scope) > 1 and not req_input.get("model_id")):
+    if family_request(req_input, inp):
         return f"{family_label(inp.get('product_family'))} 제품군 {len(scope)}개 모델"
     return req_input.get("model_id") or (scope[0].get("model_id") if scope else None) or "미기록"
 
@@ -268,6 +274,7 @@ def read_turns(export: dict) -> list[dict]:
             "created": (history[0].get("created_at") if history else None) or (st.get("cancellation") or {}).get("recorded_at"),
             "question": req_input.get("question") or inp.get("question") or "",
             "model": model_label(req_input, inp),
+            "family_request": family_request(req_input, inp),
             "family": inp.get("product_family"),
             "scope": inp.get("model_scope") or [],
             "scope_mode": inp.get("scope_mode"),
@@ -659,14 +666,24 @@ def page_overview(c: Ctx) -> list[dict]:
     } for r in c.rows[1:]]
     cited = {e.get("model_id") for e in c.evidence}
     excluded = cons.get("exclude_pains") or []
+    # 큰 글씨 칸에는 짧은 값만 둔다. 제품군 질문이면 결과 근거 모델이 하나일 때 그 모델, 아니면 모델 수를 쓴다.
+    scope_ids = [s.get("model_id") for s in cur["scope"]]
+    family = family_label(cur["family"])
+    if not cur["family_request"]:
+        model_metric = {"label": "모델", "value": cur["model"], "note": family}
+    else:
+        cited_scope = [m for m in scope_ids if m in cited]
+        model_metric = ({"label": "모델", "value": cited_scope[0], "note": f"{family} 제품군 질문 · 결과 근거 모델"} if len(cited_scope) == 1
+                        else {"label": "모델", "value": f"{len(scope_ids)}개", "note": f"{family} 제품군 질문 · 대상 모델 수"})
+    scope_note = (f"{SCOPE_MODE[cur['scope_mode']]} · " if cur["scope_mode"] in SCOPE_MODE else "") + f"대상 모델 {len(cur['scope'])}개"
     blocks = [
         {"type": "lead", "text": c.ins.get("lead") or "하네스가 저장한 결과 파일(export)을 읽어 근거·불편·기존 기능·제안 연결을 그린 화면입니다. 화면은 **저장된 실행 결과**만 보여주고 모델이나 업무를 다시 실행하지 않습니다."},
         *status_blocks(c),
         {"type": "divider"},
         {"type": "heading", "icon": "🗂️", "text": "요청과 조건"},
         {"type": "metrics", "items": [
-            {"label": "모델", "value": cur["model"], "note": family_label(cur["family"])},
-            {"label": "범위", "value": SCOPE_MODE.get(cur["scope_mode"], cur["scope_mode"] or "미기록"), "note": f"대상 모델 {len(cur['scope'])}개"},
+            model_metric,
+            {"label": "범위", "value": SCOPE_SHORT.get(cur["scope_mode"], cur["scope_mode"] or "미기록"), "note": scope_note},
             {"label": "제안 상한", "value": cons.get("max_concepts", "미기록"), "unit": "개" if "max_concepts" in cons else ""},
             {"label": "하드웨어 추가", "value": "허용" if cons.get("hardware_allowed") else "제외"},
             {"label": "자료 버전", "value": version_label(cur["data_version"]), "note": cur["data_version"] or ""},

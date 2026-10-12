@@ -475,6 +475,12 @@ class BuildViewTests(TempCase):
         for text in ("제품군 카탈로그", "S836GBB122", "B502S33", "T876MQQ012 · 결과 근거"):
             self.assertIn(text, overview)
         self.assertNotIn("S836GBB122 · 결과 근거", overview)
+        # 큰 글씨 칸에는 짧은 값만: 결과 근거 모델 하나, 범위는 '제품군'(원래 이름은 설명 줄)
+        metrics = next(b for b in page(view, "overview")["blocks"] if b["type"] == "metrics")["items"]
+        self.assertEqual(metrics[0], {"label": "모델", "value": "T876MQQ012", "note": "냉장고 제품군 질문 · 결과 근거 모델"})
+        self.assertEqual((metrics[1]["value"], metrics[1]["note"]), ("제품군", "제품군 카탈로그 · 대상 모델 3개"))
+        exact = next(b for b in page(self.build("refrigerator")[1], "overview")["blocks"] if b["type"] == "metrics")["items"]
+        self.assertEqual((exact[0]["value"], exact[0]["note"], exact[1]["value"]), ("B502S33", "냉장고", "모델 지정"))
         self.assertIn("상업 고지: 글과 사이트에 파트너스 활동", blob(page(view, "evidence")))
 
     def test_turn_order_cancellation_and_pending(self):  # v07-format-06, -07
