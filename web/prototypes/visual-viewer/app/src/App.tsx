@@ -5,6 +5,10 @@ import {
 } from 'lucide-react'
 import { Badge, Button } from './components/ui'
 import { Blocks } from './components/blocks'
+import { ModeSwitch, useMode } from './components/mode'
+import { storyOf } from './lib/story'
+import Slides from './variants/Slides'
+import Poster from './variants/Poster'
 import { cn, Md } from './lib/utils'
 import { useView, type LiveState } from './lib/useView'
 import type { Page, View } from './types'
@@ -72,6 +76,17 @@ export default function App() {
     setCapHidden((h) => { try { localStorage.setItem('lgax-cap-hidden', h ? '0' : '1') } catch { /* storage unavailable */ } return !h })
   }
 
+  const [mode, setMode] = useMode()
+  const story = storyOf(view)
+  const toastsEl = (
+    <div className="no-print pointer-events-none fixed right-4 top-16 z-[70] flex flex-col items-end gap-2">
+      {toasts.map((t) => <div key={t.id} role="status" className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm text-white shadow-lg">{t.msg}</div>)}
+    </div>
+  )
+  // B and C re-arrange the story page; without one (request-only exports, insights-only views) they fall back to A.
+  if (view && story && mode === 'slides') return <>{<Slides view={view} story={story} mode={mode} setMode={setMode} />}{toastsEl}</>
+  if (view && story && mode === 'poster') return <>{<Poster view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
+
   const caption = page?.caption && !capHidden ? page.caption : null
   return (
     <div className="min-h-dvh bg-background">
@@ -85,6 +100,7 @@ export default function App() {
             <span className="truncate font-medium">{page?.nav || page?.title || '시각자료'}</span>
           </nav>
           <div className="ml-auto flex items-center gap-2">
+            {story && <ModeSwitch mode={mode} setMode={setMode} className="hidden md:inline-flex" />}
             <LiveDot live={live} inline={inline} />
             {page?.caption && (
               <Button variant="outline" size="sm" onClick={toggleCaption} aria-pressed={!capHidden}>
@@ -105,9 +121,7 @@ export default function App() {
           <button type="button" onClick={toggleCaption} aria-label="자막 닫기" className="absolute right-3 top-3 rounded p-1 text-zinc-400 hover:text-white"><X className="size-4" /></button>
         </div>
       )}
-      <div className="no-print pointer-events-none fixed right-4 top-16 z-50 flex flex-col items-end gap-2">
-        {toasts.map((t) => <div key={t.id} role="status" className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm text-white shadow-lg">{t.msg}</div>)}
-      </div>
+      {toastsEl}
     </div>
   )
 }

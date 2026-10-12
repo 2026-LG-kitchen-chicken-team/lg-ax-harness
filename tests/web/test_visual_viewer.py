@@ -591,6 +591,8 @@ class BuildViewTests(TempCase):
         self.assertIn(f"{SYNTH} {M} 불편 개선 시험", hero["title"])
         self.assertEqual([(s["label"], s["value"]) for s in hero["stats"]], [("근거", 2), ("현재 불편", 1), ("남은 불편", 1), ("제안", 1)])
         self.assertEqual([c["text"] for c in hero["chips"]][:3], ["기획 초안 완료", "유효", "의미 검토 전 · 인수 전"])
+        # B(슬라이드)·C(한 장) 보기는 이 키로 구역을 찾는다
+        self.assertEqual([b["key"] for b in story["blocks"] if b["type"] == "story"], ["problem", "check", "flow", "solution", "trust"])
         flow = next(b for b in blocks if b["type"] == "flow")
         self.assertEqual([(n["id"], n["column"]) for n in flow["nodes"]], [("p1", "pain"), ("r1", "remaining"), ("c1", "concept")])
         self.assertEqual(flow["links"], [{"from": "p1", "to": "r1", "label": "미해소", "tone": "red"},

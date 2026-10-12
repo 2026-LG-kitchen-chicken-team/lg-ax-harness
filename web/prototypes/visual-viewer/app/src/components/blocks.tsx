@@ -5,7 +5,7 @@ import {
   Alert, Badge, Badges, Button, Card, CardContent, CardHeader, CardTitle, Table, TBody, TD, TH, THead, TR,
 } from './ui'
 import { BarList, DonutChart, GroupedBarChart, LineChart } from './charts'
-import { NumberTicker } from './magic'
+import { StatValue } from './magic'
 import { STORY_BLOCKS } from './story'
 import { cn, fmt, Md, safeHref, tone, TONE_DOT, TONE_TEXT } from '../lib/utils'
 import type { Block, Chip } from '../types'
@@ -137,7 +137,7 @@ function Kpis({ b }: { b: Block }) {
               </div>
               <div className={cn('mt-2 text-3xl font-semibold tracking-tight', t === 'gray' ? 'text-zinc-500' : 'text-foreground')}>
                 {k.emoji && <span aria-hidden className="mr-1">{k.emoji}</span>}
-                <NumberTicker value={k.value} />
+                <StatValue value={k.value} />
                 {k.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{k.unit}</span>}
               </div>
               {k.note && <div className="mt-1 text-xs text-muted-foreground">{k.note}</div>}

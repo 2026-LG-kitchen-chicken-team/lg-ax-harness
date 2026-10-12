@@ -759,7 +759,7 @@ def page_story(c: Ctx) -> list[dict]:
     links = assessment.get("concept_links") or []
     checks = assessment.get("claim_checks") or []
 
-    blocks.append({"type": "story", "label": "Problem · 현재 불편", "tone": "red", "title": f"근거에서 찾은 현재 불편 {len(pains)}가지",
+    blocks.append({"type": "story", "key": "problem", "label": "Problem · 현재 불편", "tone": "red", "title": f"근거에서 찾은 현재 불편 {len(pains)}가지",
                    "text": "후기·자료 원문에 연결된 현재 제품의 불편입니다. 관측한 것이며 발생률이나 시장 수요가 아닙니다.",
                    "blocks": [{"type": "claims", "kind_label": "현재 불편", "tone": "red", "items": claim_items(c, pains)}] if pains
                    else [{"type": "callout", "tone": "warning", "text": "결과에 현재 불편이 없습니다."}]})
@@ -770,13 +770,13 @@ def page_story(c: Ctx) -> list[dict]:
     check_blocks = [{"type": "claims", "kind_label": "기존 기능", "tone": "blue", "items": claim_items(c, features)}] if features else []
     check_blocks.append({"type": "matches", "items": match_items, "source": "검토 기록 feature_matches · 모델이 쓴 판단이며 저장 도구는 형식만 검사"}
                         if match_items else {"type": "callout", "tone": "info", "text": "검토 기록에 기존 기능 대조 판단이 없습니다."})
-    blocks.append({"type": "story", "label": "Check · 기존 기능 대조", "tone": "blue",
+    blocks.append({"type": "story", "key": "check", "label": "Check · 기존 기능 대조", "tone": "blue",
                    "title": f"같은 모델의 기존 기능 {len(features)}개와 맞춰 봤습니다",
                    "text": "기능이 있다고 불편이 해소된 것은 아닙니다. 대조 판단(해소·일부 해소·미해소·불확실)은 검토 기록에 적힌 그대로입니다.",
                    "blocks": check_blocks})
 
     ids = {"pain": [x.get("id") for x in pains], "remaining": [x.get("id") for x in remaining], "concept": [x.get("id") for x in concepts]}
-    nodes = [{"id": x.get("id"), "column": col, "tone": tone_, "text": clip(x.get("text", ""), 150)}
+    nodes = [{"id": x.get("id"), "column": col, "tone": tone_, "text": x.get("text", "")}
              for col, items, tone_ in (("pain", pains, "red"), ("remaining", remaining, "orange"), ("concept", concepts, "purple")) for x in items]
     flow_links = [{"from": fm.get("pain_id"), "to": fm.get("remaining_pain_id"),
                    "label": RESOLUTION_LABEL.get(fm.get("resolution"), fm.get("resolution") or ""), "tone": RESOLUTION_TONE.get(fm.get("resolution"), "gray")}
@@ -784,7 +784,7 @@ def page_story(c: Ctx) -> list[dict]:
     flow_links += [{"from": rp, "to": link.get("concept_id"), "label": "", "tone": "purple"}
                    for link in links for rp in link.get("remaining_pain_ids") or []
                    if rp in ids["remaining"] and link.get("concept_id") in ids["concept"]]
-    blocks.append({"type": "story", "label": "Flow · 연결", "tone": "orange", "title": "불편에서 제안까지 이어진 연결",
+    blocks.append({"type": "story", "key": "flow", "label": "Flow · 연결", "tone": "orange", "title": "불편에서 제안까지 이어진 연결",
                    "blocks": [{"type": "flow", "columns": [{"key": "pain", "title": "현재 불편", "tone": "red"},
                                                            {"key": "remaining", "title": "남은 불편", "tone": "orange"},
                                                            {"key": "concept", "title": "제안", "tone": "purple"}],
@@ -810,7 +810,7 @@ def page_story(c: Ctx) -> list[dict]:
                              "rows": [{"k": label, "v": plan.get(key) or "미작성"} for key, label in PLAN_FIELDS]} if plan else None,
                     "links": [{"text": rp, "tone": "orange"} for rp in link.get("remaining_pain_ids") or []],
                     "sources": [{"text": s, "mono": True} for s in cl.get("source_ids") or []]})
-    blocks.append({"type": "story", "label": "Solution · 제안", "tone": "purple", "title": f"남은 불편에 연결한 제안 {len(concepts)}가지",
+    blocks.append({"type": "story", "key": "solution", "label": "Solution · 제안", "tone": "purple", "title": f"남은 불편에 연결한 제안 {len(concepts)}가지",
                    "text": f"조건: 하드웨어 추가 {'허용' if cons.get('hardware_allowed') else '제외'} · 제안 최대 {cons.get('max_concepts', '미기록')}개. "
                            "효과·비용은 측정 전 미확정입니다.",
                    "blocks": [{"type": "solutions", "items": sol}] if sol else [{"type": "callout", "tone": "warning", "text": "결과에 제안이 없습니다."}]})
@@ -839,7 +839,7 @@ def page_story(c: Ctx) -> list[dict]:
         trust.append({"type": "chips", "title": f"판단 메모 {len(c.notes)}개 (원문은 '요청·개요' 화면)",
                       "items": [{"text": f"{k} {v}", "tone": dict(BASIS.values()).get(k, "gray")} for k, v in basis.items()]})
     trust.append({"type": "callout", "tone": "warning", "text": "검토 통과는 효과의 증명이 아닙니다. 효과·비용·시장성은 측정 전 미확정이며, 검토 기록은 모델이 쓰고 저장 도구는 형식만 검사했습니다."})
-    blocks.append({"type": "story", "label": "Trust · 한계", "tone": "gray", "title": "믿을 수 있는 정도와 한계", "blocks": trust})
+    blocks.append({"type": "story", "key": "trust", "label": "Trust · 한계", "tone": "gray", "title": "믿을 수 있는 정도와 한계", "blocks": trust})
     return blocks
 
 

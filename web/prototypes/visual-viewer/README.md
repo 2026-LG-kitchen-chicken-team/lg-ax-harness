@@ -2,7 +2,7 @@
 
 2026-10-12 최길웅 제출. **웹 PM 황대겸의 기술·구조 결정 전 참고용 시제품**이며 채택·웹 통합·시연 인수 기록이 아니다. 팀이 공유한 Streamlit 고객 리뷰 분석 시연 영상(`KakaoTalk_20261009_191820838.mp4`, Git 제외)의 화면 느낌(남색 단계 사이드바, 어두운 지표 카드, Plotly풍 차트, 하단 단계 자막)을 참고해 새로 작성했다. 영상 앱의 코드는 가져오지 않았다. 대겸의 PR #7(`codex/local-harness-web`)은 사용자 결정에 따라 쓰지 않았고 코드도 가져오지 않았다. main·제품 ZIP 포함 여부는 [결정 요청 메모](RELEASE-MEMO.md)를 따른다.
 
-**2026-10-12 화면 재설계(브랜치 `web/visual-viewer-redesign`)**: 팀 피드백(발표 자료처럼 가독성 좋게, 많이 쓰는 UI 라이브러리 적극 사용)에 따라 화면을 Vite + React + TypeScript + Tailwind 4 + shadcn/ui 스타일 컴포넌트 + Unovis 차트 + motion으로 다시 만들었다. 사용자가 후보(visx·Unovis·Magic UI SaaS 템플릿·shadcnblocks 관리자 템플릿)를 직접 보고 골랐고, 유료 키트는 쓰지 않았다(shadcn/ui·Magic UI 스타일 부품은 이 폴더에 직접 작성). 결과물은 여전히 **`index.html` 한 파일**이라 훅·설치·`build_view.py`·단일 HTML 보고서 방식은 그대로다. 첫 화면은 발표형 `한눈에 보기`(질문 → 현재 불편 → 기존 기능 대조 → 연결 → 제안 → 한계)이고 나머지 8개 화면은 관리 화면 스타일이다.
+**2026-10-12 화면 재설계(브랜치 `web/visual-viewer-redesign`)**: 팀 피드백(발표 자료처럼 가독성 좋게, 많이 쓰는 UI 라이브러리 적극 사용)에 따라 화면을 Vite + React + TypeScript + Tailwind 4 + shadcn/ui 스타일 컴포넌트 + Unovis 차트(+ 슬라이드는 reveal.js)로 다시 만들었다. 사용자가 후보(visx·Unovis·Magic UI SaaS 템플릿·shadcnblocks 관리자 템플릿)를 직접 보고 골랐고, 유료 키트는 쓰지 않았다(shadcn/ui·Magic UI 스타일 부품은 이 폴더에 직접 작성). 결과물은 여전히 **`index.html` 한 파일**이라 훅·설치·`build_view.py`·단일 HTML 보고서 방식은 그대로다. 첫 화면은 발표형 `한눈에 보기`(질문 → 현재 불편 → 기존 기능 대조 → 연결 → 제안 → 한계)이고 나머지 8개 화면은 관리 화면 스타일이다.
 
 ## 기획자 설치 안내 (Claude Code·Codex 공용)
 
@@ -62,7 +62,7 @@ uv run python web/prototypes/visual-viewer/viewer.py uninstall --both
 | 파일 | 역할 |
 |---|---|
 | `index.html` | 뷰어(빌드 결과, 한 파일). 같은 폴더의 `view-data.js`를 읽어 그린다. 로컬 파일로 열면 2초마다 데이터 변경을 확인한다. 직접 고치지 않고 `app/`에서 다시 빌드한다. |
-| `app/` | 뷰어 원본(Vite + React + TypeScript + Tailwind 4 + Unovis + motion). `npm run build`가 JS·CSS를 넣은 한 파일을 `../index.html`로 쓴다. 설치는 이 폴더를 복사하지 않는다(`index.html`만 복사). |
+| `app/` | 뷰어 원본(Vite + React + TypeScript + Tailwind 4 + Unovis + reveal.js). `npm run build`가 JS·CSS를 넣은 한 파일을 `../index.html`로 쓴다. 설치는 이 폴더를 복사하지 않는다(`index.html`만 복사). |
 | `build_view.py` | export와 insights를 읽어 `view-data.js`(필요하면 단일 HTML 보고서)를 만든다. 판단은 하지 않는다. |
 | `hook.py` | Claude Code·Codex 공용 훅. 새 export가 생기면 화면 데이터를 다시 만들고, CLI 세션마다 처음 한 번 브라우저를 연다. |
 | `viewer.py` | `install`·`uninstall`·`open --latest`·`status`·`selftest`. Windows Codex용 실행기 `.codex\visual-viewer-hook.cmd`도 설치 때 만든다. |
@@ -99,6 +99,7 @@ npm run build   # 타입 검사 → vite build → scripts/publish.mjs가 ../ind
 
 - `publish.mjs`는 `<script src="view-data.js" charset="utf-8"></script>` 태그를 그대로 한 번만 남기는지 확인한다(`--standalone`이 이 태그를 데이터로 바꾼다). 외부에서 불러오는 것은 Pretendard 글꼴 CSS(jsdelivr) 하나뿐이고, 인터넷이 없으면 맑은 고딕 등 시스템 글꼴로 보인다.
 - `vite-plugin-singlefile`은 하위 패키지(braces) 취약점 경고 때문에 쓰지 않고 `publish.mjs`가 직접 합친다. 의존성은 `package-lock.json`으로 고정한다(`npm audit` 0건).
+- **비교용 보기 3가지(PM 요청, 2026-10-12)**: 화면 오른쪽 위 전환 버튼 `A 앱 · B 슬라이드 · C 한 장`. 셋 다 같은 `view-data.js`를 쓰고, B·C는 `한눈에 보기` 블록만 다시 배치한다(세거나 잇지 않는다). 고른 보기는 브라우저에 기억되고 주소에 `?mode=slides`·`?mode=poster`를 붙여도 된다. B는 reveal.js 16:9 발표(←/→, F 전체 화면, O·Esc 슬라이드 목록, `?slide=N`으로 N번째부터, `PDF` 버튼 = `?print-pdf` 인쇄 화면). C는 1920×1080 한 화면(벤토 칸 + 가운데 연결 지도, 칸·노드를 누르면 원문·검증 계획 창)이고 900px보다 좁으면 세로로 보여 준다. 한눈에 보기가 없는 export(요청 기록만)는 A로 보여 준다. 숫자가 0부터 올라가는 효과는 쓰지 않는다(멈추면 틀린 숫자가 남는다).
 - 화면은 `build_view.py`가 만든 블록을 그릴 뿐 세거나 판단하지 않는다. 새 블록(hero·story·claims·matches·flow·solutions·tiles)도 값은 모두 `build_view.py`가 정한다.
 - `index.html`이 바뀌면 설치본의 지문도 바뀌므로 하네스마다 다시 설치하고 Codex는 `/hooks`에서 다시 신뢰한다.
 
@@ -132,7 +133,7 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 - 구조 검사와 `planning_detail_complete`(필드 존재 검사)를 의미 품질 통과로 표시하지 않는다.
 - 사용량: 기록이 없거나 미측정 호출이 섞이면 0으로 그리지 않고 차트를 생략한다. 합계가 일부 호출만이면 `부분 합계 · N건 중 M건 미측정`으로 적는다. 누적 값을 다시 더하지 않는다.
 - 근거 대시보드는 insights 없이도 결과에 적힌 것만 센다: 검토 기록의 대조 판단(feature_matches의 resolution), 항목별 근거 확인(claim_checks의 support_status·모델 불명확), 제안 연결(concept_links), 출처 사이트(HTTPS source_url의 사이트 이름), 유형, 모델 연결 방식·게시일·수집일, 항목별 연결 근거. 검토 기록은 모델이 쓰고 저장 도구가 형식만 검사한 것이라고 적는다. 항목 종류(현재 불편·기존 기능·남은 불편·제안)는 ID 접두어가 아니라 결과의 어느 목록에 있는지로 정한다(v0.7.0 ID는 E1·R1·pain-tones처럼 관례가 없다). 비율·발생률·의견 묶음은 만들지 않는다.
-- 한눈에 보기: 맨 위 숫자는 결과의 항목 수(근거·현재 불편·남은 불편·제안)이고, 불편·기능 카드의 인용은 그 항목의 근거 앞 2건을 저장된 그대로 보인다(나머지는 건수만). 연결도의 선은 검토 기록의 feature_matches(불편→남은 불편, 판단 라벨)와 concept_links(남은 불편→제안)에 적힌 것만 그리고, 같은 연결을 카드 안에 글자(`→ R1 · 불확실`)로도 적는다. 연결이 없는 항목은 선 없이 둔다. 제안 카드는 요구사항·구현 단계·검증 계획(`실측 전`)을 보이고 없으면 `미작성`이다. 마지막 `한계` 칸은 뒷받침된 항목 수, 모델 불명확 근거, 출처 사이트, 후기 여부 미기록, 의미 검토 전, 사용량 미측정을 보인다. 승인된 결과가 없으면 이 화면을 비우고 이유를 적는다. 숫자가 올라가는 효과와 살짝 올라오는 움직임은 보이는 화면에서만 돌고(인쇄·움직임 줄이기 설정이면 끔) 값을 바꾸지 않는다. 투명도·흐림을 쓰지 않아 효과가 멈춘 환경(인쇄·자동 캡처)에서도 내용이 그대로 보인다.
+- 한눈에 보기: 맨 위 숫자는 결과의 항목 수(근거·현재 불편·남은 불편·제안)이고, 불편·기능 카드의 인용은 그 항목의 근거 앞 2건을 저장된 그대로 보인다(나머지는 건수만). 연결도의 선은 검토 기록의 feature_matches(불편→남은 불편, 판단 라벨)와 concept_links(남은 불편→제안)에 적힌 것만 그리고, 같은 연결을 카드 안에 글자(`→ R1 · 불확실`)로도 적는다. 연결이 없는 항목은 선 없이 둔다. 제안 카드는 요구사항·구현 단계·검증 계획(`실측 전`)을 보이고 없으면 `미작성`이다. 마지막 `한계` 칸은 뒷받침된 항목 수, 모델 불명확 근거, 출처 사이트, 후기 여부 미기록, 의미 검토 전, 사용량 미측정을 보인다. 승인된 결과가 없으면 이 화면을 비우고 이유를 적는다. 살짝 올라오는 움직임과 C의 연결선 빛 효과는 꾸밈이며(인쇄·움직임 줄이기 설정이면 끔) 값을 바꾸지 않는다. 투명도·흐림을 쓰지 않고 숫자도 처음부터 실제 값이라, 효과가 멈춘 환경(인쇄·자동 캡처)에서도 내용이 그대로 보인다.
 - insights의 의견 묶음은 `모델 해석`으로 표시하고 건수는 ID 목록 길이로 센다. 붙인 insights 파일 이름과 붙인 근거(turn_id 일치 등)를 대시보드에 적는다. 관측 건수를 발생률·시장 수요로 표시하지 않는다.
 - 업무 turn이 없는 export는 요청 기록 화면만 만들고 요청마다 멈춘 이유(response.reason·events)를 보인다. 상태가 섞이면 한 상태로 안내하지 않는다.
 

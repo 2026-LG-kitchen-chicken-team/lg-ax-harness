@@ -79,6 +79,20 @@
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 }
 
+/* C poster: a light pulse travelling along recorded links (decorative; the solid line underneath stays). */
+.lgax-beam { stroke-dasharray: 36 420; animation: lgax-beam 2.6s linear infinite; }
+@keyframes lgax-beam { from { stroke-dashoffset: 456; } to { stroke-dashoffset: 0; } }
+
+/* B slides: reveal.js needs a full-viewport box. */
+.lgax-slides { position: fixed !important; inset: 0; }
+.lgax-print-page { position: relative; width: 1920px; height: 1080px; overflow: hidden; break-after: page; }
+.lgax-print-page > section { display: block; height: 100%; }
+.lgax-print-page:last-child { break-after: auto; }
+.lgax-slides .slides { text-align: left; }
+.lgax-slides .controls { color: #18181b; }
+.lgax-slides .progress { color: #7c3aed; height: 4px; }
+.lgax-slides .slide-number { background: rgba(24, 24, 27, 0.75); font-family: var(--font-sans); font-size: 14px; padding: 4px 8px; border-radius: 6px; right: 16px; bottom: 16px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -87,4 +101,6 @@
   .no-print { display: none !important; }
   *, *::before, *::after { animation: none !important; }
   .print-full { margin: 0 !important; max-width: none !important; }
+  /* gradient text does not print reliably: print it as solid text */
+  .bg-clip-text { background: none !important; color: #18181b !important; -webkit-text-fill-color: #18181b; }
 }

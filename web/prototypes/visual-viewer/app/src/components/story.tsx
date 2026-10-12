@@ -3,7 +3,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, ExternalLink, Quote } from 'lucide-react'
 import { Badge, Badges, Card } from './ui'
-import { RiseIn, DotPattern, NumberTicker } from './magic'
+import { RiseIn, DotPattern, StatValue } from './magic'
 import { Blocks } from './blocks'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_SOFT, TONE_TEXT } from '../lib/utils'
 import type { Block } from '../types'
@@ -36,7 +36,7 @@ function Hero({ b }: P) {
                     <span className={cn('size-1.5 rounded-full', TONE_DOT[tone(s.tone)])} />{s.label}
                   </dt>
                   <dd className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
-                    <NumberTicker value={s.value} />{s.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{s.unit}</span>}
+                    <StatValue value={s.value} />{s.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{s.unit}</span>}
                   </dd>
                   {s.note && <div className="mt-0.5 text-[11px] text-muted-foreground">{s.note}</div>}
                 </div>
@@ -122,7 +122,7 @@ function Matches({ b }: P) {
 
 // Columns of cards with connector curves between recorded links. The links are also printed inside each card,
 // so the meaning does not depend on the drawing (narrow screens hide the curves).
-function Flow({ b }: P) {
+export function Flow({ b, large }: P & { large?: boolean }) {
   const cols: Block[] = b.columns || []
   const nodes: Block[] = b.nodes || []
   const links: Block[] = useMemo(() => b.links || [], [b.links])
@@ -133,13 +133,15 @@ function Flow({ b }: P) {
     const root = box.current
     if (!root) return
     const rb = root.getBoundingClientRect()
+    // Inside a scaled slide or poster the measured boxes are scaled; the SVG draws in unscaled CSS pixels.
+    const k = root.offsetWidth ? rb.width / root.offsetWidth : 1
     const out: { d: string; color: string }[] = []
     for (const l of links) {
       const a = refs.current.get(l.from)?.getBoundingClientRect()
       const z = refs.current.get(l.to)?.getBoundingClientRect()
       if (!a || !z || z.left <= a.right) continue // stacked layout: no curves
-      const x1 = a.right - rb.left, y1 = a.top + a.height / 2 - rb.top
-      const x2 = z.left - rb.left, y2 = z.top + z.height / 2 - rb.top
+      const x1 = (a.right - rb.left) / k, y1 = (a.top + a.height / 2 - rb.top) / k
+      const x2 = (z.left - rb.left) / k, y2 = (z.top + z.height / 2 - rb.top) / k
       const mx = (x1 + x2) / 2
       out.push({ d: `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`, color: TONE_HEX[tone(l.tone || 'gray')] })
     }
@@ -154,14 +156,14 @@ function Flow({ b }: P) {
   const outgoing = (id: string) => links.filter((l) => l.from === id)
   return (
     <div>
-      <div ref={box} className="relative grid gap-4 @4xl:grid-flow-col @4xl:auto-cols-fr @4xl:gap-14">
-        <svg className="pointer-events-none absolute inset-0 hidden h-full w-full overflow-visible @4xl:block" aria-hidden>
+      <div ref={box} className={cn('relative grid gap-4', large ? 'grid-flow-col auto-cols-fr gap-24' : '@4xl:grid-flow-col @4xl:auto-cols-fr @4xl:gap-14')}>
+        <svg className={cn('pointer-events-none absolute inset-0 h-full w-full overflow-visible', large ? 'block' : 'hidden @4xl:block')} aria-hidden>
           {paths.map((p, i) => <path key={i} d={p.d} fill="none" stroke={p.color} strokeOpacity={0.55} strokeWidth={2} />)}
         </svg>
         {cols.map((c) => (
           <div key={c.key} className="relative flex min-w-0 flex-col gap-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <span className={cn('size-2 rounded-full', TONE_DOT[tone(c.tone)])} />{c.title}
+            <div className={cn('flex items-center gap-2 font-semibold text-muted-foreground', large ? 'text-xl' : 'text-xs')}>
+              <span className={cn('rounded-full', large ? 'size-3' : 'size-2', TONE_DOT[tone(c.tone)])} />{c.title}
             </div>
             {nodes.filter((n) => n.column === c.key).map((n) => (
               <div key={n.id} ref={(el) => { if (el) refs.current.set(n.id, el); else refs.current.delete(n.id) }}
@@ -170,7 +172,7 @@ function Flow({ b }: P) {
                   <Badge chip={{ text: n.id, tone: n.tone }} />
                   {outgoing(n.id).map((l, k) => <Badge key={k} chip={{ text: `→ ${l.to}${l.label ? ' · ' + l.label : ''}`, tone: l.tone || 'gray' }} />)}
                 </div>
-                {n.text && <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed"><Md text={n.text} /></p>}
+                {n.text && <p className={cn('mt-2 leading-relaxed', large ? 'line-clamp-3 text-xl' : 'line-clamp-4 text-[13px]')}><Md text={n.text} /></p>}
               </div>
             ))}
             {!nodes.some((n) => n.column === c.key) && <p className="text-xs text-muted-foreground">항목 없음</p>}
@@ -248,7 +250,7 @@ function Tiles({ b }: P) {
         <Card key={i} className={cn('flex flex-col gap-1 p-4', t.tone && t.tone !== 'gray' && 'ring-1 ring-inset', t.tone && TONE_SOFT[tone(t.tone)].split(' ').filter((c) => c.startsWith('ring-')).join(' '))}>
           <div className="text-xs font-medium text-muted-foreground">{t.label}</div>
           <div className={cn('text-2xl font-bold tracking-tight', t.tone ? TONE_TEXT[tone(t.tone)] : '')}>
-            <NumberTicker value={t.value} />{t.unit && <span className="ml-0.5 text-sm font-medium text-muted-foreground">{t.unit}</span>}
+            <StatValue value={t.value} />{t.unit && <span className="ml-0.5 text-sm font-medium text-muted-foreground">{t.unit}</span>}
           </div>
           {t.note && <div className="text-[11px] leading-snug text-muted-foreground">{t.note}</div>}
         </Card>
