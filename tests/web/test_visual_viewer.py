@@ -280,6 +280,16 @@ def blob(value) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def blob_blocks(pg) -> list[dict]:
+    """화면의 블록을 row·expander 안까지 펼친다."""
+    out, todo = [], list(pg["blocks"])
+    while todo:
+        b = todo.pop(0)
+        out.append(b)
+        todo[:0] = [x for col in b.get("cols") or [] for x in col.get("blocks") or []] + list(b.get("blocks") or [])
+    return out
+
+
 def export_of(key: str) -> dict:
     return json.loads(EXPORTS[key].read_text(encoding="utf-8"))
 
@@ -543,10 +553,61 @@ class BuildViewTests(TempCase):
                     if ref["source_id"] == "rv-001":
                         ref["origin"]["representation"] = "excerpt"
         _, view = self.build(path=self.h.add("synthetic_catalog", "export-renamed.json", data))
-        self.assertIn('"후기 근거", "value": "미확인"', blob(page(view, "dashboard")))
+        dashboard = page(view, "dashboard")
+        kpi = next(b for b in dashboard["blocks"] if b["type"] == "kpis")["items"][1]
+        self.assertEqual((kpi["label"], kpi["value"], kpi["note"]), ("원문 발췌", 1, "후기인지 기록 없음"))
+        self.assertNotIn('"미확인"', blob(dashboard))
+        self.assertIn("원문 발췌를 고객 후기로 세지 않았습니다", blob(dashboard))
         screening = blob(page(view, "screening"))
-        self.assertIn("유형을 알 수 없는 원문 발췌 1건", screening)
+        self.assertIn("후기인지 기록되지 않은 원문 근거 1건", screening)
         self.assertNotIn("근거가 없습니다", screening)
+
+    def test_dashboard_without_insights_counts_only_what_the_export_records(self):
+        _, view = self.build("microwave")
+        dashboard = page(view, "dashboard")
+        blocks = blob_blocks(dashboard)
+        titled = {b.get("title"): b for b in blocks if b.get("title")}
+        # 항목 종류는 ID 접두어가 아니라 결과 목록으로 정한다(p1·f1·r1·c1은 소문자라 접두어 관례에 맞지 않는다)
+        claims = {i["label"]: i["tone"] for i in titled["항목별 연결 근거"]["items"]}
+        self.assertEqual(claims, {"p1 현재 불편": "red", "f1 기존 기능": "blue", "r1 남은 불편": "orange", "c1 제안": "purple"})
+        self.assertEqual([(i["label"], i["value"], i["note"]) for i in titled["기존 기능과 대조한 결과"]["items"]], [("미해소", 1, "p1→r1")])
+        self.assertEqual([(i["label"], i["value"]) for i in titled["항목별 근거 확인"]["items"]], [("뒷받침됨", 4)])
+        sites = titled["출처 사이트별 근거"]["items"]
+        self.assertEqual(sum(i["value"] for i in sites), len(export_of("microwave")["turns"][-1]["state"]["latest_result"]["evidence_refs"]))
+        text = blob(dashboard)
+        for expected in ("남은 불편 1개 중 제안과 연결 1개", "기존 기능과 겹치는 제안 0개", "의미가 맞는지는 사람이 원문으로 확인해야 합니다"):
+            self.assertIn(expected, text)
+        for invented in ('"donut"', "의견 묶음 (모델 해석)", "발생률", "%"):  # 의견 묶음·비율을 만들지 않는다(자막은 제외)
+            self.assertNotIn(invented, blob(dashboard["blocks"]))
+        links = [x for row in next(b for b in page(view, "evidence")["blocks"] if b["type"] == "table")["rows"] for x in row["links"]]
+        self.assertIn({"text": "c1", "tone": "purple"}, links)
+
+    def test_evidence_kind_field_is_used_when_present(self):  # 이슈 #8: export에 kind가 생기면 바로 쓴다
+        data = rename_source(rename_source(export_of("microwave"), RID, "forum-01"), FID, "official-02")
+        kinds = {"forum-01": "review", "official-02": "product_fact"}
+        for turn in data["turns"]:
+            for result in [turn["state"].get("latest_result")] + [c["result"] for c in turn["candidates"]]:
+                for ref in (result or {}).get("evidence_refs") or []:
+                    ref["kind"] = kinds[ref["source_id"]]
+        _, view = self.build(path=self.h.add("microwave", "export-kind.json", data))
+        dashboard = page(view, "dashboard")
+        kpi = next(b for b in dashboard["blocks"] if b["type"] == "kpis")["items"][1]
+        self.assertEqual((kpi["label"], kpi["value"], kpi["note"]), ("후기 근거", 1, "후기로 분류된 근거"))
+        types = next(b for b in blob_blocks(dashboard) if b.get("title") == "유형별 등록 근거")["items"]
+        self.assertEqual([(t["label"], t["value"]) for t in types], [("후기", 1), ("제품 사실", 1)])
+        # 모르는 kind는 후기로 세지 않고 이름 그대로 보인다(차트에서 빠지지 않는다)
+        for turn in data["turns"]:
+            for result in [turn["state"].get("latest_result")] + [c["result"] for c in turn["candidates"]]:
+                for ref in (result or {}).get("evidence_refs") or []:
+                    if ref["source_id"] == "forum-01":
+                        ref["kind"] = "forum_post"
+        _, view = self.build(path=self.h.add("microwave", "export-kind2.json", data))
+        dashboard = page(view, "dashboard")
+        kpi = next(b for b in dashboard["blocks"] if b["type"] == "kpis")["items"][1]
+        self.assertEqual((kpi["label"], kpi["value"]), ("종류 미기록 근거", 1))
+        types = next(b for b in blob_blocks(dashboard) if b.get("title") == "유형별 등록 근거")["items"]
+        self.assertEqual([t["label"] for t in types], ["제품 사실", "미지원(forum_post)"])
+        self.assertIn("미지원(forum_post)", blob(page(view, "evidence")))
 
     def invalidated(self, key: str) -> dict:
         data = export_of(key)

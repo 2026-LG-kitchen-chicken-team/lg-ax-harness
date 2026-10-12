@@ -30,13 +30,18 @@ import os
 import re
 import sys
 import webbrowser
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 HERE = Path(__file__).resolve().parent
 KST = timezone(timedelta(hours=9))
 
 TYPE_LABEL = {"REVIEW": "후기", "REV": "후기", "MANUAL": "설명서", "SPEC": "스펙", "PART": "소모품", "DOC": "문서"}
+# 하네스가 근거마다 종류(kind)를 넣으면 그 값을 먼저 쓴다(이슈 #8 제안: review / product_fact / manual 등).
+# 모르는 값은 그대로 '미지원(값)'으로 두고 후기로 세지 않는다.
+KIND_LABEL = {"review": "후기", "product_fact": "제품 사실", "manual": "설명서", "spec": "스펙", "part": "소모품", "document": "문서"}
 # source_id 접두어가 하네스 관례가 아니면 원문 표현(origin.representation)으로만 나눈다. 후기라고 단정하지 않는다.
 REPRESENTATION_TYPE = {"factual_summary": "제품 사실", "excerpt": "원문 발췌"}
 TYPE_ORDER = ("후기", "설명서", "스펙", "소모품", "문서", "제품 사실", "원문 발췌", "기타")
@@ -78,7 +83,9 @@ INSIGHTS_APPLIED = {"matched": "turn_id 일치", "single_turn": "turn이 하나�
                     "unverified_turn": "직접 지정 · turn 미확인"}
 SEMANTIC_LABEL = {"unverified": "의미 검토 전"}
 RESOLUTION_LABEL = {"resolved": "해소", "partially_resolved": "일부 해소", "unresolved": "미해소", "uncertain": "불확실"}
+RESOLUTION_TONE = {"resolved": "green", "partially_resolved": "blue", "unresolved": "red", "uncertain": "orange"}
 SUPPORT_LABEL = {"supported": "뒷받침됨", "partially_supported": "일부 뒷받침", "unsupported": "뒷받침 안 됨", "uncertain": "불확실"}
+SUPPORT_TONE = {"supported": "green", "partially_supported": "blue", "unsupported": "red", "uncertain": "orange"}
 SCOPE_RELATION_LABEL = {"current_model": "현재 모델", "unclear": "모델 불명확", "other_model": "다른 모델"}
 
 HARNESS_STEPS = [
@@ -92,7 +99,7 @@ HARNESS_STEPS = [
 
 DEFAULT_CAPTIONS = {
     "overview": ("입력: 모델과 질문, 조건을 확인합니다", "질문 원문과 조건은 저장된 그대로 보여줍니다."),
-    "dashboard": ("근거: 결과에 쓴 근거 {evidence}건을 셉니다", "관측 건수이며 발생률이나 시장 수요가 아닙니다."),
+    "dashboard": ("근거: 결과에 쓴 근거 {evidence}건과 검토 판단을 셉니다", "관측 건수이며 발생률이나 시장 수요가 아닙니다."),
     "screening": ("선별: 결과에 쓴 원문 근거", "인용은 저장된 원문 그대로이며 화면이 고치지 않습니다."),
     "compare": ("대조: 불편을 같은 모델의 기존 기능과 맞춰 봅니다", "기능이 있다고 불편이 해소된 것은 아닙니다."),
     "concepts": ("제안: 남은 불편에 연결한 제안", "효과·비용은 측정 전 미확정입니다."),
@@ -146,11 +153,25 @@ def src_type(source_id: str) -> str:
 
 
 def ev_type(ref: dict) -> str:
-    """export의 evidence_refs에는 kind가 없다. 하네스 접두어가 아니면 원문 표현으로만 나눈다."""
+    """근거 종류: kind(evidence_refs나 origin)가 있으면 그 값, 없으면 source_id 접두어(하네스 관례), 그것도 아니면
+    원문 표현(원문 발췌·제품 사실)으로만 나눈다. v0.7.0 export에는 kind가 없다."""
+    kind = ref.get("kind") or (ref.get("origin") or {}).get("kind")
+    if isinstance(kind, str) and kind:
+        return KIND_LABEL.get(kind, f"미지원({kind})")
     by_prefix = TYPE_LABEL.get(ref.get("source_id", "").split("-")[0])
     if by_prefix:
         return by_prefix
     return REPRESENTATION_TYPE.get((ref.get("origin") or {}).get("representation"), "기타")
+
+
+def untyped(t: str) -> bool:
+    """후기인지 아닌지 알 수 없는 근거 종류(원문 발췌·기타·모르는 kind)."""
+    return t in ("원문 발췌", "기타") or t.startswith("미지원(")
+
+
+def type_order(types) -> list[str]:
+    known = [t for t in TYPE_ORDER if t in types]
+    return known + sorted(t for t in types if t not in TYPE_ORDER)
 
 
 def claim_prefix(claim_id: str) -> str:
@@ -463,8 +484,11 @@ class Ctx:
         self.synthetic = (any(e.get("synthetic") or (e.get("origin") or {}).get("representation") == "synthetic" for e in all_refs)
                           or any("synthetic" in (r["data_version"] or "") for r in self.rows))
         self.claims = []
-        for key in ("pains", "existing_features", "remaining_pains", "concepts"):
+        self.claim_kind: dict[str, str] = {}  # 항목 종류는 ID 접두어가 아니라 결과의 어느 목록에 있는지로 정한다
+        for key, kind in (("pains", "P"), ("existing_features", "F"), ("remaining_pains", "RP"), ("concepts", "C")):
             self.claims.extend(self.result.get(key) or [])
+            for cl in self.result.get(key) or []:
+                self.claim_kind.setdefault(cl.get("id"), kind)
         self.links: dict[str, list[str]] = {}
         for c in self.claims:
             for sid in c.get("source_ids") or []:
@@ -502,6 +526,12 @@ class Ctx:
         }
         for key, g in self.groups.items():
             self.values[f"g_{key}"] = len(g.get("source_ids") or [])
+
+    def kind_of(self, claim_id: str) -> str:
+        return self.claim_kind.get(claim_id) or claim_prefix(claim_id)
+
+    def claim_tone(self, claim_id: str) -> str:
+        return CLAIM_TONE.get(self.kind_of(claim_id), "gray")
 
     def type_of(self, sid: str) -> str:
         return ev_type(self.ev[sid]) if sid in self.ev else src_type(sid)
@@ -736,6 +766,117 @@ def page_overview(c: Ctx) -> list[dict]:
     return blocks
 
 
+TYPE_SOURCE = "근거 종류(kind)가 있으면 그 값, 없으면 ID 규칙(REVIEW·SPEC 등), 그것도 없으면 원문을 옮긴 방식(원문 발췌·제품 사실)"
+
+
+def review_kpi(c: Ctx, untyped_types: list[str]) -> dict:
+    """후기 근거 수. 종류를 모르는 근거만 있으면 '미확인'을 크게 쓰지 않고, 아는 것(원문 발췌 N건)과 모르는 것(후기 여부)을 나눠 적는다."""
+    reviews = c.values["reviews"]
+    if reviews or not untyped_types:
+        return {"label": "후기 근거", "value": reviews, "unit": "건", "tone": "purple",
+                "note": f"후기로 분류된 근거 · 종류 미기록 {len(untyped_types)}건 별도" if untyped_types else "후기로 분류된 근거",
+                "source": TYPE_SOURCE}
+    label = "원문 발췌" if set(untyped_types) == {"원문 발췌"} else "종류 미기록 근거"
+    return {"label": label, "value": len(untyped_types), "unit": "건", "tone": "gray", "note": "후기인지 기록 없음",
+            "source": "결과에 근거 종류(kind)가 없어 후기 수를 세지 않았습니다"}
+
+
+def type_note(c: Ctx) -> list[dict]:
+    """종류를 모르는 근거가 있으면 왜 후기 수를 세지 않았는지 쉬운 말로 적는다."""
+    n = sum(1 for e in c.evidence if untyped(ev_type(e)))
+    if not n:
+        return []
+    return [{"type": "callout", "tone": "info", "text": (
+        f"근거 {n}건은 후기인지 공식 자료인지가 결과에 저장되지 않았습니다. 그래서 원문을 그대로 옮긴 **원문 발췌**와 사실을 요약한 "
+        "**제품 사실**로만 나눴고, 원문 발췌를 고객 후기로 세지 않았습니다.")}]
+
+
+def count_items(values: list, labels: dict, tones: dict, notes: dict | None = None) -> list[dict]:
+    """값별 건수 막대. 처음 나온 순서가 아니라 라벨 표의 순서, 모르는 값은 원래 값 그대로 뒤에 둔다."""
+    counts = Counter(values)
+    order = [k for k in labels if k in counts] + [k for k in counts if k not in labels]
+    return [{"label": labels.get(k, str(k) if k else "미기록"), "value": counts[k], "tone": tones.get(k, "gray"),
+             "note": (notes or {}).get(k, "")} for k in order]
+
+
+def judgment_blocks(c: Ctx) -> list[dict]:
+    """검토 기록(assessment)에 적힌 판단을 센다. 모델이 쓰고 저장 도구가 형식을 검사한 기록이며 의미 검증이 아니다."""
+    assessment = c.validation.get("assessment") or {}
+    matches = assessment.get("feature_matches") or []
+    checks = assessment.get("claim_checks") or []
+    links = assessment.get("concept_links") or []
+    if not (matches or checks or links):
+        return []
+    cols = []
+    if matches:
+        notes: dict[str, list[str]] = {}
+        for fm in matches:
+            notes.setdefault(fm.get("resolution"), []).append(f"{fm.get('pain_id')}→{fm.get('remaining_pain_id')}")
+        cols.append({"span": 1, "blocks": [{
+            "type": "hbars", "title": "기존 기능과 대조한 결과", "unit": "건",
+            "items": count_items([fm.get("resolution") for fm in matches], RESOLUTION_LABEL, RESOLUTION_TONE,
+                                 {k: ", ".join(v) for k, v in notes.items()}),
+            "source": "검토 기록 feature_matches · 불편→남은 불편 쌍마다 모델이 쓴 판단"}]})
+    if checks:
+        notes = {}
+        for ch in checks:
+            notes.setdefault(ch.get("support_status"), []).append(str(ch.get("claim_id")))
+        cols.append({"span": 1, "blocks": [{
+            "type": "hbars", "title": "항목별 근거 확인", "unit": "건",
+            "items": count_items([ch.get("support_status") for ch in checks], SUPPORT_LABEL, SUPPORT_TONE,
+                                 {k: ", ".join(v) for k, v in notes.items()}),
+            "source": "검토 기록 claim_checks · 항목마다 근거가 뒷받침하는지 모델이 쓴 판단"}]})
+    blocks: list[dict] = [{"type": "section", "text": "대조·검토 판단"}]
+    if cols:
+        blocks.append({"type": "row", "cols": cols})
+    remaining = [r.get("id") for r in c.result.get("remaining_pains") or []]
+    if links:
+        linked = {rp for link in links for rp in link.get("remaining_pain_ids") or []}
+        chips = [{"text": f"남은 불편 {len(remaining)}개 중 제안과 연결 {sum(1 for r in remaining if r in linked)}개", "tone": "blue"},
+                 {"text": f"기존 기능과 겹치는 제안 {sum(1 for link in links if link.get('duplicates_existing'))}개",
+                  "tone": "red" if any(link.get("duplicates_existing") for link in links) else "green"},
+                 {"text": f"내부 치수가 필요한 제안 {sum(1 for link in links if link.get('geometry_required'))}개", "tone": "gray"}]
+        blocks.append({"type": "chips", "items": chips, "source": "검토 기록 concept_links"})
+    if checks and any(ch.get("scope_relation") not in (None, "current_model") for ch in checks):
+        scope = Counter(SCOPE_RELATION_LABEL.get(ch.get("scope_relation"), ch.get("scope_relation") or "미기록") for ch in checks)
+        blocks.append({"type": "chips", "title": "근거가 가리키는 모델", "items": [
+            {"text": f"{k} {v}건", "tone": "green" if k == "현재 모델" else "orange"} for k, v in scope.items()]})
+    blocks.append({"type": "callout", "tone": "info",
+                   "text": "위 판단은 모델이 검토 기록에 쓴 것이고 저장 도구는 형식만 검사했습니다. 의미가 맞는지는 사람이 원문으로 확인해야 합니다."})
+    return blocks
+
+
+def source_site_block(c: Ctx) -> dict:
+    """근거 원문 주소(HTTPS)의 사이트 이름별 건수. 사이트 이름만 세며 후기 여부를 뜻하지 않는다."""
+    sites: dict[str, list[str]] = {}
+    for e in c.evidence:
+        url = https((e.get("origin") or {}).get("source_url"))
+        host = (urlparse(url).hostname or "") if url else ""
+        host = host[4:] if host.startswith("www.") else host
+        sites.setdefault(host or "링크 없음", []).append(e["source_id"])
+    items = [{"label": k, "value": len(v), "tone": "gray" if k == "링크 없음" else "blue", "note": compress_ids(v)}
+             for k, v in sorted(sites.items(), key=lambda kv: (kv[0] == "링크 없음", -len(kv[1]), kv[0]))]
+    return {"type": "hbars", "title": "출처 사이트별 근거", "unit": "건", "items": items,
+            "source": "근거 원문 주소(source_url, HTTPS만) · 사이트 이름만 셉니다"}
+
+
+def evidence_fact_chips(c: Ctx) -> dict:
+    """모델 연결 방식·게시일 범위·수집일. 값이 없으면 미기재·미기록으로 센다."""
+    origins = [e.get("origin") or {} for e in c.evidence]
+    matching = Counter(MATCHING_LABEL.get(o.get("model_matching"), o.get("model_matching") or "모델 연결 미기록") for o in origins)
+    published = sorted(o["published_date"] for o in origins if o.get("published_date"))
+    retrieved = sorted({o["retrieved_date"] for o in origins if o.get("retrieved_date")})
+    chips = [{"text": f"{k} {v}건", "tone": "blue"} for k, v in matching.items()]
+    if published:
+        span = published[0] if published[0] == published[-1] else f"{published[0]} ~ {published[-1]}"
+        chips.append({"text": f"게시일 {span} ({len(published)}건)", "tone": "gray"})
+    if len(published) < len(origins):
+        chips.append({"text": f"게시일 미기재 {len(origins) - len(published)}건", "tone": "gray"})
+    if retrieved:
+        chips.append({"text": "수집일 " + (retrieved[0] if len(retrieved) == 1 else f"{retrieved[0]} ~ {retrieved[-1]}"), "tone": "gray"})
+    return {"type": "chips", "items": chips, "source": "evidence_refs의 origin (model_matching·published_date·retrieved_date)"}
+
+
 def page_dashboard(c: Ctx) -> list[dict]:
     if not c.has_result:
         return no_result_blocks(c, "근거 대시보드")
@@ -747,14 +888,12 @@ def page_dashboard(c: Ctx) -> list[dict]:
             continue
         kpis.append({key: k[key] for key in ("label", "unit", "tone", "emoji", "note") if key in k} | {"value": value})
     kpi_source = ins.get("kpi_source") or "export 결과의 evidence_refs와 assumptions"
-    unknown_type = sum(1 for e in c.evidence if ev_type(e) in ("원문 발췌", "기타"))
+    untyped_types = [ev_type(e) for e in c.evidence if untyped(ev_type(e))]
     if not kpis:
         res = c.result
         kpis = [
             {"label": "등록 근거", "value": len(c.evidence), "unit": "건", "tone": "blue", "note": "결과에 쓴 인용 근거", "source": "evidence_refs"},
-            {"label": "후기 근거", "value": c.values["reviews"] if not unknown_type or c.values["reviews"] else "미확인",
-             "unit": "건" if not unknown_type or c.values["reviews"] else "", "tone": "purple",
-             "note": f"유형 미기록 {unknown_type}건 별도" if unknown_type else "후기 원문 발췌"},
+            review_kpi(c, untyped_types),
             {"label": "현재 불편", "value": len(res.get("pains") or []), "unit": "개", "tone": "red", "note": "근거에서 찾은 불편", "source": "pains"},
             {"label": "기존 기능", "value": len(res.get("existing_features") or []), "unit": "개", "tone": "green", "note": "대조한 같은 모델 기능",
              "source": "existing_features"},
@@ -790,11 +929,12 @@ def page_dashboard(c: Ctx) -> list[dict]:
     by_type: dict[str, int] = {}
     for e in c.evidence:
         by_type[ev_type(e)] = by_type.get(ev_type(e), 0) + 1
-    type_items = [{"label": t, "value": by_type[t], "tone": TYPE_TONE.get(t, "gray")} for t in TYPE_ORDER if t in by_type]
-    claim_items = [{"label": f"{cl['id']} {CLAIM_KIND.get(claim_prefix(cl['id']), '')}".strip(),
-                    "value": len(cl.get("source_ids") or []), "tone": CLAIM_TONE.get(claim_prefix(cl["id"]), "gray"),
+    type_items = [{"label": t, "value": by_type[t], "tone": TYPE_TONE.get(t, "gray")} for t in type_order(by_type)]
+    claim_items = [{"label": f"{cl['id']} {CLAIM_KIND.get(c.kind_of(cl['id']), '')}".strip(),
+                    "value": len(cl.get("source_ids") or []), "tone": c.claim_tone(cl["id"]),
                     "note": compress_ids(cl.get("source_ids") or [])} for cl in c.claims]
-    blocks.append({"type": "section", "text": "등록 근거"})
+    blocks += judgment_blocks(c)
+    blocks.append({"type": "section", "text": "근거 출처"})
     if not type_items:
         blocks.append({"type": "callout", "tone": "warning", "text": f"현재 결과에 등록된 근거가 없습니다. 상태: **{status_text(c.cur['status'])}**"})
         return blocks
@@ -802,10 +942,12 @@ def page_dashboard(c: Ctx) -> list[dict]:
                     "source": "pains·existing_features·remaining_pains·concepts의 source_ids"}
                    if claim_items else {"type": "callout", "tone": "info", "text": "근거와 연결된 항목이 없습니다."})
     blocks.append({"type": "row", "cols": [
+        {"span": 1, "blocks": [source_site_block(c)]},
         {"span": 1, "blocks": [{"type": "hbars", "title": "유형별 등록 근거", "unit": "건", "items": type_items,
-                                 "source": "source_id 접두어(REVIEW·SPEC 등), 없으면 origin.representation(원문 발췌·제품 사실)"}]},
-        {"span": 1, "blocks": [claim_block]},
+                                 "source": TYPE_SOURCE}] + type_note(c)},
     ]})
+    blocks.append(evidence_fact_chips(c))
+    blocks += [{"type": "section", "text": "불편·기능·제안과 근거"}, claim_block]
     return blocks + insights_howto(c)
 
 
@@ -853,12 +995,12 @@ def page_screening(c: Ctx) -> list[dict]:
         blocks += [{"type": "section", "text": "후기 원문 비교"}, {"type": "row", "cols": cols}]
     else:
         reviews = [e for e in c.evidence if ev_type(e) == "후기"]
-        excerpts = [e for e in c.evidence if ev_type(e) in ("원문 발췌", "기타")]
+        excerpts = [e for e in c.evidence if untyped(ev_type(e))]
         blocks.append({"type": "section", "text": "등록 후기"})
         shown = reviews or excerpts
         if shown:
             title = (f"등록 후기 {len(reviews)}건 (의견 묶음 없이 등록 순서대로)" if reviews
-                     else f"유형을 알 수 없는 원문 발췌 {len(excerpts)}건 (source_id 접두어가 하네스 관례가 아님)")
+                     else f"후기인지 기록되지 않은 원문 근거 {len(excerpts)}건 (결과에 근거 종류가 없음)")
             blocks.append({"type": "quotes", "title": title, "items": [{
                 "quote": e.get("quote", ""),
                 "chips": [{"text": e["source_id"], "mono": True},
@@ -866,7 +1008,7 @@ def page_screening(c: Ctx) -> list[dict]:
                 "meta": e.get("location", ""), "href": https((e.get("origin") or {}).get("source_url")),
             } for e in shown]})
             if reviews and excerpts:
-                blocks.append({"type": "callout", "tone": "info", "text": f"유형을 알 수 없는 원문 발췌 {len(excerpts)}건은 '근거 원문' 화면에 있습니다."})
+                blocks.append({"type": "callout", "tone": "info", "text": f"후기인지 기록되지 않은 원문 근거 {len(excerpts)}건은 '근거 원문' 화면에 있습니다."})
         else:
             blocks.append({"type": "callout", "tone": "warning", "text": f"현재 결과에 후기나 원문 발췌 근거가 없습니다. 상태: **{status_text(c.cur['status'])}**"})
     if ins.get("excluded"):
@@ -896,7 +1038,7 @@ def page_compare(c: Ctx) -> list[dict]:
     tags = ins.get("feature_tags") or {}
 
     def node(cl: dict) -> dict:
-        return {"id": cl["id"], "title": titles.get(cl["id"], ""), "tone": CLAIM_TONE.get(claim_prefix(cl["id"]), "gray"),
+        return {"id": cl["id"], "title": titles.get(cl["id"], ""), "tone": c.claim_tone(cl["id"]),
                 "text": cl.get("text", ""), "tags": (tags.get(cl["id"]) or []) + c.chips_for(cl.get("source_ids") or [])}
 
     res = c.result
@@ -1115,7 +1257,7 @@ def page_evidence(c: Ctx) -> list[dict]:
         rows.append({
             "id": sid, "type": {"text": t, "tone": TYPE_TONE.get(t, "gray")}, "quote": e.get("quote", ""),
             "rep": representation.get(origin.get("representation"), origin.get("representation") or "미기록"),
-            "loc": e.get("location", ""), "links": [{"text": x, "tone": CLAIM_TONE.get(claim_prefix(x), "gray")} for x in c.links.get(sid, [])],
+            "loc": e.get("location", ""), "links": [{"text": x, "tone": c.claim_tone(x)} for x in c.links.get(sid, [])],
             "scope": MATCHING_LABEL.get(origin.get("model_matching"), origin.get("model_matching") or "미기록"),
             "dates": f"게시 {origin.get('published_date') or '미기재'}\n관측 {origin.get('retrieved_date') or '미기록'}",
             "pv": pv,
@@ -1133,7 +1275,7 @@ def page_evidence(c: Ctx) -> list[dict]:
                      {"key": "dates", "label": "게시·관측일", "kind": "mono"}, {"key": "pv", "label": "구매·협찬·고지"},
                      {"key": "links", "label": "연결 항목", "kind": "chips"}, {"key": "sha", "label": "SHA-256", "kind": "mono"},
                      {"key": "url", "label": "원문", "kind": "link"}],
-         "rows": rows, "source": "현재 결과의 evidence_refs · 유형은 source_id 접두어나 원문 표현 · 링크는 HTTPS 주소만 표시"},
+         "rows": rows, "source": "현재 결과의 evidence_refs · 유형은 kind, 없으면 source_id 접두어나 원문 표현 · 링크는 HTTPS 주소만 표시"},
     ]
 
 

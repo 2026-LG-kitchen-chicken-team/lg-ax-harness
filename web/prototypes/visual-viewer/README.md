@@ -109,10 +109,11 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 - 불편→기존 기능→남은 불편→제안을 원문 ID로 연결한 열로 보여준다. 열 사이 화살표는 업무 순서이며 항목 간 관계는 assessment의 feature_matches·concept_links에 적힌 것만 표시한다.
 - concept의 `implementation_steps`·`validation_plan`을 표시하고 없으면 `미작성`, `planned_not_measured`는 `검증 계획 · 실측 전`으로 둔다.
 - v0.7.0의 `decision_notes`는 요청·개요 화면에 `판단 메모`(D1…)로 보여준다. basis는 `원문 사실`·`AI 해석`·`미확인`으로 옮기되 모델이 붙인 라벨이며 공식 인용·의미 검증이 아니라고 적는다. 근거 원문 표의 연결 항목에도 D 번호가 붙는다.
-- 근거 유형: export의 evidence_refs에는 kind가 없다. source_id 접두어(REVIEW·REV=후기, MANUAL=설명서, SPEC=스펙, PART=소모품, DOC=문서)로 나누고, 관례가 아니면 원문 표현(`factual_summary`=제품 사실, `excerpt`=원문 발췌)으로만 나눈다. 원문 발췌를 후기라고 단정하지 않으며 그때 후기 근거 수는 `미확인`이다.
+- 근거 유형: 근거에 `kind`(evidence_refs 또는 origin)가 있으면 그 값을 먼저 쓴다(review=후기, product_fact=제품 사실, manual=설명서, spec=스펙, part=소모품, document=문서, 그 밖의 값은 `미지원(값)`이고 후기로 세지 않는다). v0.7.0 export에는 kind가 없다(이슈 #8). 그때는 source_id 접두어(REVIEW·REV=후기, MANUAL=설명서, SPEC=스펙, PART=소모품, DOC=문서)로 나누고, 관례가 아니면 원문 표현(`factual_summary`=제품 사실, `excerpt`=원문 발췌)으로만 나눈다. 원문 발췌를 후기라고 단정하지 않는다. 후기로 분류된 근거가 없고 종류를 모르는 근거만 있으면 대시보드 지표는 `후기 근거 미확인` 대신 아는 것만 `원문 발췌 N건 · 후기인지 기록 없음`(회색)으로 쓰고, 유형 차트 아래에 쉬운 말로 이유를 적는다.
 - 근거: source_id·인용·원문 발췌/사실 요약·위치·모델 범위·게시/관측일·구매/협찬(null은 미확인)·상업 고지(commercial_disclosure)·SHA·HTTPS 링크. export 경로는 `runtime-data/exports/<파일>`로만 보여주고 개인 절대 경로를 넣지 않는다.
 - 구조 검사와 `planning_detail_complete`(필드 존재 검사)를 의미 품질 통과로 표시하지 않는다.
 - 사용량: 기록이 없거나 미측정 호출이 섞이면 0으로 그리지 않고 차트를 생략한다. 합계가 일부 호출만이면 `부분 합계 · N건 중 M건 미측정`으로 적는다. 누적 값을 다시 더하지 않는다.
+- 근거 대시보드는 insights 없이도 결과에 적힌 것만 센다: 검토 기록의 대조 판단(feature_matches의 resolution), 항목별 근거 확인(claim_checks의 support_status·모델 불명확), 제안 연결(concept_links), 출처 사이트(HTTPS source_url의 사이트 이름), 유형, 모델 연결 방식·게시일·수집일, 항목별 연결 근거. 검토 기록은 모델이 쓰고 저장 도구가 형식만 검사한 것이라고 적는다. 항목 종류(현재 불편·기존 기능·남은 불편·제안)는 ID 접두어가 아니라 결과의 어느 목록에 있는지로 정한다(v0.7.0 ID는 E1·R1·pain-tones처럼 관례가 없다). 비율·발생률·의견 묶음은 만들지 않는다.
 - insights의 의견 묶음은 `모델 해석`으로 표시하고 건수는 ID 목록 길이로 센다. 붙인 insights 파일 이름과 붙인 근거(turn_id 일치 등)를 대시보드에 적는다. 관측 건수를 발생률·시장 수요로 표시하지 않는다.
 - 업무 turn이 없는 export는 요청 기록 화면만 만들고 요청마다 멈춘 이유(response.reason·events)를 보인다. 상태가 섞이면 한 상태로 안내하지 않는다.
 
