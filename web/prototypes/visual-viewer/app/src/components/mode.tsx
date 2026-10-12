@@ -50,9 +50,10 @@ export function Stage({ children, className }: { children: ReactNode; className?
     return () => window.removeEventListener('resize', fit)
   }, [])
   return (
-    <div className="fixed inset-0 grid place-items-center overflow-hidden bg-zinc-200/70">
-      <div className={cn('relative shrink-0 overflow-hidden bg-white shadow-2xl', className)}
-        style={{ width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: 'center' }}>
+    <div className="fixed inset-0 overflow-hidden bg-zinc-200/70">
+      {/* Centre by the viewport, not by the unscaled 1920px box (grid centring shifted it right/down on smaller screens). */}
+      <div className={cn('absolute left-1/2 top-1/2 overflow-hidden bg-white shadow-2xl', className)}
+        style={{ width: 1920, height: 1080, transform: `translate(-50%, -50%) scale(${scale})`, transformOrigin: 'center' }}>
         {children}
       </div>
     </div>
