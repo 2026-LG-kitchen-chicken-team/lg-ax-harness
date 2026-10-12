@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -95,37 +96,66 @@ LAUNCHER_PATH_GUARD = (
     "foreach($e in (Get-ChildItem -LiteralPath $p -Force)){if($e.Attributes -band [IO.FileAttributes]::ReparsePoint){exit 1}}}};"
     "exit 0}catch{exit 1}"
 )
+_WINDOWS_PYTHON_CODE = ("import hashlib,os,sys,time;d=os.path.abspath(sys.argv.pop(2));h=sys.argv.pop(2);p=os.path.join(d,'web','prototypes','visual-viewer','hook.py');"
+                "l=os.path.join(d,'runtime-data','visual-viewer','hook-error.log');b=open(p,'rb').read() if os.path.isfile(p) else b'';"
+                "exec(compile(b,p,'exec'),{'__name__':'__main__','__file__':p}) if hashlib.sha256(b).hexdigest()==h else os.path.isdir(os.path.dirname(l)) and open(l,'a').write('hook.py is missing or differs'+chr(10))")
+
+
+def windows_runner(source, digests=None):
+    """UTF-8 process capture; no cmd for/f decoding of interpreter paths."""
+    guard = (
+        "function G($r){try{foreach($x in @('web','web/prototypes','web/prototypes/visual-viewer','.codex','.claude','runtime-data','runtime-data/exports','runtime-data/visual-viewer')){"
+        "$p=[IO.Path]::Combine($r,$x);try{$a=[IO.File]::GetAttributes($p)}catch [IO.FileNotFoundException]{continue}catch [IO.DirectoryNotFoundException]{continue};if($a -band 1024){return $false}};"
+        "foreach($x in @('web/prototypes/visual-viewer','runtime-data/exports','runtime-data/visual-viewer')){$p=[IO.Path]::Combine($r,$x);if([IO.Directory]::Exists($p)){foreach($e in (Get-ChildItem -LiteralPath $p -Force)){if($e.Attributes -band 1024){return $false}}}};return $true}catch{return $false}};"
+    )
+    runner = (
+        "function P($f,$a,$d,[byte[]]$b){$i=[Diagnostics.ProcessStartInfo]::new();$i.FileName=$f;$i.Arguments=$a;$i.WorkingDirectory=$d;$i.UseShellExecute=$false;$i.CreateNoWindow=$true;"
+        "$i.RedirectStandardOutput=$true;$i.RedirectStandardError=$true;$i.StandardOutputEncoding=[Text.Encoding]::UTF8;$i.StandardErrorEncoding=[Text.Encoding]::UTF8;"
+        "$i.RedirectStandardInput=$null -ne $b;$p=[Diagnostics.Process]::Start($i);if($null -ne $b){$p.StandardInput.BaseStream.Write($b,0,$b.Length);$p.StandardInput.Close()};"
+        "$o=$p.StandardOutput.ReadToEnd();$e=$p.StandardError.ReadToEnd();$p.WaitForExit();return ,@($p.ExitCode,$o,$e)};"
+    )
+    if source == 'codex':
+        root = "$r=$env:H;"
+        fast = ("$n=Get-ChildItem -LiteralPath ([IO.Path]::Combine($r,'runtime-data/exports')) -Filter '*.json' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1;"
+                "if(-not $n){exit 0};$m=[IO.Path]::Combine($o,'.hook-last-export');if([IO.File]::Exists($m) -and [IO.File]::ReadAllText($m).Trim() -eq $n.Name){exit 0};")
+        # PowerShell guards all directories/leaves before loading pinned Python.
+        code = _WINDOWS_PYTHON_CODE
+        execution = ("$v=P 'uv' 'python find --system --no-config --no-python-downloads 3.12' ($env:SystemRoot+'/System32') $null;"
+                     "[IO.File]::WriteAllText($l,$v[2],$u);if($v[0] -ne 0){exit 0};$py=$v[1].Trim();"
+                     "$a='-I -B -c '+[char]34+'" + code.replace("'", "''") + "'+[char]34+' codex '+[char]34+$r+'/.'+[char]34+' '+$env:LGAX_HOOK_SHA+' '+$env:LGAX_BUILD_SHA+' '+$env:LGAX_INDEX_SHA;"
+                     "$v=P $py $a ($env:SystemRoot+'/System32') $b;if($v[2]){[IO.File]::AppendAllText($l,$v[2],$u)};")
+    else:
+        root = "$r=$env:CLAUDE_PROJECT_DIR;if(-not $r){$r=(Get-Location).Path};"
+        fast = ''
+        code = _WINDOWS_PYTHON_CODE
+        args = "run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c "
+        execution = ("$a='" + args + "'+[char]34+'" + code.replace("'", "''") + "'+[char]34+' claude '+[char]34+$r+'/.'+[char]34+' " + digests['hook'] + " " + digests['build_view'] + " " + digests['index'] + "';"
+                     "$v=P 'uv' $a $r $b;[IO.File]::WriteAllText($l,$v[2],$u);")
+    return ("# LG_AX_VISUAL_VIEWER_V1\n$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';" + guard + runner + "try{" + root +
+            "if(-not (G $r)){exit 0};$o=[IO.Path]::Combine($r,'runtime-data/visual-viewer');" + fast +
+            "[void][IO.Directory]::CreateDirectory($o);$l=[IO.Path]::Combine($o,'hook-start-error.log');$u=[Text.UTF8Encoding]::new($false);"
+            "$m=[IO.MemoryStream]::new();[Console]::OpenStandardInput().CopyTo($m);$b=$m.ToArray();" + execution +
+            "}catch{if($l -and (G $r)){[IO.File]::WriteAllText($l,[string]$_,$u)}};exit 0")
+
+
+def encoded_windows_runner(source, digests=None):
+    return base64.b64encode(windows_runner(source, digests).encode('utf-16le')).decode('ascii')
+
+
 LAUNCHER_TEXT = "\r\n".join([
     "@echo off",
     "rem LG AX visual viewer - Codex Stop hook launcher written by viewer.py install. Do not edit, reinstall instead.",
-    "rem Arguments: codex, then SHA-256 of hook.py, build_view.py, index.html and this file. Always exits 0 silently.",
     "setlocal EnableExtensions DisableDelayedExpansion",
     "set NoDefaultCurrentDirectoryInExePath=1",
     'cd /d "%~dp0.." || exit /b 0',
     'set "H=%CD%"',
-    # Validate before mkdir, marker reads, interpreter lookup or stderr files.
-    '"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -NonInteractive -Command "' + LAUNCHER_PATH_GUARD + '" 1>nul 2>nul',
-    'if errorlevel 1 exit /b 0',
-    'set "OUT=%CD%\\runtime-data\\visual-viewer"',
-    'if not exist "%OUT%\\" md "%OUT%" 2>nul',
-    "rem Fast path: nothing new when the newest export is the one hook.py last processed.",
-    'set "NEWEST="',
-    'for /f "delims=" %%F in (\'dir /b /a-d /o-d "runtime-data\\exports\\*.json" 2^>nul\') do if not defined NEWEST set "NEWEST=%%F"',
-    "if not defined NEWEST exit /b 0",
-    'set "SEEN="',
-    f'if exist "%OUT%\\{MARKER}" set /p SEEN=<"%OUT%\\{MARKER}"',
-    "setlocal EnableDelayedExpansion",
-    'if /i "!NEWEST!"=="!SEEN!" exit /b 0',
-    "endlocal",
-    "rem Interpreter: a non-virtual-environment Python 3.12 found from a folder the sandbox cannot write.",
-    'cd /d "%SystemRoot%\\System32"',
-    'set "PY="',
-    f'for /f "delims=" %%P in (\'{FIND_PYTHON} 2^>"%OUT%\\{START_LOG}"\') do if not defined PY set "PY=%%P"',
-    "if not defined PY exit /b 0",
-    f'"%PY%" -I -B -c "{_LAUNCHER_CODE}" codex "%H%\\." %2 %3 %4 1>nul 2>>"%OUT%\\{START_LOG}"',
-    "exit /b 0",
-    "",
+    'set "LGAX_HOOK_SHA=%2"',
+    'set "LGAX_BUILD_SHA=%3"',
+    'set "LGAX_INDEX_SHA=%4"',
+    '"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -NonInteractive -EncodedCommand ' + encoded_windows_runner('codex') + ' 1>nul 2>nul',
+    "exit /b 0", "",
 ])
+
 TARGETS = {
     "claude": {"file": (".claude", "settings.local.json"), "event": "PostToolUse", "matcher": "Bash|PowerShell",
                "name": "Claude Code", "async": True, "timeout": 60, "keep_positions": False},
@@ -158,8 +188,18 @@ def hook_code(source: str, digests: dict) -> str:
 
 
 def hook_command(source: str, digests: dict) -> str:
-    """셸에 상관없는 핵심 명령. Claude는 이것을 그대로 쓴다(Git Bash·PowerShell은 작업 폴더의 실행 파일을 찾지 않는다)."""
-    return f'{UV_PREFIX} "{hook_code(source, digests)}" {source} {digests["build_view"]} {digests["index"]}'
+    """Guard first, capture startup output, preserve silent nonblocking hooks."""
+    if source == 'claude' and os.name == 'nt':
+        powershell = 'powershell.exe'
+        return powershell + ' -NoProfile -NonInteractive -EncodedCommand ' + encoded_windows_runner(source, digests)
+    command = f'{UV_PREFIX} "{hook_code(source, digests)}" {source} {digests["build_view"]} {digests["index"]}'
+    if source == 'claude':
+        import shlex
+        components = list(dict.fromkeys('/'.join(p.split('/')[:i]) for p in _GUARD_RELATIVES for i in range(1,len(p.split('/'))+1)))
+        guard = 'for Q in ' + ' '.join('"$H/' + p + '"' for p in components) + ' "$O"/* "$O"/.[!.]*; do [ -L "$Q" ] && exit 0; done; '
+        script = 'H="${CLAUDE_PROJECT_DIR:-$(pwd)}"; O="$H/runtime-data/visual-viewer"; ' + guard + 'mkdir -p "$O" 2>/dev/null || exit 0; cd "$H" || exit 0; ' + command + ' >/dev/null 2>"$O/hook-start-error.log"; exit 0'
+        return 'sh -c ' + shlex.quote(script)
+    return command
 
 
 def launcher_digest() -> str:
@@ -234,6 +274,13 @@ def is_ours(item) -> bool:
     if not isinstance(item, dict):
         return False
     text = " ".join(v for v in (item.get("command"), item.get("commandWindows")) if isinstance(v, str))
+    encoded = re.search(r"-EncodedCommand\s+([A-Za-z0-9+/=]+)", text)
+    if encoded:
+        try:
+            if base64.b64decode(encoded.group(1), validate=True).decode("utf-16le").startswith("# LG_AX_VISUAL_VIEWER_V1\n"):
+                return True
+        except (ValueError, UnicodeError):
+            pass
     return ("visual-viewer" in text and "hook.py" in text) or LAUNCHER_REL[1] in text
 
 
@@ -395,7 +442,14 @@ def registered(config: dict, source: str) -> dict:
     event, matcher, item = (placed or found)[0]
     digests = []
     for key in ("command", "commandWindows"):
-        hexes = HEX64.findall(item.get(key) or "")
+        text = item.get(key) or ""
+        encoded = re.search(r"-EncodedCommand\s+([A-Za-z0-9+/=]+)", text)
+        if encoded:
+            try:
+                text = base64.b64decode(encoded.group(1), validate=True).decode("utf-16le")
+            except (ValueError, UnicodeError):
+                text = ""
+        hexes = HEX64.findall(text)
         if hexes:
             names = ("hook", "build_view", "index") + (("launcher",) if LAUNCHER_REL[1] in (item.get(key) or "") else ())
             digests.append(dict(zip(names, hexes)) if len(hexes) == len(names) else None)

@@ -195,7 +195,7 @@
     },
     {
       "path": "product-tools/product_tools/reporting.py",
-      "sha256": "0bcf1dc2b9feb4b67e346dd607995c62a9dd9032fa9ed5444ec91e6cfe7f5f66"
+      "sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6"
     },
     {
       "path": "product-tools/product_tools/selection.py",
@@ -255,7 +255,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
-      "sha256": "359eb343f1dac467729532812b6dc18bccd22392221e32c3c35d27547b5bfeb6"
+      "sha256": "a81f6dfe9a4474b857d53ed2a304b7c1e1749bf6bea1f93e5f4ae7340b491541"
     },
     {
       "path": "web/prototypes/visual-viewer/hook.py",

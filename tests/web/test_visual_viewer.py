@@ -5,6 +5,7 @@ with text marked "[합성 시험 자료]". They are code fixtures, not AI or cus
 No test opens a browser, runs a business question, starts Codex/Claude or calls a model.
 """
 import contextlib
+import base64
 import hashlib
 import importlib.util
 import io
@@ -870,6 +871,13 @@ class InstalledHookProcessTests(TempCase):
     def python_part(self, entry):
         """등록된 명령의 Python 부분만 그 지문·인자 그대로(Codex는 하네스 경로를 인자로 받는다)."""
         command = entry["command"]
+        encoded = re.search(r"-EncodedCommand\s+([A-Za-z0-9+/=]+)", command)
+        if encoded:
+            script = base64.b64decode(encoded.group(1)).decode("utf-16le")
+            self.assertIn(viewer._WINDOWS_PYTHON_CODE.replace("'", "''"), script)
+            pins = re.findall(r"[0-9a-f]{64}", script)
+            self.assertEqual(len(pins), 3)
+            return [sys.executable, "-I", "-B", "-c", viewer._WINDOWS_PYTHON_CODE, "claude", str(self.h.root), *pins]
         m = re.search(r'python -I -B -c "(.*)" claude ([0-9a-f]{64}) ([0-9a-f]{64})', command)
         if m:
             return [sys.executable, "-I", "-B", "-c", m.group(1), "claude", m.group(2), m.group(3)]
@@ -910,21 +918,28 @@ class InstalledHookProcessTests(TempCase):
         self.assertEqual(windows.split()[-1], hashlib.sha256(launcher.read_bytes()).hexdigest())
         digests = viewer.app_digests(self.h.root / "web/prototypes/visual-viewer")
         self.assertEqual(windows.split()[2:5], [digests["hook"], digests["build_view"], digests["index"]])
-        order = ["set NoDefaultCurrentDirectoryInExePath=1", 'cd /d "%~dp0.."', "dir /b /a-d /o-d", 'if /i "!NEWEST!"=="!SEEN!" exit /b 0',
-                 'cd /d "%SystemRoot%\\System32"', viewer.FIND_PYTHON, '"%PY%" -I -B -c "', 'codex "%H%\\." %2 %3 %4 1>nul 2>>"%OUT%\\hook-start-error.log"']
-        self.assertEqual([text.index(part) for part in order], sorted(text.index(part) for part in order))
-        self.assertIn("setlocal EnableDelayedExpansion", text)  # 표시 파일 내용은 지연 확장으로만 비교
-        self.assertNotIn("%SEEN%", text)
-        self.assertNotIn("uv run", text)
+        self.assertIn("set NoDefaultCurrentDirectoryInExePath=1", text)
+        self.assertNotIn("for /f", text)  # Native UTF8 interpreter path must not pass through cmd's codepage.
+        encoded = re.search(r"-EncodedCommand ([A-Za-z0-9+/=]+)", text)
+        self.assertIsNotNone(encoded)
+        script = base64.b64decode(encoded.group(1)).decode("utf-16le")
+        self.assertIn("StandardOutputEncoding=[Text.Encoding]::UTF8", script)
+        self.assertIn(viewer.FIND_PYTHON.removeprefix("uv "), script)
+        self.assertIn("-I -B -c", script)
+        self.assertIn("hook-start-error.log", script)
+        self.assertLess(script.index("if(-not (G $r))"), script.index("CreateDirectory"))
         self.assertTrue(text.rstrip().endswith("exit /b 0"))
         posix = self.codex["command"]
         for part in ('cd / || exit 0', viewer.FIND_PYTHON, '"$P" -I -B -c "', 'codex "$H"', '>/dev/null 2>>"$O/hook-start-error.log"; exit 0'):
             self.assertIn(part, posix)
         self.assertNotIn("uv run", posix)
-        for redirecting in (text.split(" -I -B -c ")[1].split('" codex ')[1], posix.rsplit('" codex ', 1)[1]):
-            self.assertNotIn("hook-error.log", redirecting)  # 셸 리다이렉트가 hook.py의 로그 파일을 잡지 않는다
-        self.assertIn("uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c", self.claude["command"])
-        for command in (self.claude["command"], posix):
+        claude = self.claude["command"]
+        if "-EncodedCommand" in claude:
+            encoded = re.search(r"-EncodedCommand ([A-Za-z0-9+/=]+)", claude)
+            claude = base64.b64decode(encoded.group(1)).decode("utf-16le")
+            self.assertIn("run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c", claude)
+            self.assertIn("WriteAllText($l,$v[2]", claude)
+        for command in (claude, posix):
             self.assertEqual(len(set(re.findall(r"[0-9a-f]{64}", command))), 3)
 
     def test_codex_stop_payload_triggers_rebuild(self):  # codex-hook-01, round 5
@@ -1059,7 +1074,10 @@ class InstalledHookProcessTests(TempCase):
         (fake / "uv.cmd").write_text("@echo off\r\necho error: No interpreter found for Python 3.12 1>&2\r\nexit /b 2\r\n", encoding="ascii")
         system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
         report = run(f"{shell}-6", PATH=f"{fake};{system}")
-        self.assertIn("No interpreter found", report["last_error"])
+        # .NET launches the actual executable; a PATH-only uv.cmd shim is not
+        # an interpreter. Startup failure must still be silent and recorded.
+        self.assertTrue(report["last_error"].strip())
+        self.assertRegex(report["last_error"], r"No interpreter found|cannot find|file specified|Start")
         self.assertEqual(report["last_error_file"], viewer.START_LOG)
         run(f"{shell}-7", PATH=system)  # uv 없음
         self.assertGreater(self.start_log.stat().st_size, 0)
@@ -1195,7 +1213,10 @@ class InstallTests(TempCase):
         for private in (str(self.h.root), self.h.root.as_posix(), "Users", "someone"):
             self.assertNotIn(private, command)
         self.assertIsNone(re.search(r"[A-Za-z]:[\\/]", command))
-        self.assertIsNone(re.search(r"[$%!`^&|<>\\]", command.split('"')[1]))
+        if "-EncodedCommand" in command:
+            self.assertTrue(viewer.is_ours({"command": command}))
+        else:
+            self.assertIsNone(re.search(r"[$%!`^&|<>\\]", command.split('"')[1]))
         for name in viewer.APP_FILES:
             self.assertEqual((self.h.root / "web/prototypes/visual-viewer" / name).read_bytes(), (VIEWER / name).read_bytes())
         self.assertEqual((self.h.out / "index.html").read_bytes(), (VIEWER / "index.html").read_bytes())

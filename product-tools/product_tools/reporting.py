@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import shutil
 import tempfile
+import unicodedata
 from urllib.parse import quote, urlparse
 import zipfile
 import xml.etree.ElementTree as ET
@@ -24,7 +25,7 @@ RED = "B42318"
 GREY = "737373"
 LINE = "D9D9D9"
 FONT = "맑은 고딕"
-REPORTING_PROFILE = "numbered-sources-v5"
+REPORTING_PROFILE = "numbered-sources-v6"
 NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
 
 
@@ -286,11 +287,15 @@ def _style_sheet(ws, title, headers, rows, deps, highlights=(), total_rows=(), w
             if numeric:
                 cell.number_format = "#,##0" if value == int(value) else "#,##0.0##############"
             width = ws.column_dimensions[get_column_letter(cidx+2)].width
-            lines = max(lines, sum(max(1, math.ceil(len(line)*1.3/(width-3))) for line in _display(value).split("\n")))
+            # Excel column widths use narrow-character units. Korean/other wide
+            # glyphs occupy about two; explicit line breaks count separately.
+            # Extra vertical space protects Malgun ascenders in printed cells.
+            lines = max(lines, sum(max(1, math.ceil(sum(2 if unicodedata.east_asian_width(char) in ("W", "F") else 1
+                for char in line)/max(1, width-3))) for line in _display(value).split("\n")))
         # Excel supports at most 409 points. Long source chunks continue below.
-        if lines*15+10 > 409:
+        if lines*16+14 > 409:
             fail("reporting_layout_failed", "An Excel row exceeds its readable height; shorten table cells or source metadata")
-        ws.row_dimensions[ridx+7].height = max(26, lines*15+10)
+        ws.row_dimensions[ridx+7].height = max(30, lines*16+14)
     ws.column_dimensions[get_column_letter(len(headers)+2)].width = 3.5
     ws.freeze_panes = "B7"
     if rows:
