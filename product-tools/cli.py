@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def dispatch(data, store, operation, payload):
     tools = ProductTools(data)
-    if operation in ("open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result"):
+    if operation in ("set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result"):
         return getattr(Conversation(store, ROOT), operation)(payload)
     if operation == "save_reviewed_result":
         obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment", "response_mode"))
@@ -58,10 +58,10 @@ def dispatch(data, store, operation, payload):
                 "reporting_dependencies": {"available": not missing, "versions": document_versions, "missing": missing},
                 "scope": "common local tools and dependency availability only; native Agent and semantic quality not verified"}
     if operation in ("retrieve_reviews", "retrieve_product_facts"):
-        obj(payload, ("scope",), ("query", "limit", "feature_key"))
+        obj(payload, ("scope",), ("query", "limit", "feature_key", "offset"))
         if operation == "retrieve_reviews" and "feature_key" in payload:
             fail("invalid_input", "feature_key is only for product facts")
-        return store.retrieve("review" if operation == "retrieve_reviews" else "product_fact", payload["scope"], payload.get("query", ""), payload.get("limit", 12), payload.get("feature_key"))
+        return store.retrieve("review" if operation == "retrieve_reviews" else "product_fact", payload["scope"], payload.get("query", ""), payload.get("limit", 12), payload.get("feature_key"), payload.get("offset", 0))
     if operation == "select_evidence":
         obj(payload, ("scope", "source_ids"))
         return tools.select_evidence(payload["scope"], payload["source_ids"])
@@ -93,7 +93,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / DEFAULT_DATA_PATH)
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None

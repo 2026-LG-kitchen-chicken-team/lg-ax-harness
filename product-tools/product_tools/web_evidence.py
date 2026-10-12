@@ -137,7 +137,7 @@ class WebEvidence:
         """Amend a registered request's bounded budget without resetting attempts."""
         obj(payload, ("research_id", "max_pages", "reason"))
         research = identifier(payload["research_id"], "research_id")
-        maximum = integer(payload["max_pages"], "max_pages", 6, 30)
+        maximum = integer(payload["max_pages"], "max_pages", 6, 100000)
         reason = text(payload["reason"], "budget reason", 2000)
         try:
             requests = self.db.execute("SELECT session_id,request_key FROM conversation_requests").fetchall()
@@ -160,6 +160,11 @@ class WebEvidence:
                 "technical_retries_per_page": 1, "semantic_status": "unverified"}
 
     def _reserve(self, payload, mode):
+        from .workflow import WorkflowAudit
+        audit = WorkflowAudit(self.db, self.workspace)
+        if audit.active(payload["research_id"]):
+            audit.request(payload["research_id"])
+            audit.collection_allowed(payload["research_id"])
         identifier(payload["research_id"], "research_id")
         identifier(payload["page_id"], "page_id")
         public_url(payload["url"])
@@ -390,7 +395,19 @@ class WebEvidence:
             fail("scope_mismatch", "A review popup needs its exact registered product page and observed same-site child URL")
 
     def import_evidence(self, dataset, payload):
-        obj(payload, ("data_version", "observations"), ("new_models",))
+        obj(payload, ("data_version", "observations"), ("new_models", "research_id"))
+        from .workflow import WorkflowAudit
+        audit = WorkflowAudit(self.db, self.workspace)
+        research = payload.get("research_id")
+        if research is None and self.db.execute("SELECT 1 FROM product_workflows LIMIT 1").fetchone():
+            fail("workflow_snapshot_scope", "Timed workflow imports require their original research_id")
+        if research is not None:
+            audit.request(research)
+            for observed in payload["observations"]:
+                audit.snapshot(research, observed["snapshot_id"])
+                if observed.get("association_snapshot_id"):
+                    audit.snapshot(research, observed["association_snapshot_id"])
+                audit.check_review_import(research, observed)
         version = identifier(payload["data_version"], "data_version")
         if dataset.synthetic or version == dataset.version:
             fail("invalid_dataset", "Business import requires a new real dataset version")
@@ -491,6 +508,10 @@ class WebEvidence:
             if "commercial_disclosure" in entry:
                 record["origin"]["commercial_disclosure"] = entry["commercial_disclosure"]
             records.append(record)
+        from .selection import SelectionPolicy
+        added_scopes = {canonical(entry["scope"]) for entry in observations}
+        touched = [m for m in models if canonical({k: m[k] for k in SCOPE_FIELDS}) in added_scopes]
+        SelectionPolicy(self.db).check(SelectionPolicy(self.db).for_research(research), touched, records)
         base = (self.workspace / "runtime-data/catalogs").resolve()
         target = (base / version).resolve()
         if not base.is_relative_to(self.workspace / "runtime-data") or target.parent != base:

@@ -24,7 +24,7 @@ RED = "B42318"
 GREY = "737373"
 LINE = "D9D9D9"
 FONT = "맑은 고딕"
-REPORTING_PROFILE = "numbered-sources-v3"
+REPORTING_PROFILE = "numbered-sources-v5"
 NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
 
 
@@ -96,8 +96,10 @@ def validate_report_plan(plan: dict) -> dict:
                 error("A block must be an object")
             kind = block.get("type")
             if kind == "paragraph":
-                fields(block, ("type", "text"), ("source_ids",))
+                fields(block, ("type", "text"), ("source_ids", "style"))
                 text(block["text"], "paragraph")
+                if block.get("style", "body") not in ("body", "quote"):
+                    error("Paragraph style must be body or quote")
             elif kind == "table":
                 fields(block, ("type", "title", "columns", "rows"), ("source_ids", "total_rows", "highlight_cells"))
                 text(block["title"], "table title")
@@ -155,31 +157,6 @@ def validate_report_plan(plan: dict) -> dict:
                     if not block.get("unit") or not block.get("caption"):
                         error("Pie/donut needs a unit and caption describing the whole composition")
                 refs(block, True)
-            elif kind == "image":
-                fields(block, ("type", "path", "caption"), ("source_ids", "generated", "provenance"))
-                text(block["caption"], "image caption")
-                raw_path = text(block["path"], "image path")
-                path = Path(raw_path)
-                if not path.is_absolute() or ".." in path.parts or raw_path.startswith(("\\\\", "//")) or "://" in raw_path:
-                    error("Image path must be an absolute local file without traversal")
-                path = path.resolve()
-                if str(path).startswith(("\\\\", "//")) or not path.is_file() or path.suffix.lower() not in (".png", ".jpg", ".jpeg"):
-                    error("Image must be an existing PNG/JPEG file")
-                if "generated" in block and type(block["generated"]) is not bool:
-                    error("generated must be boolean")
-                if "provenance" in block:
-                    text(block["provenance"], "image provenance")
-                if block.get("generated") and not block.get("provenance"):
-                    error("Generated images require provenance")
-                try:
-                    from PIL import Image
-                    with Image.open(path) as image:
-                        if image.format not in ("PNG", "JPEG") or min(image.size) < 1 or max(image.size) > 20000 or image.width*image.height > 100000000:
-                            error("Unsupported image format or dimensions")
-                        image.verify()
-                except (OSError, ValueError) as exc:
-                    error("Cannot read image: " + str(exc))
-                block["path"] = str(path)
             else:
                 error("Unknown block type")
             refs(block)
@@ -268,7 +245,7 @@ def _cell_text(cell, value):
         cell.data_type = "s"  # Source text beginning '=' is evidence, never a formula.
 
 
-def _style_sheet(ws, title, headers, rows, deps, highlights=(), total_rows=()):
+def _style_sheet(ws, title, headers, rows, deps, highlights=(), total_rows=(), widths=None, paper=None):
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
     ws.sheet_view.showGridLines = False
@@ -292,7 +269,7 @@ def _style_sheet(ws, title, headers, rows, deps, highlights=(), total_rows=()):
         cell.border = Border(top=side, bottom=side, left=side, right=side)
         cell.alignment = Alignment(horizontal="left", vertical="center", indent=1, wrap_text=True)
         longest = max([len(heading)+5]+[min(60, len(_display(r[col-2]))+3) for r in rows])
-        ws.column_dimensions[get_column_letter(col)].width = min(60, max(14, longest))
+        ws.column_dimensions[get_column_letter(col)].width = widths[col-2] if widths else min(60, max(14, longest))
     ws.row_dimensions[6].height = 28
     for ridx, row in enumerate(rows):
         lines = 1
@@ -320,7 +297,7 @@ def _style_sheet(ws, title, headers, rows, deps, highlights=(), total_rows=()):
         ws.auto_filter.ref = f"B6:{get_column_letter(len(headers)+1)}{len(rows)+6}"
     ws.sheet_properties.pageSetUpPr.fitToPage = True
     ws.page_setup.orientation = "landscape"
-    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.paperSize = paper or ws.PAPERSIZE_A4
     ws.page_setup.fitToWidth, ws.page_setup.fitToHeight = 1, 0
     ws.print_title_rows = "1:6"
     ws.print_options.horizontalCentered = True
@@ -382,7 +359,9 @@ def _write_libraries(doc, folder, deps):
         ws = wb.active
         ws.title = "자료"
         rows, mapping = _source_rows(group_records)
-        _style_sheet(ws, group["title"], ["자료명", "모델과 버전", "원문 위치", "원문", "자료 구분", "출처 URL"], rows, deps)
+        _style_sheet(ws, group["title"], ["자료명", "모델과 버전", "원문 위치", "원문", "자료 구분", "출처 URL"], rows, deps,
+                     widths=[30, 36, 24, 64, 14, 36], paper=ws.PAPERSIZE_A3)
+        ws["B3"] = "원문과 출처 · 인쇄 A3 가로 · 화면에서 확대 가능"
         for idx, row in enumerate(rows, 7):
             if row[-1] != "미기재":
                 ws.cell(idx, 7).hyperlink = row[-1]
@@ -410,6 +389,7 @@ def _write_libraries(doc, folder, deps):
     if tables:
         wb = Workbook()
         wb.remove(wb.active)
+        printed_sources = []
         for index, (title, block) in enumerate(tables, 1):
             ws = wb.create_sheet(f"자료{index}")
             if block["type"] == "table":
@@ -432,6 +412,7 @@ def _write_libraries(doc, folder, deps):
                 cell = ws.cell(citation_row,2)
                 _cell_text(cell, f"출처 [{source['reference_number']}] · 자료집 원문")
                 cell.hyperlink = info["file"]+"#'"+info["sheet"]+"'!"+info["cell"]
+                printed_sources.append([source["reference_number"], ws.title, cell.hyperlink.target])
                 _sheet_note(ws,citation_row,cell.value,13 if block["type"] == "chart" else len(block["headers"])+1)
                 citation_row += 1
             if block["type"] == "chart":
@@ -455,7 +436,14 @@ def _write_libraries(doc, folder, deps):
                 _sheet_title(ws, block["title"], 13)
             elif block.get("source_ids"):
                 from openpyxl.utils import get_column_letter
-                ws.print_area = f"B2:{get_column_letter(len(block['headers'])+1)}{citation_row-1}"
+                ws.print_area = f"B2:{get_column_letter(len(block['headers'])+1)}{len(block['rows'])+6}"
+        if printed_sources:
+            ws = wb.create_sheet("도표 출처")
+            rows = [[number, title, "자료집 원문"] for number, title, target in printed_sources]
+            _style_sheet(ws, "보고서 도표 출처", ["출처 번호", "도표 시트", "원문 연결"], rows, deps,
+                         widths=[14, 24, 40])
+            for row, (_, _, target) in enumerate(printed_sources, 7):
+                ws.cell(row, 4).hyperlink = target
         path = folder/"보고서 도표.xlsx"
         wb.save(path)
         outputs.append(path)
@@ -479,6 +467,42 @@ def _sheet_note(ws, row, value, end_column):
     ws.row_dimensions[row].height = max(26,lines*15+10)
 
 
+def _inline_runs(value):
+    """A small presentation-only subset; source records remain literal."""
+    text = str(value)
+    at = 0
+    for match in re.finditer(r"\*\*[^*\n]+\*\*|(?<!\*)\*[^*\n]+\*(?!\*)", text):
+        if match.start() > at:
+            yield text[at:match.start()], False, False
+        token = match.group()
+        bold = token.startswith("**")
+        yield token[2:-2] if bold else token[1:-1], bold, not bold
+        at = match.end()
+    if at < len(text):
+        yield text[at:], False, False
+
+
+def _inline_html(value):
+    parts = []
+    for text, bold, italic in _inline_runs(value):
+        escaped = html.escape(text).replace("\n", "<br/>")
+        tag = "b" if bold else "i" if italic else None
+        parts.append(f"<{tag}>{escaped}</{tag}>" if tag else escaped)
+    return "".join(parts)
+
+
+def _docx_paragraph(document, value, style=None, formatted=True):
+    paragraph = document.add_paragraph(style=style)
+    runs = _inline_runs(value) if formatted else [(str(value), False, False)]
+    for text, bold, italic in runs:
+        run = paragraph.add_run(text)
+        if bold:
+            run.bold = True
+        if italic:
+            run.italic = True
+    return paragraph
+
+
 def _new_docx():
     from docx import Document
     from docx.shared import Inches, Pt, RGBColor
@@ -489,11 +513,12 @@ def _new_docx():
     section.page_width, section.page_height = Inches(8.2677), Inches(11.6929)
     section.left_margin = section.right_margin = Inches(.8)
     section.top_margin = section.bottom_margin = Inches(.8)
-    for name in ("Normal", "Title", "Subtitle", "Heading 1", "Heading 2"):
+    for name in ("Normal", "Title", "Subtitle", "Heading 1", "Heading 2", "Quote"):
         style = document.styles[name]
         style.font.name = FONT
-        style.font.size = Pt(11 if name == "Normal" else 25 if name == "Title" else 15 if name == "Heading 1" else 12)
+        style.font.size = Pt(11 if name in ("Normal", "Quote") else 25 if name == "Title" else 16 if name == "Heading 1" else 12)
         style.font.color.rgb = RGBColor(0, 0, 0)
+        style.font.bold = name in ("Title", "Heading 1", "Heading 2")
         rpr = style.element.get_or_add_rPr()
         fonts = rpr.find(qn("w:rFonts"))
         if fonts is not None:
@@ -508,6 +533,14 @@ def _new_docx():
         style.paragraph_format.space_after = Pt(8)
     document.styles["Normal"].paragraph_format.line_spacing = 1.2
     document.styles["Title"].paragraph_format.keep_with_next = True
+    for name in ("Heading 1", "Heading 2"):
+        document.styles[name].paragraph_format.space_before = Pt(16)
+    quote = document.styles["Quote"]
+    quote.font.italic = True
+    quote.font.color.rgb = RGBColor.from_string("595959")
+    quote.paragraph_format.left_indent = Inches(.22)
+    quote.paragraph_format.right_indent = Inches(.12)
+    quote.paragraph_format.line_spacing = 1.2
     return document
 
 
@@ -695,10 +728,20 @@ def _font():
         if path.is_file():
             try:
                 pdfmetrics.registerFont(TTFont("ReportKorean", str(path)))
+                bold_path = path.with_name("malgunbd.ttf" if path.name == "malgun.ttf" else "NotoSansKR-Bold.ttf")
+                bold = "ReportKorean"
+                if bold_path.is_file():
+                    pdfmetrics.registerFont(TTFont("ReportKoreanBold", str(bold_path)))
+                    bold = "ReportKoreanBold"
+                pdfmetrics.registerFontFamily("ReportKorean", normal="ReportKorean", bold=bold,
+                                               italic="ReportKorean", boldItalic=bold)
                 return "ReportKorean"
             except Exception:
                 continue
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
+    pdfmetrics.registerFontFamily("HYSMyeongJo-Medium", normal="HYSMyeongJo-Medium",
+                                  bold="HYSMyeongJo-Medium", italic="HYSMyeongJo-Medium",
+                                  boldItalic="HYSMyeongJo-Medium")
     return "HYSMyeongJo-Medium"
 
 
@@ -840,39 +883,25 @@ def _write_docx(doc, target, sources, links, temp):
     document = _new_docx()
     document.add_paragraph(doc["title"], "Title")
     for paragraph in doc.get("summary", []):
-        document.add_paragraph(paragraph)
+        _docx_paragraph(document, paragraph)
     image_index = 0
     for section in doc["sections"]:
         document.add_heading(section["title"], level=1)
         for block in section["blocks"]:
             if block["type"] == "paragraph":
-                paragraph = document.add_paragraph(block["text"])
+                is_quote = block.get("style") == "quote"
+                paragraph = _docx_paragraph(document, block["text"], "Quote" if is_quote else None, formatted=not is_quote)
                 paragraph.paragraph_format.keep_with_next = bool(block.get("source_ids"))
             elif block["type"] == "table":
-                title = document.add_paragraph(block["title"])
+                title = document.add_paragraph(block["title"], "Heading 2")
                 title.paragraph_format.keep_with_next = True
                 table = _docx_table(document, block["headers"], block["rows"], block.get("highlight_cells", []), block.get("total_rows", []))
                 if block.get("source_ids"):
                     for cell in table.rows[-1].cells:
                         for paragraph in cell.paragraphs:
                             paragraph.paragraph_format.keep_with_next = True
-            elif block["type"] == "image":
-                from PIL import Image as PILImage
-                with PILImage.open(block["path"]) as image:
-                    factor = min(6.4/image.width, 5.4/image.height)
-                    width = image.width*factor
-                document.add_picture(block["path"], width=Inches(width))
-                picture_paragraph = document.paragraphs[-1]
-                caption_paragraph = document.add_paragraph(block["caption"])
-                # Bounded figure groups keep captions/provenance with the image;
-                # long prose and multi-source citations remain free to paginate.
-                picture_paragraph.paragraph_format.keep_with_next = len(block["caption"]) <= 500
-                if block.get("generated"):
-                    caption_paragraph.paragraph_format.keep_with_next = (
-                        len(block["caption"]) <= 300 and len(block["provenance"]) <= 300)
-                    document.add_paragraph("이미지 생성 "+block["provenance"])
             else:
-                heading = document.add_paragraph(block["title"])
+                heading = document.add_paragraph(block["title"], "Heading 2")
                 heading.paragraph_format.keep_with_next = True
                 for drawing in _chart_drawings(block, _font()):
                     image_index += 1
@@ -938,22 +967,27 @@ def _drawing_png(drawing, target):
 
 
 def _write_pdf(doc, target, sources, links):
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, LongTable, TableStyle, Image, KeepTogether
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, LongTable, TableStyle, KeepTogether
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.colors import HexColor, black, white
     from reportlab.lib.enums import TA_RIGHT
     font = _font()
+    from reportlab.pdfbase import pdfmetrics
+    bold_font = "ReportKoreanBold" if "ReportKoreanBold" in pdfmetrics.getRegisteredFontNames() else font
     normal = ParagraphStyle("Report",fontName=font,fontSize=11,leading=16,spaceAfter=9,wordWrap="CJK",allowWidows=0,allowOrphans=0)
-    title = ParagraphStyle("Title",parent=normal,fontSize=25,leading=34,spaceAfter=18)
-    heading = ParagraphStyle("Section",parent=normal,fontSize=15,leading=21,spaceBefore=16,spaceAfter=10,keepWithNext=True)
+    title = ParagraphStyle("Title",parent=normal,fontName=bold_font,fontSize=25,leading=34,spaceAfter=18)
+    heading = ParagraphStyle("Section",parent=normal,fontName=bold_font,fontSize=16,leading=23,spaceBefore=16,spaceAfter=10,keepWithNext=True)
+    subheading = ParagraphStyle("Subheading",parent=heading,fontSize=12,leading=17,spaceBefore=9,spaceAfter=7)
+    quote_style = ParagraphStyle("Quote",parent=normal,leftIndent=16,rightIndent=9,textColor=HexColor("#595959"),spaceBefore=4,spaceAfter=11)
     cellstyle = ParagraphStyle("Cell",parent=normal,fontSize=9,leading=13,spaceAfter=0)
+    headerstyle = ParagraphStyle("HeaderCell",parent=cellstyle,fontName=bold_font)
     source_style = ParagraphStyle("Source",parent=normal,fontSize=8.5,leading=12,spaceAfter=13)
     flow = []
-    def p(text,style=normal):
-        return Paragraph(html.escape(str(text)).replace("\n","<br/>"),style)
+    def p(text,style=normal,formatted=False):
+        return Paragraph(_inline_html(text) if formatted else html.escape(str(text)).replace("\n","<br/>"),style)
     def table(headers,rows,highlights=(),total_rows=()):
-        data = [[p(h,cellstyle) for h in headers]]+[[p(_display(v),ParagraphStyle("n",parent=cellstyle,alignment=TA_RIGHT) if _number(v) else cellstyle) for v in row] for row in rows]
+        data = [[p(h,headerstyle) for h in headers]]+[[p(_display(v),ParagraphStyle("n",parent=cellstyle,alignment=TA_RIGHT) if _number(v) else cellstyle) for v in row] for row in rows]
         widths = [v*(A4[0]-115.2) for v in _column_weights(headers,rows)]
         commands = [("GRID",(0,0),(-1,-1),.35,HexColor("#"+LINE)),("BACKGROUND",(0,0),(-1,-1),white),("TEXTCOLOR",(0,0),(-1,-1),black),("VALIGN",(0,0),(-1,-1),"MIDDLE"),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),7),("RIGHTPADDING",(0,0),(-1,-1),7)]
         commands.append(("BACKGROUND",(0,0),(-1,0),HexColor("#F2F2F2")))
@@ -976,28 +1010,21 @@ def _write_pdf(doc, target, sources, links):
             flow.append(Paragraph("출처 "+", ".join(labels),source_style))
     flow.append(p(doc["title"],title))
     for paragraph in doc.get("summary", []):
-        flow.append(p(paragraph))
+        flow.append(p(paragraph, formatted=True))
     for section in doc["sections"]:
         section_start = len(flow)
         flow.append(p(section["title"],heading))
         for block_index, block in enumerate(section["blocks"]):
             block_start = len(flow)
-            keep_figure = block["type"] == "image"
+            keep_figure = False
             if block["type"] == "paragraph":
-                flow.append(p(block["text"]))
+                is_quote = block.get("style") == "quote"
+                flow.append(p(block["text"],quote_style if is_quote else normal,formatted=not is_quote))
             elif block["type"] == "table":
-                flow.append(p(block["title"],heading))
+                flow.append(p(block["title"],subheading))
                 table(block["headers"],block["rows"],block.get("highlight_cells",[]),block.get("total_rows",[]))
-            elif block["type"] == "image":
-                from PIL import Image as PILImage
-                with PILImage.open(block["path"]) as raw:
-                    width,height = raw.size
-                factor = min((A4[0]-115.2)/width,400/height)
-                flow.extend((Image(block["path"],width=width*factor,height=height*factor),p(block["caption"])))
-                if block.get("generated"):
-                    flow.append(p("이미지 생성 "+block["provenance"],source_style))
             else:
-                flow.append(p(block["title"],heading))
+                flow.append(p(block["title"],subheading))
                 drawings = _chart_drawings(block,font)
                 keep_figure = len(drawings) == 1
                 flow.extend(drawings)

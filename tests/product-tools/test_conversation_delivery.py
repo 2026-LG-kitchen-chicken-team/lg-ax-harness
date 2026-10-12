@@ -134,7 +134,7 @@ class ReaderConversationTests(unittest.TestCase):
         self.assertTrue(response["report_error"]["retryable"])
         self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
 
-    def test_changed_image_bytes_regenerate_report_without_overwriting_prior_files(self):
+    def test_removed_image_feature_keeps_saved_result_and_prior_reports(self):
         image = self.root / "runtime-data/concept.png"
         image.write_bytes(b"fixture image bytes one")
         plan = {"title": "컨셉", "summary": [], "sources": [], "sections": [
@@ -142,13 +142,14 @@ class ReaderConversationTests(unittest.TestCase):
         path = self.root / "runtime-data/authored.json"
         path.write_text(json.dumps(plan, ensure_ascii=False), encoding="utf-8")
         payload = {**self.payload, "report_plan_path": "runtime-data/authored.json"}
-        with patch("product_tools.delivery.create_deliverables", side_effect=self.create):
-            first = self.conv.save_and_export(payload)["report"]
-            image.write_bytes(b"fixture image bytes two")
-            second = self.conv.deliver_result(self.recovery_payload(report_plan_path="runtime-data/authored.json"))
-        self.assertFalse(second["reused"])
-        self.assertNotEqual(first["directory"], second["directory"])
-        self.assertTrue(Path(first["directory"]).is_dir())
+        with patch("product_tools.delivery.create_deliverables", side_effect=self.create) as renderer:
+            previous = self.conv.save_and_export(self.payload)["report"]
+            response = self.conv.deliver_result(self.recovery_payload(report_plan_path="runtime-data/authored.json"))
+        self.assertFalse(response["ready"])
+        self.assertEqual(response["error"]["code"], "invalid_report_plan")
+        self.assertEqual(renderer.call_count, 1)
+        self.assertTrue(Path(previous["directory"]).is_dir())
+        self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
 
     def test_malformed_report_elements_return_separate_error_after_save(self):
         path = self.root / "runtime-data/bad-plan.json"

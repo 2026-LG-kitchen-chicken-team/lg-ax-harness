@@ -1,5 +1,11 @@
 # 공통 자료·입출력·상태 도구
 
+브랜드/시장 미지정 새 요청은 국내 LG 대상 기본 정책을 저장한다. set_request_scope_policy는 {session_id,request_key,policy}이며 policy의 mode는 explicit_model(model_id,user_quote), explicit_brand_market(brand,user_quote,market?,market_quote?) 또는 explicit_market(market,market_quote,user_quote)다. 시장만 지정하면 기본 LG 브랜드를 유지한다. quote는 실제 원질문의 연속 부분이어야 한다. 연결 전 기본 정책만 명시 의도로 변경할 수 있다. 같은 공유 검사는 대상 등록·request 연결·후보 저장에 적용한다. 명시 시장은 AI 해석의 원문 근거를 남기며 언어/모델 prefix로 판매국을 자동 인증하지 않는다. legacy 정책 없는 과거 이력과 합성 코드 자료는 이 기본 정책의 새 업무 인수로 설명하지 않는다.
+
+export의 turns와 candidates에는 기존 result/evidence_refs/payload/hash를 바꾸지 않는 source_metadata 배열을 추가한다. 정확 catalog reference 전체가 일치할 때만 kind=review/product_fact를 연결하며 과거/미확인 참조는 kind:null이다. 모델/문서/data 버전·source_id·SHA와 binding을 함께 보존한다. manual은 현 catalog에서 product_fact로 등록되어 있으며 문서 종류를 접두어/URL로 추정하지 않는다.
+
+제품명으로 시작하는 새 실제 업무의 open_product_workflow/record_workflow_event/workflow_status와 전체 시계·literal 후기·출처별 수량·종료/분석/전달 계약은 [같은 요청의 조사·전달](product-workflow.md)을 따른다. retrieve_reviews/retrieve_product_facts는 선택 offset(기본0)과 next_offset으로20개 이하 반환 batch를 순회한다. batch 크기는 조사 완료 기준이 아니다.
+
 2026-10-11 현재 계약: product_family는 개방된 식별자이며 exact catalog 모델과 일치해야 한다(family_mismatch). runtime engine은 codex/claude/fixture/null이며 Gemini 신규 요청은 거부한다. concept의 선택 필드 implementation_steps와 validation_plan(metric/baseline/method/success_criterion/business_value/status)을 검사한다. 새 업무 지침은 둘 다 작성하며 status는 planned_not_measured만 허용한다. planning_detail_complete는 필드 존재만 확인하며 효과/평가 통과 인증이 아니다. 구버전 결과는 호환하고 없으면 false다. 기본 자료는 빈 data/business/empty이며 신규 자료는 실제 관측 후 등록한다. v4는 과거 시험 자료다. 아래 날짜별 내역은 당시 기록이다.
 
 Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가 모델 API·Agent 실행 루프·벡터 DB·플러그인·MCP는 필요하지 않다. 현재 소규모 자료는 모델·버전 필터와 문자 검색으로 처리한다. 검색 품질·자료량이 이를 넘으면 같은 계약을 유지하며 조회 구현을 바꾼다. 기존 LG 작업물은 재사용하지 않았다.

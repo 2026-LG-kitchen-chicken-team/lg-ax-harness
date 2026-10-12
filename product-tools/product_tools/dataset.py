@@ -136,11 +136,12 @@ class Dataset:
     def reference(self, record):
         return {**{key: record[key] for key in ("source_id", "model_id", "model_version", "document_version", "data_version", "location", "sha256", "synthetic", "origin")}, "quote": record["text"]}
 
-    def retrieve(self, kind, exact, query="", limit=12, feature_key=None):
+    def retrieve(self, kind, exact, query="", limit=12, feature_key=None, offset=0):
         self.check_scope(exact)
         if kind not in ("review", "product_fact"):
             fail("invalid_input", "Unknown retrieval kind")
         integer(limit, "limit", 1, 20)
+        integer(offset, "offset", 0, 1000000)
         if not isinstance(query, str) or len(query) > 200:
             fail("invalid_input", "query must be a string <= 200 characters")
         if feature_key is not None:
@@ -150,7 +151,8 @@ class Dataset:
         documented = [s for s in self.sources.values() if s["kind"] == "product_fact" and all(s[k] == v for k, v in exact.items()) and s.get("feature_key") == feature_key]
         presence = {s["availability"] for s in documented}
         return {"data_version": self.version, "dataset_fingerprint": self.fingerprint, "scope": exact,
-                "status": "found" if found else "empty", "total": len(found), "truncated": len(found) > limit,
-                "records": [{**copy.deepcopy(s), "content_trust": "untrusted_source_data"} for s in found[:limit]],
+                "status": "found" if found else "empty", "total": len(found), "truncated": len(found) > offset+limit,
+                "offset": offset, "next_offset": offset+limit if len(found) > offset+limit else None,
+                "records": [{**copy.deepcopy(s), "content_trust": "untrusted_source_data"} for s in found[offset:offset+limit]],
                 "feature_presence": ("conflicting" if len(presence) > 1 else next(iter(presence)) if presence else "not_documented") if kind == "product_fact" and feature_key else None,
                 "semantic_status": "unverified", "synthetic": self.synthetic, "purpose": self.manifest["purpose"]}

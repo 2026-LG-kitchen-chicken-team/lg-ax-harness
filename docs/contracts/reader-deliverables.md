@@ -8,10 +8,10 @@
 
 `report_plan` 형식: `{title, summary, sources, sections, unfulfilled_requests?}`. summary는 문단 문자열 배열이다. sources는 `{id, kind, title, text, url?, location?, model?, synthetic?}` 배열이고 kind는 자료 종류(예: review/product_document/market/survey/interview/usability/other)다. sources에는 실제 확보한 원문 또는 저장 발췌만 넣는다. sections는 `{title, blocks}` 배열이다. blocks는 다음 중 하나다.
 
-- paragraph: `{type:"paragraph", text, source_ids?}`
+- paragraph: `{type:"paragraph", text, source_ids?, style?}`. style은 `body`(기본) 또는 실제 원문 인용용 `quote`다. summary와 paragraph의 `**핵심 결론·숫자**`, `*보조 강조*`는 본문 서식으로 렌더링한다. 임의 HTML은 실행하지 않는다. 자료집 원문에는 이 서식 해석을 적용하지 않는다.
 - table: `{type:"table", title, columns, rows, source_ids?, total_rows?, highlight_cells?}`. columns는 문자열 배열, rows는 같은 길이의 문자열/숫자 행 배열, total_rows는 0부터 시작하는 행 번호, highlight_cells는 `[행,열]` 배열이다.
 - chart: `{type:"chart", title, chart_type, labels, series, unit?, source_ids, caption?, highlights?}`. chart_type은 bar/line/pie/donut/scatter이고 series는 `{name, values, x_values?}` 배열이다. highlights는 `[계열,점]` 배열이다. 수치 없는 자료에 그래프를 만들거나 없는 수치를 채우지 않는다. pie/donut은 전체 구성에만 쓴다.
-- image: `{type:"image", path, caption, source_ids?, generated?, provenance?}`. 모델은 실제 제공되는 이미지 생성 Skill/플러그인/Tool로 이미지를 만들고 검토해 경로를 준다. 렌더러는 제공된 파일을 삽입하며 자체 LLM 호출이나 가짜 컨셉 이미지를 만들지 않는다.
+- 컨셉·시연 이미지 생성/삽입 기능은 제외한다. `image` block은 지원하지 않는다. 실제 자료를 집계한 `chart`는 계속 지원한다.
 
 unfulfilled_requests는 `{request, reason}` 배열이며 실제 원문 요청과 수행 불가 사유만 포함한다. 일반 미확인 필드를 자동으로 나열하지 않는다. 자유로운 절·문단·표·도표 조합을 허용한다. 원문을 바꾸지 않고 수치/인원/비율 같은 병렬 정보는 `151명 / 62.9%`처럼 쓴다.
 
@@ -20,7 +20,8 @@ unfulfilled_requests는 `{request, reason}` 배열이며 실제 원문 요청과
 - 흰 본문·검정 글자·회색 보조선. 중요한 숫자와 해당 막대/점/부채꼴은 B42318로 강조한다.
 - 표별 제목·옅은 회색 머리글·외곽/내부 선·합계 윗선을 통일한다. 합계의 대상·분자·분모가 명확한 같은 표 행을 사용한다. 리뷰 복수 분류의 언급 합계를 독립 고객 비율로 바꾸지 않는다.
 - 그래프별 제목/단위, 본체/축/옅은 눈금선, 핵심 결과를 구획으로 나눈다. 차트 종류는 데이터에 맞추고 필요한 범례와 출처를 표시한다.
-- Excel의 바깥 여백·열 폭·행 높이·줄바꿈·정렬·인쇄 범위를 설정한다. Word는 표 머리글 반복과 적절한 행 유지, 이미지·출처 연결, 여백을 관리한다.
+- 제목·소제목은 굵기와 크기로 구별하고 본문 행간·문단 간격을 통일한다. 강조는 중요한 결론·숫자에 한정한다. 실제 원문 인용은 들여쓰기와 회색 서식으로 구별하고 표현을 고치지 않는다.
+- Excel의 바깥 여백·열 폭·행 높이·줄바꿈·정렬·인쇄 범위를 설정한다. Word는 표 머리글 반복과 적절한 행 유지, 도표·출처 연결, 여백을 관리한다.
 - 수정07의 목업 원문·수치는 새 결과에 복사하지 않는다. 원문 인용·출처를 보존하며 문단·표·그래프 수치의 일치와 레이아웃을 검수한다.
 - 본문 출처는 문서 전체의 첫 인용 순서로 부여한 짧은 `[1], [2]` 번호다. 번호는 해당 DOCX/PDF의 끝 `출처 목록`으로 연결된다. 목록에는 자료명과 중복되지 않는 원문 위치, 모델/문서/관측 정보, 웹 URL 및 정확한 원문 XLSX 파일/시트/셀 링크를 남긴다. 전체 원문과 상세 provenance는 원문 XLSX에 그대로 보존한다. 같은 source_id를 한 번 등재하며 같은 URL의 다른 evidence record를 합치지 않는다. 공개 report_plan 스키마와 source_ids를 유지하고 번호는 렌더러가 결정한다.
 - 보고서 출력 profile이 바뀌면 같은 저장 버전으로 새 파일을 생성한다. 이전 보고서와 업무 후보/평가는 보존하며 같은 profile의 정상 파일은 재사용한다. 내부 citation destination과 정확한 원문 셀 연결을 구조 검증하고 실제 페이지도 검수한다.
@@ -41,4 +42,4 @@ save_and_export와 deliver_result의 선택 `report_sources_path`는 runtime-dat
 
 ## 환경과 검증
 
-Codex·Claude는 같은 공통 코드와 업무 Skill을 사용한다. 제품 환경에 문서 의존성 설치 안내·잠금·doctor를 반영하고 전역 설정/인증을 수정하지 않는다. Claude 파일 설치/스키마/로컬 코드 검증과 실제 Claude native AI 인수를 구분한다. 현재 승인된 테스트는 Codex에서 서로 다른 접근 가능한 모델로 제한된 같은 입력 비교이며 과거 품질 통과 수와 합산하지 않는다. 이미지 생성은 실제 가용 능력을 확인해 사용하고 요청된 이미지를 만들지 못했다면 그 요청의 사유만 기록한다.
+Codex·Claude는 같은 공통 코드와 업무 Skill을 사용한다. 제품 환경에 문서 의존성 설치 안내·잠금·doctor를 반영하고 전역 설정/인증을 수정하지 않는다. Claude 파일 설치/스키마/로컬 코드 검증과 실제 Claude native AI 인수를 구분한다. 현재 승인된 테스트는 Codex에서 서로 다른 접근 가능한 모델로 제한된 같은 입력 비교이며 과거 품질 통과 수와 합산하지 않는다. 컨셉·시연 이미지 생성/삽입은 제품 보고서 기능에 포함하지 않는다.

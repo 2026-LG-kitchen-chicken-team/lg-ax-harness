@@ -144,7 +144,7 @@ def _verify_plan_links(plan, available, planning):
             fail("invalid_report_plan", "Expected section title and blocks")
         text(section["title"], "section title", 1000000)
         for block in section["blocks"]:
-            if not isinstance(block, dict) or block.get("type") not in ("paragraph", "table", "chart", "image"):
+            if not isinstance(block, dict) or block.get("type") not in ("paragraph", "table", "chart"):
                 fail("invalid_report_plan", "Unknown report block")
             ids = block.get("source_ids", [])
             if not isinstance(ids, list) or any(not isinstance(s, str) or s not in available for s in ids) or len(set(ids)) != len(ids):

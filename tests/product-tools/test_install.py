@@ -30,9 +30,9 @@ class ReaderInstallTests(unittest.TestCase):
                 result = codex.install(target) if engine == "codex" else portable.install(target, engine)
                 self.assertFalse(result["native_verified"])
                 for relative in ("docs/contracts/reader-deliverables.md", "product-tools/requirements.in",
-                                 "product-tools/requirements.lock", "skills/review-and-revise/references/report-writing.md",
-                                 "skills/concept-writing/references/concept-images.md"):
+                                 "product-tools/requirements.lock", "skills/review-and-revise/references/report-writing.md"):
                     self.assertEqual((target / relative).read_bytes(), (ROOT / relative).read_bytes())
+                self.assertFalse((target / "skills/concept-writing/references/concept-images.md").exists())
                 self.assertEqual((target / skill_folder / "review-and-revise/references/report-writing.md").read_bytes(),
                                  (ROOT / "skills/review-and-revise/references/report-writing.md").read_bytes())
                 self.assertEqual((target / "uv.lock").read_bytes(), (ROOT / "adapters/codex/templates/uv.lock").read_bytes())

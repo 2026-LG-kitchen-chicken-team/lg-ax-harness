@@ -59,7 +59,7 @@ class ResearchContextTests(unittest.TestCase):
         self.assertEqual(self.web.db.execute("SELECT COUNT(*) FROM web_pages").fetchone()[0], 7)
         self.assertEqual(self.web.db.execute("SELECT COUNT(*) FROM web_research_budgets").fetchone()[0], 2)
         self.error("research_not_registered", self.web.configure, {**budget, "research_id": "invented"})
-        for value in (True, 5, 31):
+        for value in (True, 5, 100001):
             self.error("invalid_input", self.web.configure, {**budget, "max_pages": value})
 
     def test_context_is_exact_quote_of_same_request_and_retains_scope_origin(self):

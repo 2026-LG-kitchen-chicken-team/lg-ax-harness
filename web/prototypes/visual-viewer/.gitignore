@@ -1,0 +1,12 @@
+# 실제 업무 결과가 들어가는 생성물은 Git에 넣지 않는다.
+view-data.js
+report-*.html
+*.tmp
+# 실제 결과를 해석한 insights는 메일·접근 제한 링크로 공유한다(합성 예시는 명시 후 -f로 추가).
+insights-*.json
+# 하네스에 설치하면 훅 상태·로그는 runtime-data/visual-viewer에 생긴다. 이 폴더에서 직접 돌린 경우 대비.
+.hook-state.json
+.hook.lock
+hook-error.log
+hook-start-error.log
+.hook-last-export

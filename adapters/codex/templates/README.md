@@ -39,6 +39,8 @@ codex --search
 
 doctor는 버전·로그인 상태·설치 파일 지문·실제 자료 조회를 확인한다. 자동 Skill 선택·AI 결과 품질·모든 Tool 권한을 보증하지 않는다. 지원/검증 범위는 원본 레포의 docs/validation/codex-product.md를 확인한다. 원문 로그·DB·개인 인증·의존성 환경은 공유하지 않는다.
 
+저장된 결과를 읽는 선택형 시각자료 뷰어는 `web/prototypes/visual-viewer/README.md`를 따른다. 기본 설치에서는 자동 훅을 등록하지 않는다. 필요하면 `python web/prototypes/visual-viewer/viewer.py install --codex` 또는 `--claude`로 해당 폴더의 훅만 등록하고 CLI의 프로젝트 신뢰 설정을 확인한다. `status`, `open`, `uninstall`로 상태·화면·해제를 관리한다. 뷰어는 export를 읽으며 업무 질문이나 모델 실행을 대신하지 않는다. 원 개발 소스는 최길웅의 PR #6이고 이번 통합에서는 경로 검사와 출처 종류 메타데이터 연결을 보강했다.
+
 현재 Windows 인수검사에서 workspace-write 모드는 Codex 명령 실행기 준비 오류로 실패했다. 전체 접근 모드에서 실제 업무 도구를 확인했으며 일반 샌드박스 지원을 통과시킨 것은 아니다. 실행 권한은 실행자가 Codex에서 선택한다. 설치 도구는 권한이나 전역 설정을 바꾸지 않는다.
 
 ## Claude Desktop Code에서 사용

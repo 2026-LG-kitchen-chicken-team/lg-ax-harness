@@ -152,11 +152,14 @@ class ReportingValidationTests(unittest.TestCase):
         with self.assertRaises(ToolError):
             reporting.validate_report_plan(value)
 
-    def test_safe_image_paths_and_corrupt_images(self):
+    def test_image_blocks_are_unsupported_for_every_path(self):
         with tempfile.TemporaryDirectory() as folder:
             bad = Path(folder)/"corrupt.png"
             bad.write_bytes(b"not an image")
-            for path in ("relative.png", str(bad), str(Path(folder)/".."/"escape.png"),
+            from PIL import Image
+            valid = Path(folder)/"valid.png"
+            Image.new("RGB", (20, 20), "white").save(valid)
+            for path in (str(valid), "relative.png", str(bad), str(Path(folder)/".."/"escape.png"),
                          "https://example.com/image.png", "\\\\server\\share\\image.png"):
                 value = example_plan()
                 value["sections"][0]["blocks"].append({"type": "image", "path": path, "caption": "시험"})
@@ -176,31 +179,51 @@ class ReportingRenderTests(unittest.TestCase):
             result = reporting.render_report(plan, Path(temporary)/"reader")
             self.assertTrue(result["ready"], result)
             book = load_workbook(Path(result["directory"])/"01_자료집"/"보고서 도표.xlsx")
-            table, chart = book.worksheets
+            table, chart, bibliography = book.worksheets
             last = max(cell.row for row in table for cell in row if cell.value is not None)
-            self.assertEqual(range_boundaries(str(table.print_area).split("!")[-1])[3], last)
+            self.assertEqual(range_boundaries(str(table.print_area).split("!")[-1])[3], len(blocks[0]["rows"])+6)
+            self.assertGreater(last, len(blocks[0]["rows"])+6)
+            self.assertEqual(bibliography.title, "도표 출처")
+            self.assertTrue(bibliography["D7"].hyperlink)
             self.assertEqual(chart["B2"].value, blocks[1]["title"])
             self.assertTrue(chart["B2"].alignment.wrap_text)
             self.assertIn("B2:M2", [str(r) for r in chart.merged_cells.ranges])
             self.assertGreaterEqual(chart.row_dimensions[2].height, 32)
 
-    def test_short_figure_caption_and_provenance_stay_together(self):
-        from PIL import Image
+    def test_emphasis_quote_styles_and_literal_raw_sources(self):
         from docx import Document
+        from openpyxl import load_workbook
+        from pypdf import PdfReader
         with tempfile.TemporaryDirectory() as temporary:
-            supplied = Path(temporary)/"supplied-test-fixture.png"
-            Image.new("RGB",(20,20),"white").save(supplied)
-            plan = {"title":"제공 이미지 계약 시험","summary":["시험 입력의 이미지를 삽입한다."],
-                    "sources":[],"sections":[{"title":"제공 이미지","blocks":[
-                        {"type":"image","path":str(supplied),"caption":"시험 이미지 설명",
-                         "generated":True,"provenance":"계약 시험에서 생성해 제공한 합성 이미지"}]}]}
+            literal = "원문의 **표시**와 <b>문자</b>를 그대로 보존한다."
+            plan = {"title":"가독성 계약 시험","summary":["핵심은 **근거 2건**이다."],
+                    "sources":[{"id":"literal", "kind":"other", "title":"시험 원문", "text":literal}],
+                    "sections":[{"title":"서식과 원문","blocks":[
+                        {"type":"paragraph", "text":"결론은 **보류**이며 *추가 확인*이 필요하다. <b>태그</b>", "source_ids":["literal"]},
+                        {"type":"paragraph", "text":literal, "style":"quote", "source_ids":["literal"]}]}]}
             result = reporting.render_report(plan,Path(temporary)/"reader")
             self.assertTrue(result["ready"],result)
             doc = Document(Path(result["directory"])/"02_최종 보고서"/"보고서.docx")
-            caption_index = next(i for i,p in enumerate(doc.paragraphs) if p.text == "시험 이미지 설명")
-            self.assertTrue(doc.paragraphs[caption_index-1].paragraph_format.keep_with_next)
-            self.assertTrue(doc.paragraphs[caption_index].paragraph_format.keep_with_next)
-            self.assertFalse(bool(doc.paragraphs[caption_index+1].paragraph_format.keep_with_next))
+            paragraph = next(p for p in doc.paragraphs if p.text.startswith("결론은"))
+            self.assertTrue(next(r for r in paragraph.runs if r.text == "보류").bold)
+            self.assertTrue(next(r for r in paragraph.runs if r.text == "추가 확인").italic)
+            self.assertIn("<b>태그</b>", paragraph.text)
+            self.assertNotIn("**", paragraph.text)
+            quote = next(p for p in doc.paragraphs if p.text == literal)
+            self.assertEqual(quote.style.name, "Quote")
+            self.assertGreater(quote.style.paragraph_format.left_indent, 0)
+            self.assertEqual(len(doc.inline_shapes), 0)
+            raw = load_workbook(Path(result["directory"])/"01_자료집"/"01_참고 자료.xlsx").active
+            self.assertEqual(raw["E7"].value, literal)
+            pdf = PdfReader(Path(result["directory"])/"02_최종 보고서"/"보고서.pdf")
+            text = "".join(p.extract_text() for p in pdf.pages)
+            self.assertIn("보류", text)
+            self.assertNotIn("**근거 2건**", text)
+            self.assertIn("**표시**", text)
+            self.assertIn("<b>태그</b>", text)
+            fonts = [f.get_object().get("/BaseFont", "") for page in pdf.pages for f in page["/Resources"]["/Font"].values()]
+            if Path("C:/Windows/Fonts/malgunbd.ttf").is_file():
+                self.assertTrue(any("Bold" in str(font) for font in fonts), fonts)
 
     def test_literal_citation_titles_caption_and_chart_do_not_overlap(self):
         from openpyxl import load_workbook
