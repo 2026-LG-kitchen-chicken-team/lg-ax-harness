@@ -1,0 +1,126 @@
+{
+  "classification": "offline_synthetic_renderer_timing",
+  "date_kst": "2026-10-12",
+  "new_AI_generation": false,
+  "network_calls": 0,
+  "python_version": "3.12.14",
+  "source_sha256": "054693bccc3da18e7ff07cebbac281de0426438e1fb22622184e8072c89f4f8f",
+  "fixture_sha256": "80dcc6fc5f16ed342ddbf766611ffccba36f8f177bb4026a83cf1180f9419719",
+  "timing_semantics": "inclusive; chart work is nested inside libraries/docx/pdf, do not sum nested spans",
+  "runs": [
+    {
+      "run": 1,
+      "total_seconds": 0.6966967000626028,
+      "ready": true,
+      "files": 5,
+      "checks": {
+        "xlsx_count": 3,
+        "docx_count": 1,
+        "pdf_pages": 5,
+        "pdf_links": 3,
+        "source_count": 2,
+        "semantic_status": "unverified",
+        "pdf_internal_links": 7,
+        "reference_count": 2,
+        "structure_verified": true,
+        "visual_review": "not_run",
+        "chart_editing": "rendered_images; data_cells_editable; regenerate_from_report_plan"
+      },
+      "timings": {
+        "validate_report_plan": {
+          "calls": 1,
+          "inclusive_seconds": 0.0003308001905679703
+        },
+        "_deps": {
+          "calls": 1,
+          "inclusive_seconds": 0.26457039965316653
+        },
+        "_adapt_plan": {
+          "calls": 1,
+          "inclusive_seconds": 8.090026676654816e-05
+        },
+        "_chart_drawings": {
+          "calls": 12,
+          "inclusive_seconds": 0.03970120055601001
+        },
+        "_drawing_png": {
+          "calls": 8,
+          "inclusive_seconds": 0.1787671004422009
+        },
+        "_write_libraries": {
+          "calls": 1,
+          "inclusive_seconds": 0.2827099999412894
+        },
+        "_write_docx": {
+          "calls": 1,
+          "inclusive_seconds": 0.08136929990723729
+        },
+        "_write_pdf": {
+          "calls": 1,
+          "inclusive_seconds": 0.024784000124782324
+        },
+        "_verify": {
+          "calls": 1,
+          "inclusive_seconds": 0.0382451000623405
+        }
+      }
+    },
+    {
+      "run": 2,
+      "total_seconds": 0.23886610008776188,
+      "ready": true,
+      "files": 5,
+      "checks": {
+        "xlsx_count": 3,
+        "docx_count": 1,
+        "pdf_pages": 5,
+        "pdf_links": 3,
+        "source_count": 2,
+        "semantic_status": "unverified",
+        "pdf_internal_links": 7,
+        "reference_count": 2,
+        "structure_verified": true,
+        "visual_review": "not_run",
+        "chart_editing": "rendered_images; data_cells_editable; regenerate_from_report_plan"
+      },
+      "timings": {
+        "validate_report_plan": {
+          "calls": 1,
+          "inclusive_seconds": 0.0002762000076472759
+        },
+        "_deps": {
+          "calls": 1,
+          "inclusive_seconds": 7.750000804662704e-05
+        },
+        "_adapt_plan": {
+          "calls": 1,
+          "inclusive_seconds": 7.680011913180351e-05
+        },
+        "_chart_drawings": {
+          "calls": 12,
+          "inclusive_seconds": 0.002677599433809519
+        },
+        "_drawing_png": {
+          "calls": 8,
+          "inclusive_seconds": 0.08911329973489046
+        },
+        "_write_libraries": {
+          "calls": 1,
+          "inclusive_seconds": 0.08286509988829494
+        },
+        "_write_docx": {
+          "calls": 1,
+          "inclusive_seconds": 0.07986840000376105
+        },
+        "_write_pdf": {
+          "calls": 1,
+          "inclusive_seconds": 0.02200439991429448
+        },
+        "_verify": {
+          "calls": 1,
+          "inclusive_seconds": 0.05082459980621934
+        }
+      }
+    }
+  ]
+}
