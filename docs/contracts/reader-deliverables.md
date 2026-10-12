@@ -1,6 +1,6 @@
 # 사람이 읽는 자료집과 보고서 계약
 
-2026-10-12 사용자 승인 기준은 수정07 목업이다. 이는 표·차트·문장·출처·구획의 품질 기준이며 가상 내용과 수치의 업무 재사용 허가가 아니다. 페이지 수·목차·파일 개수는 고정하지 않는다. 실제 업무 데이터와 수행한 조사만 구성하고, 사용자가 요청했지만 수행하지 못한 항목에만 사유를 적는다.
+2026-10-12 사용자 정정에 따라 하네스 완료는 실제 제품의 새 자료 조사→분석→검토→저장→독자용 보고서 전달로 확인한다. 수정07 합성 목업의 출력 검수는 실제 업무 완료 증거가 아니다. 페이지 수·목차·파일 개수는 고정하지 않는다. 실제 업무 데이터와 수행한 조사만 구성하고, 사용자가 요청했지만 수행하지 못한 항목에만 사유를 적는다.
 
 ## 공통 입출력
 
@@ -30,6 +30,12 @@ unfulfilled_requests는 `{request, reason}` 배열이며 실제 원문 요청과
 `product_tools.delivery.build_report_plan(planning, result, sources, authored_plan=None)`은 원래 업무와 저장 결과의 현재 범위에 맞춰 기본 보고서를 만들거나 모델 작성 계획을 검증해 사용한다. 원문 출처는 검증된 전달 sources와 대조하고 모델이 추가 원문·통계를 꾸며 넣지 않도록 한다. `create_deliverables(workspace, planning, result, sources, authored_plan=None, open_folder=True)`은 결과 폴더를 준비하고 renderer를 호출한다. 폴더 열기는 성공 후 Windows 탐색기에서 수행하며 셸 문자열을 조립하지 않는다. 지원하지 않는 OS에서는 생성된 경로를 반환한다. 새 결과 폴더를 만들고 기존 결과를 덮어쓰지 않는다. 요청/turn/저장 버전 연결 및 완료 상태 확인은 부모 Conversation 통합이 담당한다.
 
 save_and_export의 기존 6필드·JSON 감사 export·receipt·수정 한도·현재 버전/취소 검사를 보존한다. 내부 JSON과 독자용 산출물은 별개다. 보고서 옵션을 받아 저장된 유효한 현재 결과에만 파일 제작을 연결한다. 제작 오류는 저장 성공을 취소하지 않고 별도 보고하며 복구가 가능해야 한다. 재시도·같은 후보 재생에서 이미 생성한 결과를 중복 생산/중복 열기 하지 않는다. authored_plan은 별도 내부 파일로 전달할 수 있어 업무 저장 JSON의 64KiB 계약을 전체 보고서 분량 제한으로 쓰지 않는다.
+
+## 시장·경쟁 맥락 원문 연결
+
+save_and_export와 deliver_result의 선택 `report_sources_path`는 runtime-data 안의 JSON `{research_id,sources}`를 가리킨다. sources 항목은 `{id,snapshot_id,kind,title,quote,location,subject,scope_note}`다. kind는 market/product_document/survey/interview/usability/other이며 대상 제품 리뷰는 정확 모델 catalog에 등록한다. quote는 저장 snapshot의4000자 이하 정확 연속 발췌다. subject는 실제 자료 대상(예: 전국 일반가구, 경쟁 제품 정확 모델), scope_note는 보고서에 적용할 수 있는 범위와 한계다.
+
+현재 turn의 유일한 원래 요청과 research_id가 일치하고 해당 요청의 web_pages journal에 snapshot이 등록되어 있어야 한다. snapshot 지문과 정확 발췌를 검증한 뒤 URL·관찰 시각·관측 방식을 원본에서 가져온다. 호출자가 URL이나 가상 원문을 추가하지 못한다. 이 맥락 자료는 보고서·종류별 자료집만 보강하며 ProductResult의 타깃 모델 evidence_refs/불편/기존 기능/개선안 검증을 대신하지 않는다. 경쟁 제품 기능을 대상 제품의 부재 증거로 쓰지 않는다. source의 대상·적용 범위·관찰 시각·관측 한계를 자료집에 표시한다. 재생에서도 snapshot·발췌를 다시 검증하고 출처/이미지/계획이 바뀌면 기존 파일을 보존하며 새 보고서를 생성한다.
 
 ## 환경과 검증
 

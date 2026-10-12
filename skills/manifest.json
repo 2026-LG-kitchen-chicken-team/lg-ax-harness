@@ -40,16 +40,17 @@
       "operations": [
         "fetch_web_page",
         "capture_web_page",
-        "import_web_evidence"
+        "import_web_evidence",
+        "configure_web_research"
       ],
       "files": [
         {
           "path": "skills/web-evidence-collection/scripts/run.py",
-          "sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9"
+          "sha256": "58b181c2aad570774c98fbc8b61720895ec04217587f307412bd502efe16d0e1"
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "1de200004b5a1a587e1955e96826ffc6486300be8b3589c26f01a75d8ac88298"
+          "sha256": "5ca77b46823f2e4bfc09223b15612a0d5e95496d4da7416847959c717852de68"
         }
       ]
     },
@@ -138,11 +139,11 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "818dde16efcf49b5122ac015cf1d31203643c8d6e034114b9b217173a183cf65"
+          "sha256": "cb2105e238c563e99c09488ca6ac328f1f587a4ea0e2d2cab82904cfecfa233d"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
-          "sha256": "638f137325651b6d8721aa762a9407a175f267ddd743a4c1d8c8b56b002f1637"
+          "sha256": "ac51e6665008d74160874ac57624a5285d525d1b1526f4ca951d1fadc5887f03"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
@@ -150,7 +151,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "a8004a8a89c4ab23a9440d1e6d665d0131b4d521db61547540bca70c34039fe4"
+          "sha256": "81ec6188c265240b6cac9aa37522c9466d9f9e9a3de35817fc2df4d21fa5c031"
         }
       ]
     }
@@ -158,11 +159,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "0cd1f07d4944f0cea82d0277a1f44add41822fb70ab9e44e9c7b243addeacbd2"
+      "sha256": "467817f8ce5d90dd2b374172ccb14aaf87c2c25734016da96caec88a126fe4fc"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "19d82f47065a6ac0cc4d96a74f8ac53857fc3fe81097826849753c31218afba1"
+      "sha256": "4094fbcd758a0b14c9f5a84dd930f0cd9ac230205ae40fae3e5abd6bbee75a21"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -174,7 +175,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "1bdb147b54ccf324ff904b22c39f788b643b24353e166cbbaac3f2dfc348c9a4"
+      "sha256": "39313b4f6565c0035ed825722a4549218526edfc370c59af5045909d7580622f"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -182,7 +183,7 @@
     },
     {
       "path": "product-tools/product_tools/delivery.py",
-      "sha256": "1e111e37cbb48e4483a83b05e2a47bda72553f504c4f6c06ac653fac4476f4c2"
+      "sha256": "72df958d1e1b8857232c2e9795d4cd1bb12705e6cd74c46008fd2326a85475e2"
     },
     {
       "path": "product-tools/product_tools/payload.py",
@@ -194,7 +195,7 @@
     },
     {
       "path": "product-tools/product_tools/reporting.py",
-      "sha256": "a4401b4b0f2e2ff50979fbb531ba05d013755941e6f55773a4c9e3c3191bd49b"
+      "sha256": "caf9896c8e77186f83d289d29b83f5d8f0c967abe66ca6283ebaefd96a403eb9"
     },
     {
       "path": "product-tools/product_tools/state.py",
@@ -206,11 +207,11 @@
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
-      "sha256": "f09778ad71a9405122d2be14e4bbd578d3daf25c2232d6457dc5dfb978b4c4f4"
+      "sha256": "f501f35e62ca2b78f9ab8374a04eab50e43b232083a119beef98885369046df3"
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "048eb1ecc916598189f3529bdca0a8229983398d429a16debfa6cf074880b9ff"
+      "sha256": "bdfdf480ca38d90a793ee08d2b56c92c635b4b5f6194983729a6701768b4f10f"
     },
     {
       "path": "docs/contracts/product-planning.md",
@@ -218,7 +219,7 @@
     },
     {
       "path": "docs/contracts/web-evidence.md",
-      "sha256": "d7cb56d4ac8c24e758ebacb4bc292964685dc4b389718480043be32fd34538dd"
+      "sha256": "72b1009ea05c02ae53fbdcce6e1db6f41173125cb31fd5206b205b6249459a76"
     },
     {
       "path": "docs/contracts/codex-product.md",
@@ -226,7 +227,7 @@
     },
     {
       "path": "docs/contracts/reader-deliverables.md",
-      "sha256": "a3f19c9952a1e4a6e2a705c0e8b556502a9b6065473356469dfde0fbe24f893f"
+      "sha256": "4c8ae55acbfc7e770b1276861dde3fa3750250819787c963c4e6a32fbd7238d8"
     },
     {
       "path": "product-tools/requirements.in",

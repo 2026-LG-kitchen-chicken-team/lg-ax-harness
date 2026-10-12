@@ -165,6 +165,25 @@ class ReportingValidationTests(unittest.TestCase):
 
 
 class ReportingRenderTests(unittest.TestCase):
+    def test_excel_print_width_keeps_full_heading_and_no_blank_footer_row(self):
+        from openpyxl import load_workbook
+        from openpyxl.utils.cell import range_boundaries
+        plan = example_plan()
+        blocks = copy.deepcopy(plan["sections"][0]["blocks"][1:3])
+        blocks[1]["title"] = "대한민국 일반가구 중 1인가구 비중 · 2020~2025년 / 긴 제목 보존 검증"
+        plan["sections"] = [{"title": "인쇄 검증", "blocks": blocks}]
+        with tempfile.TemporaryDirectory() as temporary:
+            result = reporting.render_report(plan, Path(temporary)/"reader")
+            self.assertTrue(result["ready"], result)
+            book = load_workbook(Path(result["directory"])/"01_자료집"/"보고서 도표.xlsx")
+            table, chart = book.worksheets
+            last = max(cell.row for row in table for cell in row if cell.value is not None)
+            self.assertEqual(range_boundaries(str(table.print_area).split("!")[-1])[3], last)
+            self.assertEqual(chart["B2"].value, blocks[1]["title"])
+            self.assertTrue(chart["B2"].alignment.wrap_text)
+            self.assertIn("B2:M2", [str(r) for r in chart.merged_cells.ranges])
+            self.assertGreaterEqual(chart.row_dimensions[2].height, 32)
+
     def test_short_figure_caption_and_provenance_stay_together(self):
         from PIL import Image
         from docx import Document

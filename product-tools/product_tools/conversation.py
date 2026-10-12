@@ -303,7 +303,7 @@ class Conversation:
         with current_request/export_session; a stale replay is never delivered.
         """
         fields = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
-        obj(payload, fields, ("report", "report_plan_path", "open_folder"))
+        obj(payload, fields, ("report", "report_plan_path", "report_sources_path", "open_folder"))
         options = self._report_options(payload)
         saved = self.store.save_result(**{k: payload[k] for k in fields}, require_review=True, response_mode="receipt")
         receipt = saved["receipt"]
@@ -337,7 +337,12 @@ class Conversation:
             text(payload["report_plan_path"], "report_plan_path", 4096)
             if not report:
                 fail("invalid_input", "report_plan_path requires report:true")
-        return {"report": report, "open_folder": open_folder, "report_plan_path": payload.get("report_plan_path")}
+        if payload.get("report_sources_path") is not None:
+            text(payload["report_sources_path"], "report_sources_path", 4096)
+            if not report:
+                fail("invalid_input", "report_sources_path requires report:true")
+        return {"report": report, "open_folder": open_folder, "report_plan_path": payload.get("report_plan_path"),
+                "report_sources_path": payload.get("report_sources_path")}
 
     def _read_report_plan(self, name):
         if name is None:
@@ -368,7 +373,21 @@ class Conversation:
             fail("report_failed", "Renderer returned ready without reader files")
         return hashes
 
-    def _report_plan_hash(self, authored):
+    def _read_report_sources(self, name, session, turn):
+        if name is None:
+            return []
+        payload = self._read_report_plan(name)
+        rows = self.store.db.execute("SELECT request_key FROM conversation_requests WHERE session_id=? AND turn_id=?", (session, turn)).fetchall()
+        if len(rows) != 1:
+            fail("report_source_scope", "Context requires the unique original request linked to this turn")
+        from .web_evidence import WebEvidence
+        web = WebEvidence(self.store.path, self.workspace)
+        try:
+            return web.report_sources(payload, self._research_id(session, rows[0][0]))
+        finally:
+            web.close()
+
+    def _report_plan_hash(self, authored, context_sources=None):
         assets = []
         if authored is not None:
             if not isinstance(authored, dict) or not isinstance(authored.get("sections"), list):
@@ -391,7 +410,7 @@ class Conversation:
                     if not path.is_file() or path.suffix.lower() not in (".png", ".jpg", ".jpeg"):
                         fail("invalid_report_plan", "Image must be an existing PNG/JPEG file")
                     assets.append({"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
-        return hashlib.sha256(canonical({"plan": authored, "assets": assets}).encode("utf-8")).hexdigest()
+        return hashlib.sha256(canonical({"plan": authored, "assets": assets, "context_sources": context_sources or []}).encode("utf-8")).hexdigest()
 
     def _deliver_current(self, session, turn, version, options):
         """Bind files to a valid saved version and reuse intact output on replay.
@@ -403,7 +422,8 @@ class Conversation:
         try:
             from .delivery import create_deliverables
             authored = self._read_report_plan(options["report_plan_path"])
-            plan_hash = self._report_plan_hash(authored)
+            context_sources = self._read_report_sources(options.get("report_sources_path"), session, turn)
+            plan_hash = self._report_plan_hash(authored, context_sources)
             reused = False
             with self.store.transaction():
                 current = self.store.get_turn(session, turn)
@@ -422,7 +442,7 @@ class Conversation:
                     scopes = current["input"]["model_scope"]
                     sources = [self.store.dataset.source(s["source_id"]) for s in self.store.dataset.sources.values()
                                if any(all(s[k] == scope[k] for k in ("model_id", "model_version", "document_version")) for scope in scopes)]
-                    response = create_deliverables(self.workspace, current["input"], current["latest_result"], sources,
+                    response = create_deliverables(self.workspace, current["input"], current["latest_result"], sources + context_sources,
                                                    authored_plan=authored, open_folder=False)
                     if response.get("ready") is not True:
                         return {**response, "ready": False, "error": response.get("error") or {"code": "report_failed", "message": "Reader files were not generated; see checks"}}
@@ -447,7 +467,7 @@ class Conversation:
 
     def deliver_result(self, payload):
         """Recover reader files from a reviewed stored result without resaving it."""
-        obj(payload, ("session_id", "turn_id", "expected_result_version"), ("report_plan_path", "open_folder"))
+        obj(payload, ("session_id", "turn_id", "expected_result_version"), ("report_plan_path", "report_sources_path", "open_folder"))
         session = identifier(payload["session_id"], "session_id")
         turn = identifier(payload["turn_id"], "turn_id")
         version = integer(payload["expected_result_version"], "expected_result_version", 1)

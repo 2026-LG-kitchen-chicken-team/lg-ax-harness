@@ -23,8 +23,10 @@ HTML 설명서는 실제 선택한 절의 본문만 관측하여 절별 page_id�
 
 저장 snapshot도 크기 제한으로 잘릴 수 있으므로 전체 웹 원문 보존이라고 설명하지 않는다. 판단에 필요한 주변 문맥만 추가로 관측하고 발췌 범위를 밝힌다. 실패 시 실제 접근 오류·시도 범위·부족을 기록하며 시간 연장이 복구를 보장한다고 말하지 않는다.
 
-조사 예산을 업무 초기에 정하고 총 시간의 절반을 쓰기 전에 기획·저장·최종 전달로 넘어간다. 조사 타이머는 실행기/실제 시각으로 확인하고 관측하지 않은 경과시간을 추정하지 않는다. 충분한 근거가 없으면 기존 근거와 부족 항목으로 held를 저장·전달하며 한도를 새 research_id로 우회하지 않는다.
+조사 예산을 업무 초기에 정하고 기획·검토·저장·최종 전달 시간도 확보한다. 조사 타이머는 실행기/실제 시각으로 확인하고 관측하지 않은 경과시간을 추정하지 않는다. 조사 범위와 시간을 조정할 때는 사용자 목표와 실제 부족 항목으로 사유를 남긴다. 충분한 근거가 없으면 기존 근거와 부족 항목으로 held를 저장·전달하며 한도를 새 research_id로 우회하지 않는다.
 
-한 업무 요청의 외부 조사 범위는 검색 최대3회·페이지 최대6개·실제 브라우저 조작 최대12회로 계획한다. 부족하면 held/needs_input로 종료하고 무엇을 확인하지 못했는지 밝힌다. 코드 collector는 같은 research_id의 페이지6개·동일 페이지 기술 재시도1회만 제한하며 native 전체 호출을 강제 통제하지 않는다. PDF는 제공되는 native PDF 도구로 확인하고 공용 설명서 적용 조건을 유지한다.
+초기 계획은 검색3회·페이지6개·브라우저 조작12회로 잡되 실제 사용자 목표에 맞게 필요한 범위를 판단한다. 정확 설명서 절·후기 문맥·시장·경쟁 자료가 더 필요하면 `configure_web_research`에 원래 요청의 research_id/max_pages(6~30)/reason을 전달하여 같은 요청의 예산을 명시적으로 조정한다. 기존 성공·실패 페이지와 시도 횟수 및 예산 변경 이력을 유지한다. 새 요청/키/ID로 리셋하지 않는다. native 검색·브라우저 호출과 전체 시간은 별도로 기록하며 코드가 강제 통제한다고 설명하지 않는다. 접근 불가나 근거 부재는 무리하게 채우지 않고 필요한 항목만 보류한다. PDF는 제공되는 native PDF 도구로 확인하고 공용 설명서 적용 조건을 유지한다.
 
-실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.
+시장 통계·경쟁 제품 문서는 대상 제품의 product_fact로 등록하지 않는다. 같은 research_id로 실제 원문을 capture하고, 보고서만 보강하는 `report_sources_path`의 관측 snapshot/짧은 정확 발췌/자료 대상/적용 범위를 작성한다. 상세 계약은 docs/contracts/reader-deliverables.md를 따른다. 이는 ProductResult의 대상 모델 근거·불편·기존 기능 검토를 대신할 수 없으며 경쟁 기능이 대상 제품에 없다는 증명도 아니다.
+
+실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence/configure_web_research다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.

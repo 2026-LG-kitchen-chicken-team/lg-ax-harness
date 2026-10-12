@@ -29,7 +29,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## 호출·크기·오류 계약
 
-실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각64KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는 실제 lg-kitchen-v4(세 제품군5모델·8후기·26사실)이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
+실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각64KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는0모델·0출처의 data/business/empty이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
 
 | Tool | JSON 입력 | 출력/오류 |
 |---|---|---|

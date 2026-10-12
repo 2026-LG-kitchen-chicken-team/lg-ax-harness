@@ -1,6 +1,6 @@
 # 독자용 자료집과 보고서
 
-자료집·보고서를 작성할 때 적용한다. 공개 작성 계약은 프로젝트 루트 `docs/contracts/reader-deliverables.md`다. 수정07 목업은 문장·표·도표·출처·구획의 표현 기준이며 가상 원문과 수치를 업무에 복사하는 템플릿이 아니다.
+자료집·보고서를 작성할 때 적용한다. 공개 작성 계약은 프로젝트 루트 `docs/contracts/reader-deliverables.md`다. 합성 목업 검수로 하네스를 완료 처리하지 않는다. 실제 제품의 새 조사·분석·검토·저장·보고서 전달을 확인한다. 가상 원문과 수치를 업무 근거로 복사하지 않는다.
 
 ## 요청과 근거
 
@@ -24,8 +24,10 @@
 
 `report_plan`의 title/summary/sources/sections와 선택 unfulfilled_requests를 내부 JSON 파일로 작성한다. sources에는 검증된 전달 원문만 넣고 존재하지 않는 원문·통계를 추가하지 않는다. 원문 그대로인 sources와 근거를 연결한 blocks는 작성 계약의 스키마를 따른다. 전체 보고서를 업무 저장 JSON의 64KiB 제한에 맞춰 잘라 넣지 않는다.
 
+시장 통계와 경쟁 문서는 대상 모델의 product_fact로 위장하지 않는다. 같은 요청으로 capture한 실제 snapshot을 `report_sources_path`로 연결하고 자료 대상·적용 범위·원문 위치를 명시한다. 상세 입력은 reader-deliverables.md의 시장·경쟁 맥락 계약을 따른다. 이 출처는 보고서 설명·자료집을 보강하며 대상 모델 ProductResult 근거를 대신하지 않는다. 가격·성능시험의 기간·조건·측정모델을 보존하고 전국 통계를 특정 제품 수요·불편 발생률로 바꾸지 않는다.
+
 최종 저장의 기존 6필드를 유지하며 `save_and_export`에 `report:true`, 선택 `report_plan_path`(runtime-data 내부 작성 파일), `open_folder`를 전달한다. API 기본 report는 하위 호환을 위해 false다. 제품 Skill의 최종 출력에서는 true를 명시해 파일 제작을 함께 요청한다. open_folder는 보고서 요청 시 기본 true이며 사용자가 원하지 않으면 false로 둔다. JSON·감사 export는 내부에 유지한다.
 
-업무 저장의 accepted/valid/현재 version과 delivery_ready, 보고서의 실제 ready/files를 각각 확인한다. 제작 실패는 저장 성공·수정 이력을 취소하지 않는다. 같은 session_id/turn_id/expected_result_version의 `deliver_result`에 선택 report_plan_path/open_folder를 넣어 복구하고 새 업무 turn이나 기획 수정으로 세지 않는다. 재생 시 이미 제작된 결과를 중복 생성·열기 하지 않는다. 실제 ready 응답에서 확인한 결과 폴더와 파일을 짧게 전달한다. 의존성·제작 실패가 남으면 저장된 결과와 미완료 형식을 정확히 알린다.
+업무 저장의 accepted/valid/현재 version과 delivery_ready, 보고서의 실제 ready/files를 각각 확인한다. 제작 실패는 저장 성공·수정 이력을 취소하지 않는다. 같은 session_id/turn_id/expected_result_version의 `deliver_result`에 선택 report_plan_path/report_sources_path/open_folder를 넣어 복구하고 새 업무 turn이나 기획 수정으로 세지 않는다. 재생 시 이미 제작된 결과를 중복 생성·열기 하지 않는다. 실제 ready 응답에서 확인한 결과 폴더와 파일을 짧게 전달한다. 의존성·제작 실패가 남으면 저장된 결과와 미완료 형식을 정확히 알린다.
 
 본문·표·그래프의 숫자·단위·기간·분모, 원문 인용과 링크를 대조한다. 실제 Word/PDF 페이지와 Excel을 확인해 잘림·겹침·글자 깨짐·줄바꿈을 고친다. 미확인 레이아웃을 검수 완료로 쓰지 않는다. 파일 검수가 성공한 뒤 Windows 탐색기로 폴더를 열며 다른 OS에서는 경로를 전달한다.

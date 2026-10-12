@@ -7,7 +7,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = {
     "evidence-retrieval": ["doctor", "list_models", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope"],
-    "web-evidence-collection": ["fetch_web_page", "capture_web_page", "import_web_evidence"],
+    "web-evidence-collection": ["fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research"],
     "needs-structuring": ["select_evidence", "validate_source_refs"],
     "feature-comparison": ["match_product_scope", "retrieve_product_facts", "select_evidence"],
     "concept-writing": ["validate_constraints", "validate_source_refs"],

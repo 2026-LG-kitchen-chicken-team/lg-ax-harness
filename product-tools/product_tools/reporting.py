@@ -318,7 +318,26 @@ def _style_sheet(ws, title, headers, rows, deps, highlights=(), total_rows=()):
     ws.print_area = f"B2:{get_column_letter(len(headers)+1)}{max(6,len(rows)+6)}"
     from openpyxl.worksheet.page import PageMargins
     ws.page_margins = PageMargins(left=.3, right=.3, top=.4, bottom=.4, header=.2, footer=.2)
+    _sheet_title(ws, title, len(headers)+1)
     return ws
+
+
+def _sheet_title(ws, title, end_column):
+    """Fit the full heading to its actual table/chart print width."""
+    from openpyxl.styles import Alignment
+    from openpyxl.utils import get_column_letter
+    for region in list(ws.merged_cells.ranges):
+        if region.min_row == region.max_row == 2:
+            ws.unmerge_cells(str(region))
+    if end_column > 2:
+        ws.merge_cells(start_row=2, start_column=2, end_row=2, end_column=end_column)
+    ws["B2"].alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    width = sum(ws.column_dimensions[get_column_letter(col)].width for col in range(2, end_column+1))
+    lines = sum(max(1, math.ceil(len(line)*3.1/max(8, width-3))) for line in title.split("\n"))
+    height = max(32, lines*24+8)
+    if height > 409:
+        fail("reporting_layout_failed", "An Excel title exceeds its readable row height")
+    ws.row_dimensions[2].height = height
 
 
 def _source_rows(records):
@@ -424,9 +443,10 @@ def _write_libraries(doc, folder, deps):
                     chart_row += 1
                 ws.page_setup.fitToHeight = 1
                 ws.print_area = f"B2:M{chart_row+2}"
+                _sheet_title(ws, block["title"], 13)
             elif block.get("source_ids"):
                 from openpyxl.utils import get_column_letter
-                ws.print_area = f"B2:{get_column_letter(len(block['headers'])+1)}{citation_row}"
+                ws.print_area = f"B2:{get_column_letter(len(block['headers'])+1)}{citation_row-1}"
         path = folder/"보고서 도표.xlsx"
         wb.save(path)
         outputs.append(path)
@@ -847,7 +867,7 @@ def _write_pdf(doc, target, sources, links):
     from reportlab.lib.colors import HexColor, black, white
     from reportlab.lib.enums import TA_RIGHT
     font = _font()
-    normal = ParagraphStyle("Report",fontName=font,fontSize=11,leading=16,spaceAfter=9,wordWrap="CJK")
+    normal = ParagraphStyle("Report",fontName=font,fontSize=11,leading=16,spaceAfter=9,wordWrap="CJK",allowWidows=0,allowOrphans=0)
     title = ParagraphStyle("Title",parent=normal,fontSize=25,leading=34,spaceAfter=18)
     heading = ParagraphStyle("Section",parent=normal,fontSize=15,leading=21,spaceBefore=16,spaceAfter=10,keepWithNext=True)
     cellstyle = ParagraphStyle("Cell",parent=normal,fontSize=9,leading=13,spaceAfter=0)

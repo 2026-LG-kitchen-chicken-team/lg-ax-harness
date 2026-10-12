@@ -59,6 +59,16 @@ def _source_records(sources):
                     "text": record["text"], "location": record["location"],
                     "model": "모델 {model_id} / 모델 버전 {model_version} / 문서 버전 {document_version} / 자료 버전 {data_version}".format(**record),
                     "synthetic": record["synthetic"]}
+            provenance = record["origin"]
+            labels = {True: "확인", False: "아님", None: "미확인"}
+            item["model"] += (" / 관찰일: " + (provenance["retrieved_date"] or "미확인")
+                              + " / 게시일: " + (provenance["published_date"] or "미확인")
+                              + " / 표현: " + provenance["representation"]
+                              + " / 모델 연결: " + (provenance["model_matching"] or "미확인")
+                              + " / 구매 인증: " + labels[provenance["purchase_verified"]]
+                              + " / 협찬: " + labels[provenance["sponsorship"]])
+            if provenance.get("commercial_disclosure"):
+                item["model"] += " / 상업성 표시: " + provenance["commercial_disclosure"]
             if record["origin"]["source_url"] is not None:
                 item["url"] = record["origin"]["source_url"]
         else:

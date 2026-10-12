@@ -13,6 +13,7 @@ from product_tools.contracts import ToolError
 from product_tools.conversation import Conversation
 from product_tools.dataset import Dataset
 from product_tools.state import StateStore
+from product_tools.web_evidence import WebEvidence
 
 
 class ReaderConversationTests(unittest.TestCase):
@@ -144,6 +145,40 @@ class ReaderConversationTests(unittest.TestCase):
             self.assertTrue(response["save"]["accepted"])
             self.assertFalse(response["report_ready"])
             self.assertEqual(response["report_error"]["code"], "invalid_report_plan")
+        self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
+
+    def test_context_failure_and_recovery_keep_saved_version_and_revalidate_cache(self):
+        key = self.store.db.execute("SELECT request_key FROM conversation_requests WHERE turn_id=?", (self.turn["turn_id"],)).fetchone()[0]
+        research = self.conv._research_id(self.turn["session_id"], key)
+        web = WebEvidence(self.store.path, self.root)
+        snapshot = web.collect({"research_id": research, "page_id": "context", "url": "https://example.org/statistics",
+            "observed_text": "Fixture households 8.04 million", "native_tool_name": "fixture_native"}, True)
+        web.close()
+        sidecar = {"research_id": research, "sources": [{"id": "context", "snapshot_id": snapshot["snapshot_id"],
+            "kind": "market", "title": "Fixture statistic", "quote": "invented", "location": "table",
+            "subject": "Households", "scope_note": "Context only"}]}
+        path = self.root / "runtime-data/context.json"
+        path.write_text(json.dumps(sidecar), encoding="utf-8")
+        options = {"report_sources_path": "runtime-data/context.json"}
+        failed = self.conv.save_and_export({**self.payload, **options})
+        self.assertTrue(failed["save"]["accepted"])
+        self.assertFalse(failed["report_ready"])
+        self.assertEqual(failed["report_error"]["code"], "report_source_integrity")
+        sidecar["sources"][0]["quote"] = "8.04 million"
+        path.write_text(json.dumps(sidecar), encoding="utf-8")
+        def render(workspace, planning, result, sources, **kwargs):
+            self.assertEqual(sources[-1]["text"], "8.04 million")
+            self.assertEqual(sources[-1]["kind"], "market")
+            return self.create(workspace, planning, result, [s for s in sources if "source_id" in s], **kwargs)
+        with patch("product_tools.delivery.create_deliverables", side_effect=render) as renderer:
+            ready = self.conv.deliver_result(self.recovery_payload(**options))
+            replay = self.conv.deliver_result(self.recovery_payload(**options))
+            self.assertTrue(ready["ready"])
+            self.assertTrue(replay["reused"])
+            self.assertEqual(renderer.call_count, 1)
+            sidecar["sources"][0]["quote"] = "invented"
+            path.write_text(json.dumps(sidecar), encoding="utf-8")
+            self.assertFalse(self.conv.deliver_result(self.recovery_payload(**options))["ready"])
         self.assertEqual(self.store.get_turn(self.turn["session_id"], self.turn["turn_id"])["result_version"], 1)
 
 
