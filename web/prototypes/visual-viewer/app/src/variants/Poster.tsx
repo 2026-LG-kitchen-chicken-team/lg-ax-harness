@@ -30,7 +30,8 @@ export default function Poster({ view, story, mode, setMode, copy }: { view: Vie
   const notes = inner(s.trust, 'chips')
   const nodeText = useMemo(() => Object.fromEntries((flow?.nodes || []).map((n: Block) => [n.id, n])), [flow])
 
-  const switcher = <ModeSwitch mode={mode} setMode={setMode} className="fixed right-4 top-4 z-50" />
+  // ?capture hides the floating switch for clean images of the poster.
+  const switcher = new URLSearchParams(location.search).has('capture') ? null : <ModeSwitch mode={mode} setMode={setMode} className="fixed right-4 top-4 z-50" />
   if (!story.complete || !wide) {
     // No saved result, or a phone-sized screen: the poster cannot be one screen, so show the story stacked.
     const page = view.pages.find((p) => p.id === 'story')

@@ -110,6 +110,7 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 ```
 
 - 기본은 이 폴더에 `view-data.js`가 생기고 `index.html`이 열린다. `--out-dir 폴더`를 주면 그 폴더에 `view-data.js`와 `index.html`을 둔다.
+- `--standalone 경로 --mode slides|poster|app`: 공유용 단일 HTML을 처음부터 B 슬라이드·C 한 장·A 앱으로 열리게 한다(받은 사람이 버튼으로 다른 보기로 바꿀 수 있다).
 - `--standalone 경로`: 데이터를 넣은 단일 HTML. `--insights 파일`: 모델이 쓴 해석(의견 묶음·단계 자막·제외 사유 등). insights의 session_id·turn_id가 export와 다르면 쓰지 않고 경고한다. turn_id 없이 turn이 여러 개인 세션에 직접 주면 쓰되 "turn 미확인" 경고를 화면에 낸다. insights 없이도 결과 구조만으로 모든 화면을 그린다.
 - 생성물(`view-data.js`, `report-*.html`, `*.tmp`, 훅 상태·로그)과 실제 결과의 insights는 이 폴더의 `.gitignore`로 제외한다. 실제 결과 예시는 Git이 아닌 메일·접근 제한 링크로 공유한다.
 

@@ -15,6 +15,8 @@ export function useMode(): [Mode, (m: Mode) => void] {
   const [mode, set] = useState<Mode>(() => {
     const q = new URLSearchParams(location.search).get('mode')
     if (isMode(q)) return q
+    // A shared single-file report can name its view (build_view.py --mode), so B/C files open as B/C for everyone.
+    if (isMode(window.LGAX_DEFAULT_MODE)) return window.LGAX_DEFAULT_MODE
     try { const s = localStorage.getItem('lgax-view-mode'); if (isMode(s)) return s } catch { /* storage unavailable */ }
     return 'app'
   })

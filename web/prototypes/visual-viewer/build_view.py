@@ -1721,14 +1721,20 @@ def auto_focus(export: dict | None) -> str | None:
     return "story" if ok else "overview"
 
 
+VIEW_MODES = ("app", "slides", "poster")  # A 앱 · B 슬라이드 · C 한 장 (index.html의 보기 전환)
+
+
 def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
              standalone: Path | None = None, out_dir: Path | None = None, insights_dir: Path | None = None,
-             index_sha256: str | None = None) -> dict:
+             index_sha256: str | None = None, mode: str | None = None) -> dict:
     """view를 out_dir(기본: 이 폴더)의 view-data.js로 쓰고 요약을 돌려준다. focus="auto"는 상태로 고른다.
 
     - insights_path가 없고 insights_dir가 있으면 그 폴더의 insights-*.json에서 session_id·turn_id로 고른다.
     - out_dir가 이 폴더가 아니면 index.html도 그 폴더에 복사한다. index_sha256을 주면 복사 전에 지문을 확인한다.
+    - mode(app·slides·poster)는 단일 HTML 보고서를 처음 열 때의 보기다. 받은 사람이 바로 B·C안을 보게 할 때 쓴다.
     """
+    if mode is not None and mode not in VIEW_MODES:
+        raise SystemExit(f"--mode는 {', '.join(VIEW_MODES)} 중 하나입니다: {mode}")
     warnings.clear()
     out_dir = Path(out_dir) if out_dir else HERE
     export = load_json(export_path) if export_path else None
@@ -1791,7 +1797,9 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
                     block.pop("href", None)
                     block.pop("href_label", None)
         shared_payload = json.dumps(shared, ensure_ascii=False, indent=1)
-        inline = "<script>window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = " + shared_payload.replace("</", "<\\/") + ";</script>"
+        inline = ("<script>window.LGAX_VIEW_INLINE = true; "
+                  + (f'window.LGAX_DEFAULT_MODE = "{mode}"; ' if mode else "")
+                  + "window.LGAX_VIEW = " + shared_payload.replace("</", "<\\/") + ";</script>")
         write_atomic(Path(standalone), text.replace(tag, inline))
         outputs["standalone"] = Path(standalone).as_posix()
     return {"ok": True, "pages": len(view["pages"]), "focus": view["focus"], "insights": state, "insights_file": insights_file,
@@ -1804,12 +1812,15 @@ def main() -> int:
     ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
     ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + ", insights pages의 id, 또는 auto(상태로 선택)")
     ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
+    ap.add_argument("--mode", choices=VIEW_MODES, help="--standalone 보고서를 처음 열 때의 보기: app(A 앱), slides(B 슬라이드), poster(C 한 장)")
     ap.add_argument("--out-dir", type=Path, help="view-data.js·index.html을 둘 폴더 (기본: 이 폴더)")
     ap.add_argument("--open", action="store_true", help="뷰어를 기본 브라우저로 연다")
     args = ap.parse_args()
     if not args.export and not args.insights:
         ap.error("--export나 --insights 중 하나는 필요합니다.")
-    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir)
+    if args.mode and not args.standalone:
+        ap.error("--mode는 --standalone과 함께 씁니다(열어 둔 화면은 오른쪽 위 버튼으로 바꿉니다).")
+    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir, mode=args.mode)
     if args.open:
         webbrowser.open(Path(summary["outputs"]["index"]).resolve().as_uri())
     sys.stdout.reconfigure(encoding="utf-8")
