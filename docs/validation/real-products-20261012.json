@@ -304,5 +304,28 @@
     "Windows readonly Word/Excel and PDF layout scope; not all platforms",
     "Claude installation checks are separate from new Claude AI acceptance; Gemini and human comparison excluded",
     "machine schema checks are not semantic certification; past failures and timeouts retained"
-  ]
+  ],
+  "development_acceptance": {
+    "run_id": "real-products-final-20261012",
+    "errors": [],
+    "scope": "fresh current-input/contract and bound receipt revalidation; no extra native business cases",
+    "complete_exit_code": 0,
+    "actual_agent_ids": [
+      "/root/report_delivery",
+      "/root/preserved_artifacts",
+      "/root/report_renderer"
+    ]
+  },
+  "publication": {
+    "package_sha256": "e37b7c21972644b977bfc84be7ef507f498a1d04564b722c32d5a8d7ad2baa9a",
+    "ci_run_id": 38198555618,
+    "private_runtime_files_uploaded": false,
+    "product_snapshot": "25cfd3fdeae419acd8e698aab1ab13ce1ab54877",
+    "download_and_automatic_archive_byte_verified": true,
+    "ci_reported_reason": "recent account payment failures or spending limit; exact cause not distinguished",
+    "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.9.0",
+    "ci_status": "failure;both jobs not started;steps0",
+    "main_direct_push": true,
+    "source_commit": "5fe8981c022a49273d81b0dff6c0cb09ef87befd"
+  }
 }
