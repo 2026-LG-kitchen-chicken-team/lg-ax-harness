@@ -1,11 +1,13 @@
 """Immutable candidate handoff metadata for a native reviewer; never calls AI."""
 import hashlib
+import json
 from pathlib import Path
 from .contracts import ToolError, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from .state import now
 
 
 FIELDS = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
+MAX_PACKET_BYTES = 131072
 
 
 class ReviewPackets:
@@ -107,9 +109,7 @@ class ReviewPackets:
                 verified = self.verify_review_packet({"session_id": session, "turn_id": turn,
                                                       "packet_path": prior[1], "packet_sha256": prior[2]})
                 return {**verified, "cached": True}
-            self.base.mkdir(parents=True, exist_ok=True)
             candidate_copy = self.base / ("candidate-" + candidate_sha + ".json")
-            self._immutable(candidate_copy, raw)
             diagnostic = self._diagnose(candidate, planning)
             packet = {"schema_version": 1, "packet_key": key, "created_at": now(), "binding": binding,
                       "operation_input_sha256": input_sha, "candidate_sha256": candidate_sha,
@@ -121,9 +121,17 @@ class ReviewPackets:
                       "content_trust": "untrusted candidate and cited source data",
                       "semantic_status": "unverified", "review_scope": "candidate used references only; no complete catalog/conversation/skills copied",
                       "uncertainty_scope": "candidate.result assumptions/validation_findings and caller assessment; no uncertainty or qualification generated"}
-            body = canonical(packet).encode("utf-8")
+            # The native file reader may cap a single long JSON line. Preserve
+            # original candidate bytes separately; only the handoff is pretty.
+            body = json.dumps(packet, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False).encode("utf-8")
+            if len(body) > MAX_PACKET_BYTES:
+                fail("input_limit", "Serialized reviewer packet exceeds 128 KiB; retain the original without shortening evidence")
             digest = hashlib.sha256(body).hexdigest()
             path = self.base / ("packet-" + digest + ".json")
+            # Reject oversized packets before either immutable file or the
+            # handoff registration row is created.
+            self.base.mkdir(parents=True, exist_ok=True)
+            self._immutable(candidate_copy, raw)
             self._immutable(path, body)
             name = path.relative_to(self.workspace).as_posix()
             self.store.db.execute("INSERT INTO product_review_packets VALUES(?,?,?,?,?,?)", (session, turn, key, input_sha, name, digest))
@@ -137,7 +145,7 @@ class ReviewPackets:
     def verify_review_packet(self, payload):
         obj(payload, ("session_id", "turn_id", "packet_path", "packet_sha256"))
         binding, planning = self._context(payload["session_id"], payload["turn_id"])
-        path, raw = self._read_path(payload["packet_path"], self.base, 131072)
+        path, raw = self._read_path(payload["packet_path"], self.base, MAX_PACKET_BYTES)
         if hashlib.sha256(raw).hexdigest() != payload["packet_sha256"]:
             fail("packet_integrity", "Reviewer packet SHA differs from retained bytes")
         packet = self._json(raw)

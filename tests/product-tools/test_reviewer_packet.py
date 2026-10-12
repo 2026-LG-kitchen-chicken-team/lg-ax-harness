@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
 from product_tools.contracts import ToolError, canonical, strict_json
 from product_tools.dataset import Dataset
-from product_tools.reviewer_packet import ReviewPackets
+from product_tools.reviewer_packet import MAX_PACKET_BYTES, ReviewPackets
 from product_tools.state import StateStore
 
 
@@ -151,6 +151,50 @@ class ReviewerPacketTests(unittest.TestCase):
         planning["model_scope"][0]["document_version"] = "unknown-document"
         self.store.db.execute("UPDATE turns SET input_json=? WHERE turn_id=?", (canonical(planning), self.handle["turn_id"]))
         self.error("unknown_scope", self.verify, prepared)
+
+    def test_multiline_packet_keeps_exact_original_candidate_bytes_and_last_reference(self):
+        original = self.path.read_bytes()
+        prepared = self.prepare()
+        packet_path = self.root / prepared["packet_path"]
+        body = packet_path.read_bytes()
+        self.assertIn(b"\n  ", body)
+        self.assertGreater(body.count(b"\n"), 30)
+        self.assertLessEqual(len(body), MAX_PACKET_BYTES)
+        packet = strict_json(body.decode("utf-8"))
+        self.assertEqual(packet["candidate"]["result"]["evidence_refs"][-1], self.candidate["result"]["evidence_refs"][-1])
+        self.assertEqual((self.root / prepared["candidate_copy"]).read_bytes(), original)
+        self.assertEqual(prepared["candidate_sha256"], hashlib.sha256(original).hexdigest())
+        self.assertTrue(self.verify(prepared)["ready"])
+
+    def test_utf16_and_malformed_reference_expansion_rejects_before_files_or_registration(self):
+        # All expected metadata strings remain within the catalog field bounds.
+        # This generated diagnostic fixture is neither a real catalog nor AI.
+        source_id = "S"*96
+        source = copy.deepcopy(next(iter(self.data.sources.values())))
+        source.update(source_id=source_id, model_id="M"*96, model_version="V"*96,
+                      document_version="D"*96, data_version="A"*96, location="위"*200)
+        self.data.sources[source_id] = source
+        self.candidate["result"] = {"status": None,
+                                    "evidence_refs": [{"source_id": source_id, "quote": "bad fixture reference"} for _ in range(40)],
+                                    "assumptions": [""]}
+        # Fill the allowed original UTF-16 byte budget without exceeding it.
+        low, high = 0, 32768
+        while low < high:
+            middle = (low+high+1)//2
+            self.candidate["result"]["assumptions"] = ["가"*middle]
+            if len(canonical(self.candidate).encode("utf-16")) <= 65536:
+                low = middle
+            else:
+                high = middle-1
+        self.candidate["result"]["assumptions"] = ["가"*low]
+        raw = canonical(self.candidate).encode("utf-16")
+        self.assertLessEqual(len(raw), 65536)
+        self.assertGreater(len(raw), 65000)
+        self.path.write_bytes(raw)
+        self.error("input_limit", self.prepare)
+        self.assertEqual(self.path.read_bytes(), raw)
+        self.assertFalse((self.root / "runtime-data/review-packets").exists())
+        self.assertEqual(self.store.db.execute("SELECT COUNT(*) FROM product_review_packets").fetchone()[0], 0)
 
 
 if __name__ == "__main__":
