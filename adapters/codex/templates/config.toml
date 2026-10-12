@@ -1,0 +1,8 @@
+# Product-local settings only; account/model/effort remain inherited.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 1
+
+[agents.product_evidence_reviewer]
+description = "실제 원문과 후보의 모델 귀속·주장·조건·반례를 독립 대조하는 읽기 전용 출품 근거 검토자"
+config_file = "./agents/product-evidence-reviewer.toml"
