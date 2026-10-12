@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* shadcn/ui-style tokens (neutral theme). Light only: the viewer is used for presentations and printed reports. */
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.52 0 0);
+  --accent: oklch(0.97 0 0);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.985 0 0);
+
+  /* claim / tone colours shared by cards and charts */
+  --tone-blue: #2563eb;
+  --tone-green: #16a34a;
+  --tone-red: #e11d48;
+  --tone-orange: #f59e0b;
+  --tone-purple: #7c3aed;
+  --tone-gray: #a1a1aa;
+
+  --vis-font-family: "Pretendard Variable", Pretendard, "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --vis-axis-tick-label-font-size: 12px;
+  --vis-axis-grid-color: #f0f0f0;
+  --vis-axis-tick-label-color: #71717a;
+  --vis-tooltip-background-color: rgba(24, 24, 27, 0.95);
+  --vis-tooltip-text-color: #fafafa;
+  --vis-tooltip-border-color: transparent;
+  --vis-donut-central-label-font-size: 28px;
+  --vis-donut-central-label-font-weight: 700;
+}
+
+@theme inline {
+  --font-sans: "Pretendard Variable", Pretendard, "Malgun Gothic", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "D2Coding", Consolas, ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-sidebar: var(--sidebar);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --animate-rise-in: rise-in 0.5s ease-out both;
+}
+
+/* Movement only: if an animation never runs (print, automation, paused tab) the content is still fully visible. */
+@keyframes rise-in {
+  from { transform: translateY(12px); }
+  to { transform: none; }
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss06";
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  *, *::before, *::after { animation: none !important; }
+  .print-full { margin: 0 !important; max-width: none !important; }
+}

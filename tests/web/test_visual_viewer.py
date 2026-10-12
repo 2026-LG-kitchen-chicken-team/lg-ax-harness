@@ -383,11 +383,11 @@ class BuildViewTests(TempCase):
         for family, label, model, rid, _ in FAMILIES:
             with self.subTest(family=family):
                 summary, view = self.build(family)
-                self.assertEqual((summary["warnings"], summary["focus"]), ([], "dashboard"))
+                self.assertEqual((summary["warnings"], summary["focus"]), ([], "story"))
                 self.assertTrue((self.h.out / "index.html").is_file())
                 self.assertEqual([p["id"] for p in view["pages"]],
-                                 ["overview", "dashboard", "screening", "compare", "concepts", "history", "evidence", "export"])
-                self.assertIn(label, view["pages"][0]["title"])
+                                 ["story", "overview", "dashboard", "screening", "compare", "concepts", "history", "evidence", "export"])
+                self.assertIn(label, page(view, "overview")["title"])
                 self.assertIn(label, view["context"]["meta"])
                 concepts = blob(page(view, "concepts"))
                 self.assertIn("구현 단계 2", concepts)
@@ -479,7 +479,7 @@ class BuildViewTests(TempCase):
 
     def test_family_catalog_scope_and_commercial_disclosure(self):  # v07-format-04, -09
         _, view = self.build("family_catalog")
-        self.assertEqual(view["pages"][0]["title"], "냉장고 제품군 상품기획")
+        self.assertEqual(page(view, "overview")["title"], "냉장고 제품군 상품기획")
         self.assertTrue(view["context"]["meta"].startswith("냉장고 제품군 3개 모델"))
         overview = blob(page(view, "overview"))
         for text in ("제품군 카탈로그", "S836GBB122", "B502S33", "T876MQQ012 · 결과 근거"):
@@ -582,6 +582,47 @@ class BuildViewTests(TempCase):
         links = [x for row in next(b for b in page(view, "evidence")["blocks"] if b["type"] == "table")["rows"] for x in row["links"]]
         self.assertIn({"text": "c1", "tone": "purple"}, links)
 
+    def test_story_page_shows_recorded_counts_and_links_only(self):
+        _, view = self.build("microwave")
+        story = page(view, "story")
+        blocks = blob_blocks(story)
+        hero = blocks[0]
+        self.assertEqual(hero["type"], "hero")
+        self.assertIn(f"{SYNTH} {M} 불편 개선 시험", hero["title"])
+        self.assertEqual([(s["label"], s["value"]) for s in hero["stats"]], [("근거", 2), ("현재 불편", 1), ("남은 불편", 1), ("제안", 1)])
+        self.assertEqual([c["text"] for c in hero["chips"]][:3], ["기획 초안 완료", "유효", "의미 검토 전 · 인수 전"])
+        flow = next(b for b in blocks if b["type"] == "flow")
+        self.assertEqual([(n["id"], n["column"]) for n in flow["nodes"]], [("p1", "pain"), ("r1", "remaining"), ("c1", "concept")])
+        self.assertEqual(flow["links"], [{"from": "p1", "to": "r1", "label": "미해소", "tone": "red"},
+                                         {"from": "r1", "to": "c1", "label": "", "tone": "purple"}])
+        sol = next(b for b in blocks if b["type"] == "solutions")["items"][0]
+        self.assertEqual((sol["id"], sol["plan"]["status"], len(sol["steps"])), ("c1", "실측 전", 2))
+        self.assertEqual(sol["links"], [{"text": "r1", "tone": "orange"}])
+        quotes = next(b for b in blocks if b["type"] == "claims")["items"][0]["quotes"]
+        self.assertEqual([q["source_id"] for q in quotes], [RID])
+        for invented in ('"donut"', "발생률은", "%"):
+            self.assertNotIn(invented, blob(story["blocks"]))
+        # 검토 기록에 연결이 없으면 선을 만들지 않는다(항목은 그대로 보인다)
+        data = export_of("microwave")
+        for turn in data["turns"]:
+            for cand in turn["candidates"]:
+                assessment = (cand.get("validation") or {}).get("assessment")
+                if assessment:
+                    assessment["feature_matches"], assessment["concept_links"] = [], []
+        _, view = self.build(path=self.h.add("microwave", "export-nolinks.json", data))
+        blocks = blob_blocks(page(view, "story"))
+        flow = next(b for b in blocks if b["type"] == "flow")
+        self.assertEqual((len(flow["nodes"]), flow["links"]), (3, []))
+        self.assertIn("검토 기록에 기존 기능 대조 판단이 없습니다", blob(blocks))
+        # 승인된 결과가 없으면 이야기 화면을 비우고 이유를 보인다
+        summary, view = self.build("reject1")
+        self.assertEqual(summary["focus"], "overview")
+        story = blob(page(view, "story"))
+        self.assertIn("비워 두었습니다", story)
+        self.assertNotIn('"solutions"', story)
+        _, view = self.build("synthetic_catalog")
+        self.assertIn("합성 시험 자료", [c["text"] for c in page(view, "story")["blocks"][0]["chips"]])
+
     def test_evidence_kind_field_is_used_when_present(self):  # 이슈 #8: export에 kind가 생기면 바로 쓴다
         data = rename_source(rename_source(export_of("microwave"), RID, "forum-01"), FID, "official-02")
         kinds = {"forum-01": "review", "official-02": "product_fact"}
@@ -674,6 +715,24 @@ class BuildViewTests(TempCase):
         build_view.generate(export, None, "auto", out_dir=self.h.out, index_sha256=good)
         self.assertEqual((self.h.out / "index.html").read_bytes(), (VIEWER / "index.html").read_bytes())
 
+    def test_built_index_html_keeps_the_data_tag_and_loads_nothing_but_fonts(self):
+        """index.html is built from app/ (npm run build). It must stay one self-contained file."""
+        html = (VIEWER / "index.html").read_text(encoding="utf-8")
+        tag = '<script src="view-data.js" charset="utf-8"></script>'
+        self.assertEqual(html.count(tag), 1)
+        self.assertTrue(html.startswith("<!doctype html>\n<!-- Built from web/prototypes/visual-viewer/app"))
+        self.assertEqual(re.findall(r"<script[^>]*\bsrc=", html), ['<script src='])  # only view-data.js
+        self.assertEqual(re.findall(r'<link[^>]*href="(https?://[^"]+)"', html),
+                         ["https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"])
+        self.assertNotIn("/assets/", html)
+        export = self.h.add("microwave")
+        report = self.h.out / "report-test.html"
+        build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report)
+        text = report.read_text(encoding="utf-8")
+        self.assertNotIn(tag, text)
+        self.assertIn("window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = ", text)
+        self.assertIn('"id": "story"', text)
+
 
 class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
     def test_missing_insights_shows_dashboard_notice(self):
@@ -692,7 +751,7 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
         status = {c["text"]: c.get("tip") for c in view["context"]["status"]}
         self.assertEqual(status["유효"], "valid: true")
         self.assertEqual(status["의미 검토 전 · 인수 전"], "semantic_status: unverified · acceptance_ready: false")
-        self.assertNotIn("turn", view["pages"][0]["caption"]["text"] + page(view, "history")["caption"]["title"])
+        self.assertNotIn("turn", page(view, "overview")["caption"]["text"] + page(view, "history")["caption"]["title"])
 
     def test_turn_bound_insights_draw_groups_and_bom_is_read(self):
         export = self.h.add("microwave")

@@ -1,0 +1,262 @@
+// "한눈에 보기" story blocks (Magic UI-style landing sections). build_view.py decides every item, count and link;
+// this file only lays them out. Connector lines in the flow are drawn only for links the builder passes.
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ArrowRight, ExternalLink, Quote } from 'lucide-react'
+import { Badge, Badges, Card } from './ui'
+import { RiseIn, DotPattern, NumberTicker } from './magic'
+import { Blocks } from './blocks'
+import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_SOFT, TONE_TEXT } from '../lib/utils'
+import type { Block } from '../types'
+
+type P = { b: Block; copy: (s: string) => void }
+
+function Hero({ b }: P) {
+  return (
+    <section className="relative -mx-4 overflow-hidden rounded-2xl border bg-gradient-to-b from-zinc-50 to-white px-6 py-12 sm:-mx-0 sm:px-10 sm:py-16">
+      <DotPattern className="[mask-image:radial-gradient(60%_70%_at_50%_0%,black,transparent)]" />
+      <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
+        <RiseIn>
+          <div className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs backdrop-blur">
+            <span className="size-1.5 rounded-full bg-emerald-500" />{b.eyebrow}
+          </div>
+        </RiseIn>
+        <RiseIn delay={0.05}>
+          <h1 className="mt-5 text-balance bg-gradient-to-br from-zinc-950 via-zinc-800 to-zinc-500 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent sm:text-5xl sm:leading-[1.15]">
+            {b.title}
+          </h1>
+        </RiseIn>
+        {b.subtitle && <RiseIn delay={0.1}><p className="mt-4 max-w-2xl text-balance text-[15px] leading-relaxed text-muted-foreground sm:text-base"><Md text={b.subtitle} /></p></RiseIn>}
+        <RiseIn delay={0.15}><Badges items={b.chips} className="mt-5 justify-center" /></RiseIn>
+        {b.stats?.length > 0 && (
+          <RiseIn delay={0.2} className="mt-10 w-full">
+            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-flow-col sm:auto-cols-fr sm:grid-cols-none">
+              {b.stats.map((s: Block, i: number) => (
+                <div key={i} className="bg-white px-4 py-5">
+                  <dt className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <span className={cn('size-1.5 rounded-full', TONE_DOT[tone(s.tone)])} />{s.label}
+                  </dt>
+                  <dd className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
+                    <NumberTicker value={s.value} />{s.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{s.unit}</span>}
+                  </dd>
+                  {s.note && <div className="mt-0.5 text-[11px] text-muted-foreground">{s.note}</div>}
+                </div>
+              ))}
+            </dl>
+          </RiseIn>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function StorySection({ b, copy }: P) {
+  const t = tone(b.tone)
+  return (
+    <section className="mt-10 flex flex-col gap-5 sm:mt-14">
+      <RiseIn>
+        <div className={cn('text-xs font-semibold uppercase tracking-[0.18em]', TONE_TEXT[t])}>{b.label}</div>
+        <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight sm:text-3xl">{b.title}</h2>
+        {b.text && <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-muted-foreground"><Md text={b.text} /></p>}
+      </RiseIn>
+      <RiseIn delay={0.05} className="flex flex-col gap-4"><Blocks blocks={b.blocks || []} copy={copy} /></RiseIn>
+    </section>
+  )
+}
+
+function QuoteLine({ q }: { q: Block }) {
+  const h = safeHref(q.href)
+  return (
+    <figure className="rounded-lg bg-muted/60 px-3 py-2.5">
+      <blockquote className="flex gap-2 text-[13px] leading-relaxed">
+        <Quote className="mt-0.5 size-3.5 shrink-0 text-zinc-400" aria-hidden />
+        <span className="line-clamp-4">{q.quote}</span>
+      </blockquote>
+      <figcaption className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-5 text-[11px] text-muted-foreground">
+        {q.type && <Badge chip={{ text: q.type, tone: q.type_tone || 'gray' }} />}
+        {q.site && <span>{q.site}</span>}
+        {h && <a href={h} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-blue-700 hover:underline">원문<ExternalLink className="size-3" /></a>}
+        {q.source_id && <span className="font-mono">{q.source_id}</span>}
+      </figcaption>
+    </figure>
+  )
+}
+
+function Claims({ b }: P) {
+  const t = tone(b.tone)
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {(b.items || []).map((it: Block, i: number) => (
+        <Card key={i} className="relative flex flex-col gap-3 overflow-hidden p-5">
+          <span className="absolute inset-x-0 top-0 h-1" style={{ background: TONE_HEX[t] }} />
+          <div className="flex items-center gap-2">
+            <Badge chip={{ text: it.id, tone: t }} />
+            {b.kind_label && <span className="text-xs text-muted-foreground">{b.kind_label}</span>}
+          </div>
+          <p className="text-[15px] font-medium leading-relaxed"><Md text={it.text} /></p>
+          {it.quotes?.length > 0 && <div className="flex flex-col gap-2">{it.quotes.map((q: Block, k: number) => <QuoteLine key={k} q={q} />)}</div>}
+          <Badges items={it.chips} />
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function Matches({ b }: P) {
+  return (
+    <Card className="divide-y">
+      {(b.items || []).map((m: Block, i: number) => (
+        <div key={i} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:gap-4">
+          <div className="flex shrink-0 items-center gap-2">
+            <Badge chip={m.from} />
+            <ArrowRight className="size-3.5 text-muted-foreground" aria-hidden />
+            <Badge chip={m.to} />
+            <Badge chip={{ text: m.label, tone: m.tone }} className="font-semibold" />
+          </div>
+          {m.text && <p className="text-sm leading-relaxed text-muted-foreground"><Md text={m.text} /></p>}
+        </div>
+      ))}
+      {b.source && <p className="px-4 py-2 text-[11px] text-muted-foreground">출처: {b.source}</p>}
+    </Card>
+  )
+}
+
+// Columns of cards with connector curves between recorded links. The links are also printed inside each card,
+// so the meaning does not depend on the drawing (narrow screens hide the curves).
+function Flow({ b }: P) {
+  const cols: Block[] = b.columns || []
+  const nodes: Block[] = b.nodes || []
+  const links: Block[] = useMemo(() => b.links || [], [b.links])
+  const box = useRef<HTMLDivElement>(null)
+  const refs = useRef(new Map<string, HTMLDivElement>())
+  const [paths, setPaths] = useState<{ d: string; color: string }[]>([])
+  const measure = useCallback(() => {
+    const root = box.current
+    if (!root) return
+    const rb = root.getBoundingClientRect()
+    const out: { d: string; color: string }[] = []
+    for (const l of links) {
+      const a = refs.current.get(l.from)?.getBoundingClientRect()
+      const z = refs.current.get(l.to)?.getBoundingClientRect()
+      if (!a || !z || z.left <= a.right) continue // stacked layout: no curves
+      const x1 = a.right - rb.left, y1 = a.top + a.height / 2 - rb.top
+      const x2 = z.left - rb.left, y2 = z.top + z.height / 2 - rb.top
+      const mx = (x1 + x2) / 2
+      out.push({ d: `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`, color: TONE_HEX[tone(l.tone || 'gray')] })
+    }
+    setPaths(out)
+  }, [links])
+  useLayoutEffect(() => {
+    measure()
+    const ro = new ResizeObserver(() => measure())
+    if (box.current) ro.observe(box.current)
+    return () => ro.disconnect()
+  }, [measure])
+  const outgoing = (id: string) => links.filter((l) => l.from === id)
+  return (
+    <div>
+      <div ref={box} className="relative grid gap-4 @4xl:grid-flow-col @4xl:auto-cols-fr @4xl:gap-14">
+        <svg className="pointer-events-none absolute inset-0 hidden h-full w-full overflow-visible @4xl:block" aria-hidden>
+          {paths.map((p, i) => <path key={i} d={p.d} fill="none" stroke={p.color} strokeOpacity={0.55} strokeWidth={2} />)}
+        </svg>
+        {cols.map((c) => (
+          <div key={c.key} className="relative flex min-w-0 flex-col gap-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <span className={cn('size-2 rounded-full', TONE_DOT[tone(c.tone)])} />{c.title}
+            </div>
+            {nodes.filter((n) => n.column === c.key).map((n) => (
+              <div key={n.id} ref={(el) => { if (el) refs.current.set(n.id, el); else refs.current.delete(n.id) }}
+                className={cn('relative rounded-xl border bg-card p-3 shadow-xs ring-1 ring-inset ring-transparent')}>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge chip={{ text: n.id, tone: n.tone }} />
+                  {outgoing(n.id).map((l, k) => <Badge key={k} chip={{ text: `→ ${l.to}${l.label ? ' · ' + l.label : ''}`, tone: l.tone || 'gray' }} />)}
+                </div>
+                {n.text && <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed"><Md text={n.text} /></p>}
+              </div>
+            ))}
+            {!nodes.some((n) => n.column === c.key) && <p className="text-xs text-muted-foreground">항목 없음</p>}
+          </div>
+        ))}
+      </div>
+      {b.note && <p className="mt-3 text-xs text-muted-foreground"><Md text={b.note} /></p>}
+    </div>
+  )
+}
+
+function Solutions({ b }: P) {
+  return (
+    <div className="flex flex-col gap-4">
+      {(b.items || []).map((s: Block, i: number) => (
+        <Card key={i} className="relative overflow-hidden">
+          <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-violet-500 to-fuchsia-400" />
+          <div className="grid gap-5 p-5 pl-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="flex min-w-0 flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-violet-600">제안 {s.n}</span>
+                <Badge chip={{ text: s.id, tone: 'purple' }} />
+                <Badges items={s.chips} />
+              </div>
+              <p className="text-[15px] leading-relaxed"><Md text={s.text} /></p>
+              {s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
+              {s.requirements?.length > 0 && <MiniList title="요구사항" items={s.requirements} />}
+            </div>
+            <div className="flex min-w-0 flex-col gap-3">
+              {s.steps?.length > 0 ? (
+                <div>
+                  <div className="mb-2 text-xs font-semibold text-muted-foreground">구현 단계</div>
+                  <ol className="flex flex-col gap-2">
+                    {s.steps.map((x: string, k: number) => (
+                      <li key={k} className="flex gap-2.5 text-[13px] leading-relaxed">
+                        <span className="grid size-5 shrink-0 place-items-center rounded-full bg-violet-100 text-[11px] font-semibold text-violet-700">{k + 1}</span>
+                        <span><Md text={x} /></span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : <p className="text-xs text-muted-foreground">구현 단계: <b>미작성</b></p>}
+              {s.plan ? (
+                <div className="rounded-lg border bg-muted/40 p-3">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold">검증 계획 <Badge chip={{ text: s.plan.status, tone: 'orange' }} /></div>
+                  <dl className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[13px]">
+                    {s.plan.rows.map((r: Block, k: number) => <Row key={k} k={r.k} v={r.v} />)}
+                  </dl>
+                </div>
+              ) : <p className="text-xs text-muted-foreground">검증 계획: <b>미작성</b></p>}
+            </div>
+          </div>
+          {s.sources?.length > 0 && <div className="border-t bg-muted/30 px-6 py-2.5"><Badges items={s.sources} /></div>}
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+const Row = ({ k, v }: { k: string; v: string }) => (<><dt className="text-muted-foreground">{k}</dt><dd className="min-w-0"><Md text={v} /></dd></>)
+
+function MiniList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <div className="mb-1.5 text-xs font-semibold text-muted-foreground">{title}</div>
+      <ul className="flex list-disc flex-col gap-1 pl-4 text-[13px] leading-relaxed marker:text-zinc-300">{items.map((x, i) => <li key={i}><Md text={x} /></li>)}</ul>
+    </div>
+  )
+}
+
+function Tiles({ b }: P) {
+  return (
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      {(b.items || []).map((t: Block, i: number) => (
+        <Card key={i} className={cn('flex flex-col gap-1 p-4', t.tone && t.tone !== 'gray' && 'ring-1 ring-inset', t.tone && TONE_SOFT[tone(t.tone)].split(' ').filter((c) => c.startsWith('ring-')).join(' '))}>
+          <div className="text-xs font-medium text-muted-foreground">{t.label}</div>
+          <div className={cn('text-2xl font-bold tracking-tight', t.tone ? TONE_TEXT[tone(t.tone)] : '')}>
+            <NumberTicker value={t.value} />{t.unit && <span className="ml-0.5 text-sm font-medium text-muted-foreground">{t.unit}</span>}
+          </div>
+          {t.note && <div className="text-[11px] leading-snug text-muted-foreground">{t.note}</div>}
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+export const STORY_BLOCKS: Record<string, (p: P) => ReactNode> = {
+  hero: Hero, story: StorySection, claims: Claims, matches: Matches, flow: Flow, solutions: Solutions, tiles: Tiles,
+}
