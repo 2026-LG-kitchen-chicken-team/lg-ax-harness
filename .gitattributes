@@ -8,3 +8,4 @@ product-tools/** -text
 docs/contracts/** -text
 data/** -text
 adapters/codex/templates/** -text
+web/prototypes/visual-viewer/** -text
