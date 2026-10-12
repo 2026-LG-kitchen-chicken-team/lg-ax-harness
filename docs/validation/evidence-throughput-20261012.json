@@ -340,7 +340,17 @@
     "exclusions_verified": true,
     "unchanged_existing_viewer_files": 5,
     "default_catalog": "empty",
-    "source_manifest": "c33959da127e36409c75d32680199cbcbf230cf80f92446bcc9421d9b96d363f"
+    "source_manifest": "c33959da127e36409c75d32680199cbcbf230cf80f92446bcc9421d9b96d363f",
+    "publication": {
+      "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.2",
+      "prerelease": true,
+      "remote_download_sha256": "3cec96e56e0bf02db06f8f811ecee2020329300279134c31eccc6fd5853da1b6",
+      "SHA256SUMS_bytes_equal": true,
+      "snapshot_commit": "05af0d88f8d435e2004d2838deed7fcecf80bfd9",
+      "provenance_commit": "45f4f651c6b672924d64e56dd05e290c91cc05f0"
+    },
+    "pull_request": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/pull/9",
+    "main_unchanged": true
   },
   "limits": [
     "normal runs preceded final response-guidance clarification; final-source followups are separate episodes",

@@ -1,5 +1,7 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+이번 변경: [제품 v0.8.2 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.2) · [검토용 PR #9](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/pull/9) · [제품 전용94파일/원격 다운로드 인수](docs/validation/product-v0.8.2.md). 개발 변경은 `codex/evidence-complete`에 푸시했고 main/팀원 프론트/기존 태그는 보존했다.
+
 2026-10-12 사용자 후속 승인에 따른 **v7.5 자료 전체 전달·선택적 검토자 보완**: 메인 Agent1개/업무 Skill6개와 선택적 출품 근거 검토자1개를 유지하고, 일괄 등록·전체 전달/검토 장부·600초 시계·불변 검토 packet·취소/종료 후 등록 거절을 구현했다. 실제 후기92건+정확 식별/사양20건은 격리 평가용이며 기본 출품 catalog는 비어 있다. 전자레인지48자료 본 시험은 Codex507.375초/Claude GUI359.776초에 저장·보고서·export·최종 전달했다. 독립 검토는 partial이며 마지막 지침 변경 뒤 설명 후속은 별도 episode다. 제품338·평가143개 검사는 모두 통과/skip0이며 코드 범위다. [실측·검증·남은 한계](docs/validation/evidence-throughput-20261012.md), [설계 결정](docs/decisions/evidence-throughput-20261012.md)을 우선하며 아래 배포·종료·환경 상태는 당시 이력이다. HTML·프론트는 웹팀 소유로 이번에 수정하지 않았다. 모델 우위·대표성·새 조사5분 성공·최종 제출을 선언하지 않는다.
 
 2026-10-12 최종 변경은 사용자가 지정한 [0.8.1 릴리즈](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.1)로 배포한다. 보고서의 컨셉·시연 이미지 기능을 제외하고 핵심 강조·제목 위계·인용 서식과 긴 원문 인쇄 높이를 보완한다. 선택형 저장 결과 뷰어는 기본 훅 미등록이며 출처 지문과 실행 경로를 검사한다. [제품 검사·패키지 무결성](docs/validation/product-v0.8.1.md)과 [실제 서식 검수·원문 보존·새 조사 시간 실패의 구분](docs/validation/report-style-20261012.md)을 따른다. main 반영과 릴리즈 확인 후 이번 작업을 종료한다. 아래 문단은 이전 인수·배포 기록이다.

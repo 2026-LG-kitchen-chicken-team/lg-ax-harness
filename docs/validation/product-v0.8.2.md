@@ -10,7 +10,7 @@
 - 새 추출의93manifest 항목·파일 SHA 일치, uv 잠금 설치·doctor exit0, ZIP에서 별도 Claude76파일 재설치/check exit0.
 - 제품338검사·평가143검사 모두통과/skip0, asset·독립 코드검토. 실제 정상/후속/예외 범위는 [검증 MD](evidence-throughput-20261012.md)와 [동반 JSON](evidence-throughput-20261012.json)을 따른다.
 
-제품만의 별도 부모 없는 Git snapshot에 같은94파일 바이트를 담아 태그를 연결한다. provenance branch commit과 snapshot SHA, 원격 태그/첨부 다운로드 확인은 발행 후 기록한다. main을 자동 병합하거나 팀원 PR을 수정하지 않는다.
+제품만의 부모 없는 snapshot `05af0d88f8d435e2004d2838deed7fcecf80bfd9`에 동일94파일 바이트를 넣고 태그를 연결했다. provenance branch commit은 `45f4f651c6b672924d64e56dd05e290c91cc05f0`다. [v0.8.2 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.2)을 발행하고 원격 태그·첨부2개·실제 다운로드 ZIP/SHA256SUMS 바이트 일치를 확인했다. main은 `7a4127a` 그대로이며 자동 병합/팀원 PR 변경은 없다. [검토용 PR #9](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/pull/9)는 draft다. 이전 릴리즈를 덮거나 latest로 지정하지 않았다.
 
 ## 동작과 지원 범위
 
