@@ -1,0 +1,163 @@
+"""Immutable candidate handoff metadata for a native reviewer; never calls AI."""
+import hashlib
+from pathlib import Path
+from .contracts import ToolError, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from .state import now
+
+
+FIELDS = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
+
+
+class ReviewPackets:
+    def __init__(self, store, workspace):
+        self.store = store
+        self.workspace = Path(workspace).resolve()
+        self.base = (self.workspace / "runtime-data/review-packets").resolve()
+        if not self.base.is_relative_to(self.workspace / "runtime-data"):
+            fail("invalid_path", "Review packets must stay inside runtime-data")
+        store.db.execute("""CREATE TABLE IF NOT EXISTS product_review_packets(
+            session_id TEXT NOT NULL, turn_id TEXT NOT NULL, packet_key TEXT NOT NULL,
+            input_sha256 TEXT NOT NULL, packet_path TEXT NOT NULL, packet_sha256 TEXT NOT NULL,
+            PRIMARY KEY(session_id,turn_id,packet_key))""")
+
+    def _context(self, session, turn):
+        row = self.store.row(session, turn)
+        if not self.store.fresh(row):
+            fail("stale_context", "Reviewer handoff is invalid after input/data/code change")
+        if row["status"] in ("cancelled", "failed"):
+            fail("terminal_turn", "Cancelled/failed turns cannot create or consume reviewer packets")
+        planning = strict_json(row["input_json"])
+        for scope in planning["model_scope"]:
+            self.store.dataset.check_scope(scope)
+        return {"session_id": session, "turn_id": turn, "request_key": row["request_key"],
+                "expected_result_version": row["result_version"], "context_fingerprint": row["context_hash"],
+                "question_sha256": hashlib.sha256(planning["question"].encode("utf-8")).hexdigest(),
+                "code_sha256": self.store.code_hash, "data_version": self.store.dataset.version,
+                "dataset_sha256": self.store.dataset.fingerprint, "model_scope": planning["model_scope"]}, planning
+
+    def _read_path(self, name, directory, maximum):
+        text(name, "path", 2000)
+        path = (self.workspace / name).resolve()
+        if not path.is_relative_to(directory) or not path.is_file():
+            fail("invalid_path", "Reviewer input path must be an existing internal runtime-data file")
+        if path.stat().st_size > maximum:
+            fail("input_limit", "Reviewer input exceeds its file byte budget")
+        return path, path.read_bytes()
+
+    @staticmethod
+    def _json(raw):
+        try:
+            return strict_json(raw.decode("utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"))
+        except UnicodeError:
+            fail("invalid_json", "Reviewer input needs UTF-8 or BOM-marked UTF-16 JSON")
+
+    def _diagnose(self, candidate, planning):
+        try:
+            if not isinstance(candidate.get("result"), dict):
+                fail("invalid_input", "Incomplete candidate result is not an object")
+            return self.store.tools.validate_source_refs(candidate["result"].get("evidence_refs", []), planning["model_scope"])
+        except ToolError as exc:
+            checks = []
+            refs = candidate.get("result", {}).get("evidence_refs", []) if isinstance(candidate.get("result"), dict) else []
+            if isinstance(refs, list):
+                for ref in refs[:40]:
+                    if not isinstance(ref, dict):
+                        continue
+                    sid = ref.get("source_id")
+                    source = self.store.dataset.sources.get(sid) if isinstance(sid, str) else None
+                    expected = ({k: source[k] for k in ("source_id", "model_id", "model_version", "document_version", "data_version", "sha256", "location")}
+                                if source else None)
+                    checks.append({"declared_source_id": sid, "actual_catalog_metadata": expected,
+                                   "scope": "expected catalog metadata only; the candidate quote is not certified source truth"})
+            return {"structural_valid": False, "semantic_status": "unverified", "acceptance_ready": False,
+                    "error": {"code": exc.code, "message": str(exc)}, "reference_checks": checks}
+
+    @staticmethod
+    def _immutable(path, raw):
+        if path.exists():
+            if path.read_bytes() != raw:
+                fail("packet_conflict", "Immutable reviewer file already has different bytes")
+            return
+        try:
+            with path.open("xb") as output:
+                output.write(raw)
+        except FileExistsError:
+            fail("packet_conflict", "Another writer reserved this immutable reviewer file")
+
+    def prepare_review_packet(self, payload):
+        obj(payload, ("session_id", "turn_id", "candidate_path", "packet_key"))
+        session, turn = payload["session_id"], payload["turn_id"]
+        key = identifier(payload["packet_key"], "packet_key")
+        with self.store.transaction():
+            binding, planning = self._context(session, turn)
+            source, raw = self._read_path(payload["candidate_path"], (self.workspace / "runtime-data").resolve(), 65536)
+            candidate = self._json(raw)
+            obj(candidate, FIELDS, ("report", "report_plan_path", "report_sources_path", "open_folder"))
+            identifier(candidate["result_key"], "result_key")
+            integer(candidate["expected_result_version"], "expected_result_version", 0, 3)
+            if (candidate["session_id"] != session or candidate["turn_id"] != turn
+                    or candidate["expected_result_version"] != binding["expected_result_version"]):
+                fail("state_conflict", "Candidate session/turn/version must match the actual current turn")
+            candidate_sha = hashlib.sha256(raw).hexdigest()
+            input_sha = fingerprint({"operation": payload, "candidate_sha256": candidate_sha, "binding": binding})
+            prior = self.store.db.execute("SELECT input_sha256,packet_path,packet_sha256 FROM product_review_packets WHERE session_id=? AND turn_id=? AND packet_key=?", (session, turn, key)).fetchone()
+            if prior:
+                if prior[0] != input_sha:
+                    fail("packet_conflict", "Packet key cannot refer to changed candidate or current state")
+                verified = self.verify_review_packet({"session_id": session, "turn_id": turn,
+                                                      "packet_path": prior[1], "packet_sha256": prior[2]})
+                return {**verified, "cached": True}
+            self.base.mkdir(parents=True, exist_ok=True)
+            candidate_copy = self.base / ("candidate-" + candidate_sha + ".json")
+            self._immutable(candidate_copy, raw)
+            diagnostic = self._diagnose(candidate, planning)
+            packet = {"schema_version": 1, "packet_key": key, "created_at": now(), "binding": binding,
+                      "operation_input_sha256": input_sha, "candidate_sha256": candidate_sha,
+                      "candidate_copy": candidate_copy.relative_to(self.workspace).as_posix(),
+                      "candidate_source_path": source.relative_to(self.workspace).as_posix(),
+                      "question": planning["question"], "constraints": planning["constraints"],
+                      "candidate": {k: candidate[k] for k in FIELDS}, "reference_diagnostic": diagnostic,
+                      "candidate_source_refs_valid": diagnostic["structural_valid"],
+                      "content_trust": "untrusted candidate and cited source data",
+                      "semantic_status": "unverified", "review_scope": "candidate used references only; no complete catalog/conversation/skills copied",
+                      "uncertainty_scope": "candidate.result assumptions/validation_findings and caller assessment; no uncertainty or qualification generated"}
+            body = canonical(packet).encode("utf-8")
+            digest = hashlib.sha256(body).hexdigest()
+            path = self.base / ("packet-" + digest + ".json")
+            self._immutable(path, body)
+            name = path.relative_to(self.workspace).as_posix()
+            self.store.db.execute("INSERT INTO product_review_packets VALUES(?,?,?,?,?,?)", (session, turn, key, input_sha, name, digest))
+        return {"ready": True, "cached": False, "packet_path": name, "packet_sha256": digest,
+                "candidate_copy": candidate_copy.relative_to(self.workspace).as_posix(), "candidate_sha256": candidate_sha,
+                "binding": binding, "reference_diagnostic": diagnostic, "semantic_status": "unverified",
+                "candidate_source_refs_valid": diagnostic["structural_valid"],
+                "acceptance_ready": False,
+                "note": "Ready for review of this immutable candidate; incomplete candidate diagnostics are not acceptance"}
+
+    def verify_review_packet(self, payload):
+        obj(payload, ("session_id", "turn_id", "packet_path", "packet_sha256"))
+        binding, planning = self._context(payload["session_id"], payload["turn_id"])
+        path, raw = self._read_path(payload["packet_path"], self.base, 131072)
+        if hashlib.sha256(raw).hexdigest() != payload["packet_sha256"]:
+            fail("packet_integrity", "Reviewer packet SHA differs from retained bytes")
+        packet = self._json(raw)
+        if packet.get("binding") != binding:
+            fail("state_conflict", "Reviewer packet is late or belongs to different data/code/context/version/scope")
+        candidate_path, candidate_raw = self._read_path(packet["candidate_copy"], self.base, 65536)
+        if hashlib.sha256(candidate_raw).hexdigest() != packet["candidate_sha256"]:
+            fail("packet_integrity", "Immutable candidate copy changed after delegation")
+        candidate = self._json(candidate_raw)
+        if {k: candidate[k] for k in FIELDS} != packet["candidate"]:
+            fail("packet_integrity", "Packet candidate differs from immutable original")
+        if packet["question"] != planning["question"] or packet["constraints"] != planning["constraints"]:
+            fail("packet_integrity", "Question or constraints differ from current context")
+        prior = self.store.db.execute("SELECT packet_sha256 FROM product_review_packets WHERE session_id=? AND turn_id=? AND packet_key=?", (payload["session_id"], payload["turn_id"], packet["packet_key"])).fetchone()
+        if not prior or prior[0] != payload["packet_sha256"]:
+            fail("packet_integrity", "Packet is not a registered original handoff")
+        diagnostic = self._diagnose(candidate, planning)
+        return {"ready": True, "packet_path": path.relative_to(self.workspace).as_posix(),
+                "packet_sha256": payload["packet_sha256"], "candidate_copy": candidate_path.relative_to(self.workspace).as_posix(),
+                "candidate_sha256": packet["candidate_sha256"], "binding": binding, "reference_diagnostic": diagnostic,
+                "candidate_source_refs_valid": diagnostic["structural_valid"],
+                "semantic_status": "unverified", "acceptance_ready": False,
+                "scope": "verifies immutable handoff/current binding only; no result write, semantic approval, or child-run certification"}
