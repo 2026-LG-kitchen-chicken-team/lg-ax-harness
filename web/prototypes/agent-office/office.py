@@ -1,0 +1,436 @@
+"""LG AX agent office - install, remove and check the passive observer hook; convert what it recorded.
+
+    uv run python web/prototypes/agent-office/office.py install --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py status --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py uninstall --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py watch --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py trace C:/my-harness --out trace.json
+    uv run python web/prototypes/agent-office/office.py selftest
+
+install copies observe.py, office.py and README.md to `<harness>/web/prototypes/agent-office/` and ADDS async command
+hooks to `<harness>/.claude/settings.local.json`. Other settings and hooks (for example the visual viewer's) are kept
+as they are. Settings that are not a UTF-8 JSON object stop the install without changes. The hook runs observe.py only
+when its SHA-256 matches the installed fingerprint, refuses symlinked/junction folders, prints nothing and always ends
+with exit 0, so it cannot block or change a tool call. Standard library only; no model or business tool is called.
+"""
+from __future__ import annotations
+
+import argparse
+import base64
+import hashlib
+import json
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+APP_REL = ("web", "prototypes", "agent-office")
+APP_FILES = ("observe.py", "office.py", "README.md")
+SETTINGS_REL = (".claude", "settings.local.json")
+MARKER = "LG_AX_AGENT_OFFICE_V1"
+TOOL_EVENTS = ("PreToolUse", "PostToolUse", "PostToolUseFailure")
+OTHER_EVENTS = ("UserPromptSubmit", "Stop", "SubagentStart", "SubagentStop", "SessionStart", "SessionEnd")
+TESTED_CLAUDE = ("2.1.289",)
+
+SKILL_KO = {"evidence-retrieval": "근거 조회", "web-evidence-collection": "웹 수집", "needs-structuring": "불편 구조화",
+            "feature-comparison": "기능 대조", "concept-writing": "콘셉트 작성", "review-and-revise": "검토·수정"}
+ROLE_KO = {"product_official_researcher": "공식 자료 조사", "product_review_researcher": "후기 조사·분석",
+           "product_evidence_reviewer": "독립 근거 검토", "main": "메인", "other_subagent": "다른 하위 에이전트"}
+
+# Python passed with -c: no $ % ! ` \ ^ & | < > so Git Bash, PowerShell and cmd read it the same way.
+PY_CODE = ("import hashlib,os,sys;d=os.path.abspath(sys.argv.pop(2));h=sys.argv.pop(2);"
+           "p=os.path.join(d,'web','prototypes','agent-office','observe.py');"
+           "b=open(p,'rb').read() if os.path.isfile(p) else b'';"
+           "exec(compile(b,p,'exec'),{'__name__':'__main__','__file__':p}) if hashlib.sha256(b).hexdigest()==h else None")
+UV_ARGS = "run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c "
+GUARD_DIRS = ("web", "web/prototypes", "web/prototypes/agent-office", "runtime-data", "runtime-data/agent-office")
+
+
+class OfficeError(Exception):
+    pass
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def windows_runner(sha: str) -> str:
+    """PowerShell script: refuse reparse points, pass stdin to the pinned observe.py through uv, drop all output."""
+    guard = ("function G($r){try{foreach($x in @(" + ",".join("'" + d + "'" for d in GUARD_DIRS) + ")){"
+             "$p=[IO.Path]::Combine($r,$x);try{$a=[IO.File]::GetAttributes($p)}catch [IO.FileNotFoundException]{continue}"
+             "catch [IO.DirectoryNotFoundException]{continue};if($a -band 1024){return $false}};"
+             "foreach($x in @('web/prototypes/agent-office','runtime-data/agent-office')){$p=[IO.Path]::Combine($r,$x);"
+             "if([IO.Directory]::Exists($p)){foreach($e in (Get-ChildItem -LiteralPath $p -Force)){if($e.Attributes -band 1024){return $false}}}};"
+             "return $true}catch{return $false}};")
+    runner = ("function P($f,$a,$d,[byte[]]$b){$i=[Diagnostics.ProcessStartInfo]::new();$i.FileName=$f;$i.Arguments=$a;$i.WorkingDirectory=$d;"
+              "$i.UseShellExecute=$false;$i.CreateNoWindow=$true;$i.RedirectStandardOutput=$true;$i.RedirectStandardError=$true;"
+              "$i.StandardOutputEncoding=[Text.Encoding]::UTF8;$i.StandardErrorEncoding=[Text.Encoding]::UTF8;$i.RedirectStandardInput=$true;"
+              "$p=[Diagnostics.Process]::Start($i);$p.StandardInput.BaseStream.Write($b,0,$b.Length);$p.StandardInput.Close();"
+              "$o=$p.StandardOutput.ReadToEnd();$e=$p.StandardError.ReadToEnd();$p.WaitForExit();return ,@($p.ExitCode,$o,$e)};")
+    execution = ("$a='" + UV_ARGS + "'+[char]34+'" + PY_CODE.replace("'", "''") + "'+[char]34+' claude '+[char]34+$r+'/.'+[char]34+' " + sha + "';"
+                 "$v=P 'uv' $a $r $b;if($v[2]){[IO.File]::WriteAllText($l,$v[2],$u)};")
+    return ("# " + MARKER + "\n$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';" + guard + runner +
+            "try{$r=$env:CLAUDE_PROJECT_DIR;if(-not $r){$r=(Get-Location).Path};if(-not (G $r)){exit 0};"
+            "$o=[IO.Path]::Combine($r,'runtime-data/agent-office');[void][IO.Directory]::CreateDirectory($o);"
+            "$l=[IO.Path]::Combine($o,'observe-start-error.log');$u=[Text.UTF8Encoding]::new($false);"
+            "$m=[IO.MemoryStream]::new();[Console]::OpenStandardInput().CopyTo($m);$b=$m.ToArray();" + execution +
+            "}catch{};exit 0")
+
+
+def hook_command(sha: str, windows: bool | None = None) -> str:
+    windows = os.name == "nt" if windows is None else windows
+    if windows:
+        encoded = base64.b64encode(windows_runner(sha).encode("utf-16le")).decode("ascii")
+        return "powershell.exe -NoProfile -NonInteractive -EncodedCommand " + encoded
+    checks = " ".join('"$H/' + d + '"' for d in GUARD_DIRS)
+    script = (": " + MARKER + "; H=\"${CLAUDE_PROJECT_DIR:-$(pwd)}\"; for Q in " + checks + "; do [ -L \"$Q\" ] && exit 0; done; "
+              "cd \"$H\" || exit 0; uv " + UV_ARGS + "\"" + PY_CODE + "\" claude \"$H/.\" " + sha + " >/dev/null 2>&1; exit 0")
+    return "sh -c " + shlex.quote(script)
+
+
+def is_ours(command) -> bool:
+    if not isinstance(command, str):
+        return False
+    if MARKER in command:
+        return True
+    token = "-EncodedCommand "
+    if token in command:
+        try:
+            return MARKER in base64.b64decode(command.split(token, 1)[1].strip()).decode("utf-16le", errors="ignore")
+        except ValueError:
+            return False
+    return False
+
+
+def command_sha(command: str) -> str | None:
+    """The observe.py fingerprint inside one of our commands (for status)."""
+    text = command
+    if "-EncodedCommand " in command:
+        text = base64.b64decode(command.split("-EncodedCommand ", 1)[1].strip()).decode("utf-16le", errors="ignore")
+    for word in reversed(text.replace("'", " ").replace(";", " ").split()):
+        if len(word) == 64 and all(c in "0123456789abcdef" for c in word):
+            return word
+    return None
+
+
+# --- settings -------------------------------------------------------------------------------------------------------
+def read_settings(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    raw = path.read_bytes()
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise OfficeError(f"{path}는 UTF-8이 아닙니다. 바꾸지 않고 멈춥니다.") from exc
+    text = text.lstrip("\ufeff")
+    try:
+        data = json.loads(text) if text.strip() else {}
+    except ValueError as exc:
+        raise OfficeError(f"{path}가 올바른 JSON이 아닙니다. 바꾸지 않고 멈춥니다.") from exc
+    if not isinstance(data, dict):
+        raise OfficeError(f"{path}의 최상위가 객체가 아닙니다. 바꾸지 않고 멈춥니다.")
+    hooks = data.get("hooks", {})
+    if not isinstance(hooks, dict) or any(not isinstance(v, list) for v in hooks.values()):
+        raise OfficeError(f"{path}의 hooks 형식을 알 수 없습니다. 바꾸지 않고 멈춥니다.")
+    return data
+
+
+def write_atomic(path: Path, text: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(text, encoding="utf-8", newline="\n")
+    os.replace(tmp, path)
+
+
+def without_ours(groups: list) -> list:
+    kept = []
+    for group in groups:
+        if not isinstance(group, dict) or not isinstance(group.get("hooks"), list):
+            kept.append(group)
+            continue
+        handlers = [h for h in group["hooks"] if not (isinstance(h, dict) and is_ours(h.get("command")))]
+        if handlers or not group["hooks"]:
+            kept.append({**group, "hooks": handlers})
+    return kept
+
+
+def merged(data: dict, command: str | None) -> dict:
+    """Settings with our handlers removed and, when command is given, added once per event."""
+    data = json.loads(json.dumps(data))
+    hooks = data.setdefault("hooks", {})
+    for event in TOOL_EVENTS + OTHER_EVENTS:
+        groups = without_ours(hooks.get(event, []))
+        if command:
+            handler = {"type": "command", "command": command, "async": True, "timeout": 30}
+            groups.append({"matcher": "*", "hooks": [handler]} if event in TOOL_EVENTS else {"hooks": [handler]})
+        if groups:
+            hooks[event] = groups
+        else:
+            hooks.pop(event, None)
+    if not hooks:
+        data.pop("hooks")
+    return data
+
+
+def check_harness(harness: Path) -> Path:
+    harness = harness.resolve()
+    if not harness.is_dir():
+        raise OfficeError(f"하네스 폴더가 없습니다: {harness}")
+    if (harness / "dev-harness").is_dir():
+        raise OfficeError("개발 레포에는 설치하지 않습니다. 설치된 하네스 폴더를 지정하세요.")
+    if not (harness / "product-install.json").is_file() and not (harness / ".claude").is_dir():
+        raise OfficeError(f"설치된 하네스 폴더로 보이지 않습니다(product-install.json 없음): {harness}")
+    return harness
+
+
+def install(harness: Path) -> str:
+    harness = check_harness(harness)
+    settings = harness.joinpath(*SETTINGS_REL)
+    data = read_settings(settings)  # read and check first: nothing is copied when the settings cannot be merged
+    app = harness.joinpath(*APP_REL)
+    app.mkdir(parents=True, exist_ok=True)
+    for name in APP_FILES:
+        source = HERE / name
+        if source.resolve() != (app / name).resolve():
+            tmp = app / f"{name}.{os.getpid()}.tmp"
+            shutil.copyfile(source, tmp)
+            os.replace(tmp, app / name)
+    sha = digest(app / "observe.py")
+    write_atomic(settings, json.dumps(merged(data, hook_command(sha)), ensure_ascii=False, indent=2) + "\n")
+    events = len(TOOL_EVENTS) + len(OTHER_EVENTS)
+    return (f"관찰 파일: {app}\n기록 위치: {harness / 'runtime-data' / 'agent-office'}\n"
+            f"[Claude Code] {settings.relative_to(harness)}에 관찰 훅 {events}개(백그라운드)를 추가했습니다. 다른 훅은 그대로 둡니다.\n"
+            "  다음: 이 하네스 폴더에서 Claude Code를 새로 열고(처음이면 폴더 신뢰 허용) 질문하세요.\n"
+            "  훅은 출력이 없고 항상 정상 종료하므로 도구 호출을 막거나 바꾸지 않습니다. 끄기: office.py uninstall --claude <폴더>")
+
+
+def uninstall(harness: Path) -> str:
+    harness = check_harness(harness)
+    settings = harness.joinpath(*SETTINGS_REL)
+    data = read_settings(settings)
+    if not settings.exists():
+        return "설정 파일이 없어 지울 훅이 없습니다."
+    write_atomic(settings, json.dumps(merged(data, None), ensure_ascii=False, indent=2) + "\n")
+    return f"{settings.relative_to(harness)}에서 관찰 훅만 지웠습니다. 기록·파일은 남겨 둡니다."
+
+
+def status(harness: Path) -> dict:
+    harness = check_harness(harness)
+    settings = harness.joinpath(*SETTINGS_REL)
+    data = read_settings(settings)
+    app = harness.joinpath(*APP_REL)
+    installed = digest(app / "observe.py") if (app / "observe.py").is_file() else None
+    registered, shas = [], set()
+    for event, groups in data.get("hooks", {}).items():
+        for group in groups:
+            for handler in (group.get("hooks") or []) if isinstance(group, dict) else []:
+                if isinstance(handler, dict) and is_ours(handler.get("command")):
+                    registered.append(event)
+                    shas.add(command_sha(handler["command"]))
+    out = harness / "runtime-data" / "agent-office"
+    events = out / "events.jsonl"
+    lines = events.read_text(encoding="utf-8").splitlines() if events.is_file() else []
+    last = json.loads(lines[-1]) if lines else None
+    errors = (out / "observe-error.log").read_text(encoding="utf-8").splitlines()[-5:] if (out / "observe-error.log").is_file() else []
+    start = (out / "observe-start-error.log").read_text(encoding="utf-8").strip() if (out / "observe-start-error.log").is_file() else ""
+    missing = [e for e in TOOL_EVENTS + OTHER_EVENTS if e not in registered]
+    return {"harness": str(harness), "registered": sorted(set(registered)), "missing_events": missing,
+            "files_match_command": bool(installed) and shas == {installed}, "events_recorded": len(lines),
+            "last_event": {k: last.get(k) for k in ("ts", "hook", "kind", "node", "op")} if last else None,
+            "last_errors": errors, "start_error": start[:500] or None, "claude_version": claude_version(),
+            "tested_claude_versions": list(TESTED_CLAUDE)}
+
+
+def claude_version():
+    exe = shutil.which("claude")
+    if not exe:
+        return None
+    try:
+        out = subprocess.run([exe, "--version"], capture_output=True, text=True, timeout=20, encoding="utf-8", errors="replace")
+        return out.stdout.strip()[:60] or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+# --- trace (control-room TraceEvent shape) ----------------------------------------------------------------------------
+def label_of(event: dict) -> str:
+    kind, node, phase = event.get("kind"), event.get("node"), event.get("phase")
+    who = ROLE_KO.get(node, SKILL_KO.get(node, node or ""))
+    if kind == "skill_op":
+        base = f"{SKILL_KO.get(node, node)} · {event.get('op')}"
+        return base + (" 실패" if phase == "fail" else " 끝" if phase == "end" else "")
+    if kind == "delegate":
+        return f"{who}에 맡김" if phase == "start" else f"{who} 돌려받음" if phase == "end" else f"{who} 실패"
+    if kind == "subagent":
+        return f"{who} 시작" if phase == "start" else f"{who} 끝"
+    if kind == "skill_load":
+        return f"{who} 지침 읽음"
+    if kind == "web":
+        host = (event.get("detail") or {}).get("host")
+        return f"웹 열람 · {host}" if host else "웹 검색"
+    return {"request": "새 질문", "turn_end": "답변 끝", "session": "세션 " + ("시작" if phase == "start" else "끝"),
+            "shell": "명령 실행", "tool": f"{event.get('tool')} 사용"}.get(kind, kind or "")
+
+
+def to_trace(events: list) -> dict:
+    """Recorded hook events in the TraceEvent fields of the teammate control room, plus when and on what basis."""
+    times = [datetime.fromisoformat(e["ts"].replace("Z", "+00:00")) for e in events if e.get("ts")]
+    start = min(times) if times else None
+    out = []
+    for e in events:
+        at = (datetime.fromisoformat(e["ts"].replace("Z", "+00:00")) - start).total_seconds() if start and e.get("ts") else 0
+        actor, node, kind, phase = e.get("actor") or "main", e.get("node") or "main", e.get("kind"), e.get("phase")
+        source, target = actor, node
+        if kind == "delegate" and phase == "end":
+            source, target = node, actor
+        status = {"start": "active", "end": "done", "fail": "error"}.get(phase, "done")
+        out.append({"id": e.get("id"), "at": round(at, 3), "kind": kind, "source": source, "target": target,
+                    "label": label_of(e), "detail": (e.get("op") or "") if kind == "skill_op" else "", "status": status,
+                    "ts": e.get("ts"), "basis": e.get("basis"), "call": e.get("call"), "session": e.get("session")})
+    duration = max((x["at"] for x in out), default=0)
+    sessions = sorted({e.get("session") for e in events if e.get("session")})
+    return {"mode": "observed", "title": "관측 기록 · Claude Code 훅", "sessionId": sessions[-1] if sessions else None,
+            "sessions": sessions, "duration": duration, "events": out,
+            "warnings": ["훅이 받은 시각이며 모델 내부 시각이 아닙니다.",
+                         "Skill 작업은 명령 경로로 알아낸 것(command_based_mapping)이고 실행 성공·의미 검토의 증거가 아닙니다."],
+            "metrics": {"evidence": None, "tokens": None}}
+
+
+def trace(harness: Path, out_path: Path) -> str:
+    events_file = harness.resolve() / "runtime-data" / "agent-office" / "events.jsonl"
+    events = []
+    if events_file.is_file():
+        for line in events_file.read_text(encoding="utf-8").splitlines():
+            try:
+                events.append(json.loads(line))
+            except ValueError:
+                continue
+    write_atomic(out_path, json.dumps(to_trace(events), ensure_ascii=False, indent=1) + "\n")
+    return f"{len(events)}개 사건을 {out_path}에 썼습니다."
+
+
+def watch_line(event: dict) -> str:
+    """One recorded event as a short Korean line with local time, for `office.py watch`."""
+    try:
+        when = datetime.fromisoformat(event["ts"].replace("Z", "+00:00")).astimezone().strftime("%H:%M:%S")
+    except (KeyError, ValueError):
+        when = "--:--:--"
+    actor = ROLE_KO.get(event.get("actor"), event.get("actor") or "")
+    extra = (event.get("detail") or {}).get("duration_ms")
+    basis = {"command_based_mapping": " (명령으로 추정)", "instruction_loaded": " (지침)"}.get(event.get("basis"), "")
+    took = f" · {extra / 1000:.1f}초" if isinstance(extra, (int, float)) else ""
+    return f"{when}  [{actor}] {label_of(event)}{basis}{took}"
+
+
+def watch(harness: Path, once=False, interval=0.5, out=None) -> int:
+    """Prints recorded events as they arrive (read only). Ctrl+C stops it; the session is not touched."""
+    import time
+    out = out or sys.stdout
+    events_file = check_harness(harness) / "runtime-data" / "agent-office" / "events.jsonl"
+    seen = 0
+    if not once:
+        print(f"기록을 지켜봅니다: {events_file} (멈추기: Ctrl+C)", file=out, flush=True)
+    try:
+        while True:
+            lines = events_file.read_text(encoding="utf-8").splitlines() if events_file.is_file() else []
+            if len(lines) < seen:  # rolled over to a new file
+                seen = 0
+            for line in lines[seen:]:
+                try:
+                    print(watch_line(json.loads(line)), file=out, flush=True)
+                except ValueError:
+                    continue
+            seen = len(lines)
+            if once:
+                return seen
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        return seen
+
+
+# --- selftest -------------------------------------------------------------------------------------------------------
+SELFTEST_PAYLOADS = [
+    {"hook_event_name": "SessionStart", "session_id": "selftest", "source": "startup"},
+    {"hook_event_name": "UserPromptSubmit", "session_id": "selftest", "prompt": "SELFTEST-SECRET-PROMPT"},
+    {"hook_event_name": "PreToolUse", "session_id": "selftest", "tool_name": "Bash", "tool_use_id": "toolu_1",
+     "tool_input": {"command": "uv run python .claude/skills/evidence-retrieval/scripts/run.py retrieve_reviews --input SELFTEST-SECRET.json"}},
+    {"hook_event_name": "PostToolUse", "session_id": "selftest", "tool_name": "Bash", "tool_use_id": "toolu_1",
+     "tool_input": {"command": "uv run python .claude/skills/evidence-retrieval/scripts/run.py retrieve_reviews --input x.json"},
+     "tool_response": {"stdout": "{\"ok\": true, \"data\": \"SELFTEST-SECRET-OUTPUT\"}"}},
+    {"hook_event_name": "PreToolUse", "session_id": "selftest", "tool_name": "Agent", "tool_use_id": "toolu_2",
+     "tool_input": {"subagent_type": "product-review-researcher", "prompt": "SELFTEST-SECRET-PROMPT"}},
+    {"hook_event_name": "Stop", "session_id": "selftest"},
+]
+
+
+def selftest() -> dict:
+    """Runs the real hook command (the same one install writes) against a temporary harness copy."""
+    with tempfile.TemporaryDirectory(prefix="agent-office-selftest-") as tmp:
+        harness = Path(tmp) / "harness"
+        (harness / ".claude").mkdir(parents=True)
+        (harness / "product-install.json").write_text("{}", encoding="utf-8")
+        install(harness)
+        data = read_settings(harness.joinpath(*SETTINGS_REL))
+        command = data["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(harness))
+        results = []
+        for payload in SELFTEST_PAYLOADS:
+            proc = subprocess.run(command, shell=True, input=json.dumps(payload).encode("utf-8"), capture_output=True,
+                                  cwd=harness, env=env, timeout=120)
+            results.append({"exit": proc.returncode, "stdout": len(proc.stdout), "stderr": len(proc.stderr)})
+        events_file = harness / "runtime-data" / "agent-office" / "events.jsonl"
+        text = events_file.read_text(encoding="utf-8") if events_file.is_file() else ""
+        lines = [json.loads(line) for line in text.splitlines()]
+        ok = (len(lines) == len(SELFTEST_PAYLOADS) and all(r["exit"] == 0 and r["stdout"] == 0 for r in results)
+              and "SELFTEST-SECRET" not in text and (harness / "runtime-data" / "agent-office" / "live.js").is_file()
+              and any(e["kind"] == "skill_op" and e["op"] == "retrieve_reviews" for e in lines)
+              and any(e["kind"] == "delegate" and e["node"] == "product_review_researcher" for e in lines))
+        return {"ok": ok, "events": [f"{e['hook']}:{e['kind']}:{e['node']}" for e in lines], "runs": results,
+                "note": "임시 하네스 사본과 합성 훅 입력으로 실제 훅 명령을 실행했습니다. Claude Code·모델·업무 도구는 쓰지 않았습니다."}
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="LG AX agent office: 관찰 훅 설치·제거·확인과 기록 변환")
+    sub = parser.add_subparsers(dest="command", required=True)
+    for name in ("install", "uninstall", "status"):
+        p = sub.add_parser(name)
+        p.add_argument("--claude", type=Path, required=True, metavar="HARNESS", help="설치된 하네스 폴더 (Claude Code)")
+    p = sub.add_parser("watch")
+    p.add_argument("--claude", type=Path, required=True, metavar="HARNESS")
+    p.add_argument("--once", action="store_true", help="지금까지의 기록만 출력하고 끝내기")
+    p = sub.add_parser("trace")
+    p.add_argument("harness", type=Path)
+    p.add_argument("--out", type=Path, required=True)
+    sub.add_parser("selftest")
+    args = parser.parse_args(argv)
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+    try:
+        if args.command == "install":
+            print(install(args.claude))
+        elif args.command == "uninstall":
+            print(uninstall(args.claude))
+        elif args.command == "status":
+            print(json.dumps(status(args.claude), ensure_ascii=False, indent=1))
+        elif args.command == "watch":
+            watch(args.claude, once=args.once)
+        elif args.command == "trace":
+            print(trace(args.harness, args.out))
+        else:
+            result = selftest()
+            print(json.dumps(result, ensure_ascii=False, indent=1))
+            return 0 if result["ok"] else 1
+    except OfficeError as exc:
+        print(f"오류: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
