@@ -5,6 +5,8 @@ description: "실제 근거와 기존 기능 대조로 확인된 남은 불편�
 
 # 기획 초안
 
+독자용 문서의 표현은 [보고서 작성](../review-and-revise/references/report-writing.md)을 적용한다. 컨셉·시연 이미지를 생성하거나 보고서에 삽입하지 않는다. 사용 장면과 개선안은 근거가 연결된 문장·표로 설명하고, 기획 가설과 실제 제품/효과를 구별한다.
+
 단독 실행이면 프로젝트 루트 agents/product-planning.md의 공통 안전 규칙을 먼저 읽는다. 이미 문맥에 있으면 유지한다. 사용자 수량은 상한이며 근거가 부족하면 빈 안/보류를 허용한다. 각 concept은 remaining_pain·원문·제품 사실을 연결한다. 기존 기능 복제, 금지 행동/하드웨어, 미확인 기능 부재, 내부 치수·개선율 추정을 제외한다.
 
 id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 작성한다. 요구사항은 검증할 사용자 과업·측정 항목이며 달성 효과가 아니다. 조건부 기획이면 result와 concept의 assumptions에 미확인 귀속/기능 해소/중복 한계를 남긴다. 치수 의존성은 이 선언으로 우회하지 못한다. 양식은 review-and-revise/references/payload.md다.

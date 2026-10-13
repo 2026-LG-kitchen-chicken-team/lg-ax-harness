@@ -5,7 +5,7 @@ description: "저장 근거 부족·자료 갱신·모델 또는 문서 연결 �
 
 # 외부 근거 조사
 
-질문의 목표·제품군·정확 모델과 필요한 근거를 AI가 판단한다. 저장 자료의 충분성·현재성·범위가 맞을 때만 재사용한다. 미등록 모델을 등록 사례로 바꾸지 않는다. 먼저 open_request로 실제 질문을 보존하고 요청 응답의 research_id를 사용한다(전체 session/request handle로부터 생성되며 직접 새로 만들지 않는다). 수집 입력은 research_id/page_id/url, 선택 focus/preview_chars다. capture에는 실제 관측 observed_text/native_tool_name이 추가된다. import 입력·공용 설명서 연결 필드가 필요할 때 프로젝트 루트 docs/contracts/web-evidence.md의 해당 문단을 읽는다. 코드 전체를 읽어 양식을 추측하지 않는다.
+질문의 목표·제품군·정확 모델과 필요한 근거를 AI가 판단한다. 저장 자료의 충분성·현재성·범위가 맞을 때만 재사용한다. 미등록 모델을 등록 사례로 바꾸지 않는다. 새 조사는 open_product_workflow로 원질문과 전체 시계를 보존하거나 active-workflow.json의 원래 handle을 재사용한다. 응답의 research_id는 전체 session/request에서 생성된 값이며 새로 만들지 않는다. 수집 입력은 research_id/page_id/url, 선택 focus/preview_chars다. capture에는 실제 관측 observed_text/native_tool_name이 추가된다. import/공용 설명서 연결 필드가 필요할 때 docs/contracts/web-evidence.md의 해당 문단을 읽는다. 코드 전체를 읽어 양식을 추측하지 않는다.
 
 1. 실제 제공되는 native 검색으로 모델명과 부족 항목을 검색한다. 검색요약은 발견 용도다. 원문 페이지를 읽고 공식 exact 스펙·연결된 설명서·실제 후기 본문을 확보한다.
 2. 정적 페이지는 `fetch_web_page`로 읽는다. 동적 후기 목록·탭·페이지 이동이 필요하고 native 브라우저가 제공되면 이를 사용한다. 브라우저가 없으면 설치됐다고 가정하지 않는다. 접근 차단·로그인 요청은 우회하지 않는다.
@@ -23,8 +23,10 @@ HTML 설명서는 실제 선택한 절의 본문만 관측하여 절별 page_id�
 
 저장 snapshot도 크기 제한으로 잘릴 수 있으므로 전체 웹 원문 보존이라고 설명하지 않는다. 판단에 필요한 주변 문맥만 추가로 관측하고 발췌 범위를 밝힌다. 실패 시 실제 접근 오류·시도 범위·부족을 기록하며 시간 연장이 복구를 보장한다고 말하지 않는다.
 
-조사 예산을 업무 초기에 정하고 총 시간의 절반을 쓰기 전에 기획·저장·최종 전달로 넘어간다. 조사 타이머는 실행기/실제 시각으로 확인하고 관측하지 않은 경과시간을 추정하지 않는다. 충분한 근거가 없으면 기존 근거와 부족 항목으로 held를 저장·전달하며 한도를 새 research_id로 우회하지 않는다.
+조사 예산을 업무 초기에 정하고 기획·검토·저장·최종 전달 시간도 확보한다. 조사 타이머는 실행기/실제 시각으로 확인하고 관측하지 않은 경과시간을 추정하지 않는다. 조사 범위와 시간을 조정할 때는 사용자 목표와 실제 부족 항목으로 사유를 남긴다. 충분한 근거가 없으면 기존 근거와 부족 항목으로 held를 저장·전달하며 한도를 새 research_id로 우회하지 않는다.
 
-한 업무 요청의 외부 조사 범위는 검색 최대3회·페이지 최대6개·실제 브라우저 조작 최대12회로 계획한다. 부족하면 held/needs_input로 종료하고 무엇을 확인하지 못했는지 밝힌다. 코드 collector는 같은 research_id의 페이지6개·동일 페이지 기술 재시도1회만 제한하며 native 전체 호출을 강제 통제하지 않는다. PDF는 제공되는 native PDF 도구로 확인하고 공용 설명서 적용 조건을 유지한다.
+새 조사에서는 임의의 후기·페이지 개수를 완료 목표로 삼지 않는다. 제품 전반 사양·설명서·긍정/부정·장기 사용·조건·반례를 계획하고 다양한 출처와 다음 후기 페이지를 조사한다. `configure_web_research`에 원래 research_id/max_pages/reason으로 필요한 기술상 페이지 한도를 정한다(6~100000, 완료 목표가 아님). 기존 성공·실패 페이지와 시도 횟수·변경 이력을 유지하며 전체 workflow 시간은 재설정하지 않는다. literal 후기의 전체/부분 맥락과 확인 ID·옵션·날짜, 제외/중복 처리를 record_workflow_event에 보존한 뒤 같은 research_id로 import한다. importer의10항목 제한은 batch 제한이다. 실제 새 발견·반례·남은 범위와 시간/접근/근거에 따른 종료 사유를 기록한다. PDF는 제공되는 실제 native 도구로 읽고 공용 설명서 적용 조건을 유지한다.
 
-실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.
+시장 통계·경쟁 제품 문서는 대상 제품의 product_fact로 등록하지 않는다. 같은 research_id로 실제 원문을 capture하고, 보고서만 보강하는 `report_sources_path`의 관측 snapshot/짧은 정확 발췌/자료 대상/적용 범위를 작성한다. 상세 계약은 docs/contracts/reader-deliverables.md를 따른다. 이는 ProductResult의 대상 모델 근거·불편·기존 기능 검토를 대신할 수 없으며 경쟁 기능이 대상 제품에 없다는 증명도 아니다.
+
+실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence/configure_web_research다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.

@@ -1,5 +1,7 @@
 """Inspect the installed product and local Codex readiness; no inference."""
 import hashlib
+import importlib
+import importlib.metadata
 import json
 from pathlib import Path
 import shutil
@@ -9,9 +11,26 @@ import sys
 ROOT = Path(__file__).resolve().parent
 
 
+def reporting_dependencies():
+    """Check local imports only; does not generate files or test native AI."""
+    result = {}
+    for distribution, module in (("python-docx", "docx"), ("openpyxl", "openpyxl"),
+                                 ("reportlab", "reportlab"), ("Pillow", "PIL"), ("pypdf", "pypdf")):
+        try:
+            importlib.import_module(module)
+            result[distribution] = {"available": True, "version": importlib.metadata.version(distribution)}
+        except (ImportError, OSError, importlib.metadata.PackageNotFoundError) as exc:
+            result[distribution] = {"available": False, "version": None, "error": type(exc).__name__}
+    return result
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     errors = []
+    report_dependencies = reporting_dependencies()
+    for name, detail in report_dependencies.items():
+        if not detail["available"]:
+            errors.append("Reporting dependency unavailable: " + name + "; run uv sync --locked")
     manifest = json.loads((ROOT / "product-install.json").read_text(encoding="utf-8"))
     for entry in manifest["files"]:
         path = (ROOT / entry["path"]).resolve()
@@ -35,7 +54,8 @@ def main():
     if p.returncode:
         errors.append("Common Tool/catalog doctor failed")
     print(json.dumps({"errors": errors, "runtime": runtime, "installed_skills": manifest["skills"], "common_tool_exit_code": p.returncode,
-                      "scope": "files, CLI version/login status and local Tool only; native discovery/quality require actual execution"}, ensure_ascii=False))
+                      "reporting_dependencies": report_dependencies, "report_generation": "unverified",
+                      "scope": "files, dependency imports, CLI version/login status and local Tool only; document layout/native discovery/AI quality require actual execution"}, ensure_ascii=False))
     return int(bool(errors))
 
 

@@ -1,7 +1,7 @@
 """Claude Code·Codex CLI 공용 훅: 하네스가 새 export를 저장하면 시각자료 뷰어 화면을 다시 만든다.
 
 `viewer.py install`이 하네스의 `.claude/settings.local.json`(PostToolUse, Bash|PowerShell, async)이나
-`.codex/hooks.json`(PostToolUse, Bash, 동기)에 등록한다. 두 CLI 모두 훅 입력 JSON을 stdin으로 준다.
+`.codex/hooks.json`(Stop, 동기)에 등록한다. 두 CLI 모두 훅 입력 JSON을 stdin으로 준다.
 이 파일은 `<하네스>/web/prototypes/visual-viewer/`에 있고 하네스 위치는 자기 위치로 정한다.
 
 - 등록된 명령은 이 파일의 SHA-256이 설치 때와 같을 때만 이 파일을 실행하고(다르면 명령이 로그에 한 줄 남긴다),
@@ -23,8 +23,10 @@ import hashlib
 import json
 import os
 import re
+import stat
 import sys
 import time
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HARNESS = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
@@ -36,8 +38,31 @@ LOG_LIMIT = 256 * 1024
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 
+def checked_path(harness: str, path: str) -> str:
+    """Reject links/reparse points before following a viewer-owned path."""
+    root = Path(harness).resolve()
+    candidate = Path(os.path.abspath(path))
+    try:
+        parts = candidate.relative_to(root).parts
+    except ValueError as exc:
+        raise IntegrityError("Viewer path escapes its named harness") from exc
+    current = root
+    for part in parts:
+        current = current / part
+        try:
+            info = current.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise IntegrityError("Viewer refuses a linked/reparse path: " + str(current))
+    if not current.resolve().is_relative_to(root):
+        raise IntegrityError("Viewer path resolves outside its named harness")
+    return str(candidate)
+
+
 class Paths:
     def __init__(self, harness: str = HARNESS):
+        harness = str(Path(harness).resolve())
         self.harness = harness
         self.exports = os.path.join(harness, "runtime-data", "exports")
         self.out = os.path.join(harness, "runtime-data", "visual-viewer")
@@ -46,6 +71,21 @@ class Paths:
         self.error_log = os.path.join(self.out, "hook-error.log")
         # Codex 실행기의 빠른 길이 읽는 표시: 마지막으로 처리한(그렸거나 설치 때 본) export 파일 이름 한 줄.
         self.marker = os.path.join(self.out, ".hook-last-export")
+
+    def validate(self) -> None:
+        relatives = ("web/prototypes/visual-viewer/hook.py", "web/prototypes/visual-viewer/build_view.py",
+                     "web/prototypes/visual-viewer/index.html", ".codex", ".claude",
+                     "runtime-data/exports", "runtime-data/visual-viewer/index.html",
+                     "runtime-data/visual-viewer/view-data.js", "runtime-data/visual-viewer/.hook-state.json",
+                     "runtime-data/visual-viewer/.hook.lock", "runtime-data/visual-viewer/.hook-last-export",
+                     "runtime-data/visual-viewer/hook-error.log", "runtime-data/visual-viewer/hook-start-error.log")
+        for relative in relatives:
+            checked_path(self.harness, os.path.join(self.harness, *relative.split("/")))
+        # Includes linked export/insight files and pre-existing atomic temp leaves.
+        for directory in (self.exports, self.out):
+            if os.path.isdir(directory):
+                for entry in os.scandir(directory):
+                    checked_path(self.harness, entry.path)
 
 
 class IntegrityError(Exception):
@@ -57,6 +97,7 @@ def sha256_bytes(raw: bytes) -> str:
 
 
 def read_state(paths: Paths) -> dict:
+    paths.validate()
     for attempt in range(5):
         try:
             with open(paths.state, encoding="utf-8") as f:
@@ -70,6 +111,7 @@ def read_state(paths: Paths) -> dict:
 
 
 def write_state(paths: Paths, state: dict) -> None:
+    paths.validate()
     """원자적으로 바꾼다. Windows에서 다른 훅이 읽는 중이면 os.replace가 실패하므로 잠시 뒤 다시 한다."""
     os.makedirs(paths.out, exist_ok=True)
     tmp = f"{paths.state}.{os.getpid()}.tmp"
@@ -90,6 +132,7 @@ def write_state(paths: Paths, state: dict) -> None:
 
 
 def write_marker(paths: Paths, state: dict) -> None:
+    paths.validate()
     """상태의 last_key가 가리키는 export 이름을 표시 파일에 쓴다(상태를 쓴 뒤에만).
 
     표시는 빠른 길의 최적화일 뿐이다. 쓰지 못하면 지워서, 실행기가 Python으로 넘어가게 한다(새 export를 놓치지 않게).
@@ -112,6 +155,7 @@ def write_marker(paths: Paths, state: dict) -> None:
 
 
 def newest_export(paths: Paths):
+    paths.validate()
     try:
         entries = [e for e in os.scandir(paths.exports) if e.name.endswith(".json") and e.is_file()]
     except OSError:
@@ -142,10 +186,12 @@ def failure_key(paths: Paths, entry) -> str:
 
 class Lock:
     def __init__(self, paths: Paths):
+        self.paths = paths
         self.path = paths.lock
         self.fd = None
 
     def acquire(self, wait: float) -> bool:
+        self.paths.validate()
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o644)
         deadline = time.monotonic() + wait
@@ -214,6 +260,8 @@ def rebuild(paths: Paths, export_path: str, hashes: dict | None = None, focus: s
     """export 하나로 view-data.js를 만든다. insights는 출력 폴더에서 session_id·turn_id로 고른다."""
     from pathlib import Path
 
+    paths.validate()
+    checked_path(paths.harness, export_path)
     hashes = hashes or {}
     build_view = load_build_view(hashes.get("build_view"))
     return build_view.generate(Path(export_path), None, focus, out_dir=Path(paths.out), insights_dir=Path(paths.out),
@@ -231,6 +279,7 @@ def open_browser(paths: Paths) -> None:
 
 def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict | None = None) -> dict:
     paths = paths or Paths()
+    paths.validate()
     latest = newest_export(paths)
     if latest is None:
         return {"changed": False, "reason": "export 없음"}
@@ -304,13 +353,15 @@ def parse_args(argv: list[str], hook_input: dict) -> tuple[str, dict]:
 
 def log_error(paths: Paths, text: str) -> None:
     try:
+        # Error reporting must not follow the very output link being rejected.
+        checked_path(paths.harness, paths.error_log)
         os.makedirs(paths.out, exist_ok=True)
         mode = "a"
         if os.path.exists(paths.error_log) and os.path.getsize(paths.error_log) > LOG_LIMIT:
             mode = "w"
         with open(paths.error_log, mode, encoding="utf-8") as f:
             f.write(time.strftime("%Y-%m-%d %H:%M:%S ") + text.rstrip() + "\n")
-    except OSError:
+    except (OSError, IntegrityError):
         pass
 
 

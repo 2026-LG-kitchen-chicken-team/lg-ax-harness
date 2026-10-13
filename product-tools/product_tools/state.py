@@ -242,6 +242,9 @@ class StateStore:
                 fail("terminal_turn", "A cancelled turn cannot accept candidate writes or replays")
             if not self.fresh(row):
                 fail("stale_context", "Cannot store result for invalidated turn")
+            if self.db.execute("SELECT COUNT(*) FROM sqlite_master WHERE name IN ('request_selection_policies','conversation_requests')").fetchone()[0] == 2:
+                from .selection import SelectionPolicy
+                SelectionPolicy(self.db).check_turn(turn_id, self.dataset, strict_json(row["input_json"]))
             duplicate = self.db.execute("SELECT payload,payload_hash,validation_json FROM results WHERE turn_id=? AND result_key=?", (turn_id, result_key)).fetchone()
             if duplicate:
                 if duplicate[0] != payload:
@@ -256,6 +259,12 @@ class StateStore:
                 accepted = report.get("contract_valid") is True
                 reason = report.get("error", {}).get("code")
             else:
+                if self.db.execute("SELECT COUNT(*) FROM sqlite_master WHERE name IN ('product_workflows','conversation_requests')").fetchone()[0] == 2:
+                    for request in self.db.execute("SELECT session_id,request_key FROM conversation_requests WHERE turn_id=?", (turn_id,)).fetchall():
+                        research = "research-" + fingerprint(list(request))
+                        finished = self.db.execute("SELECT finished_at FROM product_workflows WHERE research_id=?", (research,)).fetchone()
+                        if finished and finished[0]:
+                            fail("workflow_finished", "A finished workflow cannot accept a new candidate; retain the finished version")
                 if row["result_version"] != expected_result_version:
                     fail("state_conflict", "Result version changed; reread turn before saving")
                 if row["status"] in ("failed", "cancelled"):
@@ -365,10 +374,10 @@ class StateStore:
         return {"invocation_id": invocation_id, "status": status, "technical_retries": row["attempts"] - 1,
                 "scope": "caller-reported completion; actual Tool integration is separate"}
 
-    def retrieve(self, kind, exact, query="", limit=12, feature_key=None):
+    def retrieve(self, kind, exact, query="", limit=12, feature_key=None, offset=0):
         # Validate before cache access. Cached data is not an LLM result.
         self.dataset.check_scope(exact)
-        request = {"kind": kind, "scope": exact, "query": query, "limit": limit, "feature_key": feature_key}
+        request = {"kind": kind, "scope": exact, "query": query, "limit": limit, "feature_key": feature_key, "offset": offset}
         key = fingerprint({"request": request, "dataset": self.dataset.fingerprint, "code": self.code_hash})
         row = self.db.execute("SELECT payload,payload_hash FROM retrieval_cache WHERE cache_key=?", (key,)).fetchone()
         if row:
@@ -376,7 +385,7 @@ class StateStore:
             if fingerprint(data) != row[1]:
                 fail("cache_integrity", "Cached retrieval fingerprint changed")
             return {**data, "cache_hit": True}
-        result = self.dataset.retrieve(kind, exact, query, limit, feature_key)
+        result = self.dataset.retrieve(kind, exact, query, limit, feature_key, offset)
         with self.transaction():
             self.db.execute("INSERT OR REPLACE INTO retrieval_cache VALUES(?,?,?)", (key, canonical(result), fingerprint(result)))
         return {**result, "cache_hit": False}

@@ -10,6 +10,10 @@
       "operations": [
         "doctor",
         "list_models",
+        "set_request_scope_policy",
+        "open_product_workflow",
+        "record_workflow_event",
+        "workflow_status",
         "open_request",
         "open_request_bundle",
         "resolve_request",
@@ -25,11 +29,11 @@
       "files": [
         {
           "path": "skills/evidence-retrieval/scripts/run.py",
-          "sha256": "d091af2cb17946ad10299268cc21f107eb9fe54ebff27137a52bf420de112f28"
+          "sha256": "3344363f61260e8e8b7919d58aefe4d38e15567f120c076eba62c6879a73712d"
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "8d05bb9a94a7d8ca29918dfc9978a807b89da7b9a2174b3124724ee3ee0b7023"
+          "sha256": "76e07b45627df036b69b5d228ade187b151479bc61f346591a416f721d5e1f7d"
         }
       ]
     },
@@ -40,16 +44,17 @@
       "operations": [
         "fetch_web_page",
         "capture_web_page",
-        "import_web_evidence"
+        "import_web_evidence",
+        "configure_web_research"
       ],
       "files": [
         {
           "path": "skills/web-evidence-collection/scripts/run.py",
-          "sha256": "71b57d7beba472f734367cafab00919856eec540c2b56a63afeb200cd4249bb9"
+          "sha256": "58b181c2aad570774c98fbc8b61720895ec04217587f307412bd502efe16d0e1"
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "1de200004b5a1a587e1955e96826ffc6486300be8b3589c26f01a75d8ac88298"
+          "sha256": "3091d8f6eaec0fdd4c893e645cd1e5ef9756362de800a84d9000a1c141a46176"
         }
       ]
     },
@@ -68,7 +73,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "d5b70b6a771733c4bbd958d9041dad033611ab47a790ca6a75e500427e3c9f18"
+          "sha256": "89989c3a23602bfb33df8459d80dfd965a99ecd6535459b3693cbfb836213aef"
         }
       ]
     },
@@ -88,7 +93,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "57970f54d612b8e7df880a7679f2d13674fe2a5c6619610a6f1b0908f230066d"
+          "sha256": "7ee0b2d94775c6ec6abcc49dda73b96726acd27d65f05ddf242481191622b0a5"
         }
       ]
     },
@@ -107,7 +112,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "14a87c717b5a56da4e298da0336d245b256b91c303da20a87886bf87a6a76174"
+          "sha256": "f740841b2827d5329ca2dbf3779bec08a5beba8658b4d880f1f7cef6b185a39f"
         }
       ]
     },
@@ -123,6 +128,7 @@
         "save_result",
         "save_reviewed_result",
         "save_and_export",
+        "deliver_result",
         "export_session",
         "current_request",
         "record_usage",
@@ -133,15 +139,19 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "4dcec360787be7196316283feadde3971d245e9b5b7ab50864c1833e861a29a3"
+          "sha256": "cb2105e238c563e99c09488ca6ac328f1f587a4ea0e2d2cab82904cfecfa233d"
+        },
+        {
+          "path": "skills/review-and-revise/references/report-writing.md",
+          "sha256": "76a84444a00d0ce258a206fcacefbed7f8a21f5ed550ab09bd88b8b8790d34ce"
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
-          "sha256": "30e21eb0bb8121939c2aae15f8b707ef17e3ca169f408aab9dc849474cd6a8a8"
+          "sha256": "bd6cf58f5e77c7400a2aaa7a4b82ea49baae146a02eca8142b23610ff6a2e105"
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "fef1c6acf43fe98f1f646246957af34a8d51c2d6ec81984b9b98917477b93d31"
+          "sha256": "81ec6188c265240b6cac9aa37522c9466d9f9e9a3de35817fc2df4d21fa5c031"
         }
       ]
     }
@@ -149,11 +159,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "9558f4552ac1e95f1987b727da4d0aa2189462b199495fd8a32a0dcfa14de858"
+      "sha256": "d48fb299fdd20dc8b3ca349f915cbb989ab19fecb3f7ea7412535c63b5a1db01"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "e024673debdacf7df17fe3a74635cbc81a844ab3543b16c53eca77ad51b9ac94"
+      "sha256": "c82109cee76d122db3009821992710ef24a2543e305fbc9c0dc326a269521d0d"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -165,11 +175,15 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "a9a28b98fd5fa94aa117c22bdcd7dcb706b39f1e822b2efebd1519f4b9fd6ed2"
+      "sha256": "c2b27157a2c3d6eac8026bd8562b5c39efc3eb8a441f03b0c9a20042c7c086e3"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
-      "sha256": "4a8ba46b6a30c3b253de73bba6fcabc0ce589841eba65e0f97a4a167cdfe963e"
+      "sha256": "6df8beeb0d55e9563d333cd35ed9d20ec7febf0de349081cbea850966823d006"
+    },
+    {
+      "path": "product-tools/product_tools/delivery.py",
+      "sha256": "6a0f091082f734f6bd26ac3defe08e391d0d56f1588246e5fde9f1941ac47f79"
     },
     {
       "path": "product-tools/product_tools/payload.py",
@@ -180,8 +194,16 @@
       "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd"
     },
     {
+      "path": "product-tools/product_tools/reporting.py",
+      "sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6"
+    },
+    {
+      "path": "product-tools/product_tools/selection.py",
+      "sha256": "4e79dec309d736b3413cb8489830b08f2f40b46553d4ad408323acf3d697086f"
+    },
+    {
       "path": "product-tools/product_tools/state.py",
-      "sha256": "85511f482eec4698f0d62960ffeab893f926b18cfde8556349a02b1245ed1766"
+      "sha256": "23015bad63a7c2c6fee7365b8998c04819e7dc734b508579959a926a6e538374"
     },
     {
       "path": "product-tools/product_tools/tools.py",
@@ -189,11 +211,15 @@
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
-      "sha256": "f09778ad71a9405122d2be14e4bbd578d3daf25c2232d6457dc5dfb978b4c4f4"
+      "sha256": "d746a51b64549577d97e4cd1befdf37bebbdaa50583c2339c75cfc78af1235a5"
+    },
+    {
+      "path": "product-tools/product_tools/workflow.py",
+      "sha256": "0ec07e2057537503d38d4fd644ee11d4ae957ba845b1dc6a1872df5f00af2bee"
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "048eb1ecc916598189f3529bdca0a8229983398d429a16debfa6cf074880b9ff"
+      "sha256": "a4f0d7ba42b56ba56861e63ec5edbd75dc2b94c036ecd1c3c9be2d77919dfe27"
     },
     {
       "path": "docs/contracts/product-planning.md",
@@ -201,11 +227,47 @@
     },
     {
       "path": "docs/contracts/web-evidence.md",
-      "sha256": "d7cb56d4ac8c24e758ebacb4bc292964685dc4b389718480043be32fd34538dd"
+      "sha256": "72b1009ea05c02ae53fbdcce6e1db6f41173125cb31fd5206b205b6249459a76"
     },
     {
       "path": "docs/contracts/codex-product.md",
       "sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54"
+    },
+    {
+      "path": "docs/contracts/reader-deliverables.md",
+      "sha256": "46cbe197c885749e05748d30bad824f4a4d8b1e50c04de6a1ca1efd1471494cb"
+    },
+    {
+      "path": "docs/contracts/product-workflow.md",
+      "sha256": "7a946cdca27d6584d280c6d0957ad0e7d714d66272f7ac6f054337e754089f08"
+    },
+    {
+      "path": "product-tools/requirements.in",
+      "sha256": "a77cc1377529b98d8584987066d3da415c894a506e74079706653316e593ff98"
+    },
+    {
+      "path": "product-tools/requirements.lock",
+      "sha256": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/README.md",
+      "sha256": "dcca839a401730599bd5680c9a7e74b7b078bfd1072b878401fe341333412702"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/viewer.py",
+      "sha256": "a81f6dfe9a4474b857d53ed2a304b7c1e1749bf6bea1f93e5f4ae7340b491541"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/hook.py",
+      "sha256": "74251e7e4727c4dc6e84689ef983807f679c649fdd5dca5ba7dc95ece8d09f6d"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/build_view.py",
+      "sha256": "3e424ac0c58b05246800f65513d50acff2a430e8d21bc22d41ed7761e6ffe4fc"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/index.html",
+      "sha256": "e81534890f7aa90ebbf317f577d97318f78fb2a1c30be442a79ed9819b8cc6b0"
     }
   ],
   "native_installation_verified": false,

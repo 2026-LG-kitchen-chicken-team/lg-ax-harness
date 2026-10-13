@@ -155,9 +155,13 @@ def src_type(source_id: str) -> str:
 
 
 def ev_type(ref: dict) -> str:
-    """근거 종류: kind(evidence_refs나 origin)가 있으면 그 값, 없으면 source_id 접두어(하네스 관례), 그것도 아니면
-    원문 표현(원문 발췌·제품 사실)으로만 나눈다. v0.7.0 export에는 kind가 없다."""
-    kind = ref.get("kind") or (ref.get("origin") or {}).get("kind")
+    """근거 종류. read_turns가 출처 메타데이터에서 붙인 kind(원문 지문이 맞을 때만)가 먼저다. 메타데이터는 있는데 지문이
+    맞지 않은 이전 export는 kind가 None이라 '기타'다(접두어로 후기라고 짐작하지 않는다). kind 키가 없으면 origin.kind,
+    source_id 접두어(하네스 관례), 원문 표현(원문 발췌·제품 사실) 순으로 나눈다. 모르는 kind는 '미지원(이름)'으로 보인다."""
+    if "kind" in ref:
+        kind = ref["kind"]
+        return KIND_LABEL.get(kind, f"미지원({kind})") if isinstance(kind, str) and kind else "기타"
+    kind = (ref.get("origin") or {}).get("kind")
     if isinstance(kind, str) and kind:
         return KIND_LABEL.get(kind, f"미지원({kind})")
     by_prefix = TYPE_LABEL.get(ref.get("source_id", "").split("-")[0])
@@ -271,6 +275,44 @@ def model_label(req_input: dict, inp: dict) -> str:
 
 def read_turns(export: dict) -> list[dict]:
     """export_session이 created_at 순으로 준 turn 순서를 그대로 쓴다(후보가 없는 turn도 제자리)."""
+    import copy
+    export = copy.deepcopy(export)
+    identity_keys = ("source_id", "model_id", "model_version", "document_version", "data_version", "sha256")
+    def matches(ref, item):
+        if not isinstance(item, dict):
+            return False
+        if not all(ref.get(k) == item.get(k) for k in identity_keys):
+            return False
+        fingerprint = item.get("reference_fingerprint")
+        if not isinstance(fingerprint, str) or not re.fullmatch(r"[0-9a-f]{64}", fingerprint):
+            return False
+        raw = json.dumps(ref, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+        return hashlib.sha256(raw).hexdigest() == fingerprint
+    def attach_kind(ref, metadata):
+        items = metadata if isinstance(metadata, list) else []
+        kind = next((item.get("kind") for item in items if matches(ref, item)), None)
+        ref["kind"] = kind if kind in ("review", "product_fact") else None
+    for turn in export.get("turns") or []:
+        latest = (turn.get("state") or {}).get("latest_result")
+        latest_metadata = turn.get("source_metadata")
+        latest_typed = "source_metadata" in turn
+        if latest_metadata is None:
+            matching_candidate = next((c for c in reversed(turn.get("candidates") or []) if c.get("result") == latest), {})
+            latest_metadata = matching_candidate.get("source_metadata", [])
+            latest_typed = latest_typed or "source_metadata" in matching_candidate
+        for candidate in turn.get("candidates") or []:
+            metadata = candidate.get("source_metadata") or []
+            for ref in (candidate.get("result") or {}).get("evidence_refs") or []:
+                if not isinstance(ref, dict):
+                    continue
+                if "source_metadata" in candidate:
+                    attach_kind(ref, metadata)
+        state = turn.get("state") or {}
+        for ref in (state.get("latest_result") or {}).get("evidence_refs") or []:
+            if not isinstance(ref, dict):
+                continue
+            if latest_typed:
+                attach_kind(ref, latest_metadata)
     requests = {r.get("turn_id"): r for r in export.get("requests") or [] if r.get("turn_id")}
     rows = []
     for t in export.get("turns") or []:
@@ -1424,7 +1466,8 @@ def page_evidence(c: Ctx) -> list[dict]:
                      {"key": "dates", "label": "게시·관측일", "kind": "mono"}, {"key": "pv", "label": "구매·협찬·고지"},
                      {"key": "links", "label": "연결 항목", "kind": "chips"}, {"key": "sha", "label": "SHA-256", "kind": "mono"},
                      {"key": "url", "label": "원문", "kind": "link"}],
-         "rows": rows, "source": "현재 결과의 evidence_refs · 유형은 kind, 없으면 source_id 접두어나 원문 표현 · 링크는 HTTPS 주소만 표시"},
+         "rows": rows, "source": "현재 결과의 evidence_refs · 유형은 원문 지문이 일치하는 출처 메타데이터의 kind, 이전 export는 "
+                                 "source_id 접두어나 원문 표현 · 링크는 HTTPS 주소만 표시"},
     ]
 
 

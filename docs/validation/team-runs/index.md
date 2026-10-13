@@ -1,5 +1,7 @@
 # 환경·질문별 팀원 실행 목록
 
+2026-10-12: [대겸·길웅 최신 LG 메일 본문과 진행 분석](records/20261012-team-mail-progress-review.md)을 기록했다. PR #6/#7 미병합·Issue #8 진행 보고와 공개 제품 v0.9.1을 구분한다. 최신 메일의 검사 수/시간은 팀원 보고이며 이번 문서 작업의 새 native 인수가 아니다. [사용자 제공 우승 전략](../../references/harness-competition-strategy-20261012.md)은 공식 요강/채택 요구가 아닌 참고자료로 보존한다.
+
 2026-10-11 최신 추가 접수: 길웅의 [기존5turn export·97등록 usage 회신](records/20261011-claude-followup-mail-review.md)을 지문·저장 내부·인용 정정·산술로 독립 검토했다. 원래 native/DB/full final은 미접수, source commit은 unknown이며 보고 manifest는 초기 Agentv4 원본과 일치한다. 최신v7.2나 이전v0.3.0 네 입력과 합산하지 않는다. [시각자료 뷰어 메일](records/20261011-viewer-mail-review.md)은 본문·ZIP 파일명5개만 확인했고 원본 ZIP/코드/실제 렌더링은 미확인이다. 사람 대비 측정·회신 재촉·완료 대기는 최신 사용자 결정으로 제외한다. 아래는 당시 접수 이력이다.
 
 2026-10-10 이력. ginaginaring 작성 Issue2건(첫+후속2입력, 보류1입력)을 접수했다. 실명/대겸·진하 대응은 미확인이다. 발췌의 원문 의미는 제한적으로 검토했지만 원본 export·로그가 미첨부라 저장 무결성과 환경 인수는 증거 부족이다. 당시 Claude/Gemini 보고서는 없었다.

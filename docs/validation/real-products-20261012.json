@@ -1,0 +1,331 @@
+{
+  "completion_criterion": "real product research, evidence analysis/planning, review, save and actual source-workbook/report delivery; synthetic mockups are not completion evidence",
+  "date": "2026-10-12",
+  "products": [
+    {
+      "product": "B502S33",
+      "source_facts": 9,
+      "review_cases": 5,
+      "reader_source_records": 20,
+      "native_thread_id": "01a12dac-13e8-7042-bf9e-20ee2910918b",
+      "native_cli_version": "0.162.1",
+      "model": "inherited configuration; not independently emitted by CLI",
+      "native_exit_code": 0,
+      "native_seconds": 639.92,
+      "native_source_manifest_sha256": "b2cff4ca2be75cc1f47edab983f20eefd5a10f1a527c9691c2afdf9bace6fd52",
+      "native_usage": [
+        {
+          "input_tokens": 1143561,
+          "cached_input_tokens": 1058048,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 22436,
+          "reasoning_output_tokens": 3701
+        }
+      ],
+      "actual_billed_cost": null,
+      "dataset_sha256": "7e740d4c2f50b339770e0994c859efe0aaa8732c169554f009432e502014a190",
+      "dataset_version": "B502S33-fresh-20261012-associated-02",
+      "business_result_sha256": "77388f9451ef870e587c458919c604ca6c633fd4082f32447e31f958b5ed1ef2",
+      "assessment_sha256": "10b562cf8e950662c061e9ff64e81245fe6c116cf95b8ee8364ff6816ec223a6",
+      "reader_plan_sha256": "5b8233d2f70023551759d224cf7e01c32bdbfa9135cde46cdabc45b381746481",
+      "saved_status": "completed",
+      "valid_current_result_version": 1,
+      "semantic_status": "unverified",
+      "automatic_acceptance_ready": false,
+      "independent_semantic_review": "passed within exact sources, attribution, conditional draft and reported exclusions; not physical/effect certification",
+      "final_replay": {
+        "classification": "retained_real_input_offline_replay",
+        "new_AI_generation": false,
+        "new_online_research": false,
+        "unchanged_candidate_and_assessment": true,
+        "original_workspace_files_unchanged": true,
+        "same_version_delivery_reused": true,
+        "stale_version_blocked": true
+      },
+      "layout_review": {
+        "status": "physical_layout_review_complete_no_blocking_defects_observed",
+        "counts": {
+          "invalid_local_links": 0,
+          "local_links_checked": 109,
+          "xlsx_local_raw_cell_links": 69,
+          "xlsx_hyperlink_occurrences": 91,
+          "docx_hyperlink_occurrences": 272,
+          "docx_unique_hyperlink_targets": 30,
+          "pdf_URI_annotations": 379,
+          "chart_count": 1,
+          "docx_media_count": 2,
+          "chart_images_identical_between_DOCX_XLSX": true,
+          "raster_documents": [
+            {
+              "label": "B502S33-06-pdf-primary",
+              "pages": 14
+            },
+            {
+              "label": "B502S33-05-docx-office",
+              "pages": 21
+            },
+            {
+              "label": "B502S33-01-xlsx-office",
+              "pages": 2
+            },
+            {
+              "label": "B502S33-02-xlsx-office",
+              "pages": 1
+            },
+            {
+              "label": "B502S33-03-xlsx-office",
+              "pages": 1
+            },
+            {
+              "label": "B502S33-04-xlsx-office",
+              "pages": 18
+            }
+          ],
+          "total_rendered_pages": 57,
+          "xlsx_sheet_count": 15,
+          "structural_findings": 0
+        },
+        "findings": [],
+        "all_actual_pages_reviewed": true
+      },
+      "reader_files": [
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/01_제품 자료.xlsx",
+          "sha256": "8bd35e53824d687603008f0422d9f476639fa4e2534fc240b8659afbf42e5f5b"
+        },
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/02_고객 후기.xlsx",
+          "sha256": "c843f229a87976479f44efd05b45594fc7a596e46013bdb3207261c5448c402c"
+        },
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/03_시장 자료.xlsx",
+          "sha256": "c1e1d27bba4bdcd8d9a3749aa5a3f3ed9763ab951d027018adfc35496da6cee8"
+        },
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/보고서 도표.xlsx",
+          "sha256": "830ad05f0184a3a906e6d07a170101ceeddfb246356ad6b7406762bd1241799d"
+        },
+        {
+          "kind": "docx",
+          "relative_path": "02_최종 보고서/보고서.docx",
+          "sha256": "36ed05dd1a30a1b23ccbe68a11ae4e52e9892e3f19148595dd0b293e57c6edd2"
+        },
+        {
+          "kind": "pdf",
+          "relative_path": "02_최종 보고서/보고서.pdf",
+          "sha256": "436d1e5e034b1ecbe9b939687e0d0a8783e838328ad3d9715a406c3ef54e1a6e"
+        }
+      ]
+    },
+    {
+      "product": "MWJ25E",
+      "source_facts": 9,
+      "review_cases": 2,
+      "reader_source_records": 19,
+      "native_thread_id": "01a12dac-13e8-7940-8efd-6e6a018114da",
+      "native_cli_version": "0.162.1",
+      "model": "inherited configuration; not independently emitted by CLI",
+      "native_exit_code": 0,
+      "native_seconds": 753.38,
+      "native_source_manifest_sha256": "b2cff4ca2be75cc1f47edab983f20eefd5a10f1a527c9691c2afdf9bace6fd52",
+      "native_usage": [
+        {
+          "input_tokens": 1776398,
+          "cached_input_tokens": 1688064,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 26162,
+          "reasoning_output_tokens": 6361
+        }
+      ],
+      "actual_billed_cost": null,
+      "dataset_sha256": "681959a9afffeb4ad5b46fe851442cd2b287dfc04c668be403c480d19ece47a3",
+      "dataset_version": "mwj25e-fresh-20261012-v2",
+      "business_result_sha256": "0185e1c515719e1bf77991f58b803c651098d6a1b8ec23bd89d7025bfb7e7989",
+      "assessment_sha256": "f7ac1ff95aa31c71bc4d6eb6ec024b9babf77668522f32ae06db39ab10eb30bc",
+      "reader_plan_sha256": "c72052bc9dbd7f849368a2204b3ad44c4a3ba625f1b465c2f8270d34709dc8bb",
+      "saved_status": "completed",
+      "valid_current_result_version": 1,
+      "semantic_status": "unverified",
+      "automatic_acceptance_ready": false,
+      "independent_semantic_review": "passed within exact sources, attribution, conditional draft and reported exclusions; not physical/effect certification",
+      "final_replay": {
+        "classification": "retained_real_input_offline_replay",
+        "new_AI_generation": false,
+        "new_online_research": false,
+        "unchanged_candidate_and_assessment": true,
+        "original_workspace_files_unchanged": true,
+        "same_version_delivery_reused": true,
+        "stale_version_blocked": true
+      },
+      "layout_review": {
+        "status": "physical_layout_review_complete_no_blocking_defects_observed",
+        "counts": {
+          "invalid_local_links": 0,
+          "local_links_checked": 104,
+          "xlsx_local_raw_cell_links": 66,
+          "xlsx_hyperlink_occurrences": 87,
+          "docx_hyperlink_occurrences": 262,
+          "docx_unique_hyperlink_targets": 28,
+          "pdf_URI_annotations": 340,
+          "chart_count": 2,
+          "docx_media_count": 3,
+          "chart_images_identical_between_DOCX_XLSX": true,
+          "raster_documents": [
+            {
+              "label": "MWJ25E-06-pdf-primary",
+              "pages": 14
+            },
+            {
+              "label": "MWJ25E-05-docx-office",
+              "pages": 19
+            },
+            {
+              "label": "MWJ25E-01-xlsx-office",
+              "pages": 2
+            },
+            {
+              "label": "MWJ25E-02-xlsx-office",
+              "pages": 1
+            },
+            {
+              "label": "MWJ25E-03-xlsx-office",
+              "pages": 1
+            },
+            {
+              "label": "MWJ25E-04-xlsx-office",
+              "pages": 15
+            }
+          ],
+          "total_rendered_pages": 52,
+          "xlsx_sheet_count": 15,
+          "structural_findings": 0
+        },
+        "findings": [],
+        "all_actual_pages_reviewed": true
+      },
+      "reader_files": [
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/01_제품 자료.xlsx",
+          "sha256": "b866d056888680a48a09e3956289cf20426db21ac661f907ab56726d1688d8f9"
+        },
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/02_고객 후기.xlsx",
+          "sha256": "ddb6b7aa8f622994c0ac1bac64534560a3cb8797e98ac5e03114f0aadbe75b8e"
+        },
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/03_시장 자료.xlsx",
+          "sha256": "1b043b6124a36d3697b4918f6870a6691641679f7379e9c64806cfb0590b4fdb"
+        },
+        {
+          "kind": "xlsx",
+          "relative_path": "01_자료집/보고서 도표.xlsx",
+          "sha256": "90d9d009c490cdadc16a846c1c8fbf7a2657fdcecfae880cb57d6b6bbb60766e"
+        },
+        {
+          "kind": "docx",
+          "relative_path": "02_최종 보고서/보고서.docx",
+          "sha256": "d956573547fb9340105d93d2bd5672aafd12a714ceb542b2719f6d8d57e83441"
+        },
+        {
+          "kind": "pdf",
+          "relative_path": "02_최종 보고서/보고서.pdf",
+          "sha256": "6bc4c6b325d144bd2e59ab5b8b8fbaf92ec188d7066b8811484594a6e642345d"
+        }
+      ]
+    }
+  ],
+  "fresh_native_business_cases": 2,
+  "retained_real_input_regression_replays": 2,
+  "new_native_business_cases_in_replay": 0,
+  "synthetic_data_used_as_business_evidence": false,
+  "unique_selected_source_records": 36,
+  "shared_context_records_between_reports": 3,
+  "final_source_manifest_sha256": "3d790f846d806f9c64aba25a7c8755770827d9c1f56e41d3cb64413beee36873",
+  "local_code_tests": [
+    {
+      "suite": "product",
+      "test_count": 239,
+      "skipped": 1,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 29.625,
+      "receipt_sha256": "64a8e373e4247f8df46c7958d679fd54e01a54a99924767482b868e69ccca54b",
+      "log_sha256": "ff4f05e643bec1d2fa8a55e50678adfb34ad7d4567c78c0720762df3c4abbc9c"
+    },
+    {
+      "suite": "evaluation",
+      "test_count": 128,
+      "skipped": 0,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 9.984,
+      "receipt_sha256": "0d55ae2c3982cfff512a536596c294ac28914c6437e66bd3737e0c21ff0fcda8",
+      "log_sha256": "8fb3303c75b8193c3a27c7f7ae584a8bc89334f79184e908239a3ad7c336671a"
+    },
+    {
+      "suite": "evals",
+      "test_count": 28,
+      "skipped": 0,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.782,
+      "receipt_sha256": "333bc78ec7632ce514cd6d0362c976d987297974964232b3eef54af953da2f26",
+      "log_sha256": "e8d53328224e234dfe5cdc164a1e2ee5be8d0f1afa5aad2811d85e772902686e"
+    },
+    {
+      "suite": "development",
+      "test_count": 22,
+      "skipped": 0,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 4.063,
+      "receipt_sha256": "f1be4a6f6cf888405d38f4313877877709056d9e6b2b8e8be41bd2158bfe1d63",
+      "log_sha256": "bc5254f4996978b1f4e1242ea14f6b4e934c154d361856097f0aa476b9b6c195"
+    }
+  ],
+  "final_delta_review_sha256": "6074492b8d5c91ff47346152f5265b150b914675d7a14741720530ed8243c094",
+  "preserved_failures": [
+    "initial manual support-path guard regression",
+    "independent model/review association P2 findings",
+    "initial layout P2: widow, header-only blank print pages, clipped chart headings",
+    "stale reader workflow wording and final B Word trailing QA paragraph",
+    "replay input omitted required reason and was strictly rejected"
+  ],
+  "limitations": [
+    "conditional planning drafts; no physical implementation, customer/business effect measurement or representative pain prevalence",
+    "exact-model setting/firmware, physical interior/part fit and content duplication gaps retained",
+    "Windows readonly Word/Excel and PDF layout scope; not all platforms",
+    "Claude installation checks are separate from new Claude AI acceptance; Gemini and human comparison excluded",
+    "machine schema checks are not semantic certification; past failures and timeouts retained"
+  ],
+  "development_acceptance": {
+    "run_id": "real-products-final-20261012",
+    "errors": [],
+    "scope": "fresh current-input/contract and bound receipt revalidation; no extra native business cases",
+    "complete_exit_code": 0,
+    "actual_agent_ids": [
+      "/root/report_delivery",
+      "/root/preserved_artifacts",
+      "/root/report_renderer"
+    ]
+  },
+  "publication": {
+    "package_sha256": "e37b7c21972644b977bfc84be7ef507f498a1d04564b722c32d5a8d7ad2baa9a",
+    "ci_run_id": 38198555618,
+    "private_runtime_files_uploaded": false,
+    "product_snapshot": "25cfd3fdeae419acd8e698aab1ab13ce1ab54877",
+    "download_and_automatic_archive_byte_verified": true,
+    "ci_reported_reason": "recent account payment failures or spending limit; exact cause not distinguished",
+    "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.9.0",
+    "ci_status": "failure;both jobs not started;steps0",
+    "main_direct_push": true,
+    "source_commit": "5fe8981c022a49273d81b0dff6c0cb09ef87befd"
+  }
+}

@@ -11,9 +11,9 @@ import re
 import sqlite3
 import socket
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlparse
 from urllib.request import build_opener, HTTPRedirectHandler, HTTPSHandler, ProxyHandler, Request
-from .contracts import SCOPE_FIELDS, canonical, fail, fingerprint, identifier, items, obj, product_family, scope, strict_json, text
+from .contracts import SCOPE_FIELDS, canonical, fail, fingerprint, identifier, integer, items, obj, product_family, scope, strict_json, text
 from .dataset import Dataset
 
 MAX_PAGE_BYTES = 2097152
@@ -23,14 +23,14 @@ def check_manual_section(url, content, location=None):
     """Bind explicit section markers; never infer a source URL from text."""
     parsed = urlparse(url)
     if (parsed.hostname != "gscs-manual.lge.com"
-            or not re.fullmatch(r"/CNZ/MFL[0-9]+/ko-kr/main\.html", parsed.path)):
+            or not re.fullmatch(r"/[A-Z]{3}/MFL[0-9]+/ko-kr/main\.html", parsed.path)):
         return
     marker = r"(?<![A-Za-z0-9_])topic_[0-9]+(?![A-Za-z0-9_])"
     topics = set(re.findall(marker, content))
     if location is not None:
         text(location, "location", 500)
         located = set(re.findall(marker, location))
-        if not parsed.fragment or located != {parsed.fragment}:
+        if (parsed.fragment and located != {parsed.fragment}) or (not parsed.fragment and located):
             fail("section_mismatch", "Manual location must name only its observed URL topic; capture each section separately")
         topics.update(located)
     if topics and topics != {parsed.fragment}:
@@ -127,12 +127,44 @@ class WebEvidence:
         self.base.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(db, timeout=5)
         self.db.execute("CREATE TABLE IF NOT EXISTS web_pages (research_id TEXT, page_id TEXT, request_hash TEXT, attempts INTEGER, retryable INTEGER, snapshot_id TEXT, PRIMARY KEY(research_id,page_id))")
+        self.db.execute("CREATE TABLE IF NOT EXISTS web_research_budgets (research_id TEXT, version INTEGER, max_pages INTEGER, reason TEXT, observed_at TEXT, PRIMARY KEY(research_id,version))")
         self.db.commit()
 
     def close(self):
         self.db.close()
 
+    def configure(self, payload):
+        """Amend a registered request's bounded budget without resetting attempts."""
+        obj(payload, ("research_id", "max_pages", "reason"))
+        research = identifier(payload["research_id"], "research_id")
+        maximum = integer(payload["max_pages"], "max_pages", 6, 100000)
+        reason = text(payload["reason"], "budget reason", 2000)
+        try:
+            requests = self.db.execute("SELECT session_id,request_key FROM conversation_requests").fetchall()
+        except sqlite3.OperationalError:
+            requests = []
+        if not any(research == "research-" + fingerprint([session, key]) for session, key in requests):
+            fail("research_not_registered", "Configure the research ID returned by the saved original request")
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            count = self.db.execute("SELECT COUNT(*) FROM web_pages WHERE research_id=?", (research,)).fetchone()[0]
+            if maximum < count:
+                fail("research_limit", "A budget cannot discard already attempted pages")
+            previous = self.db.execute("SELECT version,max_pages,reason FROM web_research_budgets WHERE research_id=? ORDER BY version DESC LIMIT 1", (research,)).fetchone()
+            reused = bool(previous and previous[1:] == (maximum, reason))
+            version = previous[0] if reused else (previous[0] + 1 if previous else 1)
+            if not reused:
+                self.db.execute("INSERT INTO web_research_budgets VALUES(?,?,?,?,?)", (research, version, maximum, reason, datetime.now(timezone.utc).isoformat()))
+        return {"research_id": research, "budget_version": version, "max_pages": maximum,
+                "attempted_pages": count, "remaining_pages": maximum - count, "reused": reused,
+                "technical_retries_per_page": 1, "semantic_status": "unverified"}
+
     def _reserve(self, payload, mode):
+        from .workflow import WorkflowAudit
+        audit = WorkflowAudit(self.db, self.workspace)
+        if audit.active(payload["research_id"]):
+            audit.request(payload["research_id"])
+            audit.collection_allowed(payload["research_id"])
         identifier(payload["research_id"], "research_id")
         identifier(payload["page_id"], "page_id")
         public_url(payload["url"])
@@ -150,8 +182,10 @@ class WebEvidence:
                 self.db.execute("UPDATE web_pages SET attempts=attempts+1,retryable=0 WHERE research_id=? AND page_id=?", (payload["research_id"], payload["page_id"]))
             else:
                 count = self.db.execute("SELECT COUNT(*) FROM web_pages WHERE research_id=?", (payload["research_id"],)).fetchone()[0]
-                if count >= 6:
-                    fail("research_limit", "A research ID can collect at most six pages")
+                budget = self.db.execute("SELECT max_pages FROM web_research_budgets WHERE research_id=? ORDER BY version DESC LIMIT 1", (payload["research_id"],)).fetchone()
+                maximum = budget[0] if budget else 6
+                if count >= maximum:
+                    fail("research_limit", "Research reached its declared page budget (" + str(maximum) + "); preserve this request and attempted pages")
                 self.db.execute("INSERT INTO web_pages VALUES (?,?,?,1,0,NULL)", (payload["research_id"], payload["page_id"], key))
         return None, False
 
@@ -167,6 +201,42 @@ class WebEvidence:
         if value["snapshot_id"] != snapshot_id or fingerprint({k: v for k, v in value.items() if k != "snapshot_id"}) != snapshot_id:
             fail("snapshot_integrity", "Snapshot fingerprint mismatch")
         return value
+
+    def report_sources(self, payload, expected_research_id):
+        """Return contextual excerpts from snapshots of this same saved request.
+
+        These sources enrich reports only. They cannot satisfy target-model
+        ProductResult evidence references or prove an undocumented feature absent.
+        """
+        obj(payload, ("research_id", "sources"))
+        if identifier(payload["research_id"], "research_id") != expected_research_id:
+            fail("report_source_scope", "Context must belong to this saved request's research ID")
+        records, used = [], set()
+        for entry in items(payload["sources"], "context sources", 100):
+            obj(entry, ("id", "snapshot_id", "kind", "title", "quote", "location", "subject", "scope_note"))
+            sid = identifier(entry["id"], "source id")
+            if sid in used:
+                fail("report_source_integrity", "Duplicate context source ID")
+            used.add(sid)
+            snapshot = self._read(entry["snapshot_id"])
+            if not self.db.execute("SELECT 1 FROM web_pages WHERE research_id=? AND snapshot_id=?", (expected_research_id, snapshot["snapshot_id"])).fetchone():
+                fail("report_source_scope", "Context snapshot was not collected for this request")
+            if entry["kind"] not in ("market", "product_document", "survey", "interview", "usability", "other"):
+                fail("invalid_report_sources", "Target reviews belong in the exact-model catalog")
+            for key, maximum in (("title", 500), ("quote", 4000), ("location", 500), ("subject", 500), ("scope_note", 2000)):
+                text(entry[key], key, maximum)
+            if entry["quote"] not in snapshot["text"]:
+                fail("report_source_integrity", "Context quote is not an exact retained excerpt")
+            check_manual_section(snapshot["url"], snapshot["text"], entry["location"])
+            public_url(snapshot["url"])
+            records.append({"id": sid, "kind": entry["kind"], "title": entry["title"],
+                            "text": entry["quote"], "location": entry["location"], "url": snapshot["url"],
+                            "synthetic": False,
+                            "model": "자료 대상: " + entry["subject"] + " / 적용 범위: " + entry["scope_note"]
+                                     + " / 관찰 시각: " + snapshot["observed_at"]
+                                     + " / 관측 방식: " + snapshot["collection"]
+                                     + " / 원문 의미·대상·주장 지지 여부는 별도 검토"})
+        return records
 
     def collect(self, payload, browser=False):
         obj(payload, ("research_id", "page_id", "url") + (("observed_text", "native_tool_name") if browser else ()), ("focus", "preview_chars"))
@@ -266,6 +336,13 @@ class WebEvidence:
                 path = path[len("/product"):]
             return parsed.hostname, path
         is_product = identity_key(association["url"]) in {identity_key(url) for url in identity_urls}
+        # A model-specific manufacturer support page is also a legitimate
+        # observed link origin. Never paste its href into an unrelated PDP.
+        association_url = urlparse(association["url"])
+        manufacturer_support = (association_url.hostname in {urlparse(url).hostname for url in identity_urls}
+                                and "support" in association_url.path.casefold().split("/")
+                                and re.search(r"(?<![A-Za-z0-9_.:])" + re.escape(model)
+                                              + r"(?![A-Za-z0-9_.:-])", association_url.path, re.IGNORECASE) is not None)
         # Hash topics share the exact linked HTML document, not another manual.
         linked = snapshot["url"] in observed_urls or (manual_url.fragment and manual_url._replace(fragment="").geturl() in observed_urls)
         # LG's exact PDP exposes an HTTP href; the manual itself is observed via
@@ -284,11 +361,53 @@ class WebEvidence:
                     linked = True
                     break
         if (entry["kind"] != "product_fact" or entry["model_matching"] != "product_page_association"
-                or not is_product or not identified or not linked):
+                or not (is_product or manufacturer_support) or not identified or not linked):
             fail("scope_mismatch", "A generic manual needs the exact model identity source and the same observed manual link")
 
+    def _check_review_association(self, entry, snapshot, exact, identity_urls):
+        """Bind a model-less same-site review popup without adding model text."""
+        association = self._read(entry["association_snapshot_id"])
+        parent = urlparse(public_url(association["url"]))
+        child = urlparse(public_url(snapshot["url"]))
+        originals = {urlparse(url)._replace(fragment="").geturl() for url in identity_urls}
+        observed_urls = {url.rstrip(")],.;") for url in re.findall(r"https?://[^\s<>\"']+", association["text"])}
+        # Only explicit product-identity keys count. Campaign/review/tracking
+        # IDs cannot hide a different product, and absent identity is not proof.
+        keys = ("modelid", "productid", "sku", "itemid")
+        parent_pairs = [(key.casefold(), value) for key, value in parse_qsl(parent.query, keep_blank_values=True)]
+        key = next((key for key in keys if any(pair[0] == key for pair in parent_pairs)), None)
+        product_ids = [value for name, value in parent_pairs if name == key] if key else []
+        child_values = [value for name, value in parse_qsl(child.query, keep_blank_values=True) if name.casefold() == key]
+        identity_matches = (len(product_ids) == 1 and bool(product_ids[0])
+                            and (product_ids[0] in child.path.split("/") or child_values == product_ids)
+                            and (not child_values or child_values == product_ids))
+        popup = re.fullmatch(r"/mkt/review/([^/]+)/pdpReviewListPopup/?", child.path)
+        if popup and (len(product_ids) != 1 or popup[1] != product_ids[0]):
+            # This observed popup endpoint's product identity is in its path;
+            # an added matching query must not conceal another product there.
+            identity_matches = False
+        if (entry["kind"] != "review" or entry["model_matching"] != "product_page_association"
+                or parent._replace(fragment="").geturl() not in originals
+                or parent.hostname != child.hostname
+                or not identity_matches
+                or not model_token(exact["model_id"], association["text"])
+                or snapshot["url"] not in observed_urls):
+            fail("scope_mismatch", "A review popup needs its exact registered product page and observed same-site child URL")
+
     def import_evidence(self, dataset, payload):
-        obj(payload, ("data_version", "observations"), ("new_models",))
+        obj(payload, ("data_version", "observations"), ("new_models", "research_id"))
+        from .workflow import WorkflowAudit
+        audit = WorkflowAudit(self.db, self.workspace)
+        research = payload.get("research_id")
+        if research is None and self.db.execute("SELECT 1 FROM product_workflows LIMIT 1").fetchone():
+            fail("workflow_snapshot_scope", "Timed workflow imports require their original research_id")
+        if research is not None:
+            audit.request(research)
+            for observed in payload["observations"]:
+                audit.snapshot(research, observed["snapshot_id"])
+                if observed.get("association_snapshot_id"):
+                    audit.snapshot(research, observed["association_snapshot_id"])
+                audit.check_review_import(research, observed)
         version = identifier(payload["data_version"], "data_version")
         if dataset.synthetic or version == dataset.version:
             fail("invalid_dataset", "Business import requires a new real dataset version")
@@ -329,10 +448,13 @@ class WebEvidence:
                 fail("invalid_dataset", "Duplicate observed source ID")
             observed_entries[entry["source_id"]] = entry
         identity_urls = {}
+        review_identity_urls = {}
         for model in models:
             exact = {key: model[key] for key in SCOPE_FIELDS}
             identity_urls[canonical(exact)] = [record["origin"]["source_url"] for record in dataset.sources.values()
                 if record["kind"] == "product_fact" and all(record[key] == exact[key] for key in SCOPE_FIELDS)]
+            review_identity_urls[canonical(exact)] = ([dataset.source(model["spec_source_id"])["origin"]["source_url"]]
+                if "spec_source_id" in model and model["spec_source_id"] in dataset.sources else [])
         for model in new_models:
             entry = observed_entries.get(model["spec_source_id"])
             exact = {key: model[key] for key in SCOPE_FIELDS}
@@ -347,6 +469,7 @@ class WebEvidence:
             if model["model_version"] != "unspecified" and not model_token(model["model_version"], entry["support_quote"]):
                 fail("identity_mismatch", "A claimed hardware version needs explicit observed support; otherwise use unspecified")
             identity_urls[canonical(exact)].append(public_url(snapshot["url"]))
+            review_identity_urls[canonical(exact)].append(snapshot["url"])
         records = [{**s, "data_version": version} for s in dataset.sources.values()]
         used = set(dataset.sources)
         for entry in observations:
@@ -366,7 +489,10 @@ class WebEvidence:
             if entry["support_quote"] not in snapshot["text"]:
                 fail("quote_mismatch", "Support quote is not in the observed snapshot")
             if "association_snapshot_id" in entry:
-                self._check_manual_association(entry, snapshot, exact, identity_urls[canonical(exact)])
+                if entry["kind"] == "review":
+                    self._check_review_association(entry, snapshot, exact, review_identity_urls[canonical(exact)])
+                else:
+                    self._check_manual_association(entry, snapshot, exact, identity_urls[canonical(exact)])
             elif not model_token(exact["model_id"], snapshot["text"]):
                 fail("scope_mismatch", "Observed page must identify the selected model; option mixing still needs review")
             if entry["kind"] == "review" and entry["text"] != entry["support_quote"]:
@@ -382,6 +508,10 @@ class WebEvidence:
             if "commercial_disclosure" in entry:
                 record["origin"]["commercial_disclosure"] = entry["commercial_disclosure"]
             records.append(record)
+        from .selection import SelectionPolicy
+        added_scopes = {canonical(entry["scope"]) for entry in observations}
+        touched = [m for m in models if canonical({k: m[k] for k in SCOPE_FIELDS}) in added_scopes]
+        SelectionPolicy(self.db).check(SelectionPolicy(self.db).for_research(research), touched, records)
         base = (self.workspace / "runtime-data/catalogs").resolve()
         target = (base / version).resolve()
         if not base.is_relative_to(self.workspace / "runtime-data") or target.parent != base:

@@ -1,0 +1,503 @@
+{
+  "date_kst": "2026-10-12",
+  "product_tag": "product-v0.8.1",
+  "intake": {
+    "main_commit": "e6f4653dabae80412337131445c164b41bcaaf0c",
+    "product_tag": "product-v0.8.1",
+    "zip_sha256": "cd5eefabeb46e7585891d44da00c7387e00ec3c9b0085bead52f474197b9eae2",
+    "zip_bytes": 330036,
+    "files_verified": 84,
+    "commands": [
+      {
+        "check": "codex-sync",
+        "exit_code": 0
+      },
+      {
+        "check": "codex-doctor",
+        "exit_code": 0
+      },
+      {
+        "check": "claude-install",
+        "exit_code": 0
+      },
+      {
+        "check": "claude-sync",
+        "exit_code": 0
+      },
+      {
+        "check": "claude-doctor",
+        "exit_code": 0
+      }
+    ],
+    "source_manifest_sha256": "6d85b6c3083ec1aafe7fd2c8d5cdff5351f41819547b27481e4d34af7e9fa3e7"
+  },
+  "small_sample_scope": "one retained review excerpt and four factual summaries, one task, one run per configuration; not final selection",
+  "fresh_online_target_seconds": 300,
+  "fresh_online_timeout_seconds": 600,
+  "rows": [
+    {
+      "id": "C61H",
+      "input_kind": "small_retained_diagnostic",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "status": "succeeded",
+      "native_exit_code": 0,
+      "runner_observed_seconds": 408.594,
+      "turn_completed": true,
+      "final_delivery_observed": true,
+      "last_agent_message_seconds": 407.76599999982864,
+      "command_count": 19,
+      "web_count": 0,
+      "completed_command_wall_seconds": 9.191000001505017,
+      "completed_web_wall_seconds": 0.0,
+      "completed_tool_wall_seconds": 9.191000001505017,
+      "command_output_bytes_sum": 136550,
+      "largest_command_output": {
+        "item_id": "item_1",
+        "utf8_bytes": 22411,
+        "exit_code": 0
+      },
+      "nonzero_command_count": 1,
+      "usage": {
+        "input_tokens": 923550,
+        "cached_input_tokens": 850176,
+        "output_tokens": 11837,
+        "reasoning_output_tokens": 1595
+      },
+      "usage_scope": "last observed native cumulative snapshot; failed/interrupted final call may be incomplete",
+      "backend_model_call_count": null,
+      "actual_cost": null,
+      "protected_files_unchanged": true,
+      "prompt_sha256": "09e2dc6a4c072baf38b5957e4193aaa440da761b7f61dda98c71f620647f6240",
+      "stdout_sha256": "9d784dbc3035e9141f7b8228f0861635a35a3f60e1bef6aa2ec7dd2f153931a3",
+      "stored_turn_count": 1,
+      "requests": [
+        {
+          "status": "failed",
+          "turn_id_present": false
+        },
+        {
+          "status": "needs_input",
+          "turn_id_present": false
+        }
+      ],
+      "blind_quality_score_14": 14,
+      "semantic_gate": "qualified_planning_draft; narrow source scope",
+      "visual_review": "not_run",
+      "original_observer_revision": "preserved; metrics reconstructed without AI rerun"
+    },
+    {
+      "id": "C56M",
+      "input_kind": "small_retained_diagnostic",
+      "model": "gpt-5.6-sol",
+      "effort": "medium",
+      "status": "succeeded",
+      "native_exit_code": 0,
+      "runner_observed_seconds": 166.797,
+      "turn_completed": true,
+      "final_delivery_observed": true,
+      "last_agent_message_seconds": 166.01599999982864,
+      "command_count": 10,
+      "web_count": 0,
+      "completed_command_wall_seconds": 4.501999999862164,
+      "completed_web_wall_seconds": 0.0,
+      "completed_tool_wall_seconds": 4.501999999862164,
+      "command_output_bytes_sum": 121926,
+      "largest_command_output": {
+        "item_id": "item_1",
+        "utf8_bytes": 41938,
+        "exit_code": 0
+      },
+      "nonzero_command_count": 0,
+      "usage": {
+        "input_tokens": 556756,
+        "cached_input_tokens": 500096,
+        "output_tokens": 12690,
+        "reasoning_output_tokens": 2601
+      },
+      "usage_scope": "last observed native cumulative snapshot; failed/interrupted final call may be incomplete",
+      "backend_model_call_count": null,
+      "actual_cost": null,
+      "protected_files_unchanged": true,
+      "prompt_sha256": "09e2dc6a4c072baf38b5957e4193aaa440da761b7f61dda98c71f620647f6240",
+      "stdout_sha256": "879ce7e55d1e8a429ba2e3d846bdc8720d6f7357e451a3bc5776ff82541a388c",
+      "stored_turn_count": 1,
+      "requests": [
+        {
+          "status": null,
+          "turn_id_present": false
+        }
+      ],
+      "blind_quality_score_14": 12,
+      "semantic_gate": "qualified_planning_draft; narrow source scope",
+      "visual_review": "not_run",
+      "original_observer_revision": "preserved; metrics reconstructed without AI rerun"
+    },
+    {
+      "id": "C61L",
+      "input_kind": "small_retained_diagnostic",
+      "model": "gpt-6.1-sol",
+      "effort": "low",
+      "status": "succeeded",
+      "native_exit_code": 0,
+      "runner_observed_seconds": 261.422,
+      "turn_completed": true,
+      "final_delivery_observed": true,
+      "last_agent_message_seconds": 260.844000000041,
+      "command_count": 11,
+      "web_count": 0,
+      "completed_command_wall_seconds": 6.281999999657273,
+      "completed_web_wall_seconds": 0.0,
+      "completed_tool_wall_seconds": 6.281999999657273,
+      "command_output_bytes_sum": 118771,
+      "largest_command_output": {
+        "item_id": "item_1",
+        "utf8_bytes": 42115,
+        "exit_code": 0
+      },
+      "nonzero_command_count": 2,
+      "usage": {
+        "input_tokens": 486360,
+        "cached_input_tokens": 443136,
+        "output_tokens": 7227,
+        "reasoning_output_tokens": 197
+      },
+      "usage_scope": "last observed native cumulative snapshot; failed/interrupted final call may be incomplete",
+      "backend_model_call_count": null,
+      "actual_cost": null,
+      "protected_files_unchanged": true,
+      "prompt_sha256": "09e2dc6a4c072baf38b5957e4193aaa440da761b7f61dda98c71f620647f6240",
+      "stdout_sha256": "379b6fb69df187ec4ca3bff9b02296a45edbf39cd7f2579efd2ba5dab25c9936",
+      "stored_turn_count": 1,
+      "requests": [
+        {
+          "status": null,
+          "turn_id_present": false
+        }
+      ],
+      "blind_quality_score_14": 14,
+      "semantic_gate": "qualified_planning_draft; narrow source scope",
+      "visual_review": "not_run",
+      "original_observer_revision": "preserved; metrics reconstructed without AI rerun"
+    },
+    {
+      "id": "C61M",
+      "input_kind": "small_retained_diagnostic",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "status": "succeeded",
+      "native_exit_code": 0,
+      "runner_observed_seconds": 238.953,
+      "turn_completed": true,
+      "final_delivery_observed": true,
+      "last_agent_message_seconds": 238.18699999991804,
+      "command_count": 10,
+      "web_count": 0,
+      "completed_command_wall_seconds": 5.703999999444932,
+      "completed_web_wall_seconds": 0.0,
+      "completed_tool_wall_seconds": 5.703999999444932,
+      "command_output_bytes_sum": 117374,
+      "largest_command_output": {
+        "item_id": "item_1",
+        "utf8_bytes": 42115,
+        "exit_code": 0
+      },
+      "nonzero_command_count": 1,
+      "usage": {
+        "input_tokens": 436696,
+        "cached_input_tokens": 379136,
+        "output_tokens": 7491,
+        "reasoning_output_tokens": 297
+      },
+      "usage_scope": "last observed native cumulative snapshot; failed/interrupted final call may be incomplete",
+      "backend_model_call_count": null,
+      "actual_cost": null,
+      "protected_files_unchanged": true,
+      "prompt_sha256": "09e2dc6a4c072baf38b5957e4193aaa440da761b7f61dda98c71f620647f6240",
+      "stdout_sha256": "2b6c9331feee7e25404f06bd99aef0f0921558799321db606462bf52ba040e91",
+      "stored_turn_count": 1,
+      "requests": [
+        {
+          "status": null,
+          "turn_id_present": false
+        }
+      ],
+      "blind_quality_score_14": 14,
+      "semantic_gate": "qualified_planning_draft; narrow source scope",
+      "visual_review": "not_run",
+      "original_observer_revision": "preserved; metrics reconstructed without AI rerun"
+    },
+    {
+      "id": "LIVE61M",
+      "input_kind": "fresh_online",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "status": "timeout",
+      "native_exit_code": 1,
+      "runner_observed_seconds": 600.547,
+      "turn_completed": false,
+      "final_delivery_observed": false,
+      "last_agent_message_seconds": 474.35900000017136,
+      "command_count": 25,
+      "web_count": 9,
+      "completed_command_wall_seconds": 44.82700000004843,
+      "completed_web_wall_seconds": 18.796000000089407,
+      "completed_tool_wall_seconds": 63.623000000137836,
+      "command_output_bytes_sum": 1584089,
+      "largest_command_output": {
+        "item_id": "item_24",
+        "utf8_bytes": 923878,
+        "exit_code": 0
+      },
+      "nonzero_command_count": 3,
+      "usage": {
+        "input_tokens": 2675222,
+        "cached_input_tokens": 2528256,
+        "output_tokens": 12747,
+        "reasoning_output_tokens": 2262
+      },
+      "usage_scope": "last observed native cumulative snapshot; failed/interrupted final call may be incomplete",
+      "backend_model_call_count": null,
+      "actual_cost": null,
+      "protected_files_unchanged": true,
+      "prompt_sha256": "c05341c631c785ae7d7514a0c40b9fdd8b0911edd9c5c154b7b14701208cc1ca",
+      "stdout_sha256": "52544e79474bfebeade8a2bab30a8747ae21d0c50b2eccac890eb5a4ec8239fb",
+      "stored_turn_count": 0,
+      "requests": [
+        {
+          "status": "held",
+          "turn_id_present": false
+        }
+      ],
+      "blind_quality_score_14": null,
+      "semantic_gate": "not_completed",
+      "visual_review": "not_run",
+      "original_observer_revision": "preserved; metrics reconstructed without AI rerun"
+    }
+  ],
+  "live_output_error_codes": {
+    "scope_mismatch": 1,
+    "workflow_review_audit_missing": 1,
+    "input_limit": 1,
+    "selection_policy_conflict": 1
+  },
+  "live_usage_last_observed_utc": "2026-10-12T10:58:06.263Z",
+  "fresh_evidence_file_digest_index_sha256": "0e2111e1c7c940656a430b081c81fee5f83901140eb10168c63a5d426de8602d",
+  "offline_profile": {
+    "scope": "actual saved input offline replay, not fresh research or native execution",
+    "model_calls": 0,
+    "setup_seconds": 0.0117552001029253,
+    "plan_sha256": "1b19fcddc4656164403cbefae0f42a3f565baaccb5be6fb8e9e530f867c3d507",
+    "export_sha256": "7ff5c51e5224d260098ca0c58da32dace804471fd4332a1ee4d21a32f982b779",
+    "renderer_sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6",
+    "viewer_sha256": "e30b880b41e9f9c3f0ad305d8d02e152d25859b5d132fddaa500eb7f3b488fc0",
+    "source_count": 5,
+    "reports": [
+      {
+        "run": 1,
+        "cache_condition": "first_process_render",
+        "total_seconds": 0.5760729997418821,
+        "stage_inclusive_seconds": {
+          "validate_report_plan": 0.0005608000792562962,
+          "_deps": 0.252477599773556,
+          "_adapt_plan": 9.079976007342339e-05,
+          "_write_libraries": 0.030172099824994802,
+          "_write_docx": 0.0407124999910593,
+          "_write_pdf": 0.19221669994294643,
+          "_verify": 0.05625259969383478
+        },
+        "ready": true,
+        "checks": {
+          "xlsx_count": 3,
+          "docx_count": 1,
+          "pdf_pages": 4,
+          "pdf_links": 10,
+          "source_count": 5,
+          "semantic_status": "unverified",
+          "pdf_internal_links": 32,
+          "reference_count": 5,
+          "structure_verified": true,
+          "visual_review": "not_run",
+          "chart_editing": "rendered_images; data_cells_editable; regenerate_from_report_plan"
+        },
+        "files": [
+          {
+            "suffix": ".xlsx",
+            "bytes": 7000,
+            "sha256": "80a1b27966dfc12c71587a4da6e8c5e1523e9bcb1f05716f3f60ca9df69a1d83"
+          },
+          {
+            "suffix": ".xlsx",
+            "bytes": 6496,
+            "sha256": "84ce6395dd9caa5427b5430b566e45570e9343f533a43dc7a79f1ffd588e76f4"
+          },
+          {
+            "suffix": ".xlsx",
+            "bytes": 10772,
+            "sha256": "5f6c49439b3d357228ddb7dc4578c519d74fc2ed46267044bd0c9ef71207f524"
+          },
+          {
+            "suffix": ".docx",
+            "bytes": 41486,
+            "sha256": "5d79e2d85dacd8810cd64b6b63775be7f36da1909c162b70e7d763d5bd8f93c5"
+          },
+          {
+            "suffix": ".pdf",
+            "bytes": 138581,
+            "sha256": "53e067f30d6eb3a686f5bd6c5ddd6776991f6888b26aeaa59f67e12c04bceb8b"
+          }
+        ]
+      },
+      {
+        "run": 2,
+        "cache_condition": "same_process_repeat_new_output",
+        "total_seconds": 0.17165290005505085,
+        "stage_inclusive_seconds": {
+          "validate_report_plan": 0.0005587004125118256,
+          "_deps": 1.0599847882986069e-05,
+          "_adapt_plan": 7.570022717118263e-05,
+          "_write_libraries": 0.02878169994801283,
+          "_write_docx": 0.042460800148546696,
+          "_write_pdf": 0.041772699914872646,
+          "_verify": 0.05497320042923093
+        },
+        "ready": true,
+        "checks": {
+          "xlsx_count": 3,
+          "docx_count": 1,
+          "pdf_pages": 4,
+          "pdf_links": 10,
+          "source_count": 5,
+          "semantic_status": "unverified",
+          "pdf_internal_links": 32,
+          "reference_count": 5,
+          "structure_verified": true,
+          "visual_review": "not_run",
+          "chart_editing": "rendered_images; data_cells_editable; regenerate_from_report_plan"
+        },
+        "files": [
+          {
+            "suffix": ".xlsx",
+            "bytes": 7000,
+            "sha256": "80a1b27966dfc12c71587a4da6e8c5e1523e9bcb1f05716f3f60ca9df69a1d83"
+          },
+          {
+            "suffix": ".xlsx",
+            "bytes": 6496,
+            "sha256": "84ce6395dd9caa5427b5430b566e45570e9343f533a43dc7a79f1ffd588e76f4"
+          },
+          {
+            "suffix": ".xlsx",
+            "bytes": 10772,
+            "sha256": "5f6c49439b3d357228ddb7dc4578c519d74fc2ed46267044bd0c9ef71207f524"
+          },
+          {
+            "suffix": ".docx",
+            "bytes": 41486,
+            "sha256": "5d79e2d85dacd8810cd64b6b63775be7f36da1909c162b70e7d763d5bd8f93c5"
+          },
+          {
+            "suffix": ".pdf",
+            "bytes": 138581,
+            "sha256": "3b504f1cb1ad95bc61e835c162e479552e3f66a6132e78ceb78b73cbfe9f6dd7"
+          }
+        ]
+      }
+    ],
+    "html": [
+      {
+        "run": 1,
+        "total_seconds": 0.08829860016703606,
+        "exit_code": 0,
+        "browser_paint": "not_measured",
+        "files": [
+          {
+            "suffix": ".html",
+            "bytes": 58895,
+            "sha256": "4393aeb7c3a83ef5b0b7d2b4ef35bf162c02bddf1d603a7fa67372901d8982ba"
+          },
+          {
+            "suffix": ".js",
+            "bytes": 3424,
+            "sha256": "ddd3926e3a3fc1ed89b47f92588db3f94d36fae8e6c91cad8dfcd978b0c7e8db"
+          }
+        ],
+        "stderr": ""
+      },
+      {
+        "run": 2,
+        "total_seconds": 0.07606119988486171,
+        "exit_code": 0,
+        "browser_paint": "not_measured",
+        "files": [
+          {
+            "suffix": ".html",
+            "bytes": 58895,
+            "sha256": "4393aeb7c3a83ef5b0b7d2b4ef35bf162c02bddf1d603a7fa67372901d8982ba"
+          },
+          {
+            "suffix": ".js",
+            "bytes": 3424,
+            "sha256": "ddd3926e3a3fc1ed89b47f92588db3f94d36fae8e6c91cad8dfcd978b0c7e8db"
+          }
+        ],
+        "stderr": ""
+      }
+    ],
+    "limits": [
+      "Stage times are inclusive, possibly nested; do not sum them as disjoint phases.",
+      "No semantic or physical layout verification; structure checks only.",
+      "Second render is same process, not the product report cache.",
+      "Only observed saved data scale; no large-corpus performance extrapolation."
+    ]
+  },
+  "limits": [
+    "Original 20/49-review raw data unavailable; do not attribute their 1800-second timeout retrospectively.",
+    "Tool wall duration reconstructed from emitted event timestamps, not pure service execution time.",
+    "Residual time includes model generation/reasoning, transfer, native runtime and unobserved work.",
+    "Only selected retained data offline renderer measured; no broad research performance inference.",
+    "Old observer final.txt on timeout is a progress message; it is not final delivery.",
+    "Old observed duration includes collector/termination; exact exit timestamp not retained.",
+    "Cached input included in input; reasoning output included in output; do not add twice."
+  ],
+  "local_verification": {
+    "evaluation_tests": 135,
+    "observer_boundary_tests_included": 7,
+    "checks": [
+      {
+        "name": "evaluation",
+        "exit_code": 0,
+        "log_sha256": "f03103549cec2793b12ae1c60416bb4ceb0ec7d915220a2c39f63235a8424637"
+      },
+      {
+        "name": "compile",
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "input_sha256": {
+      "evals/runner/model_effort_eval.py": "d289d213cc8b8f889f5ad3d87b0a65d75204199f312acb01c2056e9c45535f46",
+      "evals/runner/profile_report.py": "b335a040d43df18d437e9a54360f17d0e924adb4b6492adc7f6ab924a678f058",
+      "tests/evaluation/test_model_effort_eval.py": "070ec3c9e26a12d0b792bf226c8d70ebadd325bf044c3fda827bb5aea84ad273",
+      ".gitattributes": "4017b95e81b9c7474b17c8e8795c14ba683108e2179f9ed0509e480af6889988"
+    },
+    "scope": "actual local verification, not full task-bound development-harness complete"
+  },
+  "live_research_observed": {
+    "source_scan_count": 32,
+    "distinct_urls": 28,
+    "observed": 24,
+    "inaccessible": 8,
+    "web_page_attempts": 33,
+    "snapshots": 25,
+    "initial_review_list_count": 45,
+    "retained_journal": 43,
+    "insufficient_context_journal": 2,
+    "registered_product_fact_count": 5,
+    "registered_review_count": 0,
+    "coverage_certified": false,
+    "native_final_delivered": false,
+    "turn_count": 0,
+    "reader_delivery_count": 0
+  }
+}
