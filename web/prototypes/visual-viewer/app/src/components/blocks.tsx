@@ -35,13 +35,13 @@ export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }):
   const Story = STORY_BLOCKS[b.type]
   if (Story) return <Story b={b} copy={copy} />
   switch (b.type) {
-    case 'lead': return <p className="max-w-3xl text-[15px] leading-relaxed text-muted-foreground"><Md text={b.text} /></p>
-    case 'text': return <p className="max-w-3xl text-sm leading-relaxed"><Md text={b.text} /></p>
+    case 'lead': return <p className="max-w-3xl text-[17px] leading-relaxed text-zinc-600"><Md text={b.text} /></p>
+    case 'text': return <p className="max-w-3xl text-[15px] leading-7"><Md text={b.text} /></p>
     case 'divider': return <hr className="my-2 border-border" />
     case 'heading':
-      return <h2 className="mt-4 flex items-center gap-2 text-xl font-semibold tracking-tight">{b.icon && <span aria-hidden>{b.icon}</span>}{b.text}</h2>
+      return <h2 className="mt-8 flex items-center gap-3 text-[22px] font-bold tracking-tight"><span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-[#ea1917]" />{b.text}</h2>
     case 'section':
-      return <h3 className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{b.text}</h3>
+      return <h3 className="mt-6 flex items-center gap-2 text-base font-bold"><span aria-hidden className="size-1.5 shrink-0 rounded-full bg-[#ea1917]" />{b.text}</h3>
     case 'callout': return <Alert tone={b.tone}><Md text={b.text} /></Alert>
     case 'chips':
       return (
@@ -77,7 +77,7 @@ export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }):
                 {b.numbered && <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{i + 1}</span>}
                 <div className="min-w-0">
                   <div className="text-sm font-semibold">{c.title}</div>
-                  <p className="mt-1 text-sm text-muted-foreground"><Md text={c.text} /></p>
+                  <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground"><Md text={c.text} /></p>
                   <Badges items={c.chips} className="mt-2" />
                 </div>
               </div>
@@ -89,7 +89,7 @@ export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }):
       return (
         <div>
           {b.title && <div className="mb-2 text-sm font-semibold">{b.title}</div>}
-          <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm marker:text-muted-foreground">
+          <ul className="flex list-disc flex-col gap-2 pl-5 text-[15px] leading-relaxed marker:text-muted-foreground">
             {(b.items || []).map((x: string, i: number) => <li key={i}><Md text={x} /></li>)}
           </ul>
         </div>
@@ -98,7 +98,7 @@ export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }):
       return (
         <ol className="flex flex-col gap-2">
           {(b.items || []).map((x: string, i: number) => (
-            <li key={i} className="flex gap-3 text-sm">
+            <li key={i} className="flex gap-3 text-[15px] leading-relaxed">
               <span className="grid size-5 shrink-0 place-items-center rounded-full bg-muted text-[11px] font-semibold">{i + 1}</span>
               <span><Md text={x} /></span>
             </li>
@@ -111,7 +111,7 @@ export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }):
           {(b.items || []).map((f: Block, i: number) => (
             <Card key={i} className="p-4">
               <div className="flex items-center gap-2 text-sm font-semibold">{f.icon && <span aria-hidden>{f.icon}</span>}{f.title}</div>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground"><Md text={f.text} /></p>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground"><Md text={f.text} /></p>
             </Card>
           ))}
         </div>
@@ -132,10 +132,10 @@ function Kpis({ b }: { b: Block }) {
           const t = tone(k.tone)
           return (
             <Card key={i} className="relative overflow-hidden p-4" title={k.source ? '출처: ' + k.source : undefined}>
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <div className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
                 <span className={cn('size-2 rounded-full', TONE_DOT[t])} />{k.label}
               </div>
-              <div className={cn('mt-2 text-3xl font-semibold tracking-tight', t === 'gray' ? 'text-zinc-500' : 'text-foreground')}>
+              <div className={cn('mt-2 text-4xl font-bold tracking-tight', t === 'gray' ? 'text-zinc-500' : 'text-foreground')}>
                 {k.emoji && <span aria-hidden className="mr-1">{k.emoji}</span>}
                 <StatValue value={k.value} />
                 {k.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{k.unit}</span>}
@@ -157,7 +157,7 @@ function Metrics({ b }: { b: Block }) {
         const long = String(m.value ?? '').length + String(m.unit ?? '').length > 9
         return (
           <div key={i} className="min-w-0 p-4">
-            <div className="text-xs text-muted-foreground">{m.label}</div>
+            <div className="text-[13px] text-muted-foreground">{m.label}</div>
             <div className={cn('mt-1 font-semibold tracking-tight', long ? 'text-base' : 'text-2xl')}>
               {fmt(m.value)}{m.unit ? <span className="ml-0.5 text-sm font-medium text-muted-foreground">{m.unit}</span> : null}
             </div>
@@ -227,7 +227,7 @@ function DataTable({ b }: { b: Block }) {
       <CardContent className={b.title || b.search || b.filter ? '' : 'pt-2'}>
         <Table>
           <THead><TR className="hover:bg-transparent">{cols.map((c) => <TH key={c.key}>{c.label}</TH>)}</TR></THead>
-          <TBody>{shown.map((r, i) => <TR key={i}>{cols.map((c) => <Cell key={c.key} kind={c.kind} v={r[c.key]} />)}</TR>)}</TBody>
+          <TBody className="[&_tr:nth-child(even)]:bg-zinc-50/70">{shown.map((r, i) => <TR key={i}>{cols.map((c) => <Cell key={c.key} kind={c.kind} v={r[c.key]} />)}</TR>)}</TBody>
         </Table>
         {b.count !== false && <p className="mt-2 text-xs text-muted-foreground">{fmt(shown.length)}건</p>}
         <Source text={b.source} />
@@ -241,7 +241,7 @@ function Clamp({ text, lines = 3, quote }: { text: string; lines?: number; quote
   const long = text.length > (lines * 50)
   return (
     <div>
-      <p className={cn('whitespace-pre-line text-sm leading-relaxed', !open && long && (lines === 3 ? 'line-clamp-3' : 'line-clamp-5'))}>
+      <p className={cn('whitespace-pre-line text-[15px] leading-relaxed', !open && long && (lines === 3 ? 'line-clamp-3' : 'line-clamp-5'))}>
         {quote ? <>“{text}”</> : <Md text={text} />}
       </p>
       {long && <button type="button" onClick={() => setOpen(!open)} className="mt-1 text-xs font-medium text-blue-700 hover:underline">{open ? '접기' : '더 보기'}</button>}
@@ -302,11 +302,11 @@ function Chain({ b }: { b: Block }) {
 function Expander({ b, copy }: { b: Block; copy: (s: string) => void }) {
   return (
     <details className="group rounded-xl border bg-card" open={!!b.open}>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">{b.icon && <span aria-hidden>{b.icon}</span>}{b.title}</span>
         <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
-      <div className="flex flex-col gap-4 border-t px-4 py-4"><Blocks blocks={b.blocks || []} copy={copy} /></div>
+      <div className="flex flex-col gap-4 border-t px-5 py-5"><Blocks blocks={b.blocks || []} copy={copy} /></div>
     </details>
   )
 }

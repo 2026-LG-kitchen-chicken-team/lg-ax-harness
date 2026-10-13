@@ -36,6 +36,31 @@
   --vis-donut-central-label-font-weight: 700;
 }
 
+/* A in LG's web style (lge.co.kr): near-black text, cool light-grey canvas with white cards, 16–20px corners,
+   LG red only for the current page and small markers. Scoped to A's root so the other views keep their own look. */
+.theme-lg {
+  --background: #f4f5f7;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --muted: #f3f4f6;
+  --muted-foreground: #5f6571;
+  --accent: #f1f2f4;
+  --border: #e5e7eb;
+  --ring: #ea1917;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --sidebar: #ffffff;
+  --radius: 1rem;
+}
+
+/* A search result's block glows once so the eye finds it; nothing is hidden or moved. */
+.lg-flash { animation: lg-flash 1.8s ease-out; border-radius: 1rem; }
+@keyframes lg-flash {
+  0%, 55% { box-shadow: 0 0 0 4px rgb(234 25 23 / 0.35); }
+  100% { box-shadow: 0 0 0 4px rgb(234 25 23 / 0); }
+}
+
 @theme inline {
   --font-sans: "Pretendard Variable", Pretendard, "Malgun Gothic", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "D2Coding", Consolas, ui-monospace, monospace;
