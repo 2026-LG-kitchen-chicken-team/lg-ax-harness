@@ -1,0 +1,41 @@
+{
+  "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.10.0",
+  "published_at": "2026-10-13T11:06:02Z",
+  "is_prerelease": true,
+  "source_commit": "182ee2e95f9ae4f8e5a21b835b714175b700b266",
+  "product_snapshot": "cdf0e6e1970c6e0b8d1cc728a6838dabf9188e29",
+  "snapshot_parents": [],
+  "canonical_engine": "codex",
+  "source_archive_105_exact_raw_bytes": true,
+  "assets": [
+    {
+      "engine": "codex",
+      "name": "lg-ax-harness-codex-product-v0.10.0.zip",
+      "sha256": "517ccf55a3f5d0ad279b1a19e8b16f9cd9ab52597b917d6f89af2b0c66525cd3",
+      "download_verified": true,
+      "files": 105
+    },
+    {
+      "engine": "claude",
+      "name": "lg-ax-harness-claude-product-v0.10.0.zip",
+      "sha256": "49e2c45ec0430db067e3f9aef152d8a71be6524ec659fb98b6b2662a280a4655",
+      "download_verified": true,
+      "files": 105
+    }
+  ],
+  "checksums_download_verified": true,
+  "first_attempt_failure": "gh forbids --pattern with --archive; split into two actual download commands",
+  "code_manifest_sha256": "2bb9ccd4e25097a52573ea480ab4f3276a8f25a8dca8b44c375d868f75f1877f",
+  "remote_verification_raw_sha256": "66f93fc28ab987850a99d3d875ad170418ce89b8855164cd3b2b2701703314dc",
+  "fresh_git_checkout": {
+    "source_commit": "182ee2e95f9ae4f8e5a21b835b714175b700b266",
+    "windows_autocrlf_simulation": true,
+    "source_raw_sha_matched": 57,
+    "fresh_git_asset_check_exit": 0,
+    "asset_check_stdout": "{\"errors\": [], \"product_agents\": 1, \"optional_product_roles\": 3, \"product_skills\": 6, \"scope\": \"main Agent asset and optional role assets separately; asset/reference/dependency-lock consistency only; native runs and AI quality not verified\"}\n",
+    "new_native_input": 0,
+    "html_frontend_check": "not_run"
+  },
+  "ci_status": "not_started_account_billing_or_spending_limit",
+  "CI_native_quality_or_HTML_pass": false
+}

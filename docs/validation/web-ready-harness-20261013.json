@@ -892,7 +892,10 @@
   "Gemini": "withdrawn",
   "publication": {
     "product_tag": "product-v0.10.0",
-    "release_status": "prepared"
+    "release_status": "published_prerelease_download_verified",
+    "record": "docs/validation/product-v0.10.0.md",
+    "source_commit": "182ee2e95f9ae4f8e5a21b835b714175b700b266",
+    "product_snapshot": "cdf0e6e1970c6e0b8d1cc728a6838dabf9188e29"
   },
   "git_byte_preservation": {
     "scope": "adapters/** -text와기존4역할규칙",

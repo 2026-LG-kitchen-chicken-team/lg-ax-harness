@@ -94,6 +94,6 @@ Claude 중간401.185초와 높음437.531초의 각1회·동점12점만으로 eff
 
 source I 패키지는 Codex/Claude 각각105파일이다. 새 추출·manifest/raw SHA·locked 설치·doctor·재설치83파일을 실제 통과했다. 기본 catalog empty, 평가 corpus/개발 역할·Skill/로그/DB/인증/사용자 PDF 제외다. 패키지 재현과 기존 동결 설치의 native 시험을 새 ZIP native 실행/HTML 인수로 바꾸지 않는다.
 
-[제품 v0.10.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.10.0)의 발행/다운로드/tag tree 인수는 별도 릴리스 기록으로 확정한다. 제품만의 부모 없는 Codex canonical snapshot과 Claude 별도 ZIP을 사용하며 main/팀원 코드/기존 태그를 덮어쓰지 않는다. [웹팀 연결 인수](../plans/web-team-handoff-20261013.md)로 현재 JSON/상태/동일 버전 복구 계약을 전달했다.
+[제품 v0.10.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.10.0)의 발행/다운로드/tag tree 인수를 [실제 릴리스 기록](product-v0.10.0.md)에서 확인했다. 제품만의 부모 없는 Codex canonical snapshot과 Claude 별도 ZIP을 사용하며 main/팀원 코드/기존 태그를 덮어쓰지 않는다. [웹팀 연결 인수](../plans/web-team-handoff-20261013.md)로 현재 JSON/상태/동일 버전 복구 계약을 전달했다.
 
 남은 실제 작업은 웹팀 화면/보고서 HTML의 끝까지 연결·시각 검수, 출처 의미 결함의 추가 보완과 필요한 별도 승인 평가, 모델/effort 최종 권장, 같은 버전 대표 영상/발표·삽입 재생/합계10분 리허설, 최신 제출 규격·접수 확인이다. [어필 기획](../plans/judge-evidence-storyboard-20261013.md)은 실제 실행/제한과 함께 갱신한다. 의미·역할 이점·시장 효과·토큰 가산점 획득·모든 평가항목 충족을 완료 주장하지 않는다.
