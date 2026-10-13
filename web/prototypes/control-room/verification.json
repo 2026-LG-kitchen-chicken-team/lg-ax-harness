@@ -35,5 +35,6 @@
     "84-second synthetic choreography is not actual business runtime or performance",
     "v0.10.0 export has no native agent messaging ledger",
     "targeted for desktop browser; phone layout not included"
-  ]
+  ],
+  "lifecycle": "체험용 초기 프로토타입"
 }
