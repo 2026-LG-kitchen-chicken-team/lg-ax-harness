@@ -12,6 +12,8 @@ import Slides from './variants/Slides'
 import Poster from './variants/Poster'
 import Editorial from './variants/Editorial'
 import Board from './variants/Board'
+import Corporate from './variants/Corporate'
+import Landing from './variants/Landing'
 import { cn, Md } from './lib/utils'
 import { useView, type LiveState } from './lib/useView'
 import type { Page, View } from './types'
@@ -86,11 +88,13 @@ export default function App() {
       {toasts.map((t) => <div key={t.id} role="status" className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm text-white shadow-lg">{t.msg}</div>)}
     </div>
   )
-  // B and C re-arrange the story page; without one (request-only exports, insights-only views) they fall back to A.
+  // B–E, G and H re-arrange the story page; without one (request-only exports, insights-only views) they fall back to A.
   if (view && story && mode === 'slides') return <>{<Slides view={view} story={story} mode={mode} setMode={setMode} />}{toastsEl}</>
   if (view && story && mode === 'board') return <>{<Board view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'editorial') return <>{<Editorial view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'poster') return <>{<Poster view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
+  if (view && story && mode === 'corporate') return <>{<Corporate view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
+  if (view && story && mode === 'landing') return <>{<Landing view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
 
   const caption = page?.caption && !capHidden ? page.caption : null
   // F keeps A's sidebar, header and colours and draws each page in D's exhibition layout (components/exhibit.tsx).
@@ -107,7 +111,7 @@ export default function App() {
             <span className="truncate font-medium">{page?.nav || page?.title || '시각자료'}</span>
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            {(story || exhibit) && <ModeSwitch mode={mode} setMode={setMode} className="hidden md:inline-flex" />}
+            {(story || exhibit) && <ModeSwitch mode={mode} setMode={setMode} compact className="hidden md:inline-flex" />}
             <LiveDot live={live} inline={inline} />
             {page?.caption && (
               <Button variant="outline" size="sm" onClick={toggleCaption} aria-pressed={!capHidden}>

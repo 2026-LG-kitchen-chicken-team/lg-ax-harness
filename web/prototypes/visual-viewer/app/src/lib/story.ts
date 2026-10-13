@@ -30,6 +30,24 @@ export const inner = (section: Block | undefined, type: string): Block | undefin
 export const notesOf = (section: Block | undefined): Block[] =>
   section?.key === 'trust' ? [] : (section?.blocks || []).filter((b: Block) => b.type === 'callout')
 
+// Pain → remaining pain → proposal chains from the recorded links only (feature_matches, concept_links). Remaining
+// pains no pain link reaches, and proposals no link reaches, are returned separately so a view can say so.
+export function chainsOf(flow: Block | undefined) {
+  const nodes: Block[] = flow?.nodes || []
+  const links: Block[] = flow?.links || []
+  const node = (id: string) => nodes.find((n) => n.id === id) || { type: 'node', id, text: '' }
+  const col = (c: string) => nodes.filter((n) => n.column === c)
+  const conceptsOf = (rid: string) => links.filter((l) => l.from === rid).map((l) => node(l.to))
+  const pains = col('pain')
+  const fromPain = new Set(links.filter((l) => pains.some((p) => p.id === l.from)).map((l) => l.to))
+  const reached = new Set(links.map((l) => l.to))
+  return {
+    chains: pains.map((p) => ({ pain: p, steps: links.filter((l) => l.from === p.id).map((l) => ({ via: l, remaining: node(l.to), concepts: conceptsOf(l.to) })) })),
+    orphanRemaining: col('remaining').filter((r) => !fromPain.has(r.id)).map((r) => ({ remaining: r, concepts: conceptsOf(r.id) })),
+    orphanConcepts: col('concept').filter((c) => !reached.has(c.id)),
+  }
+}
+
 export function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = []
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size))

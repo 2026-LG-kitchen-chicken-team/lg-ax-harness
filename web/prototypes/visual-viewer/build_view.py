@@ -1721,7 +1721,7 @@ def auto_focus(export: dict | None) -> str | None:
     return "story" if ok else "overview"
 
 
-VIEW_MODES = ("app", "slides", "poster", "editorial", "board", "exhibit")  # A 앱 · B 슬라이드 · C 한 장 · D 전시 · E 보드 · F 앱+전시
+VIEW_MODES = ("app", "slides", "poster", "editorial", "board", "exhibit", "corporate", "landing")  # A 앱 · B 슬라이드 · C 한 장 · D 전시 · E 보드 · F 앱+전시 · G 기업 · H 랜딩
 
 
 def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
@@ -1731,7 +1731,7 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
 
     - insights_path가 없고 insights_dir가 있으면 그 폴더의 insights-*.json에서 session_id·turn_id로 고른다.
     - out_dir가 이 폴더가 아니면 index.html도 그 폴더에 복사한다. index_sha256을 주면 복사 전에 지문을 확인한다.
-    - mode(VIEW_MODES)는 단일 HTML 보고서를 처음 열 때의 보기다. 받은 사람이 바로 B~F안을 보게 할 때 쓴다.
+    - mode(VIEW_MODES)는 단일 HTML 보고서를 처음 열 때의 보기다. 받은 사람이 바로 B~H안을 보게 할 때 쓴다.
     """
     if mode is not None and mode not in VIEW_MODES:
         raise SystemExit(f"--mode는 {', '.join(VIEW_MODES)} 중 하나입니다: {mode}")
@@ -1812,7 +1812,7 @@ def main() -> int:
     ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
     ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + ", insights pages의 id, 또는 auto(상태로 선택)")
     ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
-    ap.add_argument("--mode", choices=VIEW_MODES, help="--standalone 보고서를 처음 열 때의 보기: app(A 앱), slides(B 슬라이드), poster(C 한 장), editorial(D 전시), board(E 보드), exhibit(F 앱+전시)")
+    ap.add_argument("--mode", choices=VIEW_MODES, help="--standalone 보고서를 처음 열 때의 보기: app(A 앱), slides(B 슬라이드), poster(C 한 장), editorial(D 전시), board(E 보드), exhibit(F 앱+전시), corporate(G 기업), landing(H 랜딩)")
     ap.add_argument("--out-dir", type=Path, help="view-data.js·index.html을 둘 폴더 (기본: 이 폴더)")
     ap.add_argument("--open", action="store_true", help="뷰어를 기본 브라우저로 연다")
     args = ap.parse_args()

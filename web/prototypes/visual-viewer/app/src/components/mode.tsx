@@ -1,10 +1,10 @@
 // View mode switch for comparing layouts on the same data: A app, B slides, C one-page poster, D exhibition, E board,
-// F = A's sidebar with every page drawn in D's dark exhibition style.
+// F = A's sidebar with every page in D's layout, G corporate site, H service landing page.
 import { useCallback, useLayoutEffect, useState, type ReactNode } from 'react'
-import { GalleryVerticalEnd, Kanban, LayoutDashboard, LayoutGrid, PanelLeft, Presentation } from 'lucide-react'
+import { Building2, GalleryVerticalEnd, Kanban, LayoutDashboard, LayoutGrid, PanelLeft, Presentation, Rocket } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-export type Mode = 'app' | 'slides' | 'poster' | 'editorial' | 'board' | 'exhibit'
+export type Mode = 'app' | 'slides' | 'poster' | 'editorial' | 'board' | 'exhibit' | 'corporate' | 'landing'
 const MODES: { id: Mode; label: string; icon: typeof LayoutGrid }[] = [
   { id: 'app', label: 'A 앱', icon: LayoutDashboard },
   { id: 'slides', label: 'B 슬라이드', icon: Presentation },
@@ -12,6 +12,8 @@ const MODES: { id: Mode; label: string; icon: typeof LayoutGrid }[] = [
   { id: 'editorial', label: 'D 전시', icon: GalleryVerticalEnd },
   { id: 'board', label: 'E 보드', icon: Kanban },
   { id: 'exhibit', label: 'F 앱+전시', icon: PanelLeft },
+  { id: 'corporate', label: 'G 기업', icon: Building2 },
+  { id: 'landing', label: 'H 랜딩', icon: Rocket },
 ]
 const isMode = (m: unknown): m is Mode => MODES.some((x) => x.id === m)
 
@@ -31,15 +33,17 @@ export function useMode(): [Mode, (m: Mode) => void] {
   return [mode, setMode]
 }
 
-export function ModeSwitch({ mode, setMode, dark, className }: { mode: Mode; setMode: (m: Mode) => void; dark?: boolean; className?: string }) {
+// Names show from xl (from 2xl with `compact`, for A's crowded header); narrower screens show the letters only.
+export function ModeSwitch({ mode, setMode, dark, compact, className }: { mode: Mode; setMode: (m: Mode) => void; dark?: boolean; compact?: boolean; className?: string }) {
   return (
     <div role="radiogroup" aria-label="보기 방식" className={cn('no-print inline-flex items-center gap-0.5 rounded-lg p-0.5 text-xs',
       dark ? 'bg-white/10 text-zinc-200 ring-1 ring-white/15 backdrop-blur' : 'bg-zinc-100 text-zinc-600', className)}>
       {MODES.map(({ id, label, icon: Icon }) => (
-        <button key={id} type="button" role="radio" aria-checked={mode === id} onClick={() => setMode(id)}
-          className={cn('inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 font-medium',
+        <button key={id} type="button" role="radio" aria-checked={mode === id} onClick={() => setMode(id)} title={label} aria-label={label}
+          className={cn('inline-flex h-7 items-center gap-1.5 rounded-md px-2 font-medium',
             mode === id ? (dark ? 'bg-white text-zinc-900' : 'bg-white text-zinc-900 shadow-xs') : (dark ? 'hover:bg-white/10' : 'hover:text-zinc-900'))}>
-          <Icon className="size-3.5" aria-hidden />{label}
+          <Icon className="size-3.5" aria-hidden />{label.split(' ')[0]}
+          <span className={compact ? 'hidden 2xl:inline' : 'hidden xl:inline'}>{label.split(' ').slice(1).join(' ')}</span>
         </button>
       ))}
     </div>
