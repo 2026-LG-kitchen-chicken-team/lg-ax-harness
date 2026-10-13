@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { Badge, Button } from './components/ui'
 import { Blocks } from './components/blocks'
+import { ExhibitPage } from './components/exhibit'
 import { ModeSwitch, useMode } from './components/mode'
 import { storyOf } from './lib/story'
 import Slides from './variants/Slides'
@@ -92,6 +93,8 @@ export default function App() {
   if (view && story && mode === 'poster') return <>{<Poster view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
 
   const caption = page?.caption && !capHidden ? page.caption : null
+  // F keeps A's sidebar, header and colours and draws each page in D's exhibition layout (components/exhibit.tsx).
+  const exhibit = mode === 'exhibit'
   return (
     <div className="min-h-dvh bg-background">
       <Sidebar view={view} current={current} go={go} open={navOpen} close={() => setNavOpen(false)} reload={reload} openFile={openFile} inline={inline} />
@@ -104,7 +107,7 @@ export default function App() {
             <span className="truncate font-medium">{page?.nav || page?.title || '시각자료'}</span>
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            {story && <ModeSwitch mode={mode} setMode={setMode} className="hidden md:inline-flex" />}
+            {(story || exhibit) && <ModeSwitch mode={mode} setMode={setMode} className="hidden md:inline-flex" />}
             <LiveDot live={live} inline={inline} />
             {page?.caption && (
               <Button variant="outline" size="sm" onClick={toggleCaption} aria-pressed={!capHidden}>
@@ -113,9 +116,15 @@ export default function App() {
             )}
           </div>
         </header>
-        <main className={cn('@container mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 sm:px-8 print-full', caption ? 'pb-40' : 'pb-16')}>
-          {view && page ? <PageView page={page} copy={copy} /> : <Empty />}
-        </main>
+        {exhibit ? (
+          <main className={cn('@container print-full', caption ? 'pb-40' : 'pb-16')}>
+            {view && page ? <ExhibitPage view={view} page={page} story={story} copy={copy} go={go} /> : <div className="px-4 py-8"><Empty /></div>}
+          </main>
+        ) : (
+          <main className={cn('@container mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 sm:px-8 print-full', caption ? 'pb-40' : 'pb-16')}>
+            {view && page ? <PageView page={page} copy={copy} /> : <Empty />}
+          </main>
+        )}
       </div>
       {caption && view && (
         <div role="status" aria-live="polite" className="no-print fixed inset-x-4 bottom-4 z-30 mx-auto max-w-4xl rounded-2xl bg-zinc-950/90 px-5 py-3.5 text-zinc-100 shadow-2xl ring-1 ring-white/10 backdrop-blur lg:left-[calc(18rem+1rem)]">

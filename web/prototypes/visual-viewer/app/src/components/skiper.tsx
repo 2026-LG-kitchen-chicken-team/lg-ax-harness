@@ -6,6 +6,7 @@
 import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react'
 import { cn } from '../lib/utils'
+import { useCx } from '../lib/exTheme'
 
 /* skiper31 (CharacterV1): characters start spread out around the centre and settle as the section scrolls. */
 function ScatterChar({ char, index, center, progress }: { char: string; index: number; center: number; progress: MotionValue<number> }) {
@@ -99,6 +100,7 @@ export function HoverExpand<T>({ items, strip, open, className }: {
 
 /* skiper89 Scroll progress 001: a small draggable ring that fills as the page scrolls (percentage on hover). */
 export function ScrollRing() {
+  const cx = useCx()
   const { scrollYProgress } = useScroll()
   const [pct, setPct] = useState(0)
   const clamped = useTransform(scrollYProgress, (v) => Math.min(Math.max(v, 0), 1))
@@ -106,8 +108,8 @@ export function ScrollRing() {
   const r = 18
   return (
     <motion.div drag dragMomentum={false} className="group no-print fixed bottom-5 right-5 z-50 cursor-grab active:cursor-grabbing" title="스크롤 진행 · 끌어서 옮길 수 있음">
-      <span className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full text-xs font-medium tabular-nums text-white/40 opacity-0 group-hover:opacity-100">{pct}%</span>
-      <div className="flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-orange-400 backdrop-blur">
+      <span className={cx('absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full text-xs font-medium tabular-nums text-white/40 opacity-0 group-hover:opacity-100')}>{pct}%</span>
+      <div className={cx('flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-orange-400 backdrop-blur')}>
         <svg className="size-10" viewBox="0 0 48 48" role="presentation">
           <circle cx="24" cy="24" r={r} stroke="currentColor" strokeWidth="3" className="opacity-25" fill="none" />
           <motion.circle cx="24" cy="24" r={r} stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round"

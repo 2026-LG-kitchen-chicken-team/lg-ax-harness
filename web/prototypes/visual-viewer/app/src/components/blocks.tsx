@@ -185,15 +185,21 @@ function Cell({ kind, v }: { kind?: string; v: unknown }) {
   return <TD className={cls}>{typeof v === 'number' ? fmt(v) : <Md text={String(v)} />}</TD>
 }
 
-function DataTable({ b }: { b: Block }) {
+// Search box and filter chips of a table block (shared by A and F). Filters only hide rows; nothing is re-counted.
+export function useTableRows(b: Block) {
   const cols: Block[] = b.columns || []
   const rows: Block[] = b.rows || []
   const [q, setQ] = useState('')
   const [f, setF] = useState('')
   const text = (r: Block) => cols.map((c) => { const v = r[c.key]; return typeof v === 'object' && v ? JSON.stringify(v) : String(v ?? '') }).join(' ').toLowerCase()
   const fval = (r: Block) => { const v = b.filter ? r[b.filter] : ''; return typeof v === 'object' && v ? v.text : v }
-  const filters = useMemo(() => (b.filter ? Array.from(new Set(rows.map(fval).filter(Boolean))) : []), [rows, b.filter])
+  const filters: string[] = useMemo(() => (b.filter ? Array.from(new Set(rows.map(fval).filter(Boolean))) : []), [rows, b.filter]) // eslint-disable-line react-hooks/exhaustive-deps
   const shown = rows.filter((r) => (!q || text(r).includes(q.toLowerCase())) && (!f || fval(r) === f))
+  return { cols, shown, filters, q, setQ, f, setF }
+}
+
+function DataTable({ b }: { b: Block }) {
+  const { cols, shown, filters, q, setQ, f, setF } = useTableRows(b)
   return (
     <Card className="min-w-0">
       {(b.title || b.search || b.filter) && (
