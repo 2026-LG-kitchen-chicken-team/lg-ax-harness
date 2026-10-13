@@ -1,0 +1,429 @@
+{
+  "purpose": "submission_source_rehearsal_not_final_submission",
+  "runtime_profile": "codex",
+  "native_support": "see release validation; file installation alone does not prove native support",
+  "files": [
+    {
+      "path": ".agents/skills/concept-writing/SKILL.md",
+      "sha256": "72b5cd0fdfffac04f4fa5774333d9a351531191f27db47bc93738abcfb92d0fd"
+    },
+    {
+      "path": ".agents/skills/concept-writing/scripts/run.py",
+      "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd"
+    },
+    {
+      "path": ".agents/skills/evidence-retrieval/SKILL.md",
+      "sha256": "1009ffd4e00cfeeb579e3787690d69949dcea9f798b8587fb620155479d128f2"
+    },
+    {
+      "path": ".agents/skills/evidence-retrieval/scripts/run.py",
+      "sha256": "65b1bffd0d83934404ca3a0022b6f2485e578ec90cab34a51d1bde46df73da88"
+    },
+    {
+      "path": ".agents/skills/feature-comparison/SKILL.md",
+      "sha256": "6879dd119b225ad7b28f3632c3f8029d56debe96c01c88bfc13eaa638103c1db"
+    },
+    {
+      "path": ".agents/skills/feature-comparison/scripts/run.py",
+      "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e"
+    },
+    {
+      "path": ".agents/skills/needs-structuring/SKILL.md",
+      "sha256": "47e0ed8587c39bb8d45417a2ca876fe61dded4b5e62e08a4a0ec36a4efe30924"
+    },
+    {
+      "path": ".agents/skills/needs-structuring/scripts/run.py",
+      "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/SKILL.md",
+      "sha256": "23068fe2c955a079535788be5affb611c9771723ecbdceb8fddfc0cc43ca5799"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/references/payload.md",
+      "sha256": "c59b76fd1f0b872f1f5a655104b8c76194e1a83bb00fe0dc38b8bf935d2ed222"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/references/report-writing.md",
+      "sha256": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/scripts/run.py",
+      "sha256": "964c8b4d58b3d9b2302f5198efcfdc85d7a3f3a202cf93ce22c6b0e7bff34bf3"
+    },
+    {
+      "path": ".agents/skills/web-evidence-collection/SKILL.md",
+      "sha256": "9bbeb8cdb19eacc957f411e8c8dd3be62a11ef55ba3cd4fb343d556d6d92c301"
+    },
+    {
+      "path": ".agents/skills/web-evidence-collection/scripts/run.py",
+      "sha256": "1f24f4fa520d3081432bcf27c0308dd3aa796d47e38f2307c10ce13f2091e591"
+    },
+    {
+      "path": ".codex/agents/product-evidence-reviewer.toml",
+      "sha256": "dc6e09e94c8aa6b41727be6a59ab9595f27f2c3bbfda264602e348601a9a5610"
+    },
+    {
+      "path": ".codex/agents/product-official-researcher.toml",
+      "sha256": "040f09779eee048669a2276add1035a9dc1daf4f1f7bb49b4fbad586bd119563"
+    },
+    {
+      "path": ".codex/agents/product-review-researcher.toml",
+      "sha256": "ae6df030652073f62cfeb58cde1b5146e14b87ed26c7743428a70bdb1ad31da4"
+    },
+    {
+      "path": ".codex/config.toml",
+      "sha256": "122c7e32b9cfbfec9391396efca37967935d04e94548f119c00275d34dbf58e7"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "8a15a5cca9ef46e9225afd11884760d79d01cbd3102ef0144423904470423f05"
+    },
+    {
+      "path": "README.md",
+      "sha256": "b1f8cfe7e59282cb0082e6987a0015e0e73c5e94219d3fb31329f7de9144bc93"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "f7f438d5c43e1e54115fb5cc99fcd18aea6283c5913b2729ef68812c9bdffc6e"
+    },
+    {
+      "path": "adapters/claude/install.py",
+      "sha256": "ec36485934c1f7c59dc587e973321fb5ce4301e9a5601988d4b6876a769ef9ca"
+    },
+    {
+      "path": "adapters/claude/templates/CLAUDE.md",
+      "sha256": "d2a104212317a724bf3abf57fffd5b61a4eafd9bd08300e3d30723c7d886c32a"
+    },
+    {
+      "path": "adapters/claude/templates/product-evidence-reviewer.md",
+      "sha256": "9471d88cb6af161eb77bbf28e1afd5f0606fb22254d8612570a9eacbd314579c"
+    },
+    {
+      "path": "adapters/claude/templates/product-official-researcher.md",
+      "sha256": "662a291884ca95e297cb3130ebf39b8932e8440d1245db3a9526f7cbff203608"
+    },
+    {
+      "path": "adapters/claude/templates/product-review-researcher.md",
+      "sha256": "a38ac93297b8563f81a4c13ff32c01403fe02666b48d32fc40d81300e46424c0"
+    },
+    {
+      "path": "adapters/codex/install.py",
+      "sha256": "314cb582d6a31e1e7f5df5466930d3fdb5c9bd4f383d4d6f200cebf8759ec343"
+    },
+    {
+      "path": "adapters/codex/templates/.gitignore",
+      "sha256": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516"
+    },
+    {
+      "path": "adapters/codex/templates/AGENTS.md",
+      "sha256": "8a15a5cca9ef46e9225afd11884760d79d01cbd3102ef0144423904470423f05"
+    },
+    {
+      "path": "adapters/codex/templates/README.md",
+      "sha256": "b1f8cfe7e59282cb0082e6987a0015e0e73c5e94219d3fb31329f7de9144bc93"
+    },
+    {
+      "path": "adapters/codex/templates/config.toml",
+      "sha256": "122c7e32b9cfbfec9391396efca37967935d04e94548f119c00275d34dbf58e7"
+    },
+    {
+      "path": "adapters/codex/templates/product-doctor.py",
+      "sha256": "801b38f91fed3a88a0e573d836fe30619ad4934c2fe76ac27c2e0b436ea1dab4"
+    },
+    {
+      "path": "adapters/codex/templates/product-evidence-reviewer.toml",
+      "sha256": "93eba8f4d3efd8602de5b6247db553d4b3dbcca9b8a367f8322a75650c9ba68e"
+    },
+    {
+      "path": "adapters/codex/templates/product-official-researcher.toml",
+      "sha256": "af8ec0e6aae1274afbabf9b6ef0380852671ffdd63166feba92811b2344f5a8c"
+    },
+    {
+      "path": "adapters/codex/templates/product-review-researcher.toml",
+      "sha256": "c713c1c13f59e0bccc9f5942dd02a37a31bf96efe30841f1e73acf6c0ca7b7fc"
+    },
+    {
+      "path": "adapters/codex/templates/pyproject.toml",
+      "sha256": "ee847fd234005a5a319d8bc714a5bc5a7587846f39a8d255eade27bb8ef1b145"
+    },
+    {
+      "path": "adapters/codex/templates/uv.lock",
+      "sha256": "c0108ad2d48ed025138974702ff6611231e6b389ad7015738f281b9fd14ffb44"
+    },
+    {
+      "path": "adapters/common/install.py",
+      "sha256": "cbb1eeaff01a4fc985bd744fcd16ff77d63be2ac40be4d33ea3be730bf5cd5f1"
+    },
+    {
+      "path": "adapters/common/package.py",
+      "sha256": "b66e3d246fb8b608592b6318f6ca10009cd2aab5e5095a1e531f4b7cc8ad61c8"
+    },
+    {
+      "path": "adapters/common/product-doctor.py",
+      "sha256": "3dc55e168b396fbb8904289271730a90c6542ae3e277f6db4e2e0ab0ede133f6"
+    },
+    {
+      "path": "agents/product-evidence-reviewer.md",
+      "sha256": "543f4e18f43e3a8ef9d03fad248ecd1f39874ee5df95361fe6732309ec10dd31"
+    },
+    {
+      "path": "agents/product-official-researcher.md",
+      "sha256": "a582723bd4674edc1afea920e1d5fa9d0f51b4d0d7c0cac54f65e42c621c1586"
+    },
+    {
+      "path": "agents/product-planning.md",
+      "sha256": "cacd20bb7ce228043a46e4f813d23f443f9612340643f26c1e5083f7bafef69d"
+    },
+    {
+      "path": "agents/product-review-researcher.md",
+      "sha256": "5b844f4a76fe9bc2ab30a4dae71b70db4cc358ea619a7cfdabf255579430e824"
+    },
+    {
+      "path": "data/business/empty/manifest.json",
+      "sha256": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a"
+    },
+    {
+      "path": "data/business/empty/models.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "data/business/empty/sources.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/contracts/codex-product.md",
+      "sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54"
+    },
+    {
+      "path": "docs/contracts/common-tools.md",
+      "sha256": "1b287b9959b33ee3adc169f07763fc3d4ae3769714f0e88399a09b87279ca5c8"
+    },
+    {
+      "path": "docs/contracts/portable-product.md",
+      "sha256": "cfbfb3c44893f0b3719fd7545b4b658c3349c3211ab16e058e4b1c0fa20a36f6"
+    },
+    {
+      "path": "docs/contracts/product-planning.md",
+      "sha256": "374ec19cbe28a8eadba49196ad4c217bfb785bc02f34bed8a011d72219c0f25c"
+    },
+    {
+      "path": "docs/contracts/product-research-agents.md",
+      "sha256": "1995c8b7612434c66623b2b88a905760b64f020dcc11c8bb6d67a04ab7ba0a06"
+    },
+    {
+      "path": "docs/contracts/product-reviewer-packet.md",
+      "sha256": "fec4509a8ea522f8e401de60996446fcc0594005c6fdfe6cf90711a69e937d08"
+    },
+    {
+      "path": "docs/contracts/product-workflow.md",
+      "sha256": "c0a92bfca1d34377fb858b0395ead65ffb72048ad0aaa773eb5aacce7a5541e1"
+    },
+    {
+      "path": "docs/contracts/reader-deliverables.md",
+      "sha256": "60221de6f5632eacfd67d73102c1bb45f89e0f55a1d640fc99c9dce1162993b2"
+    },
+    {
+      "path": "docs/contracts/web-evidence.md",
+      "sha256": "38efa46d04fc82d17174b303d557e07304da10c8b8399e3eee19c9d3c1b2a22a"
+    },
+    {
+      "path": "docs/contracts/web-result.md",
+      "sha256": "a08a2ad3afb9fe65b9dd130cb0582a31cd2b87c0714df19325b7fd0efbd767a0"
+    },
+    {
+      "path": "product-doctor.py",
+      "sha256": "801b38f91fed3a88a0e573d836fe30619ad4934c2fe76ac27c2e0b436ea1dab4"
+    },
+    {
+      "path": "product-install.json",
+      "sha256": "3290a96fab33a00354cb602868016b5dd50ff2520c5a214976c6722f8f5d401c"
+    },
+    {
+      "path": "product-tools/cli.py",
+      "sha256": "af5b94387704a1ca5214dee42a0412482103e615fa2b3a4bfd77c1a438cfca6f"
+    },
+    {
+      "path": "product-tools/product_tools/__init__.py",
+      "sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68"
+    },
+    {
+      "path": "product-tools/product_tools/bulk_import.py",
+      "sha256": "3b1a11a9a2eaf34df3d67243df3260730646246e452e481a09b6e9090356f55a"
+    },
+    {
+      "path": "product-tools/product_tools/contracts.py",
+      "sha256": "0f1930109adb78eda02f537a4c67480b30a8775f2a71c384dbe0fb86122629f6"
+    },
+    {
+      "path": "product-tools/product_tools/conversation.py",
+      "sha256": "edafd93a5e6c260f9ecad353cc4b3dd8c1f5e139bc7ce6f7e22781400fe74059"
+    },
+    {
+      "path": "product-tools/product_tools/dataset.py",
+      "sha256": "6df8beeb0d55e9563d333cd35ed9d20ec7febf0de349081cbea850966823d006"
+    },
+    {
+      "path": "product-tools/product_tools/delivery.py",
+      "sha256": "6a0f091082f734f6bd26ac3defe08e391d0d56f1588246e5fde9f1941ac47f79"
+    },
+    {
+      "path": "product-tools/product_tools/error_receipts.py",
+      "sha256": "79ba9adeb2ced36cea90066701b98a6cc88c90c809d738d10f0b1f0156853d66"
+    },
+    {
+      "path": "product-tools/product_tools/evidence_coverage.py",
+      "sha256": "fbbedf0cf207e3dc3d312912bcce8f7d33300079d97c1aa0744e67def8eaf5fe"
+    },
+    {
+      "path": "product-tools/product_tools/payload.py",
+      "sha256": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e"
+    },
+    {
+      "path": "product-tools/product_tools/planning.py",
+      "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd"
+    },
+    {
+      "path": "product-tools/product_tools/reporting.py",
+      "sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6"
+    },
+    {
+      "path": "product-tools/product_tools/reviewer_packet.py",
+      "sha256": "9383258e8020708edf68342def788c6949cbe9b62d18b110ee3b1a29c2e9b4cf"
+    },
+    {
+      "path": "product-tools/product_tools/selection.py",
+      "sha256": "4e79dec309d736b3413cb8489830b08f2f40b46553d4ad408323acf3d697086f"
+    },
+    {
+      "path": "product-tools/product_tools/state.py",
+      "sha256": "ecbfe3ed5232f235d175057b76f49997b8ecad01fe00d1315ea50955932f24f2"
+    },
+    {
+      "path": "product-tools/product_tools/tools.py",
+      "sha256": "1cae4712bf3cfdc8f3d41b222f7d335da0ae4d3c6495a6039d9fb503c99f0fa2"
+    },
+    {
+      "path": "product-tools/product_tools/web_delivery.py",
+      "sha256": "55d049c8ff753b2a478b999187b293ae7ff2220aa15b8935e034913048267cbc"
+    },
+    {
+      "path": "product-tools/product_tools/web_evidence.py",
+      "sha256": "5c3badb0fcb83e49cd85e73f4856823a2ab7f6a6e1778e79179c6699753aaf88"
+    },
+    {
+      "path": "product-tools/product_tools/workflow.py",
+      "sha256": "1cec6bbdd1bdcc2befbe5b80e97c5f11c911c3abe468d4089cdbe693ae94defc"
+    },
+    {
+      "path": "product-tools/requirements.in",
+      "sha256": "a77cc1377529b98d8584987066d3da415c894a506e74079706653316e593ff98"
+    },
+    {
+      "path": "product-tools/requirements.lock",
+      "sha256": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "ee847fd234005a5a319d8bc714a5bc5a7587846f39a8d255eade27bb8ef1b145"
+    },
+    {
+      "path": "skills/concept-writing/SKILL.md",
+      "sha256": "3f5654e3bb485571d40f2aa3c389ace431bdd38d0749ed656955af4e465fd14d"
+    },
+    {
+      "path": "skills/concept-writing/scripts/run.py",
+      "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd"
+    },
+    {
+      "path": "skills/evidence-retrieval/SKILL.md",
+      "sha256": "cf13bca1bb5e7fbcdc0b36b88aa58be2d2c69c5aa66d0d3aaee5befe644da08d"
+    },
+    {
+      "path": "skills/evidence-retrieval/scripts/run.py",
+      "sha256": "65b1bffd0d83934404ca3a0022b6f2485e578ec90cab34a51d1bde46df73da88"
+    },
+    {
+      "path": "skills/feature-comparison/SKILL.md",
+      "sha256": "ab9d7397278424361576ea213e35039a51886499cb4109f23a39181e999603f5"
+    },
+    {
+      "path": "skills/feature-comparison/scripts/run.py",
+      "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e"
+    },
+    {
+      "path": "skills/manifest.json",
+      "sha256": "d88262b0381b42b6a6925adee72af7b0d4c098effab56a3be5f02e4e699f811e"
+    },
+    {
+      "path": "skills/needs-structuring/SKILL.md",
+      "sha256": "e6bc905200b85b4261b59d65080b9dbc519440c622a0ec2d4410c6c1594c481f"
+    },
+    {
+      "path": "skills/needs-structuring/scripts/run.py",
+      "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d"
+    },
+    {
+      "path": "skills/review-and-revise/SKILL.md",
+      "sha256": "a713ed3f2b8805564b5397dfb41704585659c8182d08d826a4a1d90b75c006e6"
+    },
+    {
+      "path": "skills/review-and-revise/references/payload.md",
+      "sha256": "c59b76fd1f0b872f1f5a655104b8c76194e1a83bb00fe0dc38b8bf935d2ed222"
+    },
+    {
+      "path": "skills/review-and-revise/references/report-writing.md",
+      "sha256": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f"
+    },
+    {
+      "path": "skills/review-and-revise/scripts/run.py",
+      "sha256": "964c8b4d58b3d9b2302f5198efcfdc85d7a3f3a202cf93ce22c6b0e7bff34bf3"
+    },
+    {
+      "path": "skills/web-evidence-collection/SKILL.md",
+      "sha256": "52d4be1451e1ae35db755e76a29a17c2ad6e7a9b25d3bdc0ea7079f1141f149e"
+    },
+    {
+      "path": "skills/web-evidence-collection/scripts/run.py",
+      "sha256": "1f24f4fa520d3081432bcf27c0308dd3aa796d47e38f2307c10ce13f2091e591"
+    },
+    {
+      "path": "uv.lock",
+      "sha256": "c0108ad2d48ed025138974702ff6611231e6b389ad7015738f281b9fd14ffb44"
+    },
+    {
+      "path": "vendor/codex-harness/LICENSE",
+      "sha256": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b"
+    },
+    {
+      "path": "vendor/codex-harness/NOTICE",
+      "sha256": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/README.md",
+      "sha256": "acaa00afa8a8e378e6235dbdbfb9e8bf9ee35a351877a5027531fc9f916d28dd"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/build_view.py",
+      "sha256": "e30b880b41e9f9c3f0ad305d8d02e152d25859b5d132fddaa500eb7f3b488fc0"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/hook.py",
+      "sha256": "74251e7e4727c4dc6e84689ef983807f679c649fdd5dca5ba7dc95ece8d09f6d"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/index.html",
+      "sha256": "4393aeb7c3a83ef5b0b7d2b4ef35bf162c02bddf1d603a7fa67372901d8982ba"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/viewer.py",
+      "sha256": "a81f6dfe9a4474b857d53ed2a304b7c1e1749bf6bea1f93e5f4ae7340b491541"
+    }
+  ],
+  "excluded": "runtime DB/logs/auth/global settings/dependencies/development roles/evaluation rubrics/attachment PDFs",
+  "limits": "No new AI/native discovery or effect validation; actual video/presentation/final submission requirements pending"
+}
