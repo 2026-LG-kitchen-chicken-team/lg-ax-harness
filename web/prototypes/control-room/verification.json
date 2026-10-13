@@ -1,0 +1,39 @@
+{
+  "date_kst": "2026-10-13",
+  "base_tag": "product-v0.10.0",
+  "base_commit": "cdf0e6e1970c6e0b8d1cc728a6838dabf9188e29",
+  "branch": "codex/control-room-v0.10.0",
+  "inventory": {
+    "optional_research_roles": 3,
+    "main": 1,
+    "business_skills": 6
+  },
+  "checks": {
+    "local_preview_http": 200,
+    "adapter_tests": 11,
+    "typescript": "passed",
+    "production_build": "passed",
+    "browser_ui": "passed",
+    "production_browser_console_errors": 0
+  },
+  "browser_flows": [
+    "demo replay and pause",
+    "parallel delegation at 13 seconds",
+    "selected-node inspector",
+    "held delivery gate at 57.8 seconds",
+    "completed trace at 82 seconds",
+    "local JSON paste import",
+    "untimed held metadata and valid=false remain visible",
+    "unknown role execution remains unobserved"
+  ],
+  "native_file_picker_automation": "not_verified_extension_file_URL_permission_disabled",
+  "existing_product_files_modified": 0,
+  "real_AI_run": false,
+  "realtime_native_agent_bridge": false,
+  "hosting_deployed": false,
+  "limitations": [
+    "84-second synthetic choreography is not actual business runtime or performance",
+    "v0.10.0 export has no native agent messaging ledger",
+    "targeted for desktop browser; phone layout not included"
+  ]
+}
