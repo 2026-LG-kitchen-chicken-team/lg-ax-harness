@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowUp, BarChart3, Captions, CaptionsOff, ChevronLeft, ChevronRight, FileJson, FileText, Filter, GitCompareArrows, History,
-  Home, Lightbulb, Menu, Package, RefreshCw, Search, Sparkles, X,
+  Home, Lightbulb, Menu, Package, Presentation, RefreshCw, Search, X,
 } from 'lucide-react'
 import { Badge, Button } from './components/ui'
 import { BlockView } from './components/blocks'
@@ -21,10 +21,12 @@ import { useView, type LiveState } from './lib/useView'
 import type { Caption, Page, View } from './types'
 
 const ICONS: Record<string, typeof Home> = {
-  story: Sparkles, overview: Home, dashboard: BarChart3, screening: Filter, compare: GitCompareArrows,
+  story: Presentation, overview: Home, dashboard: BarChart3, screening: Filter, compare: GitCompareArrows,
   concepts: Lightbulb, history: History, evidence: FileText, export: Package,
 }
 const STORY_IDS = new Set(['story'])
+// The builder decorates some strings with emoji ("🆔 Session: …"); A shows the words only.
+const noEmoji = (s: string) => s.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').trim()
 const LG_RED = 'text-[#d0111b]'
 
 const hashId = () => decodeURIComponent(location.hash.replace(/^#/, ''))
@@ -348,7 +350,7 @@ function Sidebar({ view, current, go, open, close, reload, openFile, inline }: {
                       <button type="button" onClick={() => go(p.id)} aria-current={active ? 'page' : undefined}
                         className={cn('flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-[15px]',
                           active ? 'bg-[#fdeeee] font-bold text-[#d0111b]' : 'text-zinc-700 hover:bg-zinc-100')}>
-                        {Icon ? <Icon className="size-[18px] shrink-0" aria-hidden /> : <span aria-hidden className="w-[18px] text-center">{p.icon || '📄'}</span>}
+                        {Icon ? <Icon className="size-[18px] shrink-0" aria-hidden /> : <FileText className="size-[18px] shrink-0" aria-hidden />}
                         <span className="truncate">{p.nav || p.title}</span>
                         <span className={cn('ml-auto font-mono text-[11px]', active ? 'text-[#d0111b]/60' : 'text-zinc-300')}>{String(n).padStart(2, '0')}</span>
                       </button>
@@ -380,7 +382,7 @@ function Sidebar({ view, current, go, open, close, reload, openFile, inline }: {
           )}
         </nav>
         <div className="border-t px-5 py-3 text-[11px] leading-relaxed text-muted-foreground">
-          {(ctx.footer || []).map((f, i) => <div key={i} className="truncate"><Md text={f} /></div>)}
+          {(ctx.footer || []).map((f, i) => <div key={i} className="truncate"><Md text={noEmoji(f)} /></div>)}
         </div>
       </aside>
     </>
@@ -390,8 +392,7 @@ function Sidebar({ view, current, go, open, close, reload, openFile, inline }: {
 function Empty() {
   return (
     <div className="mx-auto mt-16 max-w-xl text-center">
-      <div className="text-4xl" aria-hidden>⏳</div>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight">시각자료를 기다리는 중</h1>
+      <h1 className="text-2xl font-bold tracking-tight">시각자료를 기다리는 중</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         CLI가 이 폴더에 <b>view-data.js</b>를 만들면 화면이 자동으로 그려집니다. 이미 만든 view JSON이 있으면 왼쪽에서 여세요.
       </p>

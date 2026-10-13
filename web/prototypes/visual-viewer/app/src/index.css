@@ -54,6 +54,9 @@
   --radius: 1rem;
 }
 
+/* Tags in A: small squared labels rather than candy pills. */
+.theme-lg [data-badge] { border-radius: 6px; }
+
 /* A search result's block glows once so the eye finds it; nothing is hidden or moved. */
 .lg-flash { animation: lg-flash 1.8s ease-out; border-radius: 1rem; }
 @keyframes lg-flash {
@@ -80,13 +83,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --animate-rise-in: rise-in 0.5s ease-out both;
-}
-
-/* Movement only: if an animation never runs (print, automation, paused tab) the content is still fully visible. */
-@keyframes rise-in {
-  from { transform: translateY(12px); }
-  to { transform: none; }
 }
 
 @layer base {

@@ -110,7 +110,7 @@ export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }):
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {(b.items || []).map((f: Block, i: number) => (
             <Card key={i} className="p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold">{f.icon && <span aria-hidden>{f.icon}</span>}{f.title}</div>
+              <div className="text-sm font-semibold">{f.title}</div>
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground"><Md text={f.text} /></p>
             </Card>
           ))}
@@ -136,7 +136,6 @@ function Kpis({ b }: { b: Block }) {
                 <span className={cn('size-2 rounded-full', TONE_DOT[t])} />{k.label}
               </div>
               <div className={cn('mt-2 text-4xl font-bold tracking-tight', t === 'gray' ? 'text-zinc-500' : 'text-foreground')}>
-                {k.emoji && <span aria-hidden className="mr-1">{k.emoji}</span>}
                 <StatValue value={k.value} />
                 {k.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{k.unit}</span>}
               </div>
@@ -303,7 +302,7 @@ function Expander({ b, copy }: { b: Block; copy: (s: string) => void }) {
   return (
     <details className="group rounded-xl border bg-card" open={!!b.open}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center gap-2">{b.icon && <span aria-hidden>{b.icon}</span>}{b.title}</span>
+        <span>{b.title}</span>
         <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
       <div className="flex flex-col gap-4 border-t px-5 py-5"><Blocks blocks={b.blocks || []} copy={copy} /></div>

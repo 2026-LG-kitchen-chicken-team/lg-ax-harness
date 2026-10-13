@@ -31,9 +31,9 @@ export function Badge({ chip, className }: { chip: Chip | string; className?: st
   const c = typeof chip === 'string' ? { text: chip } : chip
   const tip = useIdTip()
   const cls = cn(badgeVariants({ mono: !!c.mono }), TONE_SOFT[tone(c.tone)], className)
-  if (!tip?.lookup(c.text)) return <span title={c.tip || undefined} className={cls}>{c.text}</span>
+  if (!tip?.lookup(c.text)) return <span data-badge title={c.tip || undefined} className={cls}>{c.text}</span>
   return (
-    <span tabIndex={0} className={cn(cls, 'cursor-help underline decoration-dotted decoration-1 underline-offset-[3px] focus-visible:outline-2')}
+    <span data-badge tabIndex={0} className={cn(cls, 'cursor-help underline decoration-dotted decoration-1 underline-offset-[3px] focus-visible:outline-2')}
       onMouseEnter={(e) => tip.show(c.text, e.currentTarget)} onMouseLeave={tip.hide} onFocus={(e) => tip.show(c.text, e.currentTarget)} onBlur={tip.hide}>
       {c.text}
     </span>

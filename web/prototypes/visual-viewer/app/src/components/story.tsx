@@ -3,62 +3,52 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, ExternalLink, Quote } from 'lucide-react'
 import { Badge, Badges, Card } from './ui'
-import { RiseIn, DotPattern, StatValue } from './magic'
+import { StatValue } from './magic'
 import { Blocks } from './blocks'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_SOFT, TONE_TEXT } from '../lib/utils'
 import type { Block } from '../types'
 
 type P = { b: Block; copy: (s: string) => void }
 
+// Report cover: the question as written, what was saved, and the four counts. Plain type, no decoration.
 function Hero({ b }: P) {
   return (
-    <section className="relative -mx-4 overflow-hidden rounded-2xl border bg-gradient-to-b from-zinc-50 to-white px-6 py-12 sm:-mx-0 sm:px-10 sm:py-16">
-      <DotPattern className="[mask-image:radial-gradient(60%_70%_at_50%_0%,black,transparent)]" />
-      <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
-        <RiseIn>
-          <div className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs backdrop-blur">
-            <span className="size-1.5 rounded-full bg-emerald-500" />{b.eyebrow}
-          </div>
-        </RiseIn>
-        <RiseIn delay={0.05}>
-          <h1 className="mt-5 text-balance bg-gradient-to-br from-zinc-950 via-zinc-800 to-zinc-500 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent sm:text-5xl sm:leading-[1.15]">
-            {b.title}
-          </h1>
-        </RiseIn>
-        {b.subtitle && <RiseIn delay={0.1}><p className="mt-4 max-w-2xl text-balance text-[15px] leading-relaxed text-muted-foreground sm:text-base"><Md text={b.subtitle} /></p></RiseIn>}
-        <RiseIn delay={0.15}><Badges items={b.chips} className="mt-5 justify-center" /></RiseIn>
-        {b.stats?.length > 0 && (
-          <RiseIn delay={0.2} className="mt-10 w-full">
-            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-flow-col sm:auto-cols-fr sm:grid-cols-none">
-              {b.stats.map((s: Block, i: number) => (
-                <div key={i} className="bg-white px-4 py-5">
-                  <dt className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <span className={cn('size-1.5 rounded-full', TONE_DOT[tone(s.tone)])} />{s.label}
-                  </dt>
-                  <dd className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
-                    <StatValue value={s.value} />{s.unit && <span className="ml-0.5 text-base font-medium text-muted-foreground">{s.unit}</span>}
-                  </dd>
-                  {s.note && <div className="mt-0.5 text-[11px] text-muted-foreground">{s.note}</div>}
-                </div>
-              ))}
-            </dl>
-          </RiseIn>
-        )}
-      </div>
+    <section className="rounded-2xl border bg-card px-6 py-8 sm:px-10 sm:py-10">
+      <div className="text-[13px] text-muted-foreground">{b.eyebrow}</div>
+      <h1 className="mt-3 max-w-4xl text-balance text-[28px] font-bold leading-snug tracking-tight sm:text-[36px]">{b.title}</h1>
+      {b.subtitle && <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground"><Md text={b.subtitle} /></p>}
+      <Badges items={b.chips} className="mt-5" />
+      {b.stats?.length > 0 && (
+        <dl className="mt-8 grid grid-cols-2 border-t pt-6 sm:grid-flow-col sm:auto-cols-fr sm:grid-cols-none sm:divide-x">
+          {b.stats.map((s: Block, i: number) => (
+            <div key={i} className="py-2 sm:px-6 sm:py-0 sm:first:pl-0">
+              <dt className="text-[13px] text-muted-foreground">{s.label}</dt>
+              <dd className="mt-1 text-[32px] font-bold leading-none tracking-tight">
+                <StatValue value={s.value} />{s.unit && <span className="ml-1 text-base font-medium text-muted-foreground">{s.unit}</span>}
+              </dd>
+              {s.note && <div className="mt-1 text-xs text-muted-foreground">{s.note}</div>}
+            </div>
+          ))}
+        </dl>
+      )}
     </section>
   )
 }
 
+// Section order for the "1. 현재 불편" style numbering; the builder's label is "Problem · 현재 불편".
+const SECTION_NO: Record<string, number> = { problem: 1, check: 2, flow: 3, solution: 4, trust: 5 }
+
 function StorySection({ b, copy }: P) {
-  const t = tone(b.tone)
+  const no = SECTION_NO[b.key]
+  const name = String(b.label || '').split('·').pop()?.trim()
   return (
-    <section className="mt-10 flex flex-col gap-5 sm:mt-14">
-      <RiseIn>
-        <div className={cn('text-xs font-semibold uppercase tracking-[0.18em]', TONE_TEXT[t])}>{b.label}</div>
-        <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight sm:text-3xl">{b.title}</h2>
+    <section className="mt-10 flex flex-col gap-5 border-t pt-8 sm:mt-12">
+      <div>
+        <div className="text-sm font-semibold text-muted-foreground">{no ? `${no}. ` : ''}{name}</div>
+        <h2 className="mt-1.5 text-balance text-2xl font-bold tracking-tight sm:text-[28px]">{b.title}</h2>
         {b.text && <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-muted-foreground"><Md text={b.text} /></p>}
-      </RiseIn>
-      <RiseIn delay={0.05} className="flex flex-col gap-4"><Blocks blocks={b.blocks || []} copy={copy} /></RiseIn>
+      </div>
+      <div className="flex flex-col gap-4"><Blocks blocks={b.blocks || []} copy={copy} /></div>
     </section>
   )
 }
@@ -86,8 +76,7 @@ function Claims({ b }: P) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {(b.items || []).map((it: Block, i: number) => (
-        <Card key={i} className="relative flex flex-col gap-3 overflow-hidden p-5">
-          <span className="absolute inset-x-0 top-0 h-1" style={{ background: TONE_HEX[t] }} />
+        <Card key={i} className="flex flex-col gap-3 p-5">
           <div className="flex items-center gap-2">
             <Badge chip={{ text: it.id, tone: t }} />
             {b.kind_label && <span className="text-xs text-muted-foreground">{b.kind_label}</span>}
@@ -188,12 +177,11 @@ function Solutions({ b }: P) {
   return (
     <div className="flex flex-col gap-4">
       {(b.items || []).map((s: Block, i: number) => (
-        <Card key={i} className="relative overflow-hidden">
-          <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-violet-500 to-fuchsia-400" />
-          <div className="grid gap-5 p-5 pl-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <Card key={i} className="overflow-hidden">
+          <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-violet-600">제안 {s.n}</span>
+                <span className="text-sm font-bold">제안 {s.n}</span>
                 <Badge chip={{ text: s.id, tone: 'purple' }} />
                 <Badges items={s.chips} />
               </div>
