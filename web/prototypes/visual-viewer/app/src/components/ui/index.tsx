@@ -7,7 +7,7 @@ import { useIdTip } from '../idtip'
 import type { Chip } from '../../types'
 
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('rounded-xl border bg-card text-card-foreground shadow-xs', className)} {...props} />
+  return <div data-card className={cn('rounded-xl border bg-card text-card-foreground shadow-xs', className)} {...props} />
 }
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('flex flex-col gap-1 px-5 pt-5', className)} {...props} />
@@ -31,9 +31,10 @@ export function Badge({ chip, className }: { chip: Chip | string; className?: st
   const c = typeof chip === 'string' ? { text: chip } : chip
   const tip = useIdTip()
   const cls = cn(badgeVariants({ mono: !!c.mono }), TONE_SOFT[tone(c.tone)], className)
-  if (!tip?.lookup(c.text)) return <span data-badge title={c.tip || undefined} className={cls}>{c.text}</span>
+  const t = tone(c.tone)
+  if (!tip?.lookup(c.text)) return <span data-badge data-tone={t} title={c.tip || undefined} className={cls}>{c.text}</span>
   return (
-    <span data-badge tabIndex={0} className={cn(cls, 'cursor-help underline decoration-dotted decoration-1 underline-offset-[3px] focus-visible:outline-2')}
+    <span data-badge data-tone={t} tabIndex={0} className={cn(cls, 'cursor-help underline decoration-dotted decoration-1 underline-offset-[3px] focus-visible:outline-2')}
       onMouseEnter={(e) => tip.show(c.text, e.currentTarget)} onMouseLeave={tip.hide} onFocus={(e) => tip.show(c.text, e.currentTarget)} onBlur={tip.hide}>
       {c.text}
     </span>

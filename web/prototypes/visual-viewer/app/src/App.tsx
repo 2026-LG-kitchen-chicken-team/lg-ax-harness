@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  ArrowUp, BarChart3, Captions, CaptionsOff, ChevronLeft, ChevronRight, FileJson, FileText, Filter, GitCompareArrows, History,
-  Home, Lightbulb, Menu, Package, Presentation, RefreshCw, Search, X,
-} from 'lucide-react'
+import { Captions, CaptionsOff, ChevronLeft, ChevronRight, FileJson, FileText, Menu, RefreshCw, Search, X } from 'lucide-react'
 import { Badge, Button } from './components/ui'
 import { BlockView } from './components/blocks'
 import { ExhibitPage } from './components/exhibit'
 import { IdTipProvider } from './components/idtip'
 import { SearchDialog, type Hit } from './components/search'
 import { ModeSwitch, useMode } from './components/mode'
+import { BackToTop, Empty, ICONS, introOf, LiveDot, noEmoji, scrollToBlock, SearchHotkey, STORY_IDS, TextScale } from './components/shell'
+import DashApp, { isSkin } from './dash/DashApp'
 import { storyOf } from './lib/story'
 import Slides from './variants/Slides'
 import Poster from './variants/Poster'
@@ -17,33 +16,14 @@ import Board from './variants/Board'
 import Corporate from './variants/Corporate'
 import Landing from './variants/Landing'
 import { cn, Md } from './lib/utils'
-import { useView, type LiveState } from './lib/useView'
-import type { Caption, Page, View } from './types'
+import { useView } from './lib/useView'
+import type { Page, View } from './types'
 
-const ICONS: Record<string, typeof Home> = {
-  story: Presentation, overview: Home, dashboard: BarChart3, screening: Filter, compare: GitCompareArrows,
-  concepts: Lightbulb, history: History, evidence: FileText, export: Package,
-}
-const STORY_IDS = new Set(['story'])
-// The builder decorates some strings with emoji ("🆔 Session: …"); A shows the words only.
-const noEmoji = (s: string) => s.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').trim()
 const LG_RED = 'text-[#d0111b]'
 
 const hashId = () => decodeURIComponent(location.hash.replace(/^#/, ''))
 const read = (k: string) => { try { return localStorage.getItem(k) } catch { return null } }
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } catch { /* storage unavailable */ } }
-
-// Scroll to a top-level block of the current page (search results, page contents) and let it glow once.
-function scrollToBlock(i: number, openDetails = false) {
-  const el = document.querySelector<HTMLElement>(`[data-block="${i}"]`)
-  if (!el) return
-  if (openDetails) el.querySelectorAll('details').forEach((d) => { d.open = true })
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  el.classList.remove('lg-flash')
-  void el.offsetWidth
-  el.classList.add('lg-flash')
-  window.setTimeout(() => el.classList.remove('lg-flash'), 1900)
-}
 
 export default function App() {
   const [toasts, setToasts] = useState<{ id: number; msg: string }[]>([])
@@ -121,6 +101,17 @@ export default function App() {
   if (view && story && mode === 'poster') return <>{<Poster view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'corporate') return <>{<Corporate view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'landing') return <>{<Landing view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
+  // I–L keep A's menu, pages and blocks and change only the look (dash/DashApp.tsx). They need no story page.
+  if (isSkin(mode)) {
+    return (
+      <IdTipProvider view={view}>
+        <DashApp skin={mode} view={view} page={page} go={go} pick={pick} copy={copy} live={live} reload={reload}
+          openFile={openFile} inline={inline} mode={mode} setMode={setMode} big={big} toggleBig={toggleBig}
+          searchOpen={searchOpen} openSearch={openSearch} closeSearch={() => setSearchOpen(false)} />
+        {toastsEl}
+      </IdTipProvider>
+    )
+  }
 
   const caption = page?.caption && !capHidden ? page.caption : null
   // F keeps A's sidebar and header and draws each page in D's exhibition layout (components/exhibit.tsx).
@@ -146,7 +137,7 @@ export default function App() {
                   <kbd className="hidden rounded border bg-white px-1 font-sans text-[10px] text-zinc-400 xl:inline">Ctrl K</kbd>
                 </button>
               )}
-              {(story || exhibit) && <ModeSwitch mode={mode} setMode={setMode} compact className="hidden md:inline-flex" />}
+              {(story || exhibit) && <ModeSwitch mode={mode} setMode={setMode} compact />}
               <LiveDot live={live} inline={inline} />
               {!exhibit && (
                 <button type="button" onClick={toggleBig} aria-pressed={big} title={big ? '글자 보통으로' : '글자 크게'}
@@ -188,13 +179,6 @@ export default function App() {
       </div>
     </IdTipProvider>
   )
-}
-
-// "03 · 근거: 결과에 쓴 근거 10건과 검토 판단을 셉니다" → step line + sentence. Anything else is shown as written.
-function introOf(c?: Caption | null): { step?: string; title?: string; text?: string } {
-  if (!c) return {}
-  const m = /^(\d+)\s*·\s*([^:]+):\s*(.+)$/.exec(c.title || '')
-  return m ? { step: `STEP ${m[1]} · ${m[2].trim()}`, title: m[3], text: c.text } : { title: c.title, text: c.text }
 }
 
 function PageView({ page, pages, copy, go }: { page: Page; pages: Page[]; copy: (s: string) => void; go: (id: string) => void }) {
@@ -264,51 +248,6 @@ function PageToc({ page }: { page: Page }) {
         </ul>
       </nav>
     </aside>
-  )
-}
-
-// 글자 크게: every size is in rem, so A scales from the root. Undone when A is left.
-function TextScale({ big }: { big: boolean }) {
-  useEffect(() => {
-    document.documentElement.style.fontSize = big ? '112.5%' : ''
-    return () => { document.documentElement.style.fontSize = '' }
-  }, [big])
-  return null
-}
-
-function SearchHotkey({ open }: { open: () => void }) {
-  useEffect(() => {
-    const on = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); open() } }
-    window.addEventListener('keydown', on)
-    return () => window.removeEventListener('keydown', on)
-  }, [open])
-  return null
-}
-
-function BackToTop({ raised }: { raised: boolean }) {
-  const [on, setOn] = useState(false)
-  useEffect(() => {
-    const f = () => setOn(window.scrollY > 600)
-    f()
-    window.addEventListener('scroll', f, { passive: true })
-    return () => window.removeEventListener('scroll', f)
-  }, [])
-  if (!on) return null
-  return (
-    <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="맨 위로"
-      className={cn('no-print fixed right-6 z-30 grid size-11 place-items-center rounded-full bg-white shadow-lg ring-1 ring-zinc-200 hover:bg-zinc-50', raised ? 'bottom-32 lg:bottom-6' : 'bottom-6')}>
-      <ArrowUp className="size-5" />
-    </button>
-  )
-}
-
-function LiveDot({ live, inline }: { live: LiveState; inline: boolean }) {
-  const text = inline ? '저장된 실행 결과 · 단일 보고서' : live === 'on' ? '저장된 실행 결과 · 자동 갱신' : live === 'off' ? '데이터 파일 없음' : '저장된 실행 결과'
-  return (
-    <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex" title={text}>
-      <span className={cn('size-2 rounded-full', live === 'on' ? 'bg-emerald-500' : live === 'off' ? 'bg-rose-500' : 'bg-zinc-300')} />
-      <span className="hidden 2xl:inline">{text}</span>
-    </span>
   )
 }
 
@@ -386,17 +325,5 @@ function Sidebar({ view, current, go, open, close, reload, openFile, inline }: {
         </div>
       </aside>
     </>
-  )
-}
-
-function Empty() {
-  return (
-    <div className="mx-auto mt-16 max-w-xl text-center">
-      <h1 className="text-2xl font-bold tracking-tight">시각자료를 기다리는 중</h1>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        CLI가 이 폴더에 <b>view-data.js</b>를 만들면 화면이 자동으로 그려집니다. 이미 만든 view JSON이 있으면 왼쪽에서 여세요.
-      </p>
-      <pre className="mt-6 overflow-x-auto rounded-xl bg-zinc-950 p-4 text-left font-mono text-xs text-zinc-100">python build_view.py --export &lt;export 파일&gt; --open</pre>
-    </div>
   )
 }

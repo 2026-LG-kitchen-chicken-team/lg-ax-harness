@@ -7,6 +7,7 @@ import {
 import { BarList, DonutChart, GroupedBarChart, LineChart } from './charts'
 import { StatValue } from './magic'
 import { STORY_BLOCKS } from './story'
+import { useSkin } from '../lib/skin'
 import { cn, fmt, Md, safeHref, tone, TONE_DOT, TONE_TEXT } from '../lib/utils'
 import type { Block, Chip } from '../types'
 
@@ -32,6 +33,9 @@ function ChartCard({ b, children }: { b: Block; children: ReactNode }) {
 }
 
 export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }): ReactNode {
+  // The dashboard views (I–L) draw some block types their own way; everything else falls through to A's renderers.
+  const Own = useSkin()?.blocks[b.type]
+  if (Own) return <Own b={b} copy={copy} />
   const Story = STORY_BLOCKS[b.type]
   if (Story) return <Story b={b} copy={copy} />
   switch (b.type) {

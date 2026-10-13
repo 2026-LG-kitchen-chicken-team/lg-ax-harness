@@ -1721,7 +1721,8 @@ def auto_focus(export: dict | None) -> str | None:
     return "story" if ok else "overview"
 
 
-VIEW_MODES = ("app", "slides", "poster", "editorial", "board", "exhibit", "corporate", "landing")  # A 앱 · B 슬라이드 · C 한 장 · D 전시 · E 보드 · F 앱+전시 · G 기업 · H 랜딩
+VIEW_MODES = ("app", "slides", "poster", "editorial", "board", "exhibit", "corporate", "landing",
+              "navy", "mono", "ops", "analytics")  # A 앱 · B 슬라이드 · C 한 장 · D 전시 · E 보드 · F 앱+전시 · G 기업 · H 랜딩 · I 네이비 · J 모노 · K 업무형 · L 분석형
 
 
 def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
@@ -1812,7 +1813,8 @@ def main() -> int:
     ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
     ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + ", insights pages의 id, 또는 auto(상태로 선택)")
     ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
-    ap.add_argument("--mode", choices=VIEW_MODES, help="--standalone 보고서를 처음 열 때의 보기: app(A 앱), slides(B 슬라이드), poster(C 한 장), editorial(D 전시), board(E 보드), exhibit(F 앱+전시), corporate(G 기업), landing(H 랜딩)")
+    ap.add_argument("--mode", choices=VIEW_MODES, help="--standalone 보고서를 처음 열 때의 보기: app(A 앱), slides(B 슬라이드), poster(C 한 장), editorial(D 전시), board(E 보드), exhibit(F 앱+전시), corporate(G 기업), landing(H 랜딩), "
+                    "navy(I 네이비), mono(J 모노), ops(K 업무형), analytics(L 분석형)")
     ap.add_argument("--out-dir", type=Path, help="view-data.js·index.html을 둘 폴더 (기본: 이 폴더)")
     ap.add_argument("--open", action="store_true", help="뷰어를 기본 브라우저로 연다")
     args = ap.parse_args()
