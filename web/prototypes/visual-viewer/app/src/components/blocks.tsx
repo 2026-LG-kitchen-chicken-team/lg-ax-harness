@@ -33,7 +33,7 @@ function ChartCard({ b, children }: { b: Block; children: ReactNode }) {
 }
 
 export function BlockView({ b, copy }: { b: Block; copy: (s: string) => void }): ReactNode {
-  // The dashboard views (I–L) draw some block types their own way; everything else falls through to A's renderers.
+  // The dashboard views (I–M) draw some block types their own way; everything else falls through to A's renderers.
   const Own = useSkin()?.blocks[b.type]
   if (Own) return <Own b={b} copy={copy} />
   const Story = STORY_BLOCKS[b.type]

@@ -1,4 +1,5 @@
-// Block renderers of the dashboard views I (navy), J (mono), K (operations) and L (analytics). They take the same
+// Block renderers of the dashboard views I (navy), J (mono), K (operations), L (analytics) and M (mono look with K's
+// compact layout). They take the same
 // blocks build_view.py writes for A and change only how they look. Layout only: no counting, ranking or judging here;
 // block types not listed in SKINS fall through to A's renderers (components/blocks.tsx, components/story.tsx).
 import { useState, type CSSProperties, type ReactNode } from 'react'
@@ -66,7 +67,21 @@ const LOOK: Record<SkinId, Look> = {
     input: 'h-9 rounded-lg border border-[#e4e4e7] bg-white', num: 'text-zinc-900', badge: 'bg-orange-50 text-orange-600',
     quote: 'text-[14px] leading-relaxed text-zinc-800',
   },
+  monoops: {
+    gap: 'gap-4', card: 'rounded-[22px] bg-white', pad: 'p-5',
+    title: 'text-[17px] font-semibold tracking-tight text-zinc-950',
+    heading: 'mt-6 text-[22px] font-semibold tracking-tight text-zinc-950',
+    section: 'mt-2 text-[18px] font-semibold tracking-tight text-zinc-950',
+    table: 'w-full border-separate border-spacing-y-1.5 text-[13.5px]',
+    th: 'whitespace-nowrap px-3 pb-0.5 text-left align-middle text-[12px] font-normal text-zinc-500',
+    td: 'bg-[#f5f5f5] px-3 py-2.5 align-top text-zinc-900 first:rounded-l-[14px] last:rounded-r-[14px]',
+    input: 'h-9 rounded-full border border-zinc-300 bg-white', num: 'text-zinc-950', badge: 'bg-zinc-950 text-white',
+    quote: 'text-[14px] leading-relaxed text-zinc-900',
+  },
 }
+// J and M share the black-and-white look; K and M share the compact layout.
+const isMono = (id: SkinId) => id === 'mono' || id === 'monoops'
+const isDense = (id: SkinId) => id === 'ops' || id === 'monoops'
 export const lookOf = (id: SkinId) => LOOK[id]
 const useId = (): SkinId => useSkin()?.id || 'navy'
 const useLook = () => LOOK[useId()]
@@ -107,7 +122,7 @@ const kpiGrid = (n: number): { className: string; style: CSSProperties } => ({
 export function Kpis({ items, source }: { items: Kpi[]; source?: string }) {
   const id = useId()
   if (!items.length) return null
-  const K = { navy: NavyKpis, mono: MonoKpis, ops: OpsKpis, analytics: StripKpis }[id]
+  const K = { navy: NavyKpis, mono: MonoKpis, ops: OpsKpis, analytics: StripKpis, monoops: CompactMonoKpis }[id]
   return <div className="@container min-w-0"><K items={items} /><Source text={source} /></div>
 }
 
@@ -139,27 +154,28 @@ function NavyKpis({ items }: { items: Kpi[] }) {
   )
 }
 
-// Tall rounded tiles with a round icon on top; the first one's icon is filled black (the lead count).
-function MonoKpis({ items }: { items: Kpi[] }) {
+// Tall rounded tiles with a round icon on top; the first one's icon is filled black (the lead count). M uses a shorter tile.
+function MonoKpis({ items, compact }: { items: Kpi[]; compact?: boolean }) {
   const g = kpiGrid(items.length)
   return (
-    <div className={cn(g.className, 'gap-4')} style={g.style}>
+    <div className={cn(g.className, compact ? 'gap-3' : 'gap-4')} style={g.style}>
       {items.map((k, i) => {
         const Icon = iconOf(k.label)
         return (
-          <div key={i} className="flex min-h-[11rem] min-w-0 flex-col items-center rounded-[28px] bg-white px-4 pb-6 pt-6 text-center @3xl:min-h-[13rem]" title={k.source ? '출처: ' + k.source : undefined}>
-            <span aria-hidden className={cn('grid size-14 shrink-0 place-items-center rounded-full', i === 0 ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-900 shadow-[0_4px_14px_rgb(0_0_0/0.08)]')}><Icon className="size-5" /></span>
-            <div className={cn('mt-5 font-semibold leading-tight tracking-tight tabular-nums', vsize(k.value, k.unit, ['text-[30px]', 'text-xl', 'text-base break-all']), tone(k.tone) === 'gray' ? 'text-zinc-500' : 'text-zinc-950')}>
-              {fmt(k.value)}{k.unit && <span className="ml-0.5 text-base font-medium text-zinc-500">{k.unit}</span>}
+          <div key={i} className={cn('flex min-w-0 flex-col items-center bg-white px-4 text-center', compact ? 'min-h-[9rem] rounded-[22px] pb-4 pt-4 @3xl:min-h-[10rem]' : 'min-h-[11rem] rounded-[28px] pb-6 pt-6 @3xl:min-h-[13rem]')} title={k.source ? '출처: ' + k.source : undefined}>
+            <span aria-hidden className={cn('grid shrink-0 place-items-center rounded-full', compact ? 'size-10' : 'size-14', i === 0 ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-900 shadow-[0_4px_14px_rgb(0_0_0/0.08)]')}><Icon className={compact ? 'size-4' : 'size-5'} /></span>
+            <div className={cn('font-semibold leading-tight tracking-tight tabular-nums', compact ? 'mt-3' : 'mt-5', vsize(k.value, k.unit, compact ? ['text-[26px]', 'text-lg', 'text-sm break-all'] : ['text-[30px]', 'text-xl', 'text-base break-all']), tone(k.tone) === 'gray' ? 'text-zinc-500' : 'text-zinc-950')}>
+              {fmt(k.value)}{k.unit && <span className={cn('ml-0.5 font-medium text-zinc-500', compact ? 'text-sm' : 'text-base')}>{k.unit}</span>}
             </div>
-            <div className="mt-1 text-[15px] leading-snug text-zinc-600">{k.label}</div>
-            {k.note && <div className="mt-1.5 text-xs leading-snug text-zinc-400">{k.note}</div>}
+            <div className={cn('mt-1 leading-snug text-zinc-600', compact ? 'text-[13.5px]' : 'text-[15px]')}>{k.label}</div>
+            {k.note && <div className={cn('leading-snug text-zinc-400', compact ? 'mt-1 text-[11.5px]' : 'mt-1.5 text-xs')}>{k.note}</div>}
           </div>
         )
       })}
     </div>
   )
 }
+const CompactMonoKpis = ({ items }: { items: Kpi[] }) => <MonoKpis items={items} compact />
 
 function OpsKpis({ items }: { items: Kpi[] }) {
   const hex = useToneHex()
@@ -204,9 +220,9 @@ function StripKpis({ items }: { items: Kpi[] }) {
 function Metrics({ b }: P) {
   const id = useId()
   const items: Kpi[] = b.items || []
-  if (id === 'ops') {
+  if (isDense(id)) {
     return (
-      <div className={cn(LOOK.ops.card, '@container px-4 py-3')}>
+      <div className={cn(LOOK[id].card, '@container', id === 'ops' ? 'px-4 py-3' : 'px-5 py-3.5')}>
         <dl className="grid gap-x-8 gap-y-1.5 @xl:grid-cols-2 @4xl:grid-cols-3">
           {items.map((m, i) => (
             <div key={i} className="flex min-w-0 items-baseline gap-2 text-[13px]">
@@ -249,15 +265,15 @@ function HBars({ b }: P) {
 function BarRows({ b, items, id }: { b: Block; items: Bar[]; id: SkinId }) {
   const hex = useToneHex()
   const max = Math.max(1, ...items.map((i) => i.value || 0))
-  const fill = (it: Bar) => (id === 'mono' ? (tone(it.tone || b.tone) === 'gray' ? '#a3a3a3' : '#111111') : hex[tone(it.tone || b.tone || 'blue')])
+  const fill = (it: Bar) => (isMono(id) ? (tone(it.tone || b.tone) === 'gray' ? '#a3a3a3' : '#111111') : hex[tone(it.tone || b.tone || 'blue')])
   const val = (it: Bar) => <>{fmt(it.value)}<span className="ml-0.5 text-[0.8em] font-medium text-muted-foreground">{b.unit || ''}</span></>
-  if (id === 'ops') {
+  if (isDense(id)) {
     return (
-      <ul className="flex flex-col gap-2.5">
+      <ul className={cn('flex flex-col', id === 'ops' ? 'gap-2.5' : 'gap-3')}>
         {items.map((it, i) => (
-          <li key={i} className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_3.5rem] items-center gap-3 text-[13px]" title={it.note || undefined}>
+          <li key={i} className={cn('grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_3.5rem] items-center gap-3', id === 'ops' ? 'text-[13px]' : 'text-[13.5px]')} title={it.note || undefined}>
             <span className="truncate text-zinc-600">{it.label}</span>
-            <span className="h-1.5 rounded-full bg-[#f0f0f0]"><span className="block h-full rounded-full" style={{ width: barWidth(it.value, max), background: fill(it) }} /></span>
+            <span className={cn('rounded-full', id === 'ops' ? 'h-1.5 bg-[#f0f0f0]' : 'h-2.5 bg-[#efefef]')}><span className="block h-full rounded-full" style={{ width: barWidth(it.value, max), background: fill(it) }} /></span>
             <span className="text-right font-semibold tabular-nums text-zinc-900">{val(it)}</span>
           </li>
         ))}
@@ -323,8 +339,8 @@ function BarTable({ b }: { b: Block }) {
                 <td className={L.td}>{label(it.label)}{it.note && <div className="mt-1 break-all font-mono text-[11px] text-muted-foreground">{it.note}</div>}</td>
                 <td className={cn(L.td, 'whitespace-nowrap text-right font-semibold tabular-nums')}>{fmt(it.value)}<span className="ml-0.5 text-xs font-medium text-muted-foreground">{b.unit || ''}</span></td>
                 <td className={cn(L.td, 'hidden align-middle sm:table-cell')}>
-                  <div className={cn('h-2 rounded-full', id === 'mono' ? 'bg-white' : 'bg-muted')}>
-                    <div className="h-full rounded-full" style={{ width: barWidth(it.value, max), background: id === 'mono' ? '#111111' : hex[tone(it.tone || b.tone || 'blue')] }} />
+                  <div className={cn('h-2 rounded-full', isMono(id) ? 'bg-white' : 'bg-muted')}>
+                    <div className="h-full rounded-full" style={{ width: barWidth(it.value, max), background: isMono(id) ? '#111111' : hex[tone(it.tone || b.tone || 'blue')] }} />
                   </div>
                 </td>
               </tr>
@@ -338,9 +354,9 @@ function BarTable({ b }: { b: Block }) {
 
 function Donut({ b }: P) {
   const id = useId()
-  return <Panel b={b}>{id === 'analytics' ? <SegmentBar b={b} /> : <SkinDonut b={b} arc={id === 'ops' ? 20 : id === 'mono' ? 24 : 30} />}</Panel>
+  return <Panel b={b}>{id === 'analytics' ? <SegmentBar b={b} /> : <SkinDonut b={b} arc={isDense(id) ? 20 : id === 'mono' ? 24 : 30} />}</Panel>
 }
-const Bars = ({ b }: P) => { const id = useId(); return <Panel b={b}><SkinBars b={b} round={id === 'mono' ? 8 : 4} thin={id === 'mono'} /></Panel> }
+const Bars = ({ b }: P) => { const id = useId(); return <Panel b={b}><SkinBars b={b} round={isMono(id) ? 8 : 4} thin={isMono(id)} /></Panel> }
 const Line = ({ b }: P) => { const id = useId(); return <Panel b={b}><SkinLine b={b} area={id === 'navy' || id === 'analytics'} /></Panel> }
 
 // --- table --------------------------------------------------------------------------------------------------------
@@ -364,6 +380,7 @@ const FILTER: Record<SkinId, { wrap: string; on: string; off: string }> = {
   navy: { wrap: 'flex flex-wrap gap-1.5', on: 'h-8 rounded-full bg-[#4f5bd5] px-3 text-[12.5px] font-medium text-white', off: 'h-8 rounded-full px-3 text-[12.5px] text-[#5d6378] ring-1 ring-inset ring-[#e3e6ee] hover:bg-[#f5f6fa]' },
   mono: { wrap: 'flex flex-wrap gap-2', on: 'h-10 rounded-full bg-zinc-950 px-4 text-[13px] font-medium text-white', off: 'h-10 rounded-full border border-zinc-300 px-4 text-[13px] text-zinc-700 hover:bg-zinc-50' },
   ops: { wrap: 'inline-flex flex-wrap rounded-md bg-[#efefef] p-0.5', on: 'h-7 rounded bg-white px-2.5 text-[12px] font-medium text-zinc-900 shadow-xs', off: 'h-7 rounded px-2.5 text-[12px] text-zinc-600 hover:text-zinc-900' },
+  monoops: { wrap: 'flex flex-wrap gap-1.5', on: 'h-8 rounded-full bg-zinc-950 px-3 text-[12.5px] font-medium text-white', off: 'h-8 rounded-full border border-zinc-300 px-3 text-[12.5px] text-zinc-700 hover:bg-zinc-50' },
   analytics: { wrap: 'inline-flex flex-wrap rounded-lg bg-[#f4f4f5] p-1', on: 'h-7 rounded-md bg-white px-2.5 text-[13px] font-medium text-zinc-900 shadow-xs ring-1 ring-black/5', off: 'h-7 rounded-md px-2.5 text-[13px] text-zinc-600 hover:text-zinc-900' },
 }
 
@@ -376,7 +393,7 @@ function TableBlock({ b }: P) {
     <div className="mb-4 flex flex-wrap items-center gap-2">
       {b.search && (
         <label className="relative min-w-52 flex-1">
-          <Search className={cn('absolute left-3 size-4 text-muted-foreground', id === 'ops' ? 'top-2' : id === 'mono' ? 'top-3.5' : 'top-3', id === 'analytics' && 'top-2.5')} aria-hidden />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={b.search_placeholder || '검색'} aria-label="표 검색"
             className={cn(L.input, 'w-full pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/30')} />
         </label>
@@ -428,12 +445,13 @@ function Callout({ b }: P) {
   const n = NOTE[(b.tone as keyof typeof NOTE) in NOTE ? (b.tone as keyof typeof NOTE) : 'info']
   const Icon = n.icon
   const navyInfo = id === 'navy' && n === NOTE.info
-  if (id === 'mono') {
+  if (isMono(id)) {
+    const small = id === 'monoops'
     return (
-      // Warnings and errors keep a light tint even in the black-and-white view, so they are never read as plain notes.
-      <div role="note" className={cn('flex items-start gap-4 rounded-[22px] px-5 py-4 text-[15px] leading-relaxed text-zinc-900',
+      // Warnings and errors keep a light tint even in the black-and-white views, so they are never read as plain notes.
+      <div role="note" className={cn('flex items-start leading-relaxed text-zinc-900', small ? 'gap-3 rounded-[18px] px-4 py-3 text-[14px]' : 'gap-4 rounded-[22px] px-5 py-4 text-[15px]',
         n === NOTE.warning ? 'bg-amber-50 ring-1 ring-inset ring-amber-200/80' : n === NOTE.error ? 'bg-rose-50 ring-1 ring-inset ring-rose-200/80' : 'bg-white')}>
-        <span className={cn('grid size-9 shrink-0 place-items-center rounded-full', n.chip)}><Icon className="size-4" aria-hidden /></span>
+        <span className={cn('grid shrink-0 place-items-center rounded-full', small ? 'size-8' : 'size-9', n.chip)}><Icon className="size-4" aria-hidden /></span>
         <div className="min-w-0 self-center">{<Md text={b.text} />}</div>
       </div>
     )
@@ -473,12 +491,12 @@ function Quotes({ b }: P) {
   const title = b.title && <span className="flex items-center gap-2">{b.chip && <span aria-hidden className="size-2.5 rounded-full" style={{ background: hex[tone(b.chip.tone)] }} />}{b.title}</span>
   return (
     <Panel b={b} title={title || undefined}>
-      <ul className={cn('flex flex-col', id === 'mono' ? 'gap-3' : 'divide-y divide-[#eef0f4]')}>
+      <ul className={cn('flex flex-col', id === 'mono' ? 'gap-3' : id === 'monoops' ? 'gap-2' : 'divide-y divide-[#eef0f4]')}>
         {(b.items || []).map((q: Block, i: number) => {
           const h = safeHref(q.href)
           return (
-            <li key={i} className={cn('flex gap-4', id === 'mono' ? 'rounded-[20px] bg-[#f6f6f6] p-4' : id === 'ops' ? 'py-3 first:pt-0 last:pb-0' : 'py-4 first:pt-0 last:pb-0')}>
-              {id === 'mono' && <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-full bg-white shadow-[0_4px_14px_rgb(0_0_0/0.06)]"><Quote className="size-4" /></span>}
+            <li key={i} className={cn('flex', id === 'mono' ? 'gap-4 rounded-[20px] bg-[#f6f6f6] p-4' : id === 'monoops' ? 'gap-3 rounded-[16px] bg-[#f6f6f6] p-3' : id === 'ops' ? 'gap-4 py-3 first:pt-0 last:pb-0' : 'gap-4 py-4 first:pt-0 last:pb-0')}>
+              {isMono(id) && <span aria-hidden className={cn('grid shrink-0 place-items-center rounded-full bg-white shadow-[0_4px_14px_rgb(0_0_0/0.06)]', id === 'mono' ? 'size-11' : 'size-9')}><Quote className="size-4" /></span>}
               <figure className="min-w-0 flex-1">
                 <blockquote className={L.quote}><Clamp text={q.quote || ''} quote /></blockquote>
                 <figcaption className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -494,19 +512,20 @@ function Quotes({ b }: P) {
   )
 }
 
-// Pain → feature → remaining → proposal columns as the builder grouped them. K also draws them as a route.
+// Pain → feature → remaining → proposal columns as the builder grouped them. K, J and M also draw them as a route.
 function Chain({ b }: P) {
   const id = useId()
   const L = LOOK[id]
   const cols: Block[] = b.columns || []
   return (
     <div className="@container min-w-0">
-      {id === 'ops' && cols.length > 1 && (
-        <div className={cn(L.card, 'mb-3 overflow-x-auto px-4 py-4')}>
+      {(isDense(id) || id === 'mono') && cols.length > 1 && (
+        <div className={cn(L.card, 'overflow-x-auto', id === 'ops' ? 'mb-3 px-4 py-4' : id === 'mono' ? 'mb-5 px-6 py-5' : 'mb-4 px-5 py-4')}>
           <ol className="relative flex min-w-max items-center justify-between gap-6 px-2" aria-label="대조 순서">
-            <span aria-hidden className="absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[#dfe9e1]" />
+            <span aria-hidden className={cn('absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 rounded-full', id === 'ops' ? 'bg-[#dfe9e1]' : 'bg-[#e2e2e2]')} />
             {cols.map((c, i) => (
-              <li key={i} className={cn('relative rounded-md px-2.5 py-1 text-[12px] font-medium', i === cols.length - 1 ? 'bg-[#2f8f57] text-white' : 'bg-[#f1f1f1] text-zinc-700 ring-4 ring-white')}>{c.title}</li>
+              <li key={i} className={cn('relative font-medium ring-4 ring-white', id === 'ops' ? 'rounded-md px-2.5 py-1 text-[12px]' : 'rounded-full px-3.5 py-1.5 text-[13px]',
+                i === cols.length - 1 ? (id === 'ops' ? 'bg-[#2f8f57] text-white' : 'bg-zinc-950 text-white') : 'bg-[#f1f1f1] text-zinc-700')}>{c.title}</li>
             ))}
           </ol>
         </div>
@@ -514,12 +533,12 @@ function Chain({ b }: P) {
       <div className={cn('grid @3xl:grid-cols-2 @6xl:grid-flow-col @6xl:auto-cols-fr @6xl:grid-cols-none', L.gap)}>
         {cols.map((c, i) => (
           <div key={i} className="flex min-w-0 flex-col gap-3">
-            <div className={cn('flex items-center gap-2', id === 'mono' ? 'px-2 text-[17px] font-semibold text-zinc-950' : id === 'ops' ? 'text-[12px] font-semibold text-zinc-500' : 'text-[13px] font-semibold text-muted-foreground')}>
+            <div className={cn('flex items-center gap-2', id === 'mono' ? 'px-2 text-[17px] font-semibold text-zinc-950' : id === 'monoops' ? 'px-1 text-[14px] font-semibold text-zinc-900' : id === 'ops' ? 'text-[12px] font-semibold text-zinc-500' : 'text-[13px] font-semibold text-muted-foreground')}>
               <span className={cn('grid size-6 place-items-center rounded-full text-[11px] font-semibold', L.badge)}>{i + 1}</span>{c.title}
               {i < cols.length - 1 && <ArrowRight className="ml-auto hidden size-3.5 text-muted-foreground @6xl:block" aria-hidden />}
             </div>
             {(c.nodes || []).map((n: Block, k: number) => (
-              <div key={k} className={cn(L.card, 'flex flex-col gap-2', id === 'ops' ? 'p-3 text-[13px]' : id === 'mono' ? 'p-5 text-[15px]' : 'p-4 text-[14px]')}>
+              <div key={k} className={cn(L.card, 'flex flex-col gap-2', id === 'ops' ? 'p-3 text-[13px]' : id === 'mono' ? 'p-5 text-[15px]' : id === 'monoops' ? 'p-4 text-[13.5px]' : 'p-4 text-[14px]')}>
                 {n.id && <Badge chip={{ text: n.id + (n.title ? ' · ' + n.title : ''), tone: n.tone }} className="self-start" />}
                 {n.text && <div className="leading-relaxed"><Clamp text={n.text} lines={5} /></div>}
                 <Badges items={n.tags} />
@@ -537,11 +556,11 @@ function Chain({ b }: P) {
 function Steps({ b }: P) {
   const id = useId()
   const items: string[] = b.items || []
-  if (id === 'ops') {
+  if (isDense(id)) {
     return (
-      <ol className="relative ml-1.5 flex flex-col gap-3 border-l-2 border-[#dfe9e1] py-1 pl-5 text-[13.5px] leading-relaxed">
+      <ol className={cn('relative ml-1.5 flex flex-col gap-3 border-l-2 py-1 pl-5 text-[13.5px] leading-relaxed', id === 'ops' ? 'border-[#dfe9e1]' : 'border-[#e2e2e2]')}>
         {items.map((x, i) => (
-          <li key={i} className="relative"><span aria-hidden className="absolute -left-[27px] top-1.5 size-3 rounded-full border-2 border-white bg-[#2f8f57]" />
+          <li key={i} className="relative"><span aria-hidden className={cn('absolute -left-[27px] top-1.5 size-3 rounded-full border-2 border-white', id === 'ops' ? 'bg-[#2f8f57]' : 'bg-zinc-950')} />
             <span className="mr-2 font-mono text-[11px] text-zinc-400">{String(i + 1).padStart(2, '0')}</span><Md text={x} /></li>
         ))}
       </ol>
@@ -565,11 +584,11 @@ function Cards({ b }: P) {
   return (
     <div className={cn('@container grid gap-3 @xl:grid-cols-2 @5xl:grid-cols-3', id === 'mono' && 'gap-4')}>
       {(b.items || []).map((c: Block, i: number) => (
-        <div key={i} className={cn(L.card, id === 'ops' ? 'p-3.5' : id === 'mono' ? 'p-6' : 'p-5', 'flex min-w-0 gap-3')}>
+        <div key={i} className={cn(L.card, id === 'ops' ? 'p-3.5' : id === 'mono' ? 'p-6' : id === 'monoops' ? 'p-4' : 'p-5', 'flex min-w-0 gap-3')}>
           {b.numbered && <span className={cn('grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold', L.badge)}>{i + 1}</span>}
           <div className="min-w-0">
-            <div className={cn('font-semibold', id === 'mono' ? 'text-[17px]' : id === 'ops' ? 'text-[13.5px]' : 'text-[15px]')}>{c.title}</div>
-            <p className={cn('mt-1.5 leading-relaxed text-muted-foreground', id === 'ops' ? 'text-[13px]' : feat ? 'text-sm' : 'text-[14.5px]')}><Md text={c.text} /></p>
+            <div className={cn('font-semibold', id === 'mono' ? 'text-[17px]' : isDense(id) ? 'text-[14px]' : 'text-[15px]')}>{c.title}</div>
+            <p className={cn('mt-1.5 leading-relaxed text-muted-foreground', isDense(id) ? 'text-[13px]' : feat ? 'text-sm' : 'text-[14.5px]')}><Md text={c.text} /></p>
             <Badges items={c.chips} className="mt-2" />
           </div>
         </div>
@@ -584,11 +603,11 @@ function Expander({ b, copy }: P) {
   return (
     <details className={cn('group', L.card)} open={!!b.open}>
       <summary className={cn('flex cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden',
-        id === 'ops' ? 'px-4 py-3 text-[14px]' : id === 'mono' ? 'px-7 py-5 text-[17px]' : 'px-5 py-4 text-[15px]')}>
+        id === 'ops' ? 'px-4 py-3 text-[14px]' : id === 'mono' ? 'px-7 py-5 text-[17px]' : id === 'monoops' ? 'px-5 py-3.5 text-[15px]' : 'px-5 py-4 text-[15px]')}>
         <span>{b.title}</span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
-      <div className={cn('flex flex-col border-t', L.gap, id === 'ops' ? 'px-4 py-4' : id === 'mono' ? 'px-7 py-6' : 'px-5 py-5')}><Blocks blocks={b.blocks || []} copy={copy} /></div>
+      <div className={cn('flex flex-col border-t', L.gap, isDense(id) ? 'px-5 py-4' : id === 'mono' ? 'px-7 py-6' : 'px-5 py-5')}><Blocks blocks={b.blocks || []} copy={copy} /></div>
     </details>
   )
 }
@@ -598,16 +617,16 @@ function Files({ b, copy }: P) {
   const id = useId()
   const L = LOOK[id]
   const h = safeHref(b.href)
-  const field = id === 'mono' ? 'rounded-full bg-[#f4f4f4] pl-5 pr-1.5' : id === 'ops' ? 'rounded-md border border-[#e6e6e6] bg-[#fafafa] pl-3 pr-1' : 'rounded-lg border bg-muted/50 pl-3 pr-1.5'
+  const field = isMono(id) ? 'rounded-full bg-[#f4f4f4] pl-5 pr-1.5' : id === 'ops' ? 'rounded-md border border-[#e6e6e6] bg-[#fafafa] pl-3 pr-1' : 'rounded-lg border bg-muted/50 pl-3 pr-1.5'
   return (
-    <div className={cn(L.card, L.pad, 'flex flex-col', id === 'ops' ? 'gap-3' : 'gap-4')}>
+    <div className={cn(L.card, L.pad, 'flex flex-col', isDense(id) ? 'gap-3' : 'gap-4')}>
       {(b.items || []).map((f: Block, i: number) => (
         <div key={i} className="min-w-0">
           <div className="mb-1.5 text-[13px] text-muted-foreground">{f.label}</div>
           <div className={cn('flex min-h-10 items-center gap-2 py-1', field)}>
             <span className="min-w-0 flex-1 break-all font-mono text-xs">{f.value}</span>
             {f.copy !== false && (
-              <button type="button" onClick={() => copy(String(f.value))} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 border bg-white px-2.5 text-xs font-medium hover:bg-accent', id === 'mono' ? 'rounded-full' : 'rounded-md')}>
+              <button type="button" onClick={() => copy(String(f.value))} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 border bg-white px-2.5 text-xs font-medium hover:bg-accent', isMono(id) ? 'rounded-full' : 'rounded-md')}>
                 <Copy className="size-3.5" aria-hidden />복사
               </button>
             )}
@@ -625,10 +644,10 @@ function Hero({ b }: P) {
   const L = LOOK[id]
   return (
     <section className="@container flex min-w-0 flex-col gap-4">
-      <div className={cn(L.card, id === 'mono' ? 'p-7 sm:p-10' : id === 'ops' ? 'p-5' : 'p-6 sm:p-8')}>
+      <div className={cn(L.card, id === 'mono' ? 'p-7 sm:p-10' : isDense(id) ? 'p-5' : 'p-6 sm:p-8')}>
         <div className={cn('text-[13px]', id === 'navy' ? 'font-semibold text-[#4f5bd5]' : id === 'analytics' ? 'font-medium text-orange-600' : id === 'ops' ? 'text-[#2f7d4f]' : 'text-zinc-500')}>{b.eyebrow}</div>
         <h1 className={cn('mt-3 max-w-4xl text-balance font-bold leading-snug tracking-tight',
-          id === 'mono' ? 'text-[30px] font-semibold sm:text-[40px]' : id === 'ops' ? 'text-[22px] font-semibold' : 'text-[26px] sm:text-[30px]')}>{b.title}</h1>
+          id === 'mono' ? 'text-[30px] font-semibold sm:text-[40px]' : id === 'ops' ? 'text-[22px] font-semibold' : id === 'monoops' ? 'text-[24px] font-semibold sm:text-[28px]' : 'text-[26px] sm:text-[30px]')}>{b.title}</h1>
         {b.subtitle && <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground"><Md text={b.subtitle} /></p>}
         <Badges items={b.chips} className="mt-5" />
       </div>
@@ -643,10 +662,10 @@ function StorySection({ b, copy }: P) {
   const L = LOOK[id]
   const no = SECTION_NO[b.key]
   const name = String(b.label || '').split('·').pop()?.trim()
-  const label = { navy: 'font-semibold text-[#4f5bd5]', mono: 'text-zinc-500', ops: 'font-medium text-[#2f7d4f]', analytics: 'font-medium text-orange-600' }[id]
-  const title = { navy: 'text-[22px] font-bold', mono: 'text-[30px] font-semibold', ops: 'text-[17px] font-semibold', analytics: 'text-[20px] font-semibold' }[id]
+  const label = { navy: 'font-semibold text-[#4f5bd5]', mono: 'text-zinc-500', ops: 'font-medium text-[#2f7d4f]', analytics: 'font-medium text-orange-600', monoops: 'text-zinc-500' }[id]
+  const title = { navy: 'text-[22px] font-bold', mono: 'text-[30px] font-semibold', ops: 'text-[17px] font-semibold', analytics: 'text-[20px] font-semibold', monoops: 'text-[22px] font-semibold' }[id]
   return (
-    <section className={cn('flex flex-col', id === 'ops' ? 'mt-4 gap-3' : 'mt-8 gap-4', id === 'mono' ? 'gap-5' : '')}>
+    <section className={cn('flex flex-col', id === 'ops' ? 'mt-4 gap-3' : id === 'monoops' ? 'mt-6 gap-4' : 'mt-8 gap-4', id === 'mono' ? 'gap-5' : '')}>
       <div className={id === 'ops' ? 'border-b border-[#e6e6e6] pb-2' : ''}>
         <div className={cn('text-[13px]', label)}>{no ? `${no}. ` : ''}{name}</div>
         <h2 className={cn('mt-1 text-balance tracking-tight text-foreground', title)}>{b.title}</h2>
@@ -672,12 +691,15 @@ const HEXES: Record<SkinId, Skin['hex']> = {
   mono: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3' },
   ops: { blue: '#2f80ed', green: '#2f9e5b', red: '#e5484d', orange: '#f2994a', purple: '#8b5cf6', gray: '#a3a3a3' },
   analytics: { blue: '#7170f5', green: '#3ccf6e', red: '#ef5350', orange: '#f7931e', purple: '#a78bfa', gray: '#b8b8c0' },
+  monoops: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3' },
 }
+const GREYS = ['#111111', '#c9c9c9', '#6b6b6b', '#e4e4e4', '#3f3f46', '#a3a3a3']
 
 export const SKINS: Record<SkinId, Skin> = {
   navy: { id: 'navy', blocks: COMMON, hex: HEXES.navy },
-  mono: { id: 'mono', blocks: COMMON, hex: HEXES.mono, series: ['#111111', '#c9c9c9', '#6b6b6b', '#e4e4e4', '#3f3f46', '#a3a3a3'] },
+  mono: { id: 'mono', blocks: COMMON, hex: HEXES.mono, series: GREYS },
   ops: { id: 'ops', blocks: COMMON, hex: HEXES.ops },
   analytics: { id: 'analytics', blocks: COMMON, hex: HEXES.analytics },
+  monoops: { id: 'monoops', blocks: COMMON, hex: HEXES.monoops, series: GREYS },
 }
 

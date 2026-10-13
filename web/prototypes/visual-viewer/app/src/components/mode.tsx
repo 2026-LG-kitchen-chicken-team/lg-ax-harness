@@ -1,15 +1,16 @@
 // View mode switch for comparing layouts on the same data: A app, B slides, C one-page poster, D exhibition, E board,
 // F = A's sidebar with every page in D's layout, G corporate site, H service landing page, and the dashboard views
-// I navy, J mono, K operations, L analytics (A's menu and pages in the look of four dashboard references).
+// I navy, J mono, K operations, L analytics (A's menu and pages in the look of four dashboard references) and M, J's
+// look with K's compact layout.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import {
-  Building2, ChartLine, Check, ChevronDown, Contrast, GalleryVerticalEnd, Kanban, LayoutDashboard, LayoutGrid, LayoutPanelLeft,
-  PanelLeft, Presentation, Rocket, Rows3,
+  Building2, ChartLine, Check, ChevronDown, Contrast, GalleryVerticalEnd, Kanban, LayoutDashboard, LayoutGrid, LayoutList,
+  LayoutPanelLeft, PanelLeft, Presentation, Rocket, Rows3,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 export type Mode = 'app' | 'slides' | 'poster' | 'editorial' | 'board' | 'exhibit' | 'corporate' | 'landing'
-  | 'navy' | 'mono' | 'ops' | 'analytics'
+  | 'navy' | 'mono' | 'ops' | 'analytics' | 'monoops'
 const MODES: { id: Mode; label: string; icon: typeof LayoutGrid }[] = [
   { id: 'app', label: 'A 앱', icon: LayoutDashboard },
   { id: 'slides', label: 'B 슬라이드', icon: Presentation },
@@ -23,8 +24,9 @@ const MODES: { id: Mode; label: string; icon: typeof LayoutGrid }[] = [
   { id: 'mono', label: 'J 모노', icon: Contrast },
   { id: 'ops', label: 'K 업무형', icon: Rows3 },
   { id: 'analytics', label: 'L 분석형', icon: ChartLine },
+  { id: 'monoops', label: 'M 모노+업무', icon: LayoutList },
 ]
-const GROUPS = [{ title: '보기 A–H', from: 0, to: 8 }, { title: '대시보드 I–L (A와 같은 화면, 다른 모양)', from: 8, to: 12 }]
+const GROUPS = [{ title: '보기 A–H', from: 0, to: 8 }, { title: '대시보드 I–M (A와 같은 화면, 다른 모양)', from: 8, to: 13 }]
 const isMode = (m: unknown): m is Mode => MODES.some((x) => x.id === m)
 
 export function useMode(): [Mode, (m: Mode) => void] {
@@ -43,7 +45,7 @@ export function useMode(): [Mode, (m: Mode) => void] {
   return [mode, setMode]
 }
 
-// One small button that opens the list of all twelve views, so the switch fits a 1366px header and a phone.
+// One small button that opens the list of all thirteen views, so the switch fits a 1366px header and a phone.
 // The view's name shows from sm (from xl with `compact`, for crowded headers); narrower screens show the letter only.
 export function ModeSwitch({ mode, setMode, dark, compact, className }: { mode: Mode; setMode: (m: Mode) => void; dark?: boolean; compact?: boolean; className?: string }) {
   const [open, setOpen] = useState(false)

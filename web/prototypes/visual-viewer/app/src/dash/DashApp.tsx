@@ -1,5 +1,6 @@
-// Dashboard views I–L: A's menu, nine pages, search, ID cards, page intro and prev/next, drawn in the look of four
-// dashboard references (I navy sidebar, J monochrome rounded, K compact operations, L analytics with a right column).
+// Dashboard views I–M: A's menu, nine pages, search, ID cards, page intro and prev/next, drawn in the look of four
+// dashboard references (I navy sidebar, J monochrome rounded, K compact operations, L analytics with a right column)
+// and M, which puts K's compact layout and page information into J's black-and-white look.
 // Only build_view.py's data is shown: nothing from the references' sample content (names, deltas, offers) is copied.
 import { useEffect, useState, type ReactNode } from 'react'
 import { ChartLine, ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Menu, PanelsTopLeft, RefreshCw, Search, X } from 'lucide-react'
@@ -14,7 +15,7 @@ import { cn, Md } from '../lib/utils'
 import type { LiveState } from '../lib/useView'
 import type { Block, Page, View } from '../types'
 
-const IDS: SkinId[] = ['navy', 'mono', 'ops', 'analytics']
+const IDS: SkinId[] = ['navy', 'mono', 'ops', 'analytics', 'monoops']
 export const isSkin = (m: string): m is SkinId => (IDS as string[]).includes(m)
 
 type Props = {
@@ -25,7 +26,7 @@ type Props = {
 }
 
 // Sidebar, menu items and the saved-status card per view.
-const SIDE: Record<SkinId, { aside: string; offset: string; group: string; list: string; item: string; on: string; off: string; num?: string; card: string; button: string; foot: string }> = {
+const SIDE: Record<SkinId, { aside: string; offset: string; group: string; list: string; item: string; on: string; off: string; num?: string; numOn?: string; card: string; button: string; foot: string }> = {
   navy: {
     aside: 'w-64 bg-[#1d2131] text-[#c3c7d4]', offset: 'lg:pl-64',
     group: 'px-6 pb-2 text-[11px] font-semibold tracking-[0.16em] text-[#6e7488]', list: 'flex flex-col',
@@ -60,7 +61,21 @@ const SIDE: Record<SkinId, { aside: string; offset: string; group: string; list:
     card: 'mx-3 rounded-xl border border-[#ececee] p-4 text-zinc-700', button: 'mt-3 h-9 w-full rounded-lg bg-zinc-900 text-[13px] font-medium text-white hover:bg-zinc-800',
     foot: 'border-t border-[#ececee] px-4 py-3 text-[11px] leading-relaxed text-zinc-500',
   },
+  monoops: {
+    aside: 'w-64 bg-white text-zinc-900', offset: 'lg:pl-64',
+    group: 'px-4 pb-1.5 text-[11px] text-zinc-400', list: 'flex flex-col gap-0.5',
+    item: 'flex h-10 w-full items-center gap-2.5 rounded-full pl-1 pr-4 text-left text-[14px]',
+    on: 'bg-zinc-950 font-medium text-white', off: 'text-zinc-700 hover:bg-zinc-100',
+    num: 'ml-auto font-mono text-[10px] text-zinc-400', numOn: 'text-white/50',
+    card: 'mx-4 rounded-[20px] bg-[#f4f4f4] p-4 text-zinc-700', button: 'mt-3 h-9 w-full rounded-full bg-zinc-950 text-xs font-medium text-white hover:bg-zinc-800',
+    foot: 'px-6 py-3 text-[11px] leading-relaxed text-zinc-400',
+  },
 }
+
+// When build_view.py made this view's data (not when the result was saved).
+const builtAt = (view: View | null) => (view?.generated_at ? view.generated_at.slice(0, 16).replace('T', ' ') : '')
+// J, K and M open the search with "/" as well as Ctrl+K.
+const SLASH = new Set<SkinId>(['mono', 'ops', 'monoops'])
 
 export default function DashApp(p: Props) {
   const { skin, view, page } = p
@@ -75,14 +90,14 @@ export default function DashApp(p: Props) {
   return (
     <SkinContext.Provider value={SKINS[skin]}>
       <div className={cn('min-h-dvh bg-background text-foreground', 'skin-' + skin)}>
-        <TextScale big={p.big} /><SearchHotkey open={p.openSearch} slash={skin === 'ops'} />
+        <TextScale big={p.big} /><SearchHotkey open={p.openSearch} slash={SLASH.has(skin)} />
         <Sidebar {...p} go={go} open={navOpen} close={() => setNavOpen(false)} />
         <div className={S.offset}>
           <TopBar {...p} tools={tools} openNav={() => setNavOpen(true)} />
           <div className={skin === 'analytics' ? 'xl:grid xl:grid-cols-[minmax(0,1fr)_19rem]' : ''}>
             <main className={cn('@container flex min-w-0 flex-col print-full', {
               navy: 'mx-auto max-w-[96rem] gap-5 px-4 py-6 sm:px-7', mono: 'mx-auto max-w-[96rem] gap-6 px-4 pb-12 pt-4 sm:px-8',
-              ops: 'gap-3 px-4 py-4 sm:px-6', analytics: 'gap-5 px-4 pb-10 sm:px-6',
+              ops: 'gap-3 px-4 py-4 sm:px-6', analytics: 'gap-5 px-4 pb-10 sm:px-6', monoops: 'gap-4 px-4 pb-10 pt-4 sm:px-6',
             }[skin])}>
               {view && page ? <Body {...p} go={go} /> : <Empty />}
             </main>
@@ -102,23 +117,26 @@ function Tools({ skin, view, openSearch, mode, setMode, big, toggleBig, live, in
     navy: <button type="button" onClick={openSearch} aria-label="전체 검색 (Ctrl+K)" title="전체 검색 (Ctrl+K)"
       className="flex h-10 items-center gap-2 rounded-lg border border-[#e3e6ee] px-3 text-[13px] text-[#9aa0b2] hover:border-[#cfd3e6] sm:w-60">
       <Search className="size-4" aria-hidden /><span className="hidden sm:inline">ID·인용·판단 검색</span><kbd className="ml-auto hidden rounded border border-[#e3e6ee] px-1 font-sans text-[10px] sm:inline">Ctrl K</kbd></button>,
-    mono: <button type="button" onClick={openSearch} aria-label="전체 검색 (Ctrl+K)" title="전체 검색 (Ctrl+K)"
+    mono: <button type="button" onClick={openSearch} aria-label="전체 검색 (/ 또는 Ctrl+K)" title="전체 검색 (/ 또는 Ctrl+K)"
       className="flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm text-zinc-600 hover:text-zinc-950">
-      <Search className="size-4" aria-hidden /><span className="hidden sm:inline">검색</span><kbd className="hidden rounded-full bg-zinc-100 px-2 font-sans text-[10px] text-zinc-500 md:inline">Ctrl K</kbd></button>,
+      <Search className="size-4" aria-hidden /><span className="hidden sm:inline">검색</span><kbd className="hidden rounded-full bg-zinc-100 px-2 font-sans text-[11px] text-zinc-500 md:inline">/</kbd></button>,
     ops: <button type="button" onClick={openSearch} aria-label="전체 검색 (/ 또는 Ctrl+K)" title="전체 검색 (/ 또는 Ctrl+K)"
       className="grid size-8 place-items-center rounded-md border border-[#e3e3e3] bg-white text-zinc-600 lg:hidden"><Search className="size-4" aria-hidden /></button>,
     analytics: <button type="button" onClick={openSearch} aria-label="전체 검색 (Ctrl+K)" title="전체 검색 (Ctrl+K)"
       className="flex h-9 items-center gap-2 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white hover:bg-zinc-800">
       <Search className="size-4" aria-hidden /><span className="hidden sm:inline">검색</span><kbd className="hidden rounded bg-white/15 px-1 font-sans text-[10px] md:inline">Ctrl K</kbd></button>,
+    monoops: <button type="button" onClick={openSearch} aria-label="전체 검색 (/ 또는 Ctrl+K)" title="전체 검색 (/ 또는 Ctrl+K)"
+      className="grid size-9 place-items-center rounded-full bg-white text-zinc-600 lg:hidden"><Search className="size-4" aria-hidden /></button>,
   }[skin]
   const bigCls = {
     navy: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e3e6ee]', mono: 'h-11 rounded-full bg-white px-4', ops: 'h-8 rounded-md border border-[#e3e3e3] bg-white px-2.5',
-    analytics: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e4e4e7]',
+    analytics: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e4e4e7]', monoops: 'h-9 rounded-full bg-white px-3',
   }[skin]
   return (
     <div className="flex items-center gap-2">
       {view && search}
-      <ModeSwitch mode={mode} setMode={setMode} compact={skin !== 'mono'} className={skin === 'mono' ? '[&>button]:h-11 [&>button]:rounded-full [&>button]:bg-white [&>button]:px-4' : undefined} />
+      <ModeSwitch mode={mode} setMode={setMode} compact={skin !== 'mono'}
+        className={skin === 'mono' ? '[&>button]:h-11 [&>button]:rounded-full [&>button]:bg-white [&>button]:px-4' : skin === 'monoops' ? '[&>button]:h-9 [&>button]:rounded-full [&>button]:bg-white' : undefined} />
       <button type="button" onClick={toggleBig} aria-pressed={big} title={big ? '글자 보통으로' : '글자 크게'}
         className={cn('text-sm font-semibold', bigCls, big && (skin === 'navy' ? 'bg-[#4f5bd5] text-white ring-[#4f5bd5]' : skin === 'analytics' ? 'bg-orange-500 text-white ring-orange-500' : 'bg-zinc-900 text-white'))}>
         가<span className="text-[11px]">{big ? '−' : '+'}</span>
@@ -142,16 +160,33 @@ function TopBar({ skin, view, page, tools, openNav }: Props & { tools: ReactNode
       </header>
     )
   }
+  const at = builtAt(view)
   if (skin === 'mono') {
     return (
       <header className="no-print flex items-center gap-2 px-4 pt-5 sm:px-8">
         {menu('size-11 rounded-full bg-white')}
+        {at && <span className="hidden text-[13px] text-zinc-500 md:inline" title="build_view.py가 이 화면 자료를 만든 시각">화면 생성: {at}</span>}
         <div className="ml-auto">{tools}</div>
       </header>
     )
   }
+  if (skin === 'monoops') {
+    return (
+      <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-2 bg-[#ececec]/90 px-4 text-[13px] backdrop-blur sm:px-6">
+        {menu('size-9 rounded-full bg-white')}
+        <nav className="flex min-w-0 items-center gap-1.5" aria-label="현재 위치">
+          <span className="hidden truncate text-zinc-500 sm:inline">{view?.app?.title || 'LG AX 상품기획'}</span>
+          <span className="hidden text-zinc-400 sm:inline">/</span>
+          <span className="truncate font-semibold text-zinc-950">{title}</span>
+        </nav>
+        <div className="ml-auto flex items-center gap-3">
+          {at && <span className="hidden text-zinc-500 xl:inline" title="build_view.py가 이 화면 자료를 만든 시각">화면 생성: {at}</span>}
+          {tools}
+        </div>
+      </header>
+    )
+  }
   if (skin === 'ops') {
-    const at = view?.generated_at ? view.generated_at.slice(0, 16).replace('T', ' ') : ''
     return (
       <header className="no-print sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-[#ececec] bg-[#fafafa]/95 px-4 text-[13px] backdrop-blur sm:px-6">
         {menu('size-8 rounded-md hover:bg-black/5')}
@@ -197,6 +232,13 @@ function Brand({ skin, view, close }: { skin: SkinId; view: View | null; close: 
       </div>
     )
   }
+  if (skin === 'monoops') {
+    return (
+      <div className="flex items-start gap-2 px-6 pb-4 pt-6">
+        <div className="min-w-0"><div className="text-[18px] font-bold leading-tight tracking-tight">{title}</div><div className="mt-0.5 text-[12px] text-zinc-500">{sub}</div></div>{x}
+      </div>
+    )
+  }
   if (skin === 'ops') {
     return (
       <div className="flex items-center gap-2 p-3">
@@ -229,14 +271,16 @@ function Sidebar({ skin, view, page, go, open, close, reload, openFile, inline, 
       <aside className={cn('no-print fixed inset-y-0 left-0 z-40 flex flex-col transition-transform lg:translate-x-0', S.aside, open ? 'translate-x-0 shadow-2xl' : '-translate-x-full')}
         aria-label="단계와 세션 자료">
         <Brand skin={skin} view={view} close={close} />
-        {skin === 'ops' && view && (
-          <button type="button" onClick={openSearch} className="mx-3 flex h-9 items-center gap-2 rounded-lg border border-[#e3e3e3] bg-white px-2.5 text-[13px] text-zinc-500 hover:text-zinc-800">
-            <Search className="size-4" aria-hidden />빠른 검색<kbd className="ml-auto rounded border border-[#e3e3e3] px-1.5 font-sans text-[11px] text-zinc-500">/</kbd>
+        {(skin === 'ops' || skin === 'monoops') && view && (
+          <button type="button" onClick={openSearch} className={skin === 'ops'
+            ? 'mx-3 flex h-9 items-center gap-2 rounded-lg border border-[#e3e3e3] bg-white px-2.5 text-[13px] text-zinc-500 hover:text-zinc-800'
+            : 'mx-4 flex h-10 items-center gap-2 rounded-full bg-[#f4f4f4] px-3.5 text-[13px] text-zinc-500 hover:text-zinc-900'}>
+            <Search className="size-4" aria-hidden />빠른 검색<kbd className={cn('ml-auto px-1.5 font-sans text-[11px] text-zinc-500', skin === 'ops' ? 'rounded border border-[#e3e3e3]' : 'rounded-full bg-white')}>/</kbd>
           </button>
         )}
         {/* The saved-status card scrolls with the menu, so every page stays reachable on a 768px-high screen. */}
         <div className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto', skin === 'navy' ? 'py-5' : skin === 'mono' ? 'pb-5' : 'py-4')}>
-        <nav className={skin === 'mono' ? 'px-5' : skin === 'navy' ? '' : 'px-3'} aria-label="단계">
+        <nav className={skin === 'mono' ? 'px-5' : skin === 'navy' ? '' : skin === 'monoops' ? 'px-4' : 'px-3'} aria-label="단계">
           {groups.map((g) => (
             <div key={g.title} className={skin === 'analytics' ? 'mb-3 border-b border-[#f0f0f2] pb-3 last:border-0' : 'mb-5'}>
               <div className={S.group}>{g.title}</div>
@@ -247,11 +291,11 @@ function Sidebar({ skin, view, page, go, open, close, reload, openFile, inline, 
                   return (
                     <li key={x.id}>
                       <button type="button" onClick={() => go(x.id)} aria-current={active ? 'page' : undefined} className={cn(S.item, active ? S.on : S.off)}>
-                        {skin === 'mono'
-                          ? <span className={cn('grid size-9 shrink-0 place-items-center rounded-full', active ? 'bg-white text-zinc-950' : 'bg-[#f2f2f2] text-zinc-700')}><Icon className="size-[18px]" aria-hidden /></span>
+                        {skin === 'mono' || skin === 'monoops'
+                          ? <span className={cn('grid shrink-0 place-items-center rounded-full', skin === 'mono' ? 'size-9' : 'size-8', active ? 'bg-white text-zinc-950' : 'bg-[#f2f2f2] text-zinc-700')}><Icon className={skin === 'mono' ? 'size-[18px]' : 'size-4'} aria-hidden /></span>
                           : <Icon className={cn('shrink-0', skin === 'ops' ? 'size-4' : 'size-[18px]')} aria-hidden />}
                         <span className="truncate">{x.nav || x.title}</span>
-                        {S.num && <span className={S.num}>{String(pages.indexOf(x) + 1).padStart(2, '0')}</span>}
+                        {S.num && <span className={cn(S.num, active && S.numOn)}>{String(pages.indexOf(x) + 1).padStart(2, '0')}</span>}
                       </button>
                     </li>
                   )
@@ -314,6 +358,22 @@ function Body({ skin, view, page, copy, go }: Props) {
 }
 
 type Intro = ReturnType<typeof introOf>
+
+// "이름 : 값" lines about the saved result (K's head card; J and M too): scope, file, what was loaded, status chips.
+function InfoStrip({ skin, view, className }: { skin: SkinId; view: View; className?: string }) {
+  const ctx = view.context || {}
+  const pairs: [string, string][] = [['범위', ctx.meta || ''], ['파일', ctx.file ? `${ctx.file.name}${ctx.file.size ? ' · ' + ctx.file.size : ''}` : ''], ['불러온 자료', ctx.loaded || '']]
+  const dt = cn('shrink-0 text-zinc-500', skin === 'mono' ? 'w-20' : 'w-16')
+  return (
+    <dl className={cn('grid min-w-0 gap-x-6 gap-y-1 @2xl:grid-cols-2', skin === 'mono' ? 'text-[13.5px]' : skin === 'monoops' ? 'text-[12.5px]' : 'text-[12px]', className)}>
+      {pairs.filter(([, v]) => v).map(([k, v]) => (
+        <div key={k} className="flex min-w-0 items-baseline gap-2"><dt className={dt}>{k}</dt><span aria-hidden className="text-zinc-400">:</span><dd className="min-w-0 break-all font-medium text-zinc-900">{v}</dd></div>
+      ))}
+      <div className="flex min-w-0 items-center gap-2"><dt className={dt}>상태</dt><span aria-hidden className="text-zinc-400">:</span>
+        <dd className="flex min-w-0 flex-wrap gap-1">{(ctx.status || [{ text: '데이터 없음' }]).map((s, k) => <Badge key={k} chip={s} />)}</dd></div>
+    </dl>
+  )
+}
 function Head({ skin, view, page, n, total, intro }: { skin: SkinId; view: View; page: Page; n: number; total: number; intro: Intro }) {
   const lines = (title: string, text: string) => (
     <>
@@ -331,17 +391,41 @@ function Head({ skin, view, page, n, total, intro }: { skin: SkinId; view: View;
   }
   if (skin === 'mono') {
     return (
-      <header className="pb-1 pt-2">
-        {intro.step && <div className="text-[13px] text-zinc-500">{intro.step}</div>}
-        <h1 className="mt-1 text-balance text-[34px] font-semibold leading-tight tracking-tight text-zinc-950 sm:text-[40px]">{page.title}</h1>
-        <div className="mt-3">{lines('text-[17px] text-zinc-800', 'text-[15px] text-zinc-500')}</div>
+      <header className="flex flex-col gap-4 pb-1 pt-2">
+        <div>
+          <div className="flex items-center gap-2 text-[13px] text-zinc-500">
+            {intro.step}<span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium tabular-nums text-zinc-600" title="화면 순서">{n} / {total}</span>
+          </div>
+          <h1 className="mt-1 text-balance text-[34px] font-semibold leading-tight tracking-tight text-zinc-950 sm:text-[40px]">{page.title}</h1>
+          <div className="mt-3">{lines('text-[17px] text-zinc-800', 'text-[15px] text-zinc-500')}</div>
+        </div>
+        <InfoStrip skin={skin} view={view} className="rounded-[24px] bg-white px-6 py-4" />
+      </header>
+    )
+  }
+  if (skin === 'monoops') {
+    const Icon = ICONS[page.id] || FileText
+    return (
+      <header className="flex flex-col gap-2">
+        <div className="@container flex flex-col gap-4 rounded-[22px] bg-white p-5 @4xl:flex-row @4xl:items-center">
+          <div className="flex min-w-0 items-center gap-3.5 @4xl:w-[22rem] @4xl:shrink-0">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-zinc-950 text-white"><Icon className="size-5" aria-hidden /></span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-[22px] font-semibold tracking-tight text-zinc-950">{page.title}</h1>
+                <span className="shrink-0 rounded-full bg-[#f1f1f1] px-2 py-0.5 text-[11px] font-medium tabular-nums text-zinc-600" title="화면 순서">{n} / {total}</span>
+              </div>
+              {intro.step && <div className="mt-0.5 text-[12px] text-zinc-500">{intro.step}</div>}
+            </div>
+          </div>
+          <InfoStrip skin={skin} view={view} className="flex-1 rounded-[16px] bg-[#f5f5f5] px-4 py-2.5" />
+        </div>
+        {(intro.title || intro.text) && <div className="px-1 text-[13.5px]">{lines('font-medium text-zinc-900', 'text-zinc-500')}</div>}
       </header>
     )
   }
   if (skin === 'ops') {
-    const ctx = view.context || {}
     const Icon = ICONS[page.id] || FileText
-    const pairs: [string, ReactNode][] = [['범위', ctx.meta], ['파일', ctx.file ? `${ctx.file.name}${ctx.file.size ? ' · ' + ctx.file.size : ''}` : ''], ['불러온 자료', ctx.loaded]]
     return (
       <header className="flex flex-col gap-2">
         <div className={cn(lookOf('ops').card, '@container flex flex-col gap-4 p-4 @4xl:flex-row @4xl:items-center')}>
@@ -355,13 +439,7 @@ function Head({ skin, view, page, n, total, intro }: { skin: SkinId; view: View;
               {intro.step && <div className="mt-0.5 text-[12px] text-zinc-500">{intro.step}</div>}
             </div>
           </div>
-          <dl className="grid min-w-0 flex-1 gap-x-6 gap-y-1 rounded-md border border-[#e6e6e6] px-3 py-2 text-[12px] @2xl:grid-cols-2">
-            {pairs.filter(([, v]) => v).map(([k, v]) => (
-              <div key={k} className="flex min-w-0 items-baseline gap-2"><dt className="w-16 shrink-0 text-zinc-500">{k}</dt><span aria-hidden className="text-zinc-400">:</span><dd className="min-w-0 break-all font-medium text-zinc-900">{v}</dd></div>
-            ))}
-            <div className="flex min-w-0 items-center gap-2"><dt className="w-16 shrink-0 text-zinc-500">상태</dt><span aria-hidden className="text-zinc-400">:</span>
-              <dd className="flex min-w-0 flex-wrap gap-1">{(ctx.status || [{ text: '데이터 없음' }]).map((s, k) => <Badge key={k} chip={s} />)}</dd></div>
-          </dl>
+          <InfoStrip skin={skin} view={view} className="flex-1 rounded-md border border-[#e6e6e6] px-3 py-2" />
         </div>
         {(intro.title || intro.text) && <div className="px-0.5 text-[13px]">{lines('font-medium text-zinc-800', 'text-zinc-500')}</div>}
       </header>
@@ -382,9 +460,9 @@ function PageBlocks({ skin, blocks, copy }: { skin: SkinId; blocks: Block[]; cop
   const wrap = (b: Block, k: number) => <div key={k} data-block={k} className="flex min-w-0 scroll-mt-28 flex-col"><BlockView b={b} copy={copy} /></div>
   for (let k = 0; k < blocks.length; k++) {
     const b = blocks[k]
-    if (skin === 'mono' && b.type === 'section' && blocks[k + 1]?.type === 'kpis') {
+    if ((skin === 'mono' || skin === 'monoops') && b.type === 'section' && blocks[k + 1]?.type === 'kpis') {
       out.push(
-        <div key={'pair' + k} className="grid gap-4 @5xl:grid-cols-[11rem_minmax(0,1fr)] @5xl:items-center">
+        <div key={'pair' + k} className={cn('grid gap-4 @5xl:items-center', skin === 'mono' ? '@5xl:grid-cols-[11rem_minmax(0,1fr)]' : '@5xl:grid-cols-[9rem_minmax(0,1fr)]')}>
           <div data-block={k} className="scroll-mt-28 [&>h3]:mt-0"><BlockView b={b} copy={copy} /></div>
           {wrap(blocks[k + 1], k + 1)}
         </div>,
@@ -401,11 +479,13 @@ function PrevNext({ skin, prev, next, go }: { skin: SkinId; prev?: Page; next?: 
   const box = {
     navy: 'rounded-[10px] bg-white p-5 ring-1 ring-[#eceef3] hover:ring-[#cfd3e6]', mono: 'rounded-full bg-white py-3 pl-3 pr-6 hover:bg-zinc-50',
     ops: 'rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 hover:border-zinc-300', analytics: 'rounded-xl border border-[#ececee] bg-white p-4 hover:border-zinc-300',
+    monoops: 'rounded-full bg-white py-2.5 pl-2.5 pr-5 hover:bg-zinc-50',
   }[skin]
-  const icon = skin === 'mono' ? 'grid size-11 shrink-0 place-items-center rounded-full bg-zinc-950 text-white' : 'shrink-0 text-muted-foreground'
-  const name = cn('block truncate font-semibold', skin === 'ops' ? 'text-[13px]' : 'text-[15px]')
+  const icon = skin === 'mono' ? 'grid size-11 shrink-0 place-items-center rounded-full bg-zinc-950 text-white'
+    : skin === 'monoops' ? 'grid size-9 shrink-0 place-items-center rounded-full bg-zinc-950 text-white' : 'shrink-0 text-muted-foreground'
+  const name = cn('block truncate font-semibold', skin === 'ops' ? 'text-[13px]' : skin === 'monoops' ? 'text-[14px]' : 'text-[15px]')
   return (
-    <nav className={cn('no-print grid gap-3 sm:grid-cols-2', skin === 'ops' ? 'mt-6' : 'mt-10')} aria-label="화면 이동">
+    <nav className={cn('no-print grid gap-3 sm:grid-cols-2', skin === 'ops' || skin === 'monoops' ? 'mt-6' : 'mt-10')} aria-label="화면 이동">
       {prev ? (
         <button type="button" onClick={() => go(prev.id)} className={cn('flex items-center gap-4 text-left', box)}>
           <span className={icon}><ChevronLeft className="size-5" aria-hidden /></span>
@@ -413,7 +493,7 @@ function PrevNext({ skin, prev, next, go }: { skin: SkinId; prev?: Page; next?: 
         </button>
       ) : <span className="hidden sm:block" />}
       {next && (
-        <button type="button" onClick={() => go(next.id)} className={cn('flex items-center justify-end gap-4 text-right', box, skin === 'mono' && 'pl-6 pr-3')}>
+        <button type="button" onClick={() => go(next.id)} className={cn('flex items-center justify-end gap-4 text-right', box, skin === 'mono' && 'pl-6 pr-3', skin === 'monoops' && 'pl-5 pr-2.5')}>
           <span className="min-w-0"><span className="block text-xs text-muted-foreground">다음 화면</span><span className={name}>{next.nav || next.title}</span></span>
           <span className={icon}><ChevronRight className="size-5" aria-hidden /></span>
         </button>

@@ -101,7 +101,7 @@ export default function App() {
   if (view && story && mode === 'poster') return <>{<Poster view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'corporate') return <>{<Corporate view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'landing') return <>{<Landing view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
-  // I–L keep A's menu, pages and blocks and change only the look (dash/DashApp.tsx). They need no story page.
+  // I–M keep A's menu, pages and blocks and change only the look (dash/DashApp.tsx). They need no story page.
   if (isSkin(mode)) {
     return (
       <IdTipProvider view={view}>
