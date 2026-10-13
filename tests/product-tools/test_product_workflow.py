@@ -332,6 +332,23 @@ class ProductWorkflowTests(unittest.TestCase):
         changed["data"]["source_ids"] = ["invented"]
         self.error("workflow_conflict", self.audit.record, changed, SimpleNamespace(sources={"invented": {}}))
 
+    def test_analysis_wrong_catalog_reports_repair_without_recording_failed_event(self):
+        self.plan()
+        event = {"research_id": self.research, "event_key": "repairable-analysis", "kind": "analysis_scope",
+                 "data": {"source_ids": ["observed"], "scope_note": "Read from an explicitly selected local catalog"}}
+        before = self.audit.events(self.research)
+        with self.assertRaises(ToolError) as caught:
+            self.audit.record(event, SimpleNamespace(sources={}))
+        self.assertEqual(caught.exception.code, "workflow_analysis_scope")
+        self.assertIn("0 records", str(caught.exception))
+        self.assertIn("--data", str(caught.exception))
+        self.assertIn("local catalogs are supported", str(caught.exception))
+        self.assertEqual(self.audit.events(self.research), before)
+        self.audit.record(event, SimpleNamespace(sources={"observed": {}}))
+        events = [row for row in self.audit.events(self.research) if row["event_key"] == "repairable-analysis"]
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["data"]["source_ids"], ["observed"])
+
     def test_catalog_link_requires_review_kind_matching_url_and_literal_text(self):
         self.plan()
         body = "RID-1 Positive fixture. Qualified fixture."
@@ -428,6 +445,23 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertEqual(self.audit.status(self.research)["elapsed_seconds"], 1700)
         self.assertEqual(self.conv.record_workflow_event(self.finish_event(normalized))["finished_at"], finished["finished_at"])
         self.error("workflow_finished", self.record, "checkpoint", {"remaining_tasks": ["New task after finish"]}, "late-event")
+
+    def test_layout_pass_declaration_is_not_image_inspection_certification(self):
+        paths = self.seed_delivery()
+        event = self.finish_event(paths)
+        event["data"]["layout_review"] = {"status": "passed", "scope": "Caller claims image review"}
+        finished = self.conv.record_workflow_event(event)
+        review = finished["layout_review"]
+        self.assertEqual(review["declared_status"], "passed")
+        self.assertEqual(review["verification_status"], "not_verified")
+        self.assertIsNone(review["verified_image_inspection"])
+        self.assertEqual(self.audit.events(self.research)[-1]["data"]["layout_review"], event["data"]["layout_review"])
+
+    def test_no_layout_event_does_not_claim_review_or_zero_defects(self):
+        review = self.audit.status(self.research)["layout_review"]
+        self.assertEqual(review["declared_status"], "not_run")
+        self.assertIsNone(review["scope"])
+        self.assertIsNone(review["verified_image_inspection"])
 
     def test_finish_rejects_external_path_and_unready_receipt(self):
         paths = self.seed_delivery()

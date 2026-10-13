@@ -75,7 +75,7 @@ def install(target, engine, root=ROOT):
         write(name, raw, source, source_sha, "One read-only product reviewer; native invocation unverified", inputs)
     readme = f'''# LG AX {profile["name"]} 상품기획 하네스
 
-이 설치 사본은 파일·공통 Tool 준비 단계다. {profile["name"]} native 실행은 아직 검증하지 않았다.
+이 설치기는 파일·공통 Tool만 준비한다. native 실행의 실제 지원 범위는 배포 검증 기록을 확인한다.
 공통 Tool에는 Python3.12·uv가 필요하다. 설치기는 전역 패키지·설정·계정·권한을 변경하지 않는다.
 Desktop Code GUI를 사용하면 본인 앱 계정으로 인증된 Code 로컬 세션에서 이 폴더를 선택한다. 별도 CLI 설치·로그인을 요구하지 않는다.
 CLI를 선택하는 경우에만 공식 CLI 설치·로그인 후 아래 선택 명령을 실행한다. 폴더 신뢰·Skill 활성화 동의는 해당 실행기의 안내를 따른다.
@@ -95,16 +95,16 @@ CLI를 선택한 실행자만:
 기본 catalog는 비어 있다. 첫 질문: `냉장고 사용 불편을 실제 리뷰에서 조사하고 새 부품 없이 개선할 안을 제안해줘.`
 추가 질문: `이전 안을 장보기 전에 쓰는 3단계 안내로 구체화해줘. 조건은 유지해.`
 업무 Skill은 {profile["skills"]}의6개이며 개발 역할/Skill은 포함하지 않는다.
-선택적 근거 검토자 1개를 .claude/agents/product-evidence-reviewer.md에 설치한다. 대화·단순 수정에는 호출하지 않는다.
+선택적 공식 자료 조사자·후기 조사분석자·근거 검토자 3개를 .claude/agents에 설치한다. 메인이 필요한 역할만 선택하며 대화·단순 수정에는 호출하지 않는다.
 Claude Desktop의 Code 로컬 세션에서도 이 폴더를 열 수 있다. 일반 Chat 세션은 프로젝트 Agent 설치·발견 검증과 별개다.
 역할 파일 준비만으로 GUI에서 Agent가 발견·위임되었거나 90초 제한/품질 이점이 입증된 것은 아니다.
 uv sync --locked는 같은 공통 문서 의존성(python-docx/openpyxl/reportlab/Pillow/pypdf)을 이 폴더의 로컬 환경에 설치한다.
 pip 환경은 python -m pip install --require-hashes -r product-tools/requirements.lock을 사용할 수 있다.
-공통 Skill의 최종 출력은 save_and_export에 report:true를 명시하고 종류별 원문 XLSX·필요한 DOCX·최종 DOCX/PDF를 만든다.
+공통 Skill은 기본 save_and_export(report:false)의 현재버전 웹결과/전체선택원문을 전달한다. 웹팀이 작업화면·HTML보고서를 구현하며 PDF/DOCX/XLSX생성은 명시report:true 요청만 사용한다.
 자료량에 따라 파일·절·페이지 수가 달라지며 내부 JSON·검수 기록은 runtime-data에 보관한다.
 report_plan_path는 runtime-data의 내부 작성 파일이다. open_folder:false로 결과 폴더 열기를 생략할 수 있다.
 제작 실패는 업무 저장을 유지하고 같은 session_id/turn_id/expected_result_version의 deliver_result로 복구한다.
-Claude의 실제 AI 인수는 최길웅 환경에서 별도로 확인해야 하며 설치/로컬 검사를 native 업무 통과로 바꾸지 않는다.
+Claude의 실제 AI 인수 범위는 배포 검증 기록을 따른다. 설치/로컬 검사를 native 업무 통과로 바꾸지 않는다.
 세션·요청 키는 공통 Tool이 만든다. 결과의 출처·held/needs_input·runtime-data/exports를 확인한다.
 doctor는 파일·문서 의존성 import/버전·CLI 버전·공통 Tool만 확인하며 파일 제작/레이아웃·인증·Skill 발견·AI 품질·Tool 권한을 보증하지 않는다.
 native CLI가 없으면 doctor는 local_only로 표시한다. `--require-native`는 CLI 진단 선택이며 CLI 부재를 실패로 처리한다. GUI Code 세션 인증·발견·위임은 doctor의 CLI 진단과 별도로 확인한다.
@@ -113,7 +113,7 @@ native CLI가 없으면 doctor는 local_only로 표시한다. `--require-native`
 '''.encode("utf-8")
     write("README.md",readme,"adapters/common/install.py",digest(Path(__file__).read_bytes()),"Generated setup guide; native support explicitly unverified")
     record={"format":"portable-product-install-v1","engine":engine,"profile":profile,"source_manifest_sha256":digest((root/"skills/manifest.json").read_bytes()),
-            "files":entries,"skills":[s["name"] for s in manifest["skills"]],"native_agents":["product-evidence-reviewer"],"native_verified":False,
+            "files":entries,"skills":[s["name"] for s in manifest["skills"]],"native_agents":[slug for slug, _ in shared_source.PRODUCT_ROLES],"native_verified":False,
             "scope":"Project regular files only; no auth/global settings/automatic model invocation"}
     (target/"product-install.json").write_text(json.dumps(record,ensure_ascii=False,indent=2)+"\n",encoding="utf-8",newline="\n")
     return {"target":str(target),"engine":engine,"installed_skills":len(manifest["skills"]),"files":len(entries),"native_verified":False}
@@ -130,10 +130,10 @@ def check(target):
         if not path.is_relative_to(target) or not path.is_file() or digest(path.read_bytes())!=entry["sha256"]:
             errors.append("Changed/missing installed file: "+entry["path"])
     if "native_agents" in record:
-        if record["native_agents"] != ["product-evidence-reviewer"]:
+        if record["native_agents"] != [slug for slug, _ in codex_source(ROOT).PRODUCT_ROLES]:
             errors.append("Invalid product-native agent list")
         actual = sorted(p.name for p in (target / ".claude/agents").glob("*.md"))
-        if actual != ["product-evidence-reviewer.md"]:
+        if actual != sorted(slug + ".md" for slug, _ in codex_source(ROOT).PRODUCT_ROLES):
             errors.append("Unexpected/missing product-native agent file")
     return {"errors":errors,"native_verified":False,"scope":"installed files only"}
 

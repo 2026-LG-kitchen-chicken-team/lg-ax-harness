@@ -2,12 +2,12 @@
 import hashlib
 import json
 from pathlib import Path
-from .contracts import ToolError, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from .contracts import MAX_INPUT_BYTES, ToolError, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from .state import now
 
 
 FIELDS = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
-MAX_PACKET_BYTES = 131072
+MAX_PACKET_BYTES = 524288
 
 
 class ReviewPackets:
@@ -47,9 +47,12 @@ class ReviewPackets:
         return path, path.read_bytes()
 
     @staticmethod
-    def _json(raw):
+    def _json(raw, maximum=MAX_PACKET_BYTES):
         try:
-            return strict_json(raw.decode("utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"))
+            decoded = raw.decode("utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig")
+            if len(decoded.encode("utf-8")) > maximum:
+                fail("input_limit", "Decoded reviewer JSON exceeds its byte budget")
+            return strict_json(decoded)
         except UnicodeError:
             fail("invalid_json", "Reviewer input needs UTF-8 or BOM-marked UTF-16 JSON")
 
@@ -92,8 +95,8 @@ class ReviewPackets:
         key = identifier(payload["packet_key"], "packet_key")
         with self.store.transaction():
             binding, planning = self._context(session, turn)
-            source, raw = self._read_path(payload["candidate_path"], (self.workspace / "runtime-data").resolve(), 65536)
-            candidate = self._json(raw)
+            source, raw = self._read_path(payload["candidate_path"], (self.workspace / "runtime-data").resolve(), MAX_INPUT_BYTES)
+            candidate = self._json(raw, MAX_INPUT_BYTES)
             obj(candidate, FIELDS, ("report", "report_plan_path", "report_sources_path", "open_folder"))
             identifier(candidate["result_key"], "result_key")
             integer(candidate["expected_result_version"], "expected_result_version", 0, 3)
@@ -125,7 +128,7 @@ class ReviewPackets:
             # original candidate bytes separately; only the handoff is pretty.
             body = json.dumps(packet, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False).encode("utf-8")
             if len(body) > MAX_PACKET_BYTES:
-                fail("input_limit", "Serialized reviewer packet exceeds 128 KiB; retain the original without shortening evidence")
+                fail("input_limit", "Serialized reviewer packet exceeds 512 KiB; retain the original without shortening evidence")
             digest = hashlib.sha256(body).hexdigest()
             path = self.base / ("packet-" + digest + ".json")
             # Reject oversized packets before either immutable file or the
@@ -151,10 +154,10 @@ class ReviewPackets:
         packet = self._json(raw)
         if packet.get("binding") != binding:
             fail("state_conflict", "Reviewer packet is late or belongs to different data/code/context/version/scope")
-        candidate_path, candidate_raw = self._read_path(packet["candidate_copy"], self.base, 65536)
+        candidate_path, candidate_raw = self._read_path(packet["candidate_copy"], self.base, MAX_INPUT_BYTES)
         if hashlib.sha256(candidate_raw).hexdigest() != packet["candidate_sha256"]:
             fail("packet_integrity", "Immutable candidate copy changed after delegation")
-        candidate = self._json(candidate_raw)
+        candidate = self._json(candidate_raw, MAX_INPUT_BYTES)
         if {k: candidate[k] for k in FIELDS} != packet["candidate"]:
             fail("packet_integrity", "Packet candidate differs from immutable original")
         if packet["question"] != planning["question"] or packet["constraints"] != planning["constraints"]:

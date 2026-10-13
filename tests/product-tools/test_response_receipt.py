@@ -1,5 +1,7 @@
 """Real persistence and encoding boundaries for compact native responses."""
 import hashlib
+import importlib.util
+import io
 import json
 from pathlib import Path
 import sys
@@ -9,13 +11,19 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
-from product_tools.contracts import MAX_BYTES, ToolError, canonical, decode_json_bytes, fingerprint, strict_json
+from product_tools.contracts import MAX_BYTES, MAX_INPUT_BYTES, MAX_RESULT_BYTES, ToolError, canonical, decode_json_bytes, fingerprint, product_result, strict_json
 from product_tools.conversation import Conversation
 from product_tools.dataset import Dataset
 from product_tools.state import StateStore
+from product_tools.reviewer_packet import ReviewPackets
 
 
 class UnicodeInputTests(unittest.TestCase):
+    def test_larger_unicode_input_preserves_source_text(self):
+        value = {"source_text": "한글 원문 " * 7000}
+        raw = canonical(value).encode("utf-8")
+        self.assertGreater(len(raw), MAX_BYTES)
+        self.assertEqual(strict_json(decode_json_bytes(raw)), value)
     def test_windows_boms_preserve_korean_and_strict_keys(self):
         body = '{"question":"실제 냉장고 질문"}'
         for encoding in ("utf-8", "utf-8-sig", "utf-16", "utf-16-be"):
@@ -25,7 +33,7 @@ class UnicodeInputTests(unittest.TestCase):
         with self.assertRaises(ToolError): strict_json(decode_json_bytes(b'\xef\xbb\xbf{"x":1,"x":2}'))
 
     def test_unsupported_encoding_and_both_byte_limits_are_rejected(self):
-        for raw in (b"x" * (MAX_BYTES + 1), '{"x":"한"}'.encode("cp949"), ("한" * 22000).encode("utf-16")):
+        for raw in (b"x" * (MAX_INPUT_BYTES + 1), '{"x":"한"}'.encode("cp949"), ("한" * (MAX_INPUT_BYTES//3+1)).encode("utf-16")):
             with self.assertRaises(ToolError): decode_json_bytes(raw)
 
 
@@ -120,6 +128,61 @@ class CompactReceiptTests(unittest.TestCase):
         with patch.object(self.conversation,'export_session',side_effect=export):
             saved=self.combined('snapshot',0,good)
         self.assertEqual(observed,[True]);self.assertTrue(saved['delivery_ready'])
+
+    def test_large_candidate_preserved_in_packet_save_export_and_detail_cli(self):
+        # Broad, qualified findings must survive storage without deleting refs
+        # or clipping sentences to the former 32 KiB candidate budget.
+        result = self.result(0)
+        result["validation_findings"] = [str(i) + " 실제 미확인 근거와 조건 " * 110 for i in range(20)]
+        raw_result = canonical(result).encode("utf-8")
+        self.assertGreater(len(raw_result), MAX_BYTES)
+        assessment = {"claim_checks": [], "feature_matches": [], "concept_links": []}
+        candidate = {"session_id": self.turn["session_id"], "turn_id": self.turn["turn_id"],
+                     "result_key": "broad-result", "result": result, "expected_result_version": 0, "assessment": assessment}
+        path = self.root / "runtime-data/broad-candidate.json"
+        path.write_text(canonical(candidate), encoding="utf-8")
+        packets = ReviewPackets(self.store, self.root)
+        prepared = packets.prepare_review_packet({"session_id": self.turn["session_id"], "turn_id": self.turn["turn_id"],
+                                                  "candidate_path": "runtime-data/broad-candidate.json", "packet_key": "broad"})
+        copied = json.loads((self.root / prepared["candidate_copy"]).read_text(encoding="utf-8"))
+        self.assertEqual(copied, candidate)
+        saved = self.conversation.save_and_export(candidate)
+        self.assertTrue(saved["delivery_ready"])
+        self.assertLess(len(canonical(saved).encode("utf-8")), MAX_BYTES)
+        exported = json.loads((self.root / saved["export"]["path"]).read_text(encoding="utf-8"))
+        self.assertEqual(exported["turns"][0]["candidates"][0]["result"], result)
+        self.assertEqual(saved["save"]["receipt"]["result_sha256"], fingerprint(result))
+        spec = importlib.util.spec_from_file_location("detail_cli", ROOT / "product-tools/cli.py")
+        cli = importlib.util.module_from_spec(spec); spec.loader.exec_module(cli)
+        detail = self.root / "runtime-data/detail.json"
+        detail.write_text(canonical({"session_id": self.turn["session_id"], "turn_id": self.turn["turn_id"]}), encoding="utf-8")
+        stream = io.StringIO()
+        argv = ["cli", "--data", str(ROOT / "data/business/lg-research-v3"), "--db", str(self.store.path), "get_turn", "--input", str(detail)]
+        with patch.object(cli, "ROOT", self.root), patch.object(sys, "argv", argv), patch.object(sys, "stdout", stream):
+            self.assertEqual(cli.main(), 0)
+        answer = json.loads(stream.getvalue())
+        self.assertEqual(answer["result"]["latest_result"], result)
+        self.assertGreater(len(stream.getvalue().encode("utf-8")), MAX_BYTES)
+        # Idempotent lifecycle calls return the same full current state too.
+        detail.write_text(canonical({"input": self.turn["input"], "user_submitted": True}), encoding="utf-8")
+        start_stream = io.StringIO()
+        replay_argv = ["cli", "--data", str(ROOT / "data/business/lg-research-v3"), "--db", str(self.store.path), "start_turn", "--input", str(detail)]
+        with patch.object(cli, "ROOT", self.root), patch.object(sys, "argv", replay_argv), patch.object(sys, "stdout", start_stream):
+            self.assertEqual(cli.main(), 0)
+        replay = json.loads(start_stream.getvalue())
+        self.assertTrue(replay["result"]["reused_request"])
+        self.assertEqual(replay["result"]["latest_result"], result)
+        self.assertEqual(cli.output_limit("read_evidence_batch"), MAX_BYTES)
+        self.assertEqual(cli.output_limit("save_and_export"), MAX_BYTES)
+
+    def test_new_candidate_bound_still_rejects_unbounded_result(self):
+        result = self.result(0)
+        result["validation_findings"] = ["한" * 2000 for _ in range(20)]
+        result["assumptions"] = ["한" * 2000 for _ in range(5)]
+        self.assertGreater(len(canonical(result).encode("utf-8")), MAX_RESULT_BYTES)
+        with self.assertRaises(ToolError) as caught:
+            product_result(result, self.turn["input"])
+        self.assertEqual(caught.exception.code, "input_limit")
 
 
 if __name__ == "__main__": unittest.main()

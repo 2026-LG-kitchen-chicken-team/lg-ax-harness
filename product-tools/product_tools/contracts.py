@@ -6,8 +6,9 @@ import re
 CONTRACT_VERSION = "product-contract-v1"
 DEFAULT_DATA_PATH = "data/business/empty"
 MAX_BYTES = 65536
+MAX_INPUT_BYTES = 262144
 MAX_PLANNING_BYTES = 12288
-MAX_RESULT_BYTES = 32768
+MAX_RESULT_BYTES = 131072
 
 class ToolError(ValueError):
     def __init__(self, code, message):
@@ -40,15 +41,15 @@ def strict_json(text):
 
 def decode_json_bytes(raw):
     """Accept explicit Windows Unicode BOMs, never guess an ANSI encoding."""
-    if len(raw) > MAX_BYTES:
-        fail("input_limit", "Input exceeds 64 KiB")
+    if len(raw) > MAX_INPUT_BYTES:
+        fail("input_limit", "Input exceeds 256 KiB")
     encoding = "utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"
     try:
         value = raw.decode(encoding)
     except UnicodeError as exc:
         fail("invalid_json", "Expected UTF-8 or BOM-marked UTF-16 JSON: " + str(exc))
-    if len(value.encode("utf-8")) > MAX_BYTES:
-        fail("input_limit", "Decoded input exceeds 64 KiB")
+    if len(value.encode("utf-8")) > MAX_INPUT_BYTES:
+        fail("input_limit", "Decoded input exceeds 256 KiB")
     return value
 
 def obj(value, required, optional=()):
@@ -246,5 +247,5 @@ def product_result(value, planning):
     if summary["status"] != "unknown":
         fail("invalid_input", "Result must not self-certify usage; record observed calls separately")
     if len(canonical(value).encode("utf-8")) > MAX_RESULT_BYTES:
-        fail("input_limit", "Result exceeds 32 KiB")
+        fail("input_limit", "Result exceeds 128 KiB; preserve claim-source links and use a separate report plan")
     return value

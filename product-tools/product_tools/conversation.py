@@ -6,7 +6,7 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import uuid
-from .contracts import canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from .contracts import MAX_RESULT_BYTES, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from .payload import candidate_template
 
 
@@ -34,7 +34,7 @@ class Conversation:
         """One product-name request, empty-catalog compatible, measured from entry."""
         obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds"))
         from .contracts import integer
-        integer(payload.get("budget_seconds", 600), "budget_seconds", 300, 1800)
+        integer(payload.get("budget_seconds", 1800), "budget_seconds", 300, 1800)
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.store.db, self.workspace)
         with self.store.transaction():
@@ -47,7 +47,7 @@ class Conversation:
             if not research:
                 turn = response["turn"]
                 research = self._research_id(turn["session_id"], turn["request_key"])
-            status = audit.start(research, payload.get("budget_seconds", 600), allow_new_bound_request=True)
+            status = audit.start(research, payload.get("budget_seconds", 1800), allow_new_bound_request=True)
         return {**response, "research_id": research,
                 "workflow": status,
                 "next_action": "Interpret the original product name, investigate the whole exact product, then resolve this same request; do not ask for a pain when the product is clear"}
@@ -127,7 +127,7 @@ class Conversation:
                                    "claims_per_section": 20, "concept_requirements": 10,
                                    "concept_assumptions": 10, "implementation_steps": 8,
                                    "decision_notes": 10, "decision_source_ids": 20,
-                                   "result_bytes": 32768,
+                                   "result_bytes": MAX_RESULT_BYTES,
                                    "template_status": "blank_invalid_until_authored",
                                    "semantic_status": "unverified"}}
         # Leave headroom for the CLI envelope; never hide a committed handle due
@@ -441,6 +441,15 @@ class Conversation:
             if response["delivery_ready"]:
                 report = self._deliver_current(payload["session_id"], payload["turn_id"], receipt["current_result_version"], options)
                 response.update(report=report, report_ready=report["ready"], report_error=report.get("error"))
+        else:
+            response.update(web_result=None, web_ready=False, web_error=None)
+            if response["delivery_ready"]:
+                try:
+                    response["web_result"] = self.prepare_web_result({"session_id": payload["session_id"],
+                        "turn_id": payload["turn_id"], "expected_result_version": receipt["current_result_version"]})
+                    response["web_ready"] = response["web_result"]["ready"]
+                except (OSError, ValueError, sqlite3.Error) as exc:
+                    response["web_error"] = {"code": getattr(exc, "code", "web_delivery_failed"), "message": str(exc)[:512]}
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.store.db, self.workspace)
         keys = self.store.db.execute("SELECT request_key FROM conversation_requests WHERE session_id=? AND turn_id=?", (payload["session_id"], payload["turn_id"])).fetchall()
@@ -450,8 +459,12 @@ class Conversation:
                 response["workflow"] = audit.status(research)
                 from .workflow import utc_now
                 response["workflow_file_confirmation_at"] = utc_now().isoformat()
-                response["workflow_files_within_budget"] = bool(response.get("report_ready") and utc_now() <= datetime.fromisoformat(response["workflow"]["deadline"]))
+                response["workflow_files_within_budget"] = bool((response.get("report_ready") or response.get("web_ready")) and utc_now() <= datetime.fromisoformat(response["workflow"]["deadline"]))
         return response
+
+    def prepare_web_result(self, payload):
+        from .web_delivery import WebDelivery
+        return WebDelivery(self.store, self.workspace).prepare_web_result(payload)
 
     def _report_options(self, payload, recovery=False):
         report = payload.get("report", recovery)
@@ -478,7 +491,7 @@ class Conversation:
         if not allowed.is_relative_to(self.workspace) or not path.is_relative_to(allowed) or not path.is_file():
             fail("invalid_path", "Authored report plans must be files inside this workspace's runtime-data")
         # Report length has a separate, generous mechanical bound; the business
-        # result's 64 KiB stdin limit is never applied to a report plan.
+        # result's 256 KiB stdin limit is never applied to a report plan.
         if path.stat().st_size > 16 * 1024 * 1024:
             fail("report_plan_limit", "Authored report plan exceeds 16 MiB")
         return strict_json(path.read_text(encoding="utf-8-sig"))
@@ -554,6 +567,13 @@ class Conversation:
                 current = self.store.get_turn(session, turn)
                 if current["result_version"] != version or not current["valid"] or current["status"] not in ("completed", "held", "needs_input") or current["latest_result"] is None:
                     fail("current_state_changed", "Reader generation requires the current valid, reviewed saved result")
+                validation = strict_json(self.store.db.execute(
+                    "SELECT validation_json FROM results WHERE turn_id=? ORDER BY result_version DESC LIMIT 1",
+                    (turn,)).fetchone()[0])
+                if (validation.get("review_required") is not True
+                        or not isinstance(validation.get("assessment"), dict)
+                        or validation.get("review", {}).get("can_finalize_reported_result") is not True):
+                    fail("reader_review_required", "Reader delivery requires the stored reviewed-result contract; structural save alone is insufficient")
                 cached = self.store.db.execute("SELECT response,file_hashes FROM reader_deliveries WHERE turn_id=? AND result_version=? AND plan_hash=?", (turn, version, plan_hash)).fetchone()
                 if cached:
                     response = strict_json(cached["response"])

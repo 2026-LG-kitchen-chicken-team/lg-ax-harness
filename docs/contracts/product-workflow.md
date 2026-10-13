@@ -1,12 +1,16 @@
 # 같은 제품명 요청의 실제 조사와 전달
 
+2026-10-13 최신: 웹팀의 작업 화면·보고서 HTML에 현재 정형결과/원문/근거/검토·조사이력을 전달한다. 기본 save_and_export(report:false)의 web_ready/web_result를 확인하고 prepare_web_result로 같은 버전 복구한다. PDF/DOCX 생성·이미지검수는 기본 필수가 아니며 아래 파일규칙은 명시 report:true 호환 경로다. [웹 데이터 계약](web-result.md)을 우선한다. 신규기본1800초는 성능목표가 아닌 안전상한이고 natural-completion-v1 정책으로 전량전달/신고검토와 최종90초예약을 유지한다. 과거300/600초요청/이력은 변경하지 않는다.
+
+2026-10-13 정정: workflow_status.layout_review는 원본 finish의 declared_status/scope와 verification_status=not_verified를 구분한다. 파일 SHA 일치는 실제 이미지 열람을 인증하지 않는다. native 이미지 도구/실제 화면 검수는 외부 관찰로 대조하며 과거 caller 신고를 소급 수정하지 않는다. 목표300초/외부600초는 과거 비교 조건이고, 이후 모델 비교는 충분한 동일 자료·품질과 자연 완료시간을 우선한다. 새 요청에 명시한 안전 budget은 유지하되 이미 시작된 clock을 연장하지 않는다.
+
 일반 코드 도구는 모델을 호출하지 않는다. native AI가 실제 자료 조사·분석·본문 작성·의미 검토를 수행한다. 아래 journal은 시간·동일 요청·보존 문구의 기계 검증과 호출자 신고이며, 출처의 권위·조사 충분성·전체 후기 관측·의미 품질을 자동 인증하지 않는다. 재현 입력은 실제 새 조사 인수와 구분한다.
 
-`open_product_workflow`: `{question,user_submitted:true,session_id?,request_key?,budget_seconds?}`. 새 기본600초, 허용300~1800초. 명시1200~1800초는 과거 계약 호환 범위다. 같은 handle의 원질문·시작 시각·예산은 재설정하지 않는다. 명확한 제품은 AI가 해석하며 질문 키워드로 catalog 답안을 고르지 않는다. 실행기가 최초 요청 응답만 active-workflow.json에 보존할 수 있다. 사전 조사 원문·답안은 넣지 않는다.
+`open_product_workflow`: `{question,user_submitted:true,session_id?,request_key?,budget_seconds?}`. 새 기본1800초, 허용300~1800초. 신규 natural-completion-v1은 목표시간 없이 전량전달/신고검토 및 최종90초예약을 유지하고 과거 NULL 정책/시계는 보존 범위다. 같은 handle의 원질문·시작 시각·예산은 재설정하지 않는다. 명확한 제품은 AI가 해석하며 질문 키워드로 catalog 답안을 고르지 않는다. 실행기가 최초 요청 응답만 active-workflow.json에 보존할 수 있다. 사전 조사 원문·답안은 넣지 않는다.
 
 `workflow_status`: `{research_id}`. 최초 입력부터 조사·분석·저장·파일 전달까지 같은 시계다. 1200초 이후 첫 tool 관측을 checkpoint로 남기며 정확히20분에 검사했다고 바꾸지 않는다. finished_at은 파일과 신고 검수 완료 시점이고 최종 답변을 포함한 전체 실행 종료는 native 종료 기록에서 확인한다. 시간 초과 후 모은 자료를 같은 요청의 시간 내 자료로 넣을 수 없다.
 
-`record_workflow_event`: `{research_id,event_key,kind,data}` 또는 `{research_id,event_key,kind,data_path}`. data_path는 runtime-data 내부 JSON이며 큰 조사 기록을 분리해 CLI64KiB 입력 한도를 피한다. 같은 event_key는 같은 내용으로만 재전송한다. 완료 후 새 사건을 기록하지 않는다.
+`record_workflow_event`: `{research_id,event_key,kind,data}` 또는 `{research_id,event_key,kind,data_path}`. data_path는 runtime-data 내부 JSON이며 큰 조사 기록을 분리해 CLI256KiB 입력 한도를 피한다. 같은 event_key는 같은 내용으로만 재전송한다. 완료 후 새 사건을 기록하지 않는다.
 
 - `research_plan`: `{product_name,coverage:[positive,negative,long_term,conditions,counterexamples],source_plan:[문자열]}`. 제품 전반 사양·설명서·다양한 후기 원출처/판매처와 다음 페이지 계획을 포함한다.
 - `source_scan`: `{source_url,page_label,status:observed|inaccessible|not_applicable,reviews:[],reason,snapshot_ids?:[],list_total?:정수또는null,remaining_scope?:[],source_type?:product_document|manual|review_list|market|competitor|unknown}`. observed이면 같은 요청·같은 URL의 실제 snapshot이 필요하다. source_url은 실제 관측 URL이다.

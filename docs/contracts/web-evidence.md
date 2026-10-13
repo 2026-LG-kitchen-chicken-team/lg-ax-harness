@@ -1,5 +1,7 @@
 # 조건부 외부 근거 조사 Tool
 
+2026-10-13 보완: 같은 research/URL/focus HTTP 요청의 page_id 변경으로 재시도 상한을 초기화할 수 없다. 원래 ID를 유지한다. 실제 native browser/PDF 관측은 별도 ID/capture로 기록하고 앞선 HTTP 실패를 보존한다. Tool 이름 신고와 실제 native 도구 실행은 별도 관측이다. 다른 URL/focus/요청은 별도 근거 수집이며 의미적으로 같은 query 변형까지 인증하는 필터는 아니다. 기본 clock·허용 scope·페이지 예산은 유지한다.
+
 2026-10-10. Python3.12 stdlib urllib/html.parser/SQLite를 채택했다. 별도 모델 API·검색 서비스 구독·MCP·플러그인 패키지는 추가하지 않는다. native 검색/브라우저/PDF Tool은 실제 제공되는 환경에서만 사용하며 설치·권한 검증은 S02에 남는다.
 
 ## 호출
@@ -52,6 +54,14 @@ HTML 설명서의 topic 없는 첫 화면은 모델 정보·표지 위치로 보
 HTTP 요청은 hash fragment를 서버에 보내지 않으므로 gscs-manual의 fragment URL fetch를 unsupported_content로 거부한다. native 도구에서 실제 선택한 절의 본문만 capture한다. 표식 없는 본문 의미·실제 native 관측은 자동 검증하지 않으며 semantic_status=unverified를 유지한다. 과거 catalog·실행 결과는 덮어쓰지 않고 재관측 시 새 버전을 쓴다.
 
 공식 B502S33 PDP의 HTML 설명서 링크는 현재 `http://`로 표시된다. 그 관측은 그대로 보존하고 같은 host·문서 경로·기본 포트·query/fragment 없음인 경우에 한해 실제 HTTPS로 읽은 설명서와 연결한다. 다른 문서·포트·인증정보는 거부하며 HTTP 수집이나 TLS 검증 해제는 허용하지 않는다.
+
+### 보존 원문 index → loader → 직접 절 연결
+
+직접 `/GROUP/MFLdigits/ko-kr/topics/topic_N.html` 원문을 지원 페이지의 `main.html` 링크와 연결할 때 observation의 선택 `manual_linkage_snapshot_ids`를 사용한다. `association_snapshot_id`는 기존 정확 모델 PDP/지원 관측이며, 모든 추가 ID는 같은 `research_id`의 불변 snapshot과 workflow 관측시간 검사를 통과해야 한다. 기존 main fragment/PDF 연결 경로도 유지한다. 일반 URL prefix나 caller의 proof 메타데이터만으로 연결하지 않는다.
+
+추가 component는 실제 보존 HTML/JS의 완전한 literal window다. `capture_web_page`의 선택 `source_literal`은 `{raw_path,raw_sha256,source_url,character_start,character_end,observed_at}`이며 raw_path는 같은 workspace의 runtime-data 내부, raw는 2MiB 이하 UTF-8, window는 최대16000자다. 전체 raw SHA와 decoded Python 문자 offset의 exact substring 및 동일 원 URL을 검사하고 import 때 다시 확인한다. 원 시각은 observed_at, 저장 재생시각은 replayed_at에 각각 남긴다. 원문 재생은 `caller_reported_preserved_https_source_replay`이며 native 브라우저/HTTP 실행 인증이 아니다. 이 경로에는 focus를 적용하지 않는다. 원문·URL·시간의 publisher 귀속은 실제 수집 기록과 함께 검토한다.
+
+좁은 publisher adapter는 index의 실제 PartNo/Rev/Language, 해당 scope.document_version 끝의 `revNN`, 완전한 `#topic_N` href, 실제 참조 script src, 같은 origin의 관측 loader, 같은 문서의 `res/js/indexer.js`, 실제 urlHash/topicId와 child Topic_ID를 결속한다. source window들은 같은 URL마다 동일 전체 raw SHA·원 관측시각을 가져야 한다. base routing, 누락/다른 문서/미참조 loader/불명확한 태그·topic 혼합은 거절한다. 관측한 두 loader route 형태와 hash decoder literal만 읽으며 JS 실행/eval은 하지 않는다. 절 URL의 query/fragment 추가와 location의 다른/복수 topic도 section_mismatch다. origin.source_url과 원 관측 URL은 그대로 보존한다. 검증 관계·component 지문·raw SHA/offset/시간은 catalog의 import-audit.json에 남기며 semantic_status=unverified를 유지한다. 연결 검사는 기능 적용·불편 해소·실물 적합성·의미 품질 인증이 아니다.
 
 HTTP403/redirect/미지원 형식/빈 자료/옵션 혼합을 숨기지 않는다. 제공되는 native 브라우저/PDF로 확인하거나 한도 안에서만 재시도한다. 충분한 근거가 없으면 held/needs_input을 반환한다. 로그인·구매·후기 작성·사이트 외부 쓰기는 이 조사 범위가 아니다.
 

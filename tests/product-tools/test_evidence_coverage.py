@@ -205,7 +205,7 @@ class ShortClockTests(unittest.TestCase):
             finally:
                 store.close()
 
-    def test_default_600_target_300_reserve_90_no_budget_reset(self):
+    def test_historical_600_target_300_reserve_90_no_budget_reset(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             store = StateStore(root / "state.sqlite", Dataset(ROOT / "data/business/empty"))
@@ -214,8 +214,12 @@ class ShortClockTests(unittest.TestCase):
             start = datetime(2026, 10, 12, tzinfo=timezone.utc)
             original = {"question": "Fresh empty-catalog fixture", "user_submitted": True, "session_id": "clock", "request_key": "clock"}
             with patch("product_tools.workflow.utc_now", return_value=start):
-                response = conv.open_product_workflow(original)
+                response = conv.open_product_workflow({**original, "budget_seconds": 600})
             audit = WorkflowAudit(store.db, root)
+            # A row without the new policy is a preserved pre-migration clock.
+            store.db.execute("UPDATE product_workflows SET timing_policy=NULL WHERE research_id=?", (response["research_id"],))
+            with patch("product_tools.workflow.utc_now", return_value=start):
+                response["workflow"] = audit.status(response["research_id"])
             self.assertEqual(response["workflow"]["budget_seconds"], 600)
             self.assertEqual(response["workflow"]["target_seconds"], 300)
             with patch("product_tools.workflow.utc_now", return_value=start+timedelta(seconds=300)):

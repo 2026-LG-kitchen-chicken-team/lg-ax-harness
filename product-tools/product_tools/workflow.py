@@ -25,6 +25,8 @@ class WorkflowAudit:
             PRIMARY KEY(research_id,event_key))""")
         if "target_checkpoint" not in {r[1] for r in db.execute("PRAGMA table_info(product_workflows)")}:
             db.execute("ALTER TABLE product_workflows ADD COLUMN target_checkpoint TEXT")
+        if "timing_policy" not in {r[1] for r in db.execute("PRAGMA table_info(product_workflows)")}:
+            db.execute("ALTER TABLE product_workflows ADD COLUMN timing_policy TEXT")
 
     def request(self, research_id):
         identifier(research_id, "research_id")
@@ -37,7 +39,7 @@ class WorkflowAudit:
                 return row
         fail("research_not_registered", "Use the original saved request's research_id")
 
-    def start(self, research_id, budget_seconds=600, allow_new_bound_request=False):
+    def start(self, research_id, budget_seconds=1800, allow_new_bound_request=False):
         request = self.request(research_id)
         integer(budget_seconds, "budget_seconds", 300, 1800)
         row = self.db.execute("SELECT budget_seconds FROM product_workflows WHERE research_id=?", (research_id,)).fetchone()
@@ -46,8 +48,8 @@ class WorkflowAudit:
         if row and row[0] != budget_seconds:
             fail("workflow_conflict", "Original whole-request budget cannot be reset or extended")
         if not row:
-            self.db.execute("INSERT INTO product_workflows(research_id,started_at,budget_seconds) VALUES(?,?,?)",
-                            (research_id, utc_now().isoformat(), budget_seconds))
+            self.db.execute("INSERT INTO product_workflows(research_id,started_at,budget_seconds,timing_policy) VALUES(?,?,?,?)",
+                            (research_id, utc_now().isoformat(), budget_seconds, "natural-completion-v1"))
         return self.status(research_id)
 
     def active(self, research_id):
@@ -169,12 +171,15 @@ class WorkflowAudit:
             self._strings(data["source_ids"], "source_ids", 1000)
             text(data["scope_note"], "analysis scope", 8000)
             if dataset is None or any(sid not in dataset.sources for sid in data["source_ids"]):
-                fail("workflow_analysis_scope", "Analysis batch IDs must exist in the selected observed catalog")
+                count = len(dataset.sources) if dataset is not None else 0
+                fail("workflow_analysis_scope", f"Analysis batch IDs are absent from the selected catalog ({count} records). "
+                     "Pass the same --data catalog used by the current planning bundle; registered local catalogs are supported. "
+                     "No analysis event was recorded. Check the actual selected catalog before retrying; do not invent an external-only restriction.")
         elif kind == "finish":
             obj(data, ("delivered_paths", "layout_review"))
             self._strings(data["delivered_paths"], "delivered_paths", 100)
             if not data["delivered_paths"]:
-                fail("workflow_delivery_missing", "Finish requires actual retained reader files")
+                fail("workflow_delivery_missing", "Finish requires actual retained delivery files")
             request = self.request(research)
             if request[2] is None:
                 fail("workflow_delivery_missing", "Finish needs a reviewed saved turn and reader delivery")
@@ -194,6 +199,16 @@ class WorkflowAudit:
                 if (response.get("ready") and response.get("workflow_audit_hash") == self.report_audit_hash(research)
                         and set(map(str, paths)) == set(expected)):
                     matched = all(hashlib.sha256(Path(name).read_bytes()).hexdigest() == digest for name, digest in expected.items())
+            web_exists = self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='web_deliveries'").fetchone()
+            if not matched and web_exists:
+                for delivered in self.db.execute("SELECT response FROM web_deliveries WHERE turn_id=? AND result_version=?", (request[2], turn[1])):
+                    response = strict_json(delivered[0])
+                    path = (self.workspace / response["path"]).resolve()
+                    if (response.get("ready") and response.get("workflow_audit_hash") == self.report_audit_hash(research)
+                            and set(map(str, paths)) == {str(path)}):
+                        matched = path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == response["sha256"]
+                        if matched:
+                            break
             if not matched:
                 fail("workflow_delivery_missing", "Finish must match current saved-version reader files and hashes")
             obj(data["layout_review"], ("status", "scope"))
@@ -217,7 +232,7 @@ class WorkflowAudit:
             "SELECT observed_at,payload FROM product_workflow_events WHERE research_id=? ORDER BY observed_at,rowid", (research,))]
 
     def status(self, research):
-        row = self.db.execute("SELECT started_at,budget_seconds,research_stopped_at,finished_at,checkpoint,target_checkpoint FROM product_workflows WHERE research_id=?", (research,)).fetchone()
+        row = self.db.execute("SELECT started_at,budget_seconds,research_stopped_at,finished_at,checkpoint,target_checkpoint,timing_policy FROM product_workflows WHERE research_id=?", (research,)).fetchone()
         if not row:
             return {"tracked": False, "reason": "legacy/request without a measured product workflow"}
         started = datetime.fromisoformat(row[0])
@@ -225,6 +240,8 @@ class WorkflowAudit:
         end = datetime.fromisoformat(row[3]) if row[3] else utc_now()
         elapsed = max(0, (end-started).total_seconds())
         events = self.events(research)
+        legacy_short = row[6] is None and row[1] <= 600
+        reserve = row[6] == "natural-completion-v1" or legacy_short
         if elapsed >= 1200 and not row[4]:
             checkpoint = {"observed_at": utc_now().isoformat(), "elapsed_seconds": round(elapsed, 3),
                           "due_at_seconds": 1200, "method": "first workflow tool observation at or after 20 minutes",
@@ -237,7 +254,7 @@ class WorkflowAudit:
         else:
             checkpoint = strict_json(row[4]) if row[4] else None
         target_checkpoint = strict_json(row[5]) if row[5] else None
-        if row[1] <= 600 and elapsed >= 300 and target_checkpoint is None:
+        if legacy_short and elapsed >= 300 and target_checkpoint is None:
             target_checkpoint = {"observed_at": utc_now().isoformat(), "elapsed_seconds": round(elapsed, 3),
                                  "due_at_seconds": 300, "method": "first workflow tool observation at or after target",
                                  "remaining_seconds": max(0, round((deadline-end).total_seconds(), 3)),
@@ -257,17 +274,34 @@ class WorkflowAudit:
                 "budget_seconds": row[1], "elapsed_seconds": round(elapsed, 3),
                 "remaining_seconds": max(0, round((deadline-end).total_seconds(), 3)), "expired": end > deadline,
                 "research_stopped_at": row[2], "finished_at": row[3], "twenty_minute_checkpoint": checkpoint,
-                "timing_contract": "short-request-v1" if row[1] <= 600 else "legacy-explicit-budget",
-                "target_seconds": min(300, row[1]), "final_delivery_reserve_seconds": 90 if row[1] <= 600 else None,
-                "collection_deadline": (deadline-timedelta(seconds=90)).isoformat() if row[1] <= 600 else deadline.isoformat(),
-                "collection_reserve_active": row[1] <= 600 and end >= deadline-timedelta(seconds=90),
+                "timing_policy": row[6],
+                "timing_contract": "natural-completion-safety-bound-v1" if row[6] else ("short-request-v1" if legacy_short else "legacy-explicit-budget"),
+                "target_seconds": min(300, row[1]) if legacy_short else None, "final_delivery_reserve_seconds": 90 if reserve else None,
+                "collection_deadline": (deadline-timedelta(seconds=90)).isoformat() if reserve else deadline.isoformat(),
+                "collection_reserve_active": reserve and end >= deadline-timedelta(seconds=90),
                 "target_checkpoint": target_checkpoint,
-                "target_checkpoint_due": elapsed >= min(300, row[1]),
+                "target_checkpoint_due": legacy_short and elapsed >= min(300, row[1]),
                 "native_deadline_enforcement": "not provided; local tool policy and file-finish clock only; native final/process exit needs external runner",
                 "research_seconds": round((datetime.fromisoformat(row[2])-started).total_seconds(), 3) if row[2] else None,
                 "stop": next((e["data"] for e in reversed(events) if e["kind"] == "research_stop"), None),
+                "layout_review": self.layout_review(events),
                 "counts": counts, "event_count": len(events),
                 "scope": "measured request clock and literal/caller-reported investigation journal; not semantic sufficiency certification"}
+
+    @staticmethod
+    def layout_review(events):
+        """Expose a caller declaration, never certify native image inspection.
+
+        File hashes establish delivery integrity, not image-tool use. Preserve
+        the immutable journal; an external observer must inspect the native trace.
+        """
+        declared = next((e["data"]["layout_review"] for e in reversed(events)
+                         if e["kind"] == "finish"), None)
+        return {"declared_status": declared["status"] if declared else "not_run",
+                "scope": declared["scope"] if declared else None,
+                "verification_status": "not_verified",
+                "verified_image_inspection": None,
+                "basis": "caller declaration only; native image inspection not observed by this tool"}
 
     def used_sources(self, research):
         request = self.request(research)

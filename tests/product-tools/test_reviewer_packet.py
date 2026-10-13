@@ -8,7 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
-from product_tools.contracts import ToolError, canonical, strict_json
+from product_tools.contracts import MAX_INPUT_BYTES, ToolError, canonical, strict_json
 from product_tools.dataset import Dataset
 from product_tools.reviewer_packet import MAX_PACKET_BYTES, ReviewPackets
 from product_tools.state import StateStore
@@ -178,18 +178,19 @@ class ReviewerPacketTests(unittest.TestCase):
                                     "evidence_refs": [{"source_id": source_id, "quote": "bad fixture reference"} for _ in range(40)],
                                     "assumptions": [""]}
         # Fill the allowed original UTF-16 byte budget without exceeding it.
-        low, high = 0, 32768
+        low, high = 0, MAX_INPUT_BYTES // 2
         while low < high:
             middle = (low+high+1)//2
             self.candidate["result"]["assumptions"] = ["가"*middle]
-            if len(canonical(self.candidate).encode("utf-16")) <= 65536:
+            if len(canonical(self.candidate).encode("utf-16")) <= MAX_INPUT_BYTES:
                 low = middle
             else:
                 high = middle-1
         self.candidate["result"]["assumptions"] = ["가"*low]
         raw = canonical(self.candidate).encode("utf-16")
-        self.assertLessEqual(len(raw), 65536)
-        self.assertGreater(len(raw), 65000)
+        self.assertLessEqual(len(raw), MAX_INPUT_BYTES)
+        self.assertGreater(len(raw), MAX_INPUT_BYTES - 1000)
+        self.assertGreater(len(canonical(self.candidate).encode("utf-8")), MAX_INPUT_BYTES)
         self.path.write_bytes(raw)
         self.error("input_limit", self.prepare)
         self.assertEqual(self.path.read_bytes(), raw)

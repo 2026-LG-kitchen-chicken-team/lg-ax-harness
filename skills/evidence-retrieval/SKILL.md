@@ -11,7 +11,7 @@ description: "질문에서 지정하거나 해석한 제품군 또는 정확 모
 
 read_evidence_batch 입력은 {session_id,turn_id,offset:0,limit:20}이고 선택 max_bytes(4096~63000)/source_ids를 허용한다. 반환 전체 reference는 줄이지 않으며 출력bytes에맞춰 실제 전달수/next_offset를 계산한다. next_offset가 null일 때까지 필요한 전체선택본문을 확인한다. initial bundle에서 실제 반환한 refs는 자동 전달장부에 기록되며 생략 refs는 기록되지 않는다. 중복전달은 고유source 수를 늘리지 않는다. 자료/code/version/context가 바뀌거나 취소되면 새coverage로 기존 검토를 재사용할 수 없다.
 
-record_evidence_review 입력은 {session_id,turn_id,review_key,records:[{source_id,disposition:"reviewed" 또는 "excluded",reason:구체적판단/제외이유}]}다. reviewed는 전체등록본문을 전달받은후에만 신고한다. excluded도 새600초 completed에서는본문전달이 필요하다. 초기사례밖의 긍정·부정·장기·조건·반례·설명서·사양의 의미/다양성은 AI가 실제 검토하고 부족을 표시한다. 의미미확인을 ID개수로 통과시키지 않는다. 모든선택catalog항목 전달·검토/제외기록이 없으면 completed를저장하지말고 같은turn의 held에 미검토범위를 남긴다. 기록은 export_session에 보존된다.
+record_evidence_review 입력은 {session_id,turn_id,review_key,records:[{source_id,disposition:"reviewed" 또는 "excluded",reason:구체적판단/제외이유}]}다. reviewed는 전체등록본문을 전달받은후에만 신고한다. excluded도 신규 timing_policy:natural-completion-v1의 completed에서는본문전달이 필요하다. 초기사례밖의 긍정·부정·장기·조건·반례·설명서·사양의 의미/다양성은 AI가 실제 검토하고 부족을 표시한다. 의미미확인을 ID개수로 통과시키지 않는다. 모든선택catalog항목 전달·검토/제외기록이 없으면 completed를저장하지말고 같은turn의 held에 미검토범위를 남긴다. 기록은 export_session에 보존된다.
 
 
 브랜드·시장 미지정 제품군의 기본 대상은 국내 LG 모델이다. 명확한 다른 모델/브랜드/시장 요청은 같은 request의 set_request_scope_policy에 literal user_quote를 보존하고 해석한다. 제조사 국내 제품 정체성을 먼저 확인하며 모델 prefix·검색순위·한국어 설명서만으로 브랜드/판매국을 추정하지 않는다. 국내 LG 후보의 선택은 실제 접근 근거에 따라 AI가 판단한다.

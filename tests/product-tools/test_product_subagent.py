@@ -65,7 +65,7 @@ class ProductReviewerInstallTests(unittest.TestCase):
     def test_product_roles_are_installed_without_development_roles(self):
         for engine, folder, suffix in (("codex", ".codex/agents", ".toml"), ("claude", ".claude/agents", ".md")):
             target = self.install(engine)
-            self.assertEqual([p.name for p in (target / folder).glob("*" + suffix)], ["product-evidence-reviewer" + suffix])
+            self.assertEqual([p.name for p in (target / folder).glob("*" + suffix)], sorted(slug + suffix for slug, _ in codex.PRODUCT_ROLES))
             record = json.loads((target / "product-install.json").read_text(encoding="utf-8"))
             self.assertFalse(record["native_verified"])
             self.assertEqual(len(record["skills"]), 6)
@@ -81,7 +81,7 @@ class ProductReviewerInstallTests(unittest.TestCase):
         config_file = moved / ".codex/config.toml"
         config = tomllib.loads(config_file.read_text(encoding="utf-8"))
         self.assertTrue(config["agents"]["enabled"])
-        self.assertEqual(config["agents"]["max_concurrent_threads_per_session"], 1)
+        self.assertEqual(config["agents"]["max_concurrent_threads_per_session"], 2)
         role_path = (config_file.parent / config["agents"]["product_evidence_reviewer"]["config_file"]).resolve(strict=True)
         self.assertTrue(role_path.is_relative_to(moved))
         role = tomllib.loads(role_path.read_text(encoding="utf-8"))

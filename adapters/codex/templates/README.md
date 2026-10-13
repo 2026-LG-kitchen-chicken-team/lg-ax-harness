@@ -14,7 +14,7 @@ codex --search
 
 `uv sync --locked`는 이 폴더의 잠금 파일로 python-docx·openpyxl·reportlab·Pillow·pypdf와 하위 의존성을 로컬 환경에 설치한다. 설치기는 전역 Python 패키지나 설정을 변경하지 않는다. pip 기반 환경은 `python -m pip install --require-hashes -r product-tools/requirements.lock`으로 같은 잠금 요구사항을 설치할 수 있다. 의존성 가져오기 검사는 파일 제작·레이아웃 검수나 실제 AI 업무 검증을 대신하지 않는다.
 
-최종 결과에는 실제 확보한 자료의 종류별 원문 XLSX, 설명이 필요한 DOCX, 최종 DOCX/PDF가 들어간다. 자료량에 따라 파일·절·페이지 수가 달라진다. JSON·로그·검수 기록은 runtime-data 내부에 보관한다. 업무 Skill은 save_and_export에 report:true를 명시하고 실제 생성된 결과 폴더를 전달하며 Windows에서는 성공 후 탐색기로 연다. 폴더를 열지 않으려면 open_folder:false를 전달한다. 보고서 제작이 실패해도 업무 저장은 유지된다. 같은 session_id/turn_id/expected_result_version의 deliver_result로 다시 제작하고 선택 report_plan_path/open_folder를 사용할 수 있다. 작성 기준은 docs/contracts/reader-deliverables.md와 skills/review-and-revise/references/report-writing.md다.
+기본 결과는 save_and_export(report:false)의 웹 전달 데이터다. delivery_ready/web_ready와 현재web_result 파일SHA/binding을 확인하고 원문·근거·검토/조사 이력을 같은버전으로 전달한다. 웹팀이 작업 화면·HTML보고서를 만들며 이 실행은 PDF/DOCX·UI생성/이미지검수를 요구하지 않는다. 명시 파일요청에만 report:true와 기존옵션을 사용한다. 웹제작오류는 prepare_web_result로 같은session/turn/version복구, 명시파일오류만 deliver_result로복구한다. 포맷생성은 의미승인/HTML연결이 아니다.
 
 첫 실행에서는 Codex가 안내하는 계정 로그인과 프로젝트 신뢰/권한 설정을 진행한다. 아직 CLI가 없다면 [공식 Codex 설치 안내](https://learn.chatgpt.com/docs/codex/cli)를 따른다. uv 설치는 [공식 안내](https://docs.astral.sh/uv/getting-started/installation/)를 따른다. 자동 설치 도구가 사용자 전역 설정이나 인증 파일을 변경하지 않는다.
 

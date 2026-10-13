@@ -233,7 +233,7 @@ class StateStore:
         integer(expected_result_version, "expected_result_version", 0, 3)
         payload = canonical(result)
         if not isinstance(result, dict) or len(payload.encode("utf-8")) > MAX_RESULT_BYTES:
-            fail("input_limit", "Candidate must be an object <= 32 KiB")
+            fail("input_limit", "Candidate must be an object <= 128 KiB")
         accepted, reason = True, None
         report = None
         with self.transaction():
@@ -317,8 +317,10 @@ class StateStore:
             return
         for request in self.db.execute("SELECT session_id,request_key FROM conversation_requests WHERE turn_id=?", (turn_id,)):
             research = "research-" + fingerprint(list(request))
-            clock = self.db.execute("SELECT budget_seconds FROM product_workflows WHERE research_id=?", (research,)).fetchone()
-            if clock and clock[0] <= 600:
+            columns = {r[1] for r in self.db.execute("PRAGMA table_info(product_workflows)")}
+            query = "SELECT budget_seconds,timing_policy FROM product_workflows WHERE research_id=?" if "timing_policy" in columns else "SELECT budget_seconds,NULL FROM product_workflows WHERE research_id=?"
+            clock = self.db.execute(query, (research,)).fetchone()
+            if clock and (clock[0] <= 600 or clock[1] == "natural-completion-v1"):
                 from .evidence_coverage import EvidenceCoverage
                 EvidenceCoverage(self).require_complete(session_id, turn_id)
 

@@ -147,7 +147,7 @@ class BulkImportTests(unittest.TestCase):
         start = datetime(2026, 10, 12, tzinfo=timezone.utc)
         with patch("product_tools.workflow.utc_now", return_value=start):
             request = conv.open_product_workflow({"question": "Expired fixture", "user_submitted": True,
-                                                  "session_id": "expiry", "request_key": "expiry"})
+                                                  "session_id": "expiry", "request_key": "expiry", "budget_seconds": 600})
         self.original["research_id"] = request["research_id"]
         self.write()
         with patch("product_tools.workflow.utc_now", return_value=start+timedelta(seconds=601)):

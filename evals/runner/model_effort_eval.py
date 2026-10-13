@@ -148,11 +148,16 @@ def prepare_job(job,plan):
     env=dict(os.environ);env.pop("VIRTUAL_ENV",None);env["PYTHONUTF8"]="1"
     sync=subprocess.run(["uv","sync","--locked"],cwd=ws,env=env,capture_output=True,timeout=90)
     if sync.returncode:raise RuntimeError("locked workspace preparation failed")
-    if job["provider"]=="codex" and not job.get("product_reviewer",False):
+    if job["provider"]=="codex" and not (job.get("product_reviewer",False) or job.get("product_researchers",False)):
       config=ws/".codex/config.toml";config.parent.mkdir(exist_ok=True)
       config.write_text('[features]\nmulti_agent = false\n[agents]\nenabled = false\n',encoding="utf-8")
     return ws
 def run_job(job,plan,run_root):
+    delegated=job.get("product_reviewer",False) or job.get("product_researchers",False)
+    if job.get("provider")=="claude" and delegated:
+      raise ValueError("Claude delegated-role evaluation requires the GUI protocol; this CLI path is parent-only")
+    if plan.get("mode")=="fresh_online_e2e" and job.get("product_reviewer",False):
+      raise ValueError("Fresh online phase supports parent-only or research roles, not candidate-reviewer A/B")
     directory=run_root/job["id"]
     if directory.exists():
       print(json.dumps({"job":job["id"],"event":"already_attempted"}),flush=True)
@@ -163,7 +168,7 @@ def run_job(job,plan,run_root):
     if job["provider"]=="codex":
       command=[plan["codex"],"-a","never","exec","--sandbox","danger-full-access",
         "--ignore-user-config","--skip-git-repo-check",
-        "--enable" if job.get("product_reviewer",False) else "--disable","multi_agent",
+        "--enable" if (job.get("product_reviewer",False) or job.get("product_researchers",False)) else "--disable","multi_agent",
         "-c",'web_search="'+("live" if plan.get("mode")=="fresh_online_e2e" else "disabled")+'"',"-c",'model_reasoning_effort="'+job["effort"]+'"',
         "--model",job["model"],"--json","-C",str(ws),"-"]
     else:
@@ -181,16 +186,20 @@ def run_job(job,plan,run_root):
       str(plan["timeout_seconds"])+"초이며 관측하지 못한 실행시간·토큰·절감률을 만들지 마.")
     if plan.get('mode')=='bounded_corpus':
       prompt+=('\n목표300초/전체상한600초인 현재 workflow를 열고 실제 시계를 확인해. 선택 범위의 등록 자료 전체를 evidence_inventory/read_evidence_batch로 끝까지 전달받아 읽고 기록해. 처음3~4개를 전체로 취급하지 마. 소수 자료만 고르거나 원문 단축으로 시간을 줄이지 마. 코드 렌더러를 사용하고 HTML/프론트를 새로 만들지 마. 마지막90초는 저장·검사·최종 전달에 써. '
-        + ('후보가 준비되면 실제 네이티브 product_evidence_reviewer를 최대1명/1회 호출해 모델 귀속·기존 기능/해석·조건/반례를 독립 검토받아 반영해. 실제 자식 ID/반환/채택 여부를 남기고 자식에게90초를 넘겨 무한 대기하지 마. 이 조건은 A/B 검토자 있는 쪽이다.' if job.get('product_reviewer',False) else '이번 A/B는 단일 부모만 실행하는 쪽이므로 서브에이전트를 호출하지 마. 같은 기준으로 자체 검토해.'))
+        + ('이번 A/B는 선택적 연구 역할 있는 쪽이다. 설치된 product_official_researcher와 product_review_researcher를 처음입력 기준 잔여420초 이상일 때 각1회180초·병렬최대2명으로 사용해 공식 자료와 후기 전체를 분담 독해해. fixed_catalog 모드·정확scope·code/data/context지문·원문 경로·source_ids·실제deadline을 먼저 읽게 하고 온라인조사/쓰기/추가위임은 금지해. source ID 신고만으로 전달/독해를 대신하지 말고 기존 완전본문delivery gate와 실제반환을 대조해 부모만 검토기록·후보/저장을 작성해. 실패/partial/중단/미검토·전체usage를 보존해.' if job.get('product_researchers',False) else
+           '후보가 준비되면 실제 네이티브 product_evidence_reviewer를 잔여210초 이상일 때 최대1명/1회90초 호출해. prepare_review_packet 불변packet을 먼저읽게하고 반환후verify_review_packet·현재결속을 대조해. 실제 ID/반환/채택/실패를 남겨. 이 조건은 A/B 검토자 있는 쪽이다.' if job.get('product_reviewer',False) else
+           '이번 A/B는 단일 부모만 실행하는 쪽이므로 서브에이전트를 호출하지 마. 같은 기준으로 자체 검토해.'))
     if plan.get("mode")=="fresh_online_e2e":
       prompt=(job["question"]+"\n\n[운영 계측 조건]\n이번 실행은 최신 제품의 빈 catalog에서 실제 새 조사부터 기획·검토·저장·보고서·최종 응답 전달까지 계측한다. 목표300초, 외부 실행기 전체 상한600초다. "
-        "Tool의 budget_seconds 허용범위1200~1800초와 외부 운영상한은 별도이며 허용하지 않는600을 API에 넣거나 소스를 변경하지 마. 실제 시작시각과 현재시각을 확인하고 최종 전달 시간을 남겨. "
+        "새 workflow 기본600초/허용300~1800초와 native 외부600초 경계는 별도다. 600초를 사용하며 예산/소스를 변경하거나 재설정하지 마. 실제 시작시각과 현재시각을 확인하고 최종 전달 시간을 남겨. "
         "속도를 맞추기 위해 리뷰를 극소수만 고르거나 조사 범위를 국소적으로 축소하면 안 된다. 긍정/부정·장기 사용·사용 조건·반례와 여러 원출처/판매처·후기 페이지, 제품 전반 공식 사양/설명서 범위를 실제 접근 가능한 수준에서 넓게 검토해. "
         "임의의 소수 건수·페이지 수를 충분성 기준으로 삼지 마. 원문·날짜·모델 옵션·중복/이전 제품/제외·full/partial 문맥과 source_scan을 보존하고 부족하면 정직하게 보류/한계를 전달해. "
         "원문 추출·일괄 수집·중복 식별·집계·파일 제작은 가능한 일반 코드로 처리하고 근거를 버리거나 의미 판단을 형식검사로 대체하지 마. "
         "현재 설치 Agent·업무 Skill·Tool로 정상적인 요청 기반 흐름을 수행하고 실제 제공되는 웹 도구만 사용해. 브라우저/권한이 없으면 실제 실패로 기록하고 접근 가능한 대안을 검토해. 보안 차단·로그인/결제·CAPTCHA를 우회하지 마. "
-        "뷰어 훅·서브에이전트는 이번 원인분리 실험에서 꺼져 있다. HTML을 새로 코딩하지 말고 기존 코드 렌더러와 저장 결과를 사용해. 소스/설정 변경, 외부 메시지 전송은 하지 마. "
+        "HTML을 새로 코딩하지 말고 기존 코드 렌더러와 저장 결과를 사용해. 소스/설정 변경, 외부 메시지 전송은 하지 마. "
         "PDF/Word/Excel 실제 물리 화면 검수 도구가 없으면 not_run으로 명시하고 그 상태를 숨기지 말아줘. 300초쯤 실제 현재시각·남은 조사/분석/전달 작업을 확인하고, 600초 안에 결과 또는 정직한 미완료/보류를 저장·최종 전달해.")
+      prompt+=("\n필요한 신규 공식자료/후기 조사를 설치된 두 연구역할에 실제 native로 각1회180초·병렬최대2명으로 분담해. 외부잔여420초가 없으면 skipped로 남겨. 정확모델/시장 정체성을 먼저 확정하고 같은scope/mode online/원질문/지문/deadline을 전달해. 부모만 원문관측/검증/직렬등록·기획·저장을 수행해. child summary/잘림/재서술은 원문등록하지 마. 실제artifact가없으면partial이며 부모새fetch는별도관측/시간/SHA로남겨. 중단후등록하지말고마감/미완료/nativeID/반환/전체usage관측한계를보존해." if job.get("product_researchers",False) else
+               "\n이번 원인분리 실험은 부모단독이며 서브에이전트를 호출하지 마.")
     print(json.dumps({"job":job["id"],"event":"started","provider":job["provider"],
       "model":job["model"],"effort":job["effort"]}),flush=True)
     result=execute(command,ws,prompt,directory,plan["timeout_seconds"])

@@ -4,7 +4,7 @@ bundle 응답의 candidate_template에는 현재 session_id/turn_id/result_key/e
 
 양식 참고이며 업무 정답·실제 실행 기록이 아니다. 일반 업무는 open_request_bundle → 원문 판단/assessment → save_and_export다. 선행 validate/review/get_turn은 진단에만 한다. save_and_export는 아래6필수 필드(assessment 포함)로 저장 검사와 export를 묶고 {save,delivery_ready,export,export_error}를 반환한다. response_mode 없이 receipt를 자동 사용한다. accepted=false도 후보가 저장되고 export된다. 내부 감사 JSON은 {receipt:save.receipt,export}다. export_error는 저장을 되돌리지 않으며 export_session으로 복구한다. stale replay는 delivery_ready=false다. 기존 save_reviewed_result와 export_session은 별도 호출로도 사용한다.
 
-제품 최종 출력에는 선택 필드 `report:true`를 명시해 독자용 파일 제작을 함께 요청한다. 하위 API 기본 report는 false다. 선택 `report_plan_path`는 runtime-data 내부의 별도 작성 JSON 파일 경로, `open_folder`는 보고서 요청 시 기본 true인 폴더 열기 옵션이다. 전체 보고서를 아래 result에 끼워 넣거나 64KiB 때문에 줄이지 않는다. report/report_ready/report_error는 저장·export 상태와 별도로 확인한다. 작성 스키마와 파일 검수는 [보고서 작성](report-writing.md)을 따른다.
+제품 최종 출력에는 선택 필드 `report:true`를 명시해 독자용 파일 제작을 함께 요청한다. 하위 API 기본 report는 false다. 선택 `report_plan_path`는 runtime-data 내부의 별도 작성 JSON 파일 경로, `open_folder`는 보고서 요청 시 기본 true인 폴더 열기 옵션이다. 전체 보고서를 아래 result에 끼워 넣거나 256KiB 때문에 줄이지 않는다. report/report_ready/report_error는 저장·export 상태와 별도로 확인한다. 작성 스키마와 파일 검수는 [보고서 작성](report-writing.md)을 따른다.
 
 보고서 복구 OP `deliver_result`의 입력은 `{session_id, turn_id, expected_result_version, report_plan_path?, report_sources_path?, open_folder?}`다. 현재 저장 결과에서 복구하며 새 turn이나 업무 수정 횟수를 만들지 않는다. 실제 ready/files로 확인한 결과 폴더를 전달하고 내부 receipt/export는 보존한다.
 
@@ -16,7 +16,7 @@ save_reviewed_result 입력은6필수 필드와 선택 response_mode다. 일반 
 {"session_id":"도구의 값","turn_id":"도구의 값","result_key":"candidate-0","expected_result_version":0,"response_mode":"receipt","result":{"status":"held","pains":[],"existing_features":[],"remaining_pains":[],"concepts":[],"assumptions":[],"evidence_refs":[],"validation_findings":["실제 부족 근거와 이유"],"revisions":0,"usage_summary":{"status":"unknown"}},"assessment":{"claim_checks":[],"feature_matches":[],"concept_links":[]}}
 ```
 
-이 빈 held는 부족 이유를 판단했을 때만 쓴다. completed에는 근거 있는 불편·기존 기능·남은 불편·콘셉트와 검토 연결이 필요하다. result<=32KiB, stdin/파일<=64KiB. refs는 claim 또는 decision_notes에서 사용한 source만 복사하며 사용하지 않으면 unused_evidence로 실패한다.
+이 빈 held는 부족 이유를 판단했을 때만 쓴다. completed에는 근거 있는 불편·기존 기능·남은 불편·콘셉트와 검토 연결이 필요하다. result<=128KiB, stdin/파일<=256KiB. refs는 claim 또는 decision_notes에서 사용한 source만 복사하며 사용하지 않으면 unused_evidence로 실패한다.
 
 - 선택 필드 decision_notes: 최대10개 `{text,source_ids:["원문ID"],basis:"source_fact|ai_interpretation|unverified 중 한 값"}`. note별 text<=2000자, source_ids<=20개·중복 금지·정확한 한 모델 snapshot. source_fact/ai_interpretation은 nonempty IDs와 exact refs가 필요하고 unverified는 빈 IDs를 허용한다. 보류 판단에 사용한 사실과 AI 해석은 별도 note로 저장하며, 실제 근거가 전혀 없으면 미확인 이유만 남긴다. basis는 AI 신고이고 source_fact도 공식 직접 인용·의미 정확성 인증이 아니다. 기존 결과의 필드 생략은 호환하며 completed의 claim/assessment 조건을 대체하지 않는다.
 

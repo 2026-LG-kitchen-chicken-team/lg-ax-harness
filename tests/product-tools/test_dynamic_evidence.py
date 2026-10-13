@@ -245,11 +245,12 @@ class PublicCollectionTests(unittest.TestCase):
                 response.headers["Content-Type"] = "text/plain; charset=utf-8"
                 with patch("product_tools.web_evidence.build_opener") as opener:
                     opener.return_value.open.return_value = response
-                    self.error("page_limit", web.collect, {**payload, "page_id": "http-size"})
-                    self.error("research_limit", web.collect, {**payload, "page_id": "http-size"})
+                    large = {**payload, "page_id": "http-size", "url": "https://manufacturer.example/large-original"}
+                    self.error("page_limit", web.collect, large)
+                    self.error("research_limit", web.collect, large)
                 with patch("product_tools.web_evidence.build_opener") as opener:
                     opener.return_value.open.side_effect = HTTPError(payload["url"], 302, "redirect", {}, None)
-                    self.assertFalse(web.collect({**payload, "page_id": "redirect"})["retryable"])
+                    self.assertFalse(web.collect({**payload, "page_id": "redirect", "url": "https://manufacturer.example/redirect-original"})["retryable"])
                     self.assertEqual(opener.return_value.open.call_count, 1)
             finally:
                 web.close()

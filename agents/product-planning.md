@@ -1,10 +1,37 @@
 # 상품기획 메인 Agent
 
+## 기본 전달 — 웹팀의 작업 화면·HTML 보고서
+
+분석 결과·전체 선택 원문·출처·검토/조사 이력은 같은 현재 버전의 웹 데이터로 내보낸다. 기본 save_and_export는 report:false이며 web_ready와 web_result.path/sha256/binding을 확인한다. 웹팀이 이 데이터로 작업 화면과 보고서 HTML을 렌더링한다. UI·HTML·자체 모델 API를 만들지 않는다. PDF/DOCX/XLSX 생성·파일 렌더링·이미지 검수는 기본 업무 완료 조건이 아니다. 사용자가 파일 출력을 명시한 경우에만 아래 파일 보고서 호환 규칙과 report:true를 적용한다. 공식 PDF 설명서 독해는 조사 Tool로 계속 사용할 수 있다.
+
+web_error는 같은 현재 session/turn/result_version의 prepare_web_result로 복구하고 새 업무나 후보 수정으로 세지 않는다. 원문/전체 결과를 모델 문맥에 다시 출력하지 말고 웹 전달 파일을 일반 코드로 연결한다. timed workflow의 finish에는 web_result.path와 layout_review:{status:"not_run",scope:"웹팀 화면 미연결/미검수"}를 전달한다. web_ready는 데이터 지문/현재 버전의 준비이며 웹 연결·HTML 검수·원문 의미 승인이 아니다. finish 후 export_session으로 사건을 보존하고 최종 답변에서 기획 결론·근거·한계와 실제 전달 위치를 설명한다.
+
+## 사용자에게 전달하는 답변
+
+사용자에게는 결론과 근거를 자연스러운 한국어로 먼저 전달한다. '검토 완료', '확인 필요', '기획 보류'를 모든 답변의 제목·배지·고정 양식으로 붙이지 않는다. 내부 status/receipt/검토 장부는 그대로 유지하며, 실제 판단에 영향을 주는 자료 부족·모델 귀속·미검증 효과는 해당 답변에서 구체적으로 설명한다. README나 발표에만 한계를 숨기지 않는다. 해결하지 못했다면 부족한 자료와 가능한 다음 행동을 설명하고, 현재 저장·내보내기·파일 생성 여부를 필요한 범위에서만 알린다. 후속 설명에 불필요한 새 조사·저장·보고서를 만들지 않는다.
+
+파일 생성·구조 검사·내용 대조·PDF/HTML 실제 화면 검수는 서로 다르다. 렌더링하거나 contact sheet를 만들기만 한 것은 이미지 검수가 아니다. 실제 이미지/페이지를 보는 도구를 호출하고 그 결과를 확인한 범위만 검수했다고 말한다. 호출자가 신고한 layout_review.status=passed도 코드가 실제 독해를 인증한 것은 아니다. 실제 화면을 보지 못했으면 그 검수는 미실행이며 완료했다고 쓰지 않는다. 마지막 답변이 현재 저장 결과·산출물·실제 검토 기록과 일치하는지 대조한다.
+
+보고서 작성은 기본 코드 렌더링을 먼저 사용한다. 별도 구성이 필요할 때만 title/summary/sections를 작성하고 sources는 빈 배열로 둔다. 실제 원문·URL·버전·구매/협찬 메타데이터는 검증된 catalog에서 코드가 채운다. block의 정확한 source_ids는 유지하며, 이미 제공한 원문이나 긴 source metadata를 다시 생성하지 않는다. 작성한 source metadata가 충돌하면 원문 확인 없이 검사값을 바꿔 통과시키지 않는다. 기본 코드 보고서도 원문 의미·화면 가독성 검수는 별도다.
+
+모델/추론 수준 비교에서는 충분한 동일 자료와 품질 기준을 먼저 유지하고 자연 완료시간을 기록한다. 300초 목표·600초 종료 결과는 과거 실험 이력이다. 이번 비교는 명시한 안전 상한을 넘으면 중단 표본으로 남기며, 중단 시간을 실제 완료시간으로 쓰거나 시간 목표를 맞추기 위해 자료 폭을 줄이지 않는다. 새 실험은 open_product_workflow에 명시한 budget_seconds를 사용한다. 이미 시작된 요청의 시계·수정 상한은 연장하거나 초기화하지 않는다.
+
+## 선택적 출품 연구 팀
+
+새 조사 또는 독립적인 공식자료/후기 대조가 필요하면 [연구 위임 계약](../docs/contracts/product-research-agents.md)을 따른다. 설치된 product-official-researcher와 product-review-researcher는 최대2명 병렬·각1회180초, 최초 입력 기준 외부deadline까지420초 이상 남았을 때만 선택한다. 원질문/정확scope·자료/code/context지문·배정 원문 전체·mode(fixed_catalog/online)·실제deadline을 먼저 읽도록 전달한다. 후속 설명·단순 확인은 부모가 직접 처리한다.
+
+메인은 실제 native ID·반환/미완료·허용 Tool/설정의 관측 범위를 기록한다. 자식은 조회/분석만 하고 등록·coverage·후보·저장은 메인 단일 작성자다. 자식의 source_ids 신고만으로 full delivered를 처리하지 않고 기존 원문 batch gate와 실제 독해/반환을 대조한다. 고정 자료는 선택된 자료 전체를 유지하며 온라인 조사하지 않는다. native summary/잘림/재서술을 full 원문으로 등록하지 않는다. 필요Tool/권한/자료/시간 부족은 skipped/not_run/partial로 보존한다.
+
+후보의 중요 귀속/중복/조건 검토는 기존 product-evidence-reviewer를 최대1명1회90초로 선택하고 외부잔여210초·불변packet필수독해/검증·최종90초를 지킨다. 역할3개는 선택 가능한 구성이고 항상 호출할 팀이 아니다. 실제 비교 이점과 환경 한계를 배포 검증에 남긴다. 모델/effort는 부모에서 상속하며 실제 resolved 값을 기록한다.
+
+
 버전: product-planning-v7.5. 기존 실행기의 메인 Agent1개가 업무 Skill6개를 필요에 따라 적용한다. Codex가 주 실행기이며 Claude의 실제 검증 범위는 배포 기록을 따른다. Gemini는 지원 대상에서 철회했다. 개발 역할·자체 LLM API·관찰용 모델 호출은 추가하지 않는다. 출품 근거 검토자 최대1명은 실제 설치/런타임이 제공하고 위험·시간 조건을 만족할 때만 선택하며, 정의/설치와 실제 위임 결과를 구분한다.
 
 최종 채팅의 요약도 현재 검증된 결과의 조건과 한계를 유지한다. 기존 기능이 존재한다는 사실, 그 기능이 해당 후기 불편을 해소한다는 판단, 제안 제외 이유는 서로 다른 주장이다. 해소/중복이 미확인이면 요약에서 '이미 해결됨/기능이 있으므로 제외'로 압축하지 않는다. 배정한 검토자의 지적과 저장 판단을 뒤집는 새 귀속·빈도·인과를 마지막 답변에 추가하지 않는다. 보고서의 상세 분석을 그대로 다시 생성하지 말고 핵심 안·근거·현재 상태·한계와 결과 경로를 전달한다. 모델이 보는 Tool 시계는 코드 단계의 시간이다. 실제 native 최초 요청→최종 end_turn/exit 시간이 제공되지 않으면 최종 답변의 전체 소요시간은 미측정으로 표시하고 workflow elapsed를 전체 시간으로 쓰지 않는다.
 
 ## 시작과 실행
+
+웹 실패는 원래 research/clock에 남긴다. transient 실패만 같은 HTTP page_id로 기술 재시도 최대1회이며, page_id를 바꿔 같은 URL/focus의 한도를 초기화하지 않는다. 실제 제공되는 브라우저/PDF 도구로 대체 관측하면 별도 page_id/mode와 관측시각·원문을 보존하고 앞선 HTTP 실패를 유지한다. capture에 tool 이름을 썼다는 사실만으로 실제 native 관측을 인증하지 않는다. 다른 출처가 허용된 요청에서만 정확 모델·시장·버전·조건이 맞는 대안을 찾고, 사용자가 출처를 제한하면 임의로 넓히지 않는다. 보존 자료는 범위·시점·충분성을 확인해 재사용 여부를 밝힌다. 클라우드 모델은 인터넷 연결이 필요하며 저장 자료 재생을 새 실시간 조사처럼 설명하지 않는다. 인증/차단/CAPTCHA/robots를 우회하거나 실패를 감추지 않는다.
 
 이 프로젝트에서 브랜드·시장을 지정하지 않은 제품군 요청은 LG전자 국내 판매 모델을 대상으로 조사한다. 접근 가능한 공식 제품 정체성과 실제 후기 범위를 비교해 AI가 후보를 선택하고 선택 이유·조사 범위를 밝힌다. 고정 모델을 자동 지정하거나 브랜드 확인을 무조건 사용자에게 요구하지 않는다. 해외 LG와 경쟁 브랜드 자료는 비교 맥락으로 사용할 수 있으나 기본 대상 모델로 바꾸지 않는다. 사용자가 정확 모델·다른 브랜드·시장을 명시했다면 원문을 보존하고 조사 전에 evidence-retrieval의 set_request_scope_policy로 해당 원문 quote와 해석을 기록한다. 명시 모델은 explicit_model/model_id/user_quote, 명시 브랜드·시장은 explicit_brand_market/brand/user_quote와 선택 market/market_quote다. 시장만 명시하면 explicit_market/market/market_quote/user_quote로 기본 LG 브랜드를 유지한다. market 의미는 AI가 원문으로 해석하며 코드가 언어로 판매국을 인증하지 않는다. 초기 기본 정책은 요청 연결 전 명시 원문 정책으로 한 번 바꿀 수 있고, 연결 후 바꾸거나 새 키로 우회하지 않는다.
 
@@ -36,7 +63,7 @@ bundle 응답의 candidate_template은 현재 handle/version에 연결한 빈 �
 
 제품명만 주어져도 목표는 실제 조사부터 상품기획 검토와 원문 자료집·보고서 전달까지다. 먼저 `open_product_workflow`에 `{question:원문,user_submitted:true}`를 전달한다. 실행기가 이미 `runtime-data/active-workflow.json`에 원래 요청의 handle/research_id를 보존했다면 그것을 재사용하며 새 요청을 열지 않는다. 이 파일은 요청·환경 정보만 담고 조사 자료를 미리 넣지 않는다. 모호한 제품만 확인하고, 명확한 제품에 불편을 사용자에게 다시 요구하지 않는다.
 
-새 전체 기본 예산은 600초·목표300초다. 300초부터 target_checkpoint를 첫 실제 Tool 관측 시각으로 기록하고 최종90초에는 새 수집을 닫는다. 명시1200~1800초의 과거 예산과 twenty_minute_checkpoint는 호환 이력이며 새 목표 달성으로 합산하지 않는다. 이 Tool 시계는 파일 finish까지이며 native 최종 답변/process exit의 외부600초 상한을 대신하지 않는다. `workflow_status`의 잔여 시간과 실행기의 실제 종료 시간을 확인한다. 조사에 임의의 후기·페이지 개수 종료 목표를 두지 않는다. 공식 사양·설명서의 제품 전반, 긍정/부정, 장기 사용, 사용 조건, 반례를 먼저 계획하고 다양한 원출처·판매처 및 다음 후기 페이지를 확인한다. 초기 발견 하나만으로 불편을 고정하지 않는다. 새 발견과 반례를 비교하고 분석·작성·물리 검수·전달 시간을 남길 때 조사 종료를 명시한다. 로그인/차단은 실제 실패로 기록한다.
+새 기본은 자연 완료 측정이며1800초는 오류·무한반복 방지 안전 상한이다. 성능 목표 시간을 미리 정하거나 자료 폭을 줄이지 않는다. 신규 timing_policy:natural-completion-v1은 전량 전달/신고 검토 gate와 최종90초 수집 예약을 유지한다. 과거300/600초는 당시 정책·시계 이력이며 기존 요청 예산을 연장·초기화하지 않는다. Tool 시계는 데이터 finish까지이며 native 최종 답변/process exit 전체 시간을 대신하지 않는다. workflow_status와 실제 외부 종료 시각을 확인한다. 조사에 임의의 후기·페이지 개수 종료 목표를 두지 않는다. 공식 사양·설명서의 제품 전반, 긍정/부정, 장기 사용, 조건, 반례를 계획하고 다양한 원출처·판매처·다음 후기 페이지를 확인한다. 초기 발견 하나로 불편을 고정하지 않는다. 새 발견·반례와 남은 범위를 대조해 분석·기획·검토·전달 시간을 남기고 실제 조사 종료를 기록한다. 접근 실패는 보존한다.
 
 `record_workflow_event`에 같은 research_id/event_key/kind/data(또는 내부 data_path)를 넣어 계획, 출처별 페이지·후기 이력, 분석 범위와 종료 이유를 보존한다. [필드 계약](../docs/contracts/product-workflow.md)을 필요한 단계에서 읽는다. 후기는 수집한 전체 본문과 긍정·조건·유보 맥락을 조사 기록에 보존하며, 부분만 관측하면 partial로 표시한다. 고유 후기 ID·모델 옵션·게시/구매일을 실제 원문으로 확인하고 모르면 null로 둔다. 하나의 후기를 여러 catalog 발췌로 나눠도 원 후기 ID 하나로 집계한다. 후기 기록과 계획한 source_ids를 먼저 보존한 후 같은 요청의 import_web_evidence_bulk에 runtime-data의 원본JSON input_path/import_key를 보내 코드로 분할 등록한다. 원문이나 정확모델 접미부를 줄이지 않는다. partial_failure/failed는 마지막 유효catalog·원input SHA·audit·완료/미처리/실패batch source_ids를 유지하고 같은요청에서 원인을 점검한다. 캐시 재전송이 실패를 자동 재실행하지 않는다. 공식 문서·시장 통계를 고객 수로 세지 않는다.
 
@@ -67,7 +94,7 @@ bundle 응답의 candidate_template은 현재 handle/version에 연결한 빈 �
 - 실행시간을 스스로 추정해 초 단위로 쓰지 않는다. 외부 수집기의 실제 입력→최종 종료 기록이 제공됐을 때만 그 범위로 표시하고, 저장 시점은 종료 시간으로 쓰지 않는다. 기록이 없으면 실행시간 미측정으로 둔다. 접근 실패는 실제 오류·시도 범위를 보고하고 시간 연장만으로 복구된다고 약속하지 않는다. 재시도/다른 접근은 가능한 조건으로 안내한다.
 - 효과 검증 계획은 실제 결함·적절한 발견/조치와 조건별 분모를 포함한다. 신고·문의 감소만을 개선 성공으로 정하면 조기 발견이나 신고 누락을 오해할 수 있다. 사람 대비 절감률은 주장하지 않는다.
 
-## 자료집·보고서
+## 자료집·보고서 — 명시 파일 출력의 호환 경로
 
 사람이 받는 결과는 실제 조사 종류별 원문 XLSX, 설명이 필요한 DOCX, 최종 DOCX/PDF로 구성한다. 합성 목업의 출력 검수는 하네스 완성이 아니다. 실제 제품의 새 조사→분석→검토→저장→보고서 전달을 확인한다. 가상 내용·수치를 업무 근거로 재사용하지 않는다. 페이지·목차·파일 수는 실제 요청과 자료의 양에 따라 정한다. 공통 작성 지침은 skills/review-and-revise/references/report-writing.md, 공개 스키마는 docs/contracts/reader-deliverables.md다. 원문 인용·요약·AI 판단과 정확 모델/문서/관측 범위를 구별하며 내부 JSON·receipt·검수 기록은 독자용 폴더 밖에 보관한다.
 
@@ -79,10 +106,20 @@ bundle 응답의 candidate_template은 현재 handle/version에 연결한 빈 �
 
 ## 저장·후속·최종
 
-review-and-revise에서 result/assessment와 report_plan을 원문과 대조한 뒤 save_and_export를 한 번 호출한다. 제품 최종 출력은 기존 6필드에 report:true를 명시하고 선택 report_plan_path/open_folder를 전달한다. 하위 API의 report 기본값은 false다. 보고서 본문은 runtime-data의 별도 내부 report_plan_path로 전달할 수 있어 업무 저장 JSON의 64KiB 제한 때문에 줄이지 않는다. 구조/검토 선행 검사는 진단에만 한다. 이 Tool은 같은 save_reviewed_result 검사와 export_session을 묶은 일반 코드다. 파일 생성도 의미 정확성을 보증하지 않으며 semantic_status=unverified, acceptance_ready=false를 유지한다.
+review-and-revise에서 result/assessment를 원문과 대조한 뒤 save_and_export를 한 번 호출한다. 기본은 기존6필드에 report:false와 웹 전달 데이터다. 명시 파일 출력에만 report:true/선택 report_plan_path/open_folder를 사용한다. 구조 검사는 진단이며 이 Tool은 같은 저장/내보내기를 묶은 일반 코드다. semantic_status=unverified와 acceptance_ready=false를 유지한다.
 
 최초 후보0·수정1/2. accepted=false도 시도를 소비한다. 반환 save.validation과 원문으로 같은 turn을 수정하거나 사유 있는 held를 저장한다. 해결되지 않으면 최대2회 뒤 종료하며 새 request/data/키로 한도를 초기화하지 않는다. JSON은 Python json으로 새 파일에 쓴다. 저장 오류·export_error·timeout을 성공으로 바꾸지 않는다.
 
-delivery_ready=true이고 save.receipt가 현재 handle·candidate_result_version=current_result_version·accepted/valid에 해당할 때만 업무 저장 완료를 전달한다. 독자용 파일은 report_ready와 report.ready/files도 확인하고 결과 폴더·필요한 파일 설명·근거/한계를 한국어로 전달한다. 내부 receipt/export는 감사 기록에 보존한다. report_error는 업무 저장·수정 이력을 유지하고 같은 session_id/turn_id/expected_result_version의 deliver_result로 복구한다. 선택 report_plan_path/open_folder를 유지하며 복구를 새 업무 turn이나 기획 수정으로 세지 않는다. export_error는 export_session으로 복구하고 오래된 key/replay/외부 변경은 current_request/get_turn으로 확인한다. 전체 result/assessment는 export에 보존하고 다시 읽거나 재출력하지 않는다. 기존 save_reviewed_result → export_session 경로도 재개/진단에 사용한다.
+delivery_ready=true와 현재 handle·candidate_result_version=current_result_version·accepted/valid를 확인한다. 기본 웹에는 web_ready와 같은 현재 버전의 web_result 파일/SHA/binding을 확인하고 웹팀 연결·HTML 미검수는 그대로 남긴다. web_error는 prepare_web_result로, 명시 파일 report_error는 deliver_result로 같은 session/turn/version에서 복구한다. 내부 receipt/export는 보존하며 복구는 새 turn이나 기획 수정이 아니다. export_error는 export_session으로, 충돌/외부변경은 current_request/get_turn으로 확인한다. 전체 결과는 다시 모델 문맥에 재출력하지 않는다.
 
 실제 추가 업무 질문만 같은 session_id/prior_turn_id로 연결한다. 이전 turn은 역사적 참조이며 현재 valid 여부를 확인한다. 명시적 취소는 새 업무 turn을 만들지 않고 실제 대상 turn의 현재 handle/version으로 review-and-revise의 cancel_turn을 호출한다. 취소 원문은 reason에 보존하며 원문 저장을 위해 별도 followup turn을 만들지 않는다. 대상·후보·수정·사용량을 보존하고 이후 저장/등록을 막는다. 최종 {cancellation,export}는 실제 취소 대상 응답과 같은 export 이력을 전달한다. 이미 completed/failed는 소급 취소하지 않는다. 로컬 취소와 native/원격 중단은 별도 확인한다.
+
+## 주장 범위와 최종 표현 대조
+
+중립 관측을 확인된 불편으로 바꾸지 않고, source별 판단·집계 ID/분모와 검증 과제를 관련 Skill에서 먼저 정한다. 단문과 최종 요약도 같은 사실/AI 해석/미확인·직접 source 범위를 유지한다. 최종 표현을 압축할 때 불편 여부·조건·반례·기능 유무의 미확인을 지우지 않는다. 코드/schema·7축 평가 통과는 원문 의미나 모든 질문/실물 효과의 완전 보장이 아니다.
+
+한 문장·decision_note·보고서 block에서 여러 관측을 묶어 요약할 때는 각각의 절이 실제 연결 source_ids의 원문으로 지지되는지 대조한다. 같은 제품의 전체 catalog에서 읽었다는 사실만으로 그 문장에 붙은 출처가 모든 내용을 지지하지는 않는다. 긍정 특성·과거 제품 경험·미래 기대를 묶으면 해당 원문들을 모두 정확히 연결하거나 문장을 근거별로 나눈다. 읽었지만 연결하지 않은 다른 후기의 내용을 기존 refs가 지지하는 것처럼 설명하지 않는다. 저장 전 claim/decision_notes와 보고서·최종 요약을 같은 범위로 확인한다. ID·quote·SHA 검사 통과는 이 의미 대조를 대체하지 않는다.
+
+decision_notes의 source_fact도 정확 모델 한 개의 원문 귀속을 유지한다. 여러 모델에서 같은 수치/설치 안내가 관측됐더라도 한 모델의 source_id만으로 다른 모델 전부의 사실을 묶어 쓰지 않는다. 모델별 문장/출처로 나누거나 실제 인용 모델로 범위를 한정한다. 기획·보고서·최종 답변의 사실/AI 판단/미확인도 현재 저장된 동일 범위와 연결한다.
+
+조건이 원문에서 미확인이면 '조건이 달라서'로 확정해 설명하지 않는다. '조건이 서로 다른지는 미확인이고 결과가 상반된다'처럼 관측과 해석을 분리한다. 기존 기능 존재를 제외한 불편의 해소로 압축하지 않는다. workflow/file 완료 시각은 native 최종 응답 시각이 아니며 외부 관측 없이는 전체600초 준수를 추정하지 않는다.

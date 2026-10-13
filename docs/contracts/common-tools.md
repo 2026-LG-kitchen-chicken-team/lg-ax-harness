@@ -1,5 +1,7 @@
 # 공통 자료·입출력·상태 도구
 
+2026-10-13 최신: 웹팀의 작업 화면·보고서 HTML에 현재 정형결과/원문/근거/검토·조사이력을 전달한다. 기본 save_and_export(report:false)의 web_ready/web_result를 확인하고 prepare_web_result로 같은 버전 복구한다. PDF/DOCX 생성·이미지검수는 기본 필수가 아니며 아래 파일규칙은 명시 report:true 호환 경로다. [웹 데이터 계약](web-result.md)을 우선한다. 신규기본1800초는 성능목표가 아닌 안전상한이고 natural-completion-v1 정책으로 전량전달/신고검토와 최종90초예약을 유지한다. 과거300/600초요청/이력은 변경하지 않는다.
+
 브랜드/시장 미지정 새 요청은 국내 LG 대상 기본 정책을 저장한다. set_request_scope_policy는 {session_id,request_key,policy}이며 policy의 mode는 explicit_model(model_id,user_quote), explicit_brand_market(brand,user_quote,market?,market_quote?) 또는 explicit_market(market,market_quote,user_quote)다. 시장만 지정하면 기본 LG 브랜드를 유지한다. quote는 실제 원질문의 연속 부분이어야 한다. 연결 전 기본 정책만 명시 의도로 변경할 수 있다. 같은 공유 검사는 대상 등록·request 연결·후보 저장에 적용한다. 명시 시장은 AI 해석의 원문 근거를 남기며 언어/모델 prefix로 판매국을 자동 인증하지 않는다. legacy 정책 없는 과거 이력과 합성 코드 자료는 이 기본 정책의 새 업무 인수로 설명하지 않는다.
 
 export의 turns와 candidates에는 기존 result/evidence_refs/payload/hash를 바꾸지 않는 source_metadata 배열을 추가한다. 정확 catalog reference 전체가 일치할 때만 kind=review/product_fact를 연결하며 과거/미확인 참조는 kind:null이다. 모델/문서/data 버전·source_id·SHA와 binding을 함께 보존한다. manual은 현 catalog에서 product_fact로 등록되어 있으며 문서 종류를 접두어/URL로 추정하지 않는다.
@@ -35,7 +37,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## 호출·크기·오류 계약
 
-실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각64KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는0모델·0출처의 data/business/empty이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
+실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각256KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는0모델·0출처의 data/business/empty이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
 
 | Tool | JSON 입력 | 출력/오류 |
 |---|---|---|
@@ -54,7 +56,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 | cancel_turn | session_id/turn_id/cancel_key/reason/expected_result_version/user_submitted | 후보 없는 로컬 취소·멱등 receipt. native/backend 중단은 별도 미확인 |
 | begin_invocation / finish_invocation | 세션/turn/호출 ID/Tool·요청 지문 또는 종료 상태 | 호출자 보고 장부. Tool을 실행·취소하거나 네이티브 호출을 통제하지 않음 |
 
-문자 조회는 literal 부분 문자열 검색이다. 입력·출력 64KiB, 내부 planning 12KiB, 후보 결과 32KiB, 원문 파일 각 1MiB, 조회 최대20건, query 최대200자다. JSON 중복 키·NaN/Infinity·bool 숫자·미지 필드를 거부한다. SQLite 잠금 대기 5초, 실제 검사 명령은 부모 check의 30–120초 상한으로 실행한다. 조건부 HTTP 관측·native 본문 기록·새 버전 등록을 추가했다. 별도 [외부 조사 계약](web-evidence.md)의 지원 형식·socket timeout·native 브라우저 미포함 범위를 따른다.
+문자 조회는 literal 부분 문자열 검색이다. 입력256KiB, 내부 planning12KiB, 후보 결과128KiB다. 일반 조회·bundle·receipt 출력은64KiB이며 상세 상태(get_turn/current_request/open_request/save_result/save_reviewed_result)만256KiB다. 일반 업무는 receipt와 export 경로를 받아 큰 결과를 대화 문맥에 반복하지 않는다. 원문 파일 각1MiB, 조회 최대20건, query 최대200자다. JSON 중복 키·NaN/Infinity·bool 숫자·미지 필드를 거부한다. SQLite 잠금 대기5초, 실제 검사 명령은 부모 check의30–120초 상한으로 실행한다. 조건부 HTTP 관측·native 본문 기록·새 버전 등록을 추가했다. 별도 [외부 조사 계약](web-evidence.md)의 지원 형식·socket timeout·native 브라우저 미포함 범위를 따른다.
 
 종료코드 0은 명령 실행 성공이고 1은 구조화 오류다. 후보 결과가 rejected/held여도 저장 명령 자체가 완료되면 0이며 `accepted=false`와 reason을 확인해야 한다. unknown_model/unknown_scope, 유효 범위의 empty, 파일 무결성 오류, 근거 불일치, 저장 실패, stale_context는 서로 다른 상태다. 출력 초과 시 output_limit을 반환한다.
 
