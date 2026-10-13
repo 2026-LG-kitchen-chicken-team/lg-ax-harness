@@ -8,8 +8,9 @@ import { ExternalLink, Printer, Quote } from 'lucide-react'
 import { Alert, Badge, Badges } from '../components/ui'
 import { DotPattern, StatValue } from '../components/magic'
 import { Flow } from '../components/story'
+import { Blocks } from '../components/blocks'
 import { ModeSwitch, type Mode } from '../components/mode'
-import { chunk, inner, type Story } from '../lib/story'
+import { chunk, inner, notesOf, type Story } from '../lib/story'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_TEXT } from '../lib/utils'
 import type { Block, View } from '../types'
 
@@ -57,6 +58,17 @@ export default function Slides({ view, story, mode, setMode }: { view: View; sto
   const meta = view.context?.meta || ''
 
   const slides: ReactNode[] = []
+  // A section's own note ("결과에 현재 불편이 없습니다" ...) gets a slide right after that section, so an empty part is said, not skipped.
+  const noteSlide = (key: string, label: string, t: string) => {
+    const notes = notesOf(s[key])
+    if (notes.length) slides.push(
+      <Slide key={'n-' + key} label={label} tone={t} title={s[key]?.title}>
+        <div className="flex flex-col gap-5 [&_div[role=note]]:text-2xl [&_div[role=note]]:leading-relaxed">
+          {notes.map((b, i) => <Alert key={i} tone={b.tone}><Md text={b.text} /></Alert>)}
+        </div>
+      </Slide>,
+    )
+  }
   slides.push(
     <Slide key="title" bare>
       <div className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-zinc-50 to-white px-32 text-center">
@@ -83,8 +95,9 @@ export default function Slides({ view, story, mode, setMode }: { view: View; sto
   if (story.status.length) {
     slides.push(
       <Slide key="status" label="먼저 볼 상태" tone="orange" title="이 결과를 볼 때 알아야 할 것">
-        <div className="flex flex-col gap-5 text-2xl [&_div[role=note]]:text-2xl [&_div[role=note]]:leading-relaxed">
-          {story.status.map((b, i) => <Alert key={i} tone={b.tone}><Md text={b.text} /></Alert>)}
+        {/* every status block of the story page: warnings and the table of stopped requests */}
+        <div className="flex flex-col gap-5 text-2xl [&_div[role=note]]:text-2xl [&_div[role=note]]:leading-relaxed [&_table]:text-xl [&_td]:text-xl [&_td_span]:text-base [&_th]:text-base">
+          <Blocks blocks={story.status} copy={() => {}} />
         </div>
       </Slide>,
     )
@@ -111,6 +124,7 @@ export default function Slides({ view, story, mode, setMode }: { view: View; sto
       </div>
     </Slide>,
   ))
+  noteSlide('problem', 'Problem · 현재 불편', 'red')
   chunk(features, 4).forEach((group, gi, all) => slides.push(
     <Slide key={'f' + gi} label={`Check · 기존 기능${all.length > 1 ? ` ${gi + 1}/${all.length}` : ''}`} tone="blue" title={s.check?.title}>
       <div className="grid grid-cols-2 gap-6">
@@ -140,11 +154,13 @@ export default function Slides({ view, story, mode, setMode }: { view: View; sto
       <p className="mt-6 text-xl text-muted-foreground">판단은 검토 기록에 모델이 쓴 그대로이며, 저장 도구는 형식만 검사했습니다.</p>
     </Slide>,
   ))
+  noteSlide('check', 'Check · 기존 기능 대조', 'blue')
   if (flow) slides.push(
     <Slide key="flow" label="Flow · 연결" tone="orange" title={s.flow?.title}>
       <Flow b={flow} copy={() => {}} large />
     </Slide>,
   )
+  noteSlide('flow', 'Flow · 연결', 'orange')
   sols.forEach((c: Block, i: number) => slides.push(
     <Slide key={'c' + i} label={`Solution · 제안 ${i + 1}/${sols.length}`} tone="purple" title={null}>
       <div className="grid h-full grid-cols-[1.15fr_1fr] gap-14">
@@ -182,6 +198,7 @@ export default function Slides({ view, story, mode, setMode }: { view: View; sto
       </div>
     </Slide>,
   ))
+  noteSlide('solution', 'Solution · 제안', 'purple')
   if (s.trust) slides.push(
     <Slide key="trust" label="Trust · 한계" tone="gray" title={s.trust.title}>
       <div className="grid grid-cols-3 gap-6">

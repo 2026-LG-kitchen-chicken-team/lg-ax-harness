@@ -4,7 +4,7 @@ import type { Block, View } from '../types'
 
 export interface Story {
   hero?: Block
-  status: Block[] // status / warning callouts shown before the story
+  status: Block[] // everything on the story page besides hero and sections: warnings, stopped-request tables, notes
   sections: Record<string, Block> // problem, check, flow, solution, trust
   complete: boolean // a saved result exists (all sections present)
 }
@@ -16,7 +16,7 @@ export function storyOf(view: View | null): Story | null {
   for (const b of page.blocks) if (b.type === 'story') sections[b.key || b.label] = b
   return {
     hero: page.blocks.find((b) => b.type === 'hero'),
-    status: page.blocks.filter((b) => b.type === 'callout'),
+    status: page.blocks.filter((b) => b.type !== 'hero' && b.type !== 'story'),
     sections,
     complete: ['problem', 'check', 'flow', 'solution', 'trust'].every((k) => k in sections),
   }
@@ -24,6 +24,11 @@ export function storyOf(view: View | null): Story | null {
 
 export const inner = (section: Block | undefined, type: string): Block | undefined =>
   (section?.blocks || []).find((b: Block) => b.type === type)
+
+// Notes the builder put inside a section ("결과에 현재 불편이 없습니다", "검토 기록에 기존 기능 대조 판단이 없습니다" ...).
+// The trust section's note is the closing statement that every view already prints, so it is left out.
+export const notesOf = (section: Block | undefined): Block[] =>
+  section?.key === 'trust' ? [] : (section?.blocks || []).filter((b: Block) => b.type === 'callout')
 
 export function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = []

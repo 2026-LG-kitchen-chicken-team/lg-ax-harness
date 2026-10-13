@@ -6,9 +6,9 @@ import { Alert, Badge, Badges } from '../components/ui'
 import { DotPattern, StatValue } from '../components/magic'
 import { Blocks } from '../components/blocks'
 import { ModeSwitch, Stage, type Mode } from '../components/mode'
-import { inner, type Story } from '../lib/story'
+import { inner, notesOf, type Story } from '../lib/story'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_SOFT, TONE_TEXT } from '../lib/utils'
-import type { Block, View } from '../types'
+import type { Block, Chip, View } from '../types'
 
 type Detail = { kind: string; tone: string; item: Block }
 
@@ -53,8 +53,14 @@ export default function Poster({ view, story, mode, setMode, copy }: { view: Vie
     <>
       {switcher}
       <Stage>
-        <div className="grid h-full grid-cols-[560px_1fr_560px] grid-rows-[250px_1fr_210px] gap-5 p-9"
-          style={{ gridTemplateAreas: '"hero hero stats" "pains map concepts" "trust trust limits"' }}>
+        {/* With warnings (held/invalid result, stopped requests) a strip on top of the poster carries all of them. */}
+        <div className={cn('grid h-full grid-cols-[560px_1fr_560px] gap-5 p-9', story.status.length ? 'grid-rows-[auto_230px_1fr_200px]' : 'grid-rows-[250px_1fr_210px]')}
+          style={{ gridTemplateAreas: (story.status.length ? '"notice notice notice" ' : '') + '"hero hero stats" "pains map concepts" "trust trust limits"' }}>
+          {story.status.length > 0 && (
+            <Cell area="notice" className="max-h-[260px] overflow-y-auto bg-amber-50/70 py-4 ring-amber-200">
+              <Notices blocks={story.status} />
+            </Cell>
+          )}
           {/* hero */}
           <Cell area="hero" className="relative flex flex-col justify-center overflow-hidden bg-gradient-to-br from-zinc-50 to-white px-10">
             <DotPattern className="[mask-image:radial-gradient(70%_80%_at_0%_0%,black,transparent)]" />
@@ -73,10 +79,12 @@ export default function Poster({ view, story, mode, setMode, copy }: { view: Vie
           </Cell>
           {/* pains */}
           <Cell area="pains" title="현재 불편" tone="red" count={pains.length}>
+            <CellNotes blocks={notesOf(s.problem)} />
             <List items={pains} tone="red" max={5} onOpen={(p) => open('현재 불편', 'red', p)} meta={(p) => `원문 ${(p.quotes || []).length}건 보기`} />
           </Cell>
           {/* map */}
           <Cell area="map" title="불편 → 남은 불편 → 제안 연결" tone="orange" note="검토 기록에 적힌 연결만 그림">
+            <CellNotes blocks={[...notesOf(s.check), ...notesOf(s.flow)]} />
             {flow && <MapView flow={flow} onOpen={(id, col) => {
               if (col === 'pain' && painById[id]) open('현재 불편', 'red', painById[id])
               else if (col === 'concept' && solById[id]) open('제안', 'purple', solById[id])
@@ -85,6 +93,7 @@ export default function Poster({ view, story, mode, setMode, copy }: { view: Vie
           </Cell>
           {/* concepts */}
           <Cell area="concepts" title="제안" tone="purple" count={sols.length}>
+            <CellNotes blocks={notesOf(s.solution)} />
             <List items={sols} tone="purple" max={4} onOpen={(c) => open('제안', 'purple', c)} meta={(c) => [c.plan ? `검증 계획 ${c.plan.status}` : '검증 계획 미작성', ...(c.chips || []).slice(0, 1).map((x: Block) => x.text)].join(' · ')} />
           </Cell>
           {/* trust */}
@@ -108,9 +117,6 @@ export default function Poster({ view, story, mode, setMode, copy }: { view: Vie
           </Cell>
         </div>
       </Stage>
-      {story.status.length > 0 && (
-        <div className="no-print fixed bottom-4 left-4 z-40 max-w-xl">{story.status.slice(0, 1).map((b, i) => <Alert key={i} tone={b.tone}><Md text={b.text} /></Alert>)}</div>
-      )}
       {detail && <DetailDialog d={detail} close={() => setDetail(null)} />}
     </>
   )
@@ -131,6 +137,44 @@ function Cell({ area, title, tone: t, count, note, className, children }: {
       )}
       {children}
     </section>
+  )
+}
+
+const NOTE_SOFT: Record<string, string> = {
+  info: 'bg-blue-50 text-blue-950 ring-blue-200', success: 'bg-emerald-50 text-emerald-950 ring-emerald-200',
+  warning: 'bg-amber-50 text-amber-950 ring-amber-200', error: 'bg-rose-50 text-rose-950 ring-rose-200',
+}
+// A section's own note ("결과에 제안이 없습니다" ...) at the top of its cell.
+function CellNotes({ blocks }: { blocks: Block[] }) {
+  if (!blocks.length) return null
+  return <div className="mb-3 flex flex-col gap-2">{blocks.map((b, i) => <p key={i} role="note" className={cn('rounded-lg px-3 py-2 text-sm leading-snug ring-1 ring-inset', NOTE_SOFT[b.tone] || NOTE_SOFT.info)}><Md text={b.text} /></p>)}</div>
+}
+
+// The story page's status blocks in poster size: notes as lines, a table (stopped requests) as one line per row.
+function Notices({ blocks }: { blocks: Block[] }) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      {blocks.map((b, i) => b.type === 'table' ? (
+        <ul key={i} className="flex flex-col gap-1.5 rounded-xl bg-white/80 px-4 py-3 ring-1 ring-amber-200">
+          {(b.rows || []).map((r: Block, k: number) => (
+            <li key={k} className="flex min-w-0 items-center gap-3 text-[15px]">
+              {(b.columns || []).map((c: Block) => {
+                const v = r[c.key]
+                if (v == null || v === '') return null
+                return typeof v === 'object' && !Array.isArray(v)
+                  ? <Badge key={c.key} chip={v as Chip} />
+                  : <span key={c.key} className="min-w-0 truncate" title={c.label + ': ' + String(v)}><span className="text-muted-foreground">{c.label} </span><Md text={String(v)} /></span>
+              })}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div key={i} role="note" className="flex gap-2 text-[16px] leading-relaxed text-amber-950">
+          <span aria-hidden className={cn('mt-2 size-2 shrink-0 rounded-full', b.tone === 'info' ? 'bg-blue-500' : b.tone === 'error' ? 'bg-rose-500' : b.tone === 'success' ? 'bg-emerald-500' : 'bg-amber-500')} />
+          <span className="min-w-0"><Md text={b.text} /></span>
+        </div>
+      ))}
+    </div>
   )
 }
 

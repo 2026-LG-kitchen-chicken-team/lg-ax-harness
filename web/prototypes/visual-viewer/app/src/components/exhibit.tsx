@@ -10,7 +10,7 @@ import { ScrollRing, TextRoll } from './skiper'
 import { useTableRows } from './blocks'
 import { EditorialBody, LimitTiles, MatchRows, QuoteLine, SkiperCredit, SolutionList } from '../variants/Editorial'
 import { ExThemeContext } from '../lib/exTheme'
-import type { Story } from '../lib/story'
+import { notesOf, type Story } from '../lib/story'
 import { cn, fmt, Md, safeHref, tone, TONE_DOT, TONE_TEXT } from '../lib/utils'
 import type { Block, Chip, Page, View } from '../types'
 
@@ -28,14 +28,13 @@ export function ExhibitPage({ view, page, story, copy, go }: { view: View; page:
   const next = view.pages[i + 1]
   const first = view.pages[0]
   const isStory = page.id === 'story'
-  // The story page's status blocks (warnings, stopped requests) stay visible next to D's chapters.
-  const notices = page.blocks.filter((b) => b.type !== 'hero' && b.type !== 'story')
   return (
     <ExThemeContext.Provider value="light">
       <div className="hidden lg:block"><ScrollRing /></div>
       {isStory && story?.complete ? (
-        <EditorialBody story={story} embedded notices={notices.length ? <ExBlocks blocks={notices} copy={copy} /> : undefined}
-          sectionNotes={(key) => <SectionNotes section={story.sections[key]} copy={copy} />} />
+        // The story page's warnings (held/invalid results, stopped requests) and empty-section notes stay visible.
+        <EditorialBody story={story} embedded notices={story.status.length ? <ExBlocks blocks={story.status} copy={copy} /> : undefined}
+          sectionNotes={(key) => notesOf(story.sections[key]).length ? <div className="mt-10 flex flex-col gap-4"><ExBlocks blocks={notesOf(story.sections[key])} copy={copy} /></div> : null} />
       ) : (
         <article className="@container mx-auto flex max-w-6xl flex-col gap-6 px-6 pt-16 sm:pt-20">
           {!isStory && <PageHead no={i + 1} total={view.pages.length} word={WORDS[page.id]} title={page.title} />}
@@ -49,13 +48,6 @@ export function ExhibitPage({ view, page, story, copy, go }: { view: View; page:
       </footer>
     </ExThemeContext.Provider>
   )
-}
-
-// Notes the builder put inside a story section ("결과에 제안이 없습니다" ...). D's chapters show only the items, so F adds them.
-// The trust section is left out: its one note is the closing statement D already prints in full.
-function SectionNotes({ section, copy }: { section?: Block; copy: CopyFn }) {
-  const notes = section?.key === 'trust' ? [] : (section?.blocks || []).filter((b: Block) => b.type === 'callout')
-  return notes.length ? <div className="mt-10 flex flex-col gap-4"><ExBlocks blocks={notes} copy={copy} /></div> : null
 }
 
 function PageHead({ no, total, word, title }: { no: number; total: number; word?: string; title: string }) {

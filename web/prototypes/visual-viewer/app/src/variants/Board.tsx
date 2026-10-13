@@ -7,15 +7,22 @@ import { ArrowUpRight, Quote } from 'lucide-react'
 import { ModeSwitch, type Mode } from '../components/mode'
 import { ExpandCard, Island, PaperGrain, TextureCard, TextureSeparator } from '../components/cult'
 import { Blocks } from '../components/blocks'
-import { inner, type Story } from '../lib/story'
+import { inner, notesOf, type Story } from '../lib/story'
 import { cn, fmt, Md, safeHref, tone } from '../lib/utils'
 import type { Block, View } from '../types'
 
-type Lane = { key: string; title: string; hint: string; accent: string; dot: string; items: Block[] }
+type Lane = { key: string; title: string; hint: string; accent: string; dot: string; items: Block[]; notes: Block[] }
 const CHIP: Record<string, string> = {
   red: 'bg-rose-100 text-rose-800', orange: 'bg-amber-100 text-amber-900', green: 'bg-emerald-100 text-emerald-800',
   blue: 'bg-sky-100 text-sky-800', purple: 'bg-violet-100 text-violet-800', gray: 'bg-stone-200 text-stone-700',
 }
+const NOTE: Record<string, string> = {
+  info: 'bg-sky-50/90 text-sky-950 ring-sky-300/60', success: 'bg-emerald-50/90 text-emerald-950 ring-emerald-300/60',
+  warning: 'bg-amber-50/90 text-amber-950 ring-amber-300/70', error: 'bg-rose-50/90 text-rose-950 ring-rose-300/70',
+}
+const Note = ({ b }: { b: Block }) => (
+  <p role="note" className={cn('rounded-2xl px-4 py-3 text-sm leading-relaxed ring-1', NOTE[b.tone] || NOTE.info)}><Md text={b.text} /></p>
+)
 const Tag = ({ text, t, title }: { text: string; t?: string; title?: string }) => (
   <span title={title} className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold', CHIP[tone(t)])}>{text}</span>
 )
@@ -53,10 +60,10 @@ export default function Board({ view, story, mode, setMode, copy }: { view: View
   }
 
   const lanes: Lane[] = [
-    { key: 'pain', title: '현재 불편', hint: '근거에서 찾은 불편', accent: 'from-rose-200/70', dot: 'bg-rose-500', items: pains },
-    { key: 'feature', title: '기존 기능', hint: '같은 모델에 이미 있는 것', accent: 'from-sky-200/70', dot: 'bg-sky-500', items: features },
-    { key: 'remaining', title: '남은 불편', hint: '기능이 있어도 남은 것', accent: 'from-amber-200/80', dot: 'bg-amber-500', items: remaining },
-    { key: 'concept', title: '제안', hint: '남은 불편에 연결한 것', accent: 'from-violet-200/70', dot: 'bg-violet-500', items: sols },
+    { key: 'pain', title: '현재 불편', hint: '근거에서 찾은 불편', accent: 'from-rose-200/70', dot: 'bg-rose-500', items: pains, notes: notesOf(s.problem) },
+    { key: 'feature', title: '기존 기능', hint: '같은 모델에 이미 있는 것', accent: 'from-sky-200/70', dot: 'bg-sky-500', items: features, notes: notesOf(s.check) },
+    { key: 'remaining', title: '남은 불편', hint: '기능이 있어도 남은 것', accent: 'from-amber-200/80', dot: 'bg-amber-500', items: remaining, notes: notesOf(s.flow) },
+    { key: 'concept', title: '제안', hint: '남은 불편에 연결한 것', accent: 'from-violet-200/70', dot: 'bg-violet-500', items: sols, notes: notesOf(s.solution) },
   ]
   const out = (id: string) => links.filter((l) => l.from === id)
   const into = (id: string) => links.filter((l) => l.to === id)
@@ -100,6 +107,13 @@ export default function Board({ view, story, mode, setMode, copy }: { view: View
         </div>
       </header>
 
+      {/* the story page's warnings (held/invalid result, stopped requests) before the lanes */}
+      {story.status.length > 0 && (
+        <section className="relative mx-auto mt-10 flex max-w-[1500px] flex-col gap-3 px-6">
+          {story.status.map((b, i) => b.type === 'callout' ? <Note key={i} b={b} /> : <Blocks key={i} blocks={[b]} copy={copy} />)}
+        </section>
+      )}
+
       <main className="relative mx-auto mt-12 grid max-w-[1500px] gap-5 px-6 pb-10 md:grid-cols-2 xl:grid-cols-4">
         {lanes.map((lane) => (
           <TextureCard key={lane.key} className="min-w-0">
@@ -113,6 +127,7 @@ export default function Board({ view, story, mode, setMode, copy }: { view: View
             </div>
             <TextureSeparator />
             <div className="flex flex-col gap-3 p-3">
+              {lane.notes.map((b, i) => <Note key={'n' + i} b={b} />)}
               {lane.items.map((it) => {
                 const id = it.id as string
                 const dim = lit && !lit.has(id)

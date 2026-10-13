@@ -9,7 +9,7 @@ import { ArrowUpRight, Quote } from 'lucide-react'
 import { ModeSwitch, type Mode } from '../components/mode'
 import { HoverExpand, ScatterText, ScrollRing, TextRoll } from '../components/skiper'
 import { Blocks } from '../components/blocks'
-import { inner, type Story } from '../lib/story'
+import { inner, notesOf, type Story } from '../lib/story'
 import { useCx, useLight } from '../lib/exTheme'
 import { Badge } from '../components/ui'
 import { cn, fmt, Md, safeHref, tone, TONE_TEXT } from '../lib/utils'
@@ -66,7 +66,8 @@ export default function Editorial({ view, story, mode, setMode, copy }: { view: 
     <div className="min-h-dvh bg-[#0b0b0c] text-zinc-100 [color-scheme:dark] selection:bg-amber-300 selection:text-black">
       {header}
       <ScrollRing />
-      <EditorialBody story={story} />
+      <EditorialBody story={story} notices={story.status.length ? <DarkNotices blocks={story.status} copy={copy} /> : undefined}
+        sectionNotes={(key) => notesOf(story.sections[key]).length ? <div className="mt-10"><DarkNotices blocks={notesOf(story.sections[key])} copy={copy} /></div> : null} />
       <footer className="mx-auto flex max-w-6xl flex-col gap-2 border-t border-white/10 px-6 py-10 text-xs text-white/35">
         <div>{view.context?.meta} · 화면은 저장된 결과만 보여주며 모델이나 업무를 다시 실행하지 않습니다.</div>
         <div><SkiperCredit /></div>
@@ -169,7 +170,7 @@ export function EditorialBody({ story, embedded, notices, sectionNotes }: {
               {(p.quotes || [])[0] && <QuoteLine q={p.quotes[0]} />}
             </div>
           )} />
-        <p className={cx('mt-4 text-xs text-white/40')}>띠에 마우스를 올리거나 Tab으로 옮기면 펼쳐집니다. 인용은 저장된 원문 그대로입니다.</p>
+        {pains.length > 0 && <p className={cx('mt-4 text-xs text-white/40')}>띠에 마우스를 올리거나 Tab으로 옮기면 펼쳐집니다. 인용은 저장된 원문 그대로입니다.</p>}
         {sectionNotes?.('problem')}
       </Chapter>
 
@@ -309,6 +310,45 @@ export function LimitTiles({ items }: { items: Block[] }) {
           {t.note && <div className={cx('mt-2 text-sm text-white/45')}>{t.note}</div>}
         </div>
       ))}
+    </div>
+  )
+}
+
+// Story-page warnings in D's style (held/invalid results, stopped requests, empty sections): notes as a coloured
+// left bar, tables as plain rows. Other block types fall back to A's renderer on a light card.
+const NOTE_BAR: Record<string, string> = {
+  info: 'border-sky-300/60 bg-sky-300/[0.05]', success: 'border-emerald-300/60 bg-emerald-300/[0.05]',
+  warning: 'border-amber-300/70 bg-amber-300/[0.08]', error: 'border-rose-400/70 bg-rose-400/[0.08]',
+}
+function DarkNotices({ blocks, copy }: { blocks: Block[]; copy: (s: string) => void }) {
+  return (
+    <div className="flex flex-col gap-4 [&_code]:bg-white/10 [&_code]:text-emerald-300">
+      {blocks.map((b, i) => b.type === 'callout' ? (
+        <div key={i} role="note" className={cn('max-w-4xl border-l-2 py-4 pl-5 pr-6 text-[15px] leading-relaxed text-white/80', NOTE_BAR[b.tone] || NOTE_BAR.info)}><Md text={b.text} /></div>
+      ) : b.type === 'table' ? <NoticeTable key={i} b={b} /> : (
+        <div key={i} className="rounded-xl bg-white p-4 text-zinc-900"><Blocks blocks={[b]} copy={copy} /></div>
+      ))}
+    </div>
+  )
+}
+
+function NoticeTable({ b }: { b: Block }) {
+  const cols: Block[] = b.columns || []
+  const cell = (v: unknown): ReactNode => {
+    if (v == null || v === '') return '–'
+    if (Array.isArray(v)) return <span className="flex flex-wrap gap-1.5">{v.map((c, k) => <Pill key={k} text={typeof c === 'string' ? c : c.text} t={c?.tone} />)}</span>
+    if (typeof v === 'object') { const c = v as Block; return <Pill text={c.text} t={c.tone} title={c.tip} /> }
+    return <Md text={fmt(v)} />
+  }
+  return (
+    <div>
+      <div className="overflow-x-auto border-t border-white/15">
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-white/10">{cols.map((c) => <th key={c.key} className="h-10 whitespace-nowrap px-3 text-left text-[11px] font-medium tracking-widest text-white/40 first:pl-0">{c.label}</th>)}</tr></thead>
+          <tbody>{(b.rows || []).map((r: Block, i: number) => <tr key={i} className="border-b border-white/[0.07]">{cols.map((c) => <td key={c.key} className="px-3 py-3 align-top text-white/75 first:pl-0">{cell(r[c.key])}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
+      {b.source && <p className="mt-3 text-[11px] leading-relaxed text-white/35">출처: {b.source}</p>}
     </div>
   )
 }
