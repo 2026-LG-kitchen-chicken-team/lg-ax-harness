@@ -408,6 +408,53 @@ class WebEvidence:
                 "preview_start": start, "preview_truncated": start > 0 or start + len(preview) < len(value["text"]),
                 "snapshot_path": "runtime-data/web-evidence/" + value["snapshot_id"] + ".json", "cached": cached}
 
+    def _check_product_page_fragment(self, entry, snapshot, exact, dataset, research):
+        """Bind separate literal windows of one registered identity document.
+
+        Query and fragment are both exact; this is never a URL-prefix fallback.
+        A page association preserves model-applicability warnings for review.
+        """
+        if research is None:
+            fail("workflow_snapshot_scope", "Product document fragments require the original research_id")
+        if (entry["kind"] != "product_fact" or entry["model_matching"] != "product_page_association"
+                or "manual_linkage_snapshot_ids" in entry):
+            fail("scope_mismatch", "Product document fragments require an explicit page association")
+        association = self._read(entry["association_snapshot_id"])
+        from .workflow import WorkflowAudit
+        audit = WorkflowAudit(self.db, self.workspace)
+        for retained in (association, snapshot):
+            audit.snapshot(research, retained["snapshot_id"])
+            try:
+                observed = datetime.fromisoformat(retained["observed_at"])
+            except (TypeError, ValueError):
+                fail("workflow_snapshot_time", "Invalid original document observation time")
+            if observed.tzinfo is None or observed > datetime.now(timezone.utc):
+                fail("workflow_snapshot_time", "Document observations cannot be naive or future dated")
+        model = next((m for m in dataset.models if all(m[k] == exact[k] for k in SCOPE_FIELDS)), None)
+        if (model is None or not model.get("spec_source_id")
+                or model.get("identity_review", {}).get("authority") != "manufacturer"
+                or model["identity_review"].get("source_id") != model["spec_source_id"]):
+            fail("scope_mismatch", "First register the exact manufacturer identity for this document")
+        identity = dataset.source(model["spec_source_id"])
+        if (identity["kind"] != "product_fact" or identity.get("availability") != "present"
+                or any(identity[k] != exact[k] for k in SCOPE_FIELDS)
+                or hashlib.sha256(identity["text"].encode("utf-8")).hexdigest() != identity["sha256"]
+                or not model_token(exact["model_id"], identity["text"])
+                or identity["text"] not in association["text"]):
+            fail("scope_mismatch", "Association must retain the registered exact identity's literal body and SHA")
+        # Do not discard query identifiers, anchors, aliases, or path case.
+        expected_url = public_url(identity["origin"]["source_url"])
+        if not (snapshot["url"] == association["url"] == expected_url):
+            fail("scope_mismatch", "Document fragment URL, query and anchor must exactly match its registered identity")
+        return {"source_id": entry["source_id"], "scope": exact,
+                "identity_source_id": identity["source_id"], "identity_source_sha256": identity["sha256"],
+                "association_snapshot_id": association["snapshot_id"], "source_snapshot_id": snapshot["snapshot_id"],
+                "url": expected_url, "url_policy": "exact URL including query and fragment",
+                "association_observed_at": association["observed_at"], "source_observed_at": snapshot["observed_at"],
+                "association_text_sha256": hashlib.sha256(association["text"].encode("utf-8")).hexdigest(),
+                "source_snapshot_text_sha256": hashlib.sha256(snapshot["text"].encode("utf-8")).hexdigest(),
+                "verification_scope": "literal identity/document association; claim meaning and applicability unverified"}
+
     def _check_manual_association(self, entry, snapshot, exact, identity_urls):
         association = self._read(entry["association_snapshot_id"])
         manual_url = urlparse(public_url(snapshot["url"]))
@@ -683,6 +730,7 @@ class WebEvidence:
             review_identity_urls[canonical(exact)].append(snapshot["url"])
         records = [{**s, "data_version": version} for s in dataset.sources.values()]
         linkage_checks = []
+        fragment_checks = []
         used = set(dataset.sources)
         for entry in observations:
             obj(entry, ("snapshot_id", "source_id", "kind", "scope", "location", "text", "support_quote", "published_date", "model_matching", "purchase_verified", "sponsorship"), ("feature_key", "availability", "commercial_disclosure", "association_snapshot_id", "manual_linkage_snapshot_ids"))
@@ -708,9 +756,17 @@ class WebEvidence:
                         fail("scope_mismatch", "Manual linkage cannot associate customer reviews")
                     self._check_review_association(entry, snapshot, exact, review_identity_urls[canonical(exact)])
                 else:
-                    linkage = self._check_manual_association(entry, snapshot, exact, identity_urls[canonical(exact)])
-                    if linkage:
-                        linkage_checks.append({"source_id": source_id, **linkage})
+                    association = self._read(entry["association_snapshot_id"])
+                    # Route same-document query/anchor variants here so a
+                    # literal href cannot bypass this path's exact URL policy.
+                    parent_document = urlparse(association["url"])._replace(query="", fragment="").geturl()
+                    source_document = urlparse(snapshot["url"])._replace(query="", fragment="").geturl()
+                    if parent_document == source_document:
+                        fragment_checks.append(self._check_product_page_fragment(entry, snapshot, exact, dataset, research))
+                    else:
+                        linkage = self._check_manual_association(entry, snapshot, exact, identity_urls[canonical(exact)])
+                        if linkage:
+                            linkage_checks.append({"source_id": source_id, **linkage})
             elif not model_token(exact["model_id"], snapshot["text"]):
                 fail("scope_mismatch", "Observed page must identify the selected model; option mixing still needs review")
             if entry["kind"] == "review" and entry["text"] != entry["support_quote"]:
@@ -749,7 +805,8 @@ class WebEvidence:
             (target / "manifest.json").write_text(canonical(manifest), encoding="utf-8")
             checked = Dataset(target)
             (target / "import-audit.json").write_text(canonical({"input": payload, "data_fingerprint": checked.fingerprint,
-                "manual_linkage_checks": linkage_checks, "semantic_status": "unverified"}), encoding="utf-8")
+                "manual_linkage_checks": linkage_checks, "product_page_fragment_checks": fragment_checks,
+                "semantic_status": "unverified"}), encoding="utf-8")
         except Exception:
             # Only delete the known files in the newly reserved directory, never recursively.
             for name in ("models.json", "sources.jsonl", "manifest.json", "import-audit.json"):
