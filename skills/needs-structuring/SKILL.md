@@ -24,3 +24,5 @@ pains의 id/text/source_ids와 claim_checks를 작성한다. literal 원문 지�
 실행: `uv run python skills/needs-structuring/scripts/run.py OP --input JSON_PATH`. OP: select_evidence/validate_source_refs.
 
 최종 표현에서도 연결한 각 원문이 주장 주어·대상·조건·비교절을 직접 지지해야 한다. 원문 미명시 위치·매체·조건은 unknown으로 유지하고 다른 후기의 조건을 옮기지 않는다. 기존 안내가 있어도 노출/이해 불편은 별도 근거가 필요하다. 검증은 대리 지표와 실제 과업 품질·오판·실패 탐지를 구분한다.
+
+한 후기의 의미절별로 현재 사용·과거 제품·기대·전언을 구분한다. 다른 절이 과거·기대라는 이유로 현재 사용 긍정을 삭제하거나 후기 전체를 제외하지 않는다. 제외는 해당 절·해당 주장과 이유를 유지하며, 긍정/불편/중립 여부와 근거귀속의 미확인을 분리한다.

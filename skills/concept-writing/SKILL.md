@@ -15,7 +15,7 @@ id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links�
 
 각 concept에 implementation_steps(실행 주체/프로토타입/확인 순서)와 validation_plan을 추가한다. validation_plan 필드는 metric/baseline/method/success_criterion/business_value/status이고 status는 planned_not_measured만 허용한다. 기존 작업 대비 무엇을 측정할지, 같은 과업·완료 품질로 어떻게 비교할지 적는다. 숫자 목표는 가설로 명시하고 미측정 절감률을 실적처럼 쓰지 않는다. 제안서 예시에 없는 실제 불편도 처리하며 다른 제품군의 근거를 대신 쓰지 않는다.
 
-validation_plan의 기존 baseline/method/metric/success_criterion 안에서 시험 전 고정할 사용자 과업·대상과 양·초기 상태·모델/버전·사용 환경/숙련 조건·완료 품질을 적는다. 기존 기능을 실제 사용한 대조 조건과 제안 적용 조건을 같은 과제/조건으로 비교한다. 반복 단위·분모·순서와 관측할 오류·추가 조작·회피·실패 검출 및 중단 기준을 명시한다. 만족한 사용자 경험·안전·장기/반례 조건의 악화를 성공으로 세지 않는다. 시험 후 유리한 조건만 고르지 않으며, 기준선 미측정은 측정 예정으로 두고 목표/표본은 사전 결정 또는 미정으로 표시한다. 서로 다른 조건/완료 품질을 개선률로 비교하지 않는다.
+validation_plan의 기존 baseline/method/metric/success_criterion 안에서 시험 전 고정할 사용자 과업·대상과 양·초기 상태·모델/버전·사용 환경/숙련 조건·완료 품질을 적는다. 기존 기능을 실제 사용한 대조 조건과 제안 적용 조건을 같은 과제/조건으로 비교한다. 반복 단위·순서와 사전 배정한 전체 시도를 분모로 명시하며 실패·중단·포기·회피·미확인도 포함한다. 실제 과업 완료품질·오판·실패 미검출과 추가 조작·안전 악화·중단 기준을 함께 판정한다. 만족한 사용자 경험·안전·장기/반례 조건의 악화를 성공으로 세지 않는다. 시험 후 유리한 조건만 고르지 않으며, 기준선 미측정은 측정 예정으로 두고 목표/표본은 사전 결정 또는 미정으로 표시한다. 서로 다른 조건/완료 품질을 개선률로 비교하지 않는다.
 
 전체 업무의 최종 저장이 구조/refs/제약을 검사한다. 단독 실행·불일치 진단에는 validate_constraints/validate_source_refs를 실제 실행한다. 실행: `uv run python skills/concept-writing/scripts/run.py OP --input JSON_PATH`. 생성과 원문 검토는 네이티브 모델이다.
 

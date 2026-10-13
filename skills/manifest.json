@@ -37,7 +37,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "4c7d621445bf4d2d0f02f209ac80ee49147142c69b58242043ba570718447ec6"
+          "sha256": "cf13bca1bb5e7fbcdc0b36b88aa58be2d2c69c5aa66d0d3aaee5befe644da08d"
         }
       ]
     },
@@ -59,7 +59,7 @@
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "b41007c01e180338c6a6ca793ca7779d6721fdc6fc718107ae47d76668c3cb7e"
+          "sha256": "52d4be1451e1ae35db755e76a29a17c2ad6e7a9b25d3bdc0ea7079f1141f149e"
         }
       ]
     },
@@ -78,7 +78,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "92d6e6e94c351ab4eb95aef153b56cd33e7b931d6391497a8b3c70bd5d44c887"
+          "sha256": "e6bc905200b85b4261b59d65080b9dbc519440c622a0ec2d4410c6c1594c481f"
         }
       ]
     },
@@ -98,7 +98,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "c30ebe0ac252ba7768bbc85551da9cf4f31aad7151910eb89682ab8552c9fd71"
+          "sha256": "ab9d7397278424361576ea213e35039a51886499cb4109f23a39181e999603f5"
         }
       ]
     },
@@ -117,7 +117,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "add92c32bd6ae7e412509145e73d80e60c22f5792dbc80bdf984820921ea20da"
+          "sha256": "3f5654e3bb485571d40f2aa3c389ace431bdd38d0749ed656955af4e465fd14d"
         }
       ]
     },
@@ -147,7 +147,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "92e56f0f8226353ef5f68dd43d38fbe773d512ba1aaa35018856629762e6270f"
+          "sha256": "c59b76fd1f0b872f1f5a655104b8c76194e1a83bb00fe0dc38b8bf935d2ed222"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -159,7 +159,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "e625f129a859127fab08264a1b9e6ea3ab384d311aed555220ea363a9ee06761"
+          "sha256": "a713ed3f2b8805564b5397dfb41704585659c8182d08d826a4a1d90b75c006e6"
         }
       ]
     }
@@ -167,7 +167,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "722b1c3996a68a7f1ba1865baec32f05695ae8c4d06ba1d2713606edcfef5780"
+      "sha256": "cacd20bb7ce228043a46e4f813d23f443f9612340643f26c1e5083f7bafef69d"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
@@ -183,7 +183,7 @@
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "2a6a85055481c841554eb172cf02f520205955324ecaab90214229abf231c631"
+      "sha256": "af5b94387704a1ca5214dee42a0412482103e615fa2b3a4bfd77c1a438cfca6f"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -208,6 +208,10 @@
     {
       "path": "product-tools/product_tools/delivery.py",
       "sha256": "6a0f091082f734f6bd26ac3defe08e391d0d56f1588246e5fde9f1941ac47f79"
+    },
+    {
+      "path": "product-tools/product_tools/error_receipts.py",
+      "sha256": "79ba9adeb2ced36cea90066701b98a6cc88c90c809d738d10f0b1f0156853d66"
     },
     {
       "path": "product-tools/product_tools/evidence_coverage.py",
@@ -247,7 +251,7 @@
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
-      "sha256": "a6ab0c006fa922f6ae30ba79a3403b803c517c6f0e2dbf0f7b91a73ec2466be8"
+      "sha256": "5c3badb0fcb83e49cd85e73f4856823a2ab7f6a6e1778e79179c6699753aaf88"
     },
     {
       "path": "product-tools/product_tools/workflow.py",
@@ -255,7 +259,7 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "d05723d3de53a0aaf93f70ba7651ac65950e3c6256bdd4ae338b7c578b1dac74"
+      "sha256": "1b287b9959b33ee3adc169f07763fc3d4ae3769714f0e88399a09b87279ca5c8"
     },
     {
       "path": "docs/contracts/product-planning.md",
@@ -263,7 +267,7 @@
     },
     {
       "path": "docs/contracts/web-evidence.md",
-      "sha256": "0ea92c03aa6899b652761716a6e67ac8a89876139e2ebd6d31a91fa4c3cf7c78"
+      "sha256": "38efa46d04fc82d17174b303d557e07304da10c8b8399e3eee19c9d3c1b2a22a"
     },
     {
       "path": "docs/contracts/codex-product.md",

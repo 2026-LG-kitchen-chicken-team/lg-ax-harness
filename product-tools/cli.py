@@ -1,5 +1,6 @@
 """JSON/stdin command tools for existing native Agent runtimes; no LLM calls."""
 import argparse
+import hashlib
 import importlib.metadata
 import importlib.util
 import json
@@ -13,6 +14,7 @@ from product_tools.tools import ProductTools
 from product_tools.planning import review_product_result
 from product_tools.web_evidence import WebEvidence
 from product_tools.conversation import Conversation
+from product_tools.error_receipts import preserve_failure
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -111,6 +113,7 @@ def main():
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None
+    input_sha256 = None
     try:
         db = args.db.resolve()
         allowed = (ROOT / "runtime-data").resolve()
@@ -127,6 +130,7 @@ def main():
             raw = decode_json_bytes(path.read_bytes())
         if len(raw.encode("utf-8")) > MAX_INPUT_BYTES:
             fail("input_limit", "Input exceeds 256 KiB")
+        input_sha256 = hashlib.sha256(raw.encode("utf8")).hexdigest()
         payload = strict_json(raw)
         data = Dataset(args.data)
         store = StateStore(db, data)
@@ -145,7 +149,8 @@ def main():
     finally:
         if store is not None:
             store.close()
-    print(json.dumps({"ok": False, "error": error}, ensure_ascii=False))
+    receipt = preserve_failure(ROOT, args.operation, error, input_sha256)
+    print(json.dumps({"ok": False, "error": error, "failure_receipt": receipt}, ensure_ascii=False))
     return 1
 
 if __name__ == "__main__":

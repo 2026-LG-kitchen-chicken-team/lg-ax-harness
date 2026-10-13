@@ -115,3 +115,7 @@ open_request_bundle/resolve_request_bundle 응답의 candidate_template은 현�
 `record_evidence_review` 입력: `{session_id,turn_id,review_key,records:[{source_id,disposition:'reviewed'|'excluded',reason}]}` (records 1~100개). reviewed는 완전한 등록본문 전달 뒤만 가능하며 제외 이유도 필수다. immutable review_key의 다른 내용 재사용은 review_conflict다. 의미 정확성은 호출자 신고이고 자동 인증하지 않는다. 상세 원문 전달/검토 이력은 export_session의 turns[].evidence_coverage_history에 남긴다.
 
 새 short-request-v1(예산 ≤600초)의 completed 후보 저장은 모든 선택 catalog 항목의 등록본문 전달 + reviewed/excluded 이유 기록이 필요하다. 초기 3~4건만 읽고 나머지를 검토했다고 통과시키지 않는다. 부족은 같은 turn의 held로 저장하고 근거/미검토를 공개한다. 이 gate는 실제 조사 충분성·주장 지지·결과 정답을 보증하지 않는다. untimed/명시1200~1800초 과거 인수를 이 새 gate 통과로 합산하지 않는다.
+
+## CLI 실패의 실제 보존 위치
+
+CLI가 exit1 오류를 반환하면 추가 failure_receipt에 ready/path/sha256/bytes를 보낸다. ready:true는 runtime-data/tool-errors의 불변 JSON이 실제 쓰였고 SHA를 확인했다는 뜻이다. operation·관측 UTC·입력SHA·기존 code/message/retryable를 보존하며 원문 입력/명령을 복사하지 않는다. input_sha256는 허용 인코딩의 JSON을 디코딩한 문자열을 UTF-8로 인코딩한 내용 지문이며 원파일 바이트 SHA가 아니다. 디코딩/크기 검사 이전 실패에서는 null일 수 있다. receipt message는 최대2000자이고 원문 길이·절단 여부·전체 오류 메시지 UTF-8 SHA를 함께 기록한다. CLI 표준출력에는 기존 오류 메시지를 유지한다. 개별 실패마다 다른 관측파일을 만들고 기존 파일을 덮어쓰지 않는다. 쓰기/경로/무결성 실패는 ready:false로 남기며 원래 CLI 오류와 exit1을 유지한다. shell/모델/브라우저 실패 전체를 이 receipt가 수집했다고 가정하지 않는다. semantic/HTML/native중단 인증이 아니다.

@@ -81,3 +81,9 @@ spec_source_id는 같은 import observations의 product_fact/availability:presen
 이 API는 원래 research_id와 literal snapshot/review source_scan journal 확인을 기존 importer에 위임한다. 브랜드/옵션/공식 귀속의 의미 판정은 코드 인증이 아니다. 실제 후기·설명서 범위를 줄여 시간 목표를 맞추지 않는다. source records/고유 후기/독립 고객은 다른 단위다. 기존 catalog 상한(20 scopes, catalog file1MiB 등)을 확대했다고 주장하지 않는다.
 
 응답에는 status, input_sha256, original_copy, audit_path, input_count, completed_count, unprocessed_count, failed_source_ids, last_valid_catalog/version/fingerprint가 있다. 원본 바이트·입력 순서·실제 등록 순서와 batch SHA/result/error를 runtime-data/bulk-imports에 보존한다. 각 batch는 원자적이며 실패 batch 전체 source_ids를 반환하고 정확 오류 항목은 미관측일 수 있다고 표시한다. 앞서 성공한 catalog는 남기고 failed/partial_failure 뒤 자동 재시작하지 않는다. 같은 import_key 재전송은 원본 SHA/시작catalog에 결속된 기존 결과만 반환하며 interrupted도 완료로 바꾸지 않는다. 최종 새catalog를 --data로 선택한 동일 request의 resolve_request_bundle을 사용하고 새 turn으로 한도를 우회하지 않는다.
+
+## 동일 제품 문서의 분리 관측
+
+product_fact가 모델명 없는 상세 조각이면 임의로 모델명을 덧붙이지 않는다. 등록된 모델의 spec_source_id 정체성 원문을 association_snapshot_id로 명시하고 model_matching=product_page_association을 쓴다. 두 원문의 URL 문자열(query순서/anchor 포함), 정확 scope, 동일 research에 실제 보존된 snapshot, 정체성 원문/지원인용/본문SHA와 비미래 관측시각을 코드가 확인한다. 등록 identity가 먼저 필요하며 bulk identity-first 경로를 사용한다. 다른 query/옵션/문서/조사·변조·선언만으로는 연결하지 않는다. 기존 PDF/topic/공용설명서 연결 경로는 별도 유지한다. 설명서 표지 자체가 spec_source_id인 정상 PDF/hash section도 실제 링크와 정확 모델의 기존 manual association으로 검증하며 PDP fragment의 exact anchor 정책으로 가로채지 않는다.
+
+import-audit의 product_page_fragment_checks는 연결 검사의 identity source/SHA, snapshot IDs/본문SHA/시각/URL/scope를 보존한다. 이는 page association이며 특정 기능의 모델별 적용·공용 FAQ·원문 의미·실물 효과를 자동 인증하지 않는다. 제품마다 차이라는 경고·적용 미확인은 원문/판단에 유지한다. 원문 수를 줄이거나 bulk partial 실패를 새 요청/키로 성공처럼 바꾸지 않는다.

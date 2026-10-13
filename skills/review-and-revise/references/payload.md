@@ -4,7 +4,7 @@ bundle 응답의 candidate_template에는 현재 session_id/turn_id/result_key/e
 
 양식 참고이며 업무 정답·실제 실행 기록이 아니다. 일반 업무는 open_request_bundle → 원문 판단/assessment → save_and_export다. 선행 validate/review/get_turn은 진단에만 한다. save_and_export는 아래6필수 필드(assessment 포함)로 저장 검사와 export를 묶고 {save,delivery_ready,export,export_error}를 반환한다. response_mode 없이 receipt를 자동 사용한다. accepted=false도 후보가 저장되고 export된다. 내부 감사 JSON은 {receipt:save.receipt,export}다. export_error는 저장을 되돌리지 않으며 export_session으로 복구한다. stale replay는 delivery_ready=false다. 기존 save_reviewed_result와 export_session은 별도 호출로도 사용한다.
 
-제품 최종 출력에는 선택 필드 `report:true`를 명시해 독자용 파일 제작을 함께 요청한다. 하위 API 기본 report는 false다. 선택 `report_plan_path`는 runtime-data 내부의 별도 작성 JSON 파일 경로, `open_folder`는 보고서 요청 시 기본 true인 폴더 열기 옵션이다. 전체 보고서를 아래 result에 끼워 넣거나 256KiB 때문에 줄이지 않는다. report/report_ready/report_error는 저장·export 상태와 별도로 확인한다. 작성 스키마와 파일 검수는 [보고서 작성](report-writing.md)을 따른다.
+기본 최종 출력은 `report:false`의 검토된 현재 웹 JSON과 작은 receipt다. 사용자가 파일 출력을 명시한 경우에만 `report:true`로 기존 파일 제작을 요청한다. 선택 `report_plan_path`는 runtime-data 내부의 별도 작성 JSON 파일 경로, `open_folder`는 보고서 요청 시 기본 true인 폴더 열기 옵션이다. 전체 보고서를 아래 result에 끼워 넣거나 256KiB 때문에 줄이지 않는다. report/report_ready/report_error는 저장·export 상태와 별도로 확인한다. 작성 스키마와 파일 검수는 [보고서 작성](report-writing.md)을 따른다.
 
 보고서 복구 OP `deliver_result`의 입력은 `{session_id, turn_id, expected_result_version, report_plan_path?, report_sources_path?, open_folder?}`다. 현재 저장 결과에서 복구하며 새 turn이나 업무 수정 횟수를 만들지 않는다. 실제 ready/files로 확인한 결과 폴더를 전달하고 내부 receipt/export는 보존한다.
 

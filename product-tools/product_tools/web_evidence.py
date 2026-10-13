@@ -757,11 +757,22 @@ class WebEvidence:
                     self._check_review_association(entry, snapshot, exact, review_identity_urls[canonical(exact)])
                 else:
                     association = self._read(entry["association_snapshot_id"])
-                    # Route same-document query/anchor variants here so a
-                    # literal href cannot bypass this path's exact URL policy.
+                    # PDP fragments use the registered model identity document.
+                    # Preserve legacy linked-manual cover -> hash-topic routes
+                    # when that cover is a separately registered source.
                     parent_document = urlparse(association["url"])._replace(query="", fragment="").geturl()
                     source_document = urlparse(snapshot["url"])._replace(query="", fragment="").geturl()
-                    if parent_document == source_document:
+                    product_documents = {urlparse(url)._replace(query="", fragment="").geturl()
+                                         for url in review_identity_urls[canonical(exact)]}
+                    parsed_source = urlparse(snapshot["url"])
+                    # Published PDF/hash manual sections have an existing
+                    # literal-link contract even when their cover is spec_source.
+                    manual_section = bool(parsed_source.fragment and
+                        (parsed_source.path.casefold().endswith(".pdf") or
+                         (parsed_source.hostname == "gscs-manual.lge.com" and
+                          re.fullmatch(r"/[A-Z]{3}/MFL[0-9]+/ko-kr/main\.html", parsed_source.path))))
+                    if (parent_document == source_document and parent_document in product_documents
+                            and not manual_section):
                         fragment_checks.append(self._check_product_page_fragment(entry, snapshot, exact, dataset, research))
                     else:
                         linkage = self._check_manual_association(entry, snapshot, exact, identity_urls[canonical(exact)])

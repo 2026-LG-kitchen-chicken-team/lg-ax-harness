@@ -2,6 +2,7 @@
 .agents/skills/** -text
 .claude/skills/** -text
 vendor/codex-harness/** -text
+THIRD_PARTY_NOTICES.md -text
 skills/** -text
 agents/product-planning.md -text
 agents/product-evidence-reviewer.md -text

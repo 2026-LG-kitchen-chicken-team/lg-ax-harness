@@ -7,7 +7,7 @@ description: "질문에서 지정하거나 해석한 제품군 또는 정확 모
 
 ## 전달·검토 범위 기록
 
-초기 bundle 3~4개만 읽고 기획을 끝내지 않는다. 새조사는 기본600초/목표300초·최종90초 수집마감이다. 같은 session_id/turn_id와 최종 --data를 유지해 evidence_inventory/evidence_coverage로 등록·완전본문전달·호출자신고검토·제외·누락을 확인한다. 이는 전체 웹 원문이나 고객 수·의미 충분성 인증이 아니다.
+초기 bundle 3~4개만 읽고 기획을 끝내지 않는다. 새조사는 자연 완료 측정이며 기본1800초는 안전 상한이고 마지막90초는 새수집을 닫아 전달을 준비한다. 명시 예산과 이미 시작된 시계는 변경하지 않으며 과거300/600초는 당시 요청 이력이다. 같은 session_id/turn_id와 최종 --data를 유지해 evidence_inventory/evidence_coverage로 등록·완전본문전달·호출자신고검토·제외·누락을 확인한다. 이는 전체 웹 원문이나 고객 수·의미 충분성 인증이 아니다.
 
 read_evidence_batch 입력은 {session_id,turn_id,offset:0,limit:20}이고 선택 max_bytes(4096~63000)/source_ids를 허용한다. 반환 전체 reference는 줄이지 않으며 출력bytes에맞춰 실제 전달수/next_offset를 계산한다. next_offset가 null일 때까지 필요한 전체선택본문을 확인한다. initial bundle에서 실제 반환한 refs는 자동 전달장부에 기록되며 생략 refs는 기록되지 않는다. 중복전달은 고유source 수를 늘리지 않는다. 자료/code/version/context가 바뀌거나 취소되면 새coverage로 기존 검토를 재사용할 수 없다.
 

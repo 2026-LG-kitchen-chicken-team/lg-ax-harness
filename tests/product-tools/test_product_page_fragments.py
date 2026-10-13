@@ -169,6 +169,25 @@ class ProductPageFragmentTests(unittest.TestCase):
         fragment = self.capture("child-path", self.body, self.url.replace("/fx900?", "/fx900/other?"))
         self.error("scope_mismatch", self.payload(fragment))
 
+    def test_registered_manual_cover_to_hash_topic_keeps_legacy_link_route(self):
+        manual_url = "https://gscs-manual.lge.com/CVZ/MFL99999999/ko-kr/main.html"
+        cover_body = "FX900.CKOR synthetic manual cover; " + manual_url
+        cover = self.capture("manual-cover", cover_body, manual_url)
+        entry = self.observation(cover, cover_body, "MANUAL-COVER", "explicit_model_verified")
+        entry["feature_key"] = "manual_identity"
+        seed = self.web.import_evidence(self.data, {"data_version": "fixture-manual-cover",
+            "research_id": self.research, "observations": [entry]})
+        topic_body = "Synthetic topic_20 section: feature operation conditions."
+        fragment = self.capture("manual-topic", topic_body, manual_url + "#topic_20")
+        payload = self.payload(fragment, cover)
+        payload["observations"][0].update(text=topic_body, support_quote=topic_body, location="Section topic_20")
+        result = self.web.import_evidence(Dataset(self.workspace/seed["data_path"]), payload)
+        registered = Dataset(self.workspace/result["data_path"])
+        self.assertEqual(registered.source("FRAGMENT")["origin"]["source_url"], manual_url + "#topic_20")
+        self.assertEqual(registered.source("FRAGMENT")["text"], topic_body)
+        audit = json.loads((registered.root/"import-audit.json").read_text(encoding="utf-8"))
+        self.assertEqual(audit["product_page_fragment_checks"], [])
+
     def test_same_host_other_model_and_exact_scope_are_not_interchangeable(self):
         for i, changed in enumerate([{"model_id": "FX900I.CKOR"}, {"model_version": "revision2"},
                                      {"document_version": "other-document"}]):
@@ -177,6 +196,32 @@ class ProductPageFragmentTests(unittest.TestCase):
             self.error("unknown_model" if "model_id" in changed else "unknown_scope", payload)
         wrong = self.capture("wrong-model-identity", "FX900I.CKOR manufacturer FixtureCo.")
         self.error("scope_mismatch", self.payload(association=wrong))
+
+    def test_manual_identity_as_spec_source_keeps_hash_and_pdf_section_routes(self):
+        for number, (url, suffix, quote, location) in enumerate([
+            ("https://gscs-manual.lge.com/CVZ/MFL99999999/ko-kr/main.html", "#topic_20",
+             "Synthetic topic_20 operation conditions.", "Section topic_20"),
+            ("https://publisher.example.org/manual/fx900.pdf", "#page=2",
+             "Synthetic manual page operation conditions.", "Manual page 2")]):
+            model_id = "FX9" + str(number+10) + ".CKOR"
+            scoped = {**self.scope, "model_id": model_id}
+            body = model_id + " manufacturer FixtureCo; synthetic manual cover; " + url
+            identity = self.capture("spec-manual-" + str(number), body, url)
+            entry = self.observation(identity, body, "MANUAL-ID-" + str(number), "explicit_model_verified")
+            entry.update(scope=scoped, feature_key="manual_identity")
+            model = {**self.model, **scoped, "spec_source_id": entry["source_id"],
+                     "identity_review": {**self.model["identity_review"], "source_id": entry["source_id"]}}
+            seed = self.web.import_evidence(self.data, {"data_version": "fixture-manual-spec-" + str(number),
+                "research_id": self.research, "new_models": [model], "observations": [entry]})
+            fragment = self.capture("spec-manual-section-" + str(number), quote, url + suffix)
+            payload = self.payload(fragment, identity)
+            payload["data_version"] = "fixture-manual-section-" + str(number)
+            payload["observations"][0].update(scope=scoped, text=quote, support_quote=quote, location=location)
+            result = self.web.import_evidence(Dataset(self.workspace/seed["data_path"]), payload)
+            registered = Dataset(self.workspace/result["data_path"])
+            self.assertEqual(registered.source("FRAGMENT")["origin"]["source_url"], url + suffix)
+            audit = json.loads((registered.root/"import-audit.json").read_text(encoding="utf-8"))
+            self.assertEqual(audit["product_page_fragment_checks"], [])
 
     def test_identity_requires_registered_literal_not_only_model_token(self):
         declared = self.capture("declared-identity", "FX900.CKOR is declared to apply here.")
