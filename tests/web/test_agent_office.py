@@ -132,7 +132,25 @@ class ObserverTests(unittest.TestCase):
         self.h.run(pre("Bash", {"command": f"echo {SECRET}"}))
         a, b = self.h.events()
         self.assertEqual((a["node"], a["op"]), ("concept-writing", "unknown_operation"))
-        self.assertEqual((b["kind"], b["node"], b["op"]), ("shell", "main", None))
+        self.assertEqual((b["kind"], b["node"], b["op"], b["detail"]["programs"]), ("shell", "main", None, ["echo"]))
+        self.assertNotIn(SECRET, self.h.all_text())
+
+    def test_program_names_and_file_areas_without_names(self):
+        self.h.run(pre("Bash", {"command": f"uv run python product-doctor.py && ls {SECRET} | {SECRET}-tool --x"}))
+        self.h.run(pre("PowerShell", {"command": f"Get-ChildItem C:\\{SECRET}; Remove-Item .\\runtime-data\\{SECRET}.json"}))
+        self.h.run(pre("Write", {"file_path": f"runtime-data/{SECRET}.json", "content": SECRET}, cwd=str(self.h.root)))
+        self.h.run(pre("Read", {"file_path": str(self.h.root / ".claude/skills/review-and-revise/references/payload.md")}))
+        self.h.run(pre("Grep", {"pattern": SECRET, "path": str(self.h.root / "docs")}))
+        self.h.run(pre("Edit", {"file_path": f"D:/{SECRET}/x.py", "old_string": SECRET, "new_string": SECRET}))
+        a, b, w, r, g, e = self.h.events()
+        self.assertEqual(a["detail"]["programs"], ["product_doctor", "ls", "other"])
+        self.assertEqual(b["detail"]["programs"], ["get-childitem", "remove-item"])
+        self.assertEqual((w["kind"], w["detail"]), ("file", {"area": "runtime"}))
+        self.assertEqual(r["detail"], {"area": "skills", "skill": "review-and-revise"})
+        self.assertEqual((g["detail"], e["detail"]), ({"area": "docs"}, {"area": "outside"}))
+        labels = [office.label_of(x) for x in (a, b, w, r, g, e)]
+        self.assertEqual(labels, ["명령 실행 · 설치 점검, 파일 목록 보기", "명령 실행 · 파일 목록 보기, 파일 지우기", "파일 쓰기 · 작업 기록",
+                                  "파일 읽기 · 검토·수정 참고 문서", "내용 찾기 · 문서", "파일 고치기 · 하네스 밖"])
         self.assertNotIn(SECRET, self.h.all_text())
 
     def test_delegation_and_subagent_events(self):
@@ -153,6 +171,39 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual((stop["node"], stop["phase"]), ("product_official_researcher", "end"))
         self.assertNotIn(SECRET, self.h.all_text())
 
+    def test_background_delegation_as_seen_in_claude_code_2_1_289(self):
+        role = {"agent_id": "a08e55b03b360a951", "agent_type": "product-evidence-reviewer"}
+        self.h.run(pre("Agent", {"subagent_type": "product-evidence-reviewer", "prompt": SECRET, "description": SECRET}))
+        self.h.run({"hook_event_name": "SubagentStart", "session_id": "S1", **role})
+        self.h.run({"hook_event_name": "PostToolUse", "session_id": "S1", "tool_name": "Agent", "tool_use_id": "toolu_1",
+                    "tool_input": {"subagent_type": "product-evidence-reviewer", "prompt": SECRET}, "duration_ms": 59,
+                    "tool_response": {"status": "async_launched", "isAsync": True, "agentId": "a08e55b03b360a951",
+                                      "prompt": SECRET, "outputFile": f"C:/{SECRET}.output"}})
+        self.h.run(pre("Read", {"file_path": "README.md", "limit": 15}, cwd=str(self.h.root), **role))
+        self.h.run(pre("SubagentHandback", {"message": SECRET}, **role))
+        self.h.run({"hook_event_name": "SubagentStop", "session_id": "S1", **role, "last_assistant_message": SECRET})
+        self.h.run({"hook_event_name": "UserPromptSubmit", "session_id": "S1",
+                    "prompt": f'Another Claude session sent a message: <agent-message from="a08e55b03b360a951"> {SECRET}'})
+        self.h.run({"hook_event_name": "UserPromptSubmit", "session_id": "S1", "prompt": f"<task-notification> {SECRET}"})
+        self.h.run({"hook_event_name": "SubagentStop", "session_id": "S1", "agent_id": "ab80", "agent_type": "session-title",
+                    "last_assistant_message": SECRET})
+        events = self.h.events()
+        launch, start, ack, read, handback, stop, delivered, notice, helper = events
+        self.assertEqual((ack["kind"], ack["detail"]["background"], ack["detail"]["response_status"], ack["detail"]["launched_agent_id"]),
+                         ("delegate", True, "async_launched", "a08e55b03b360a951"))
+        self.assertEqual((read["actor"], read["detail"]), ("product_evidence_reviewer", {"area": "harness"}))
+        self.assertEqual((handback["kind"], handback["node"]), ("handback", "product_evidence_reviewer"))
+        self.assertEqual((delivered["kind"], delivered["detail"]["from_agent_id"]), ("handback_delivered", "a08e55b03b360a951"))
+        self.assertEqual((notice["kind"], helper["node"], helper["detail"]["agent_type"]), ("notification", "other_subagent", "session-title"))
+        labels = [office.label_of(e) for e in events]
+        self.assertEqual(labels[:3], ["독립 근거 검토에 맡김", "독립 근거 검토 시작", "독립 근거 검토 백그라운드로 시작"])
+        self.assertEqual(labels[4:], ["독립 근거 검토 결과 돌려줌", "독립 근거 검토 끝", "메인이 연구 결과 받음", "작업 알림 받음",
+                                      "Claude Code 보조 작업 끝 (session-title)"])
+        trace = office.to_trace(events)["events"]
+        self.assertEqual((trace[2]["status"], trace[2]["source"], trace[2]["target"]), ("active", "main", "product_evidence_reviewer"))
+        self.assertEqual((trace[4]["source"], trace[4]["target"]), ("product_evidence_reviewer", "main"))
+        self.assertNotIn(SECRET, self.h.all_text())
+
     def test_skill_loading_is_labelled_instruction_loaded(self):
         self.h.run(pre("Skill", {"skill": "feature-comparison", "args": SECRET}))
         self.h.run(pre("Read", {"file_path": r"C:\h\.claude\skills\evidence-retrieval\SKILL.md"}))
@@ -160,7 +211,7 @@ class ObserverTests(unittest.TestCase):
         a, b, c = self.h.events()
         self.assertEqual((a["kind"], a["node"], a["basis"]), ("skill_load", "feature-comparison", "instruction_loaded"))
         self.assertEqual((b["kind"], b["node"]), ("skill_load", "evidence-retrieval"))
-        self.assertEqual((c["kind"], c["detail"]), ("tool", {}))
+        self.assertEqual((c["kind"], c["detail"]), ("file", {"area": "outside"}))
         self.assertNotIn(SECRET, self.h.all_text())
 
     def test_prompts_and_messages_are_not_kept(self):

@@ -72,6 +72,23 @@ SHELLS = {"Bash", "PowerShell"}
 SUBAGENT_TOOLS = {"Task", "Agent"}
 WEB_TOOLS = {"WebFetch", "WebSearch"}
 PHASE = {"PreToolUse": "start", "PostToolUse": "end", "PostToolUseFailure": "fail"}
+FILE_TOOLS = {"Read": "file_path", "Write": "file_path", "Edit": "file_path", "NotebookEdit": "notebook_path",
+              "Grep": "path", "Glob": "path"}
+# Shell commands are never stored. Only the program names below (first word of each part of the command) are kept,
+# plus the harness's own entry points; anything else is "other".
+PROGRAMS = {
+    "ls", "dir", "cat", "type", "head", "tail", "find", "grep", "rg", "wc", "pwd", "cd", "echo", "mkdir", "cp", "mv", "rm",
+    "python", "python3", "py", "uv", "git", "sed", "awk", "jq", "curl", "wget", "sort", "uniq", "node", "npm", "npx",
+    "get-childitem", "get-content", "set-location", "test-path", "select-string", "new-item", "remove-item", "copy-item",
+    "move-item", "invoke-webrequest", "out-file", "set-content", "get-item", "write-output", "measure-object",
+}
+HARNESS_SCRIPTS = {"product-doctor.py": "product_doctor"}
+SEPARATORS = re.compile(r"&&|\|\||;|\||\n")
+# Where a file tool worked, by folder area only (file names are not stored, except a Skill's own SKILL.md).
+AREAS = (("runtime-data/exports", "exports"), ("runtime-data/web-evidence", "web_evidence"), ("runtime-data/catalogs", "catalogs"),
+         ("runtime-data/deliverables", "deliverables"), ("runtime-data", "runtime"), (".claude/skills", "skills"),
+         (".agents/skills", "skills"), ("skills", "skills"), (".claude/agents", "agents"), ("agents", "agents"), ("docs", "docs"),
+         ("data", "data"), ("product-tools", "tools"), ("web", "web"))
 
 
 def now() -> str:
@@ -80,6 +97,16 @@ def now() -> str:
 
 def short(value, limit=120):
     return value[:limit] if isinstance(value, str) else None
+
+
+TOKEN = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
+AGENT_FROM = re.compile(r"from=\"([0-9a-f]{8,40})\"")
+HANDBACK_TOOL = "SubagentHandback"
+
+
+def token(value):
+    """A short identifier-like value (status, agent type, agent id); anything else is dropped."""
+    return value if isinstance(value, str) and TOKEN.match(value) else None
 
 
 def actor_of(payload: dict) -> str:
@@ -91,6 +118,49 @@ def actor_of(payload: dict) -> str:
             return role
         return "other_subagent"
     return "main"
+
+
+def programs_of(command: str) -> list:
+    out = []
+    for part in SEPARATORS.split(command)[:12]:
+        words = part.strip().split()
+        while words and ("=" in words[0] and not words[0].startswith("-")):  # VAR=value prefixes
+            words = words[1:]
+        if not words:
+            continue
+        name = re.split(r"[\\/]", words[0].strip("\"'&."))[-1].lower()
+        name = name[:-4] if name.endswith(".exe") else name
+        script = next((HARNESS_SCRIPTS[w.split("/")[-1].split("\\")[-1]] for w in words[1:4]
+                       if w.split("/")[-1].split("\\")[-1] in HARNESS_SCRIPTS), None)
+        out.append(script or (name if name in PROGRAMS else "other"))
+    return list(dict.fromkeys(out))[:6]
+
+
+def area_of(path: str, cwd) -> dict:
+    """Folder area of a file tool's path relative to the harness; no file names."""
+    if not path:
+        return {}
+    try:
+        target = Path(path)
+        if not target.is_absolute():
+            target = Path(cwd if isinstance(cwd, str) and cwd else HARNESS) / target
+        rel = os.path.relpath(os.path.normcase(os.path.abspath(target)), os.path.normcase(os.path.abspath(HARNESS)))
+    except (ValueError, OSError):
+        return {"area": "outside"}
+    rel = rel.replace("\\", "/")
+    if rel == ".":
+        return {"area": "harness"}
+    if rel.startswith(".."):
+        return {"area": "outside"}
+    for prefix, name in AREAS:
+        if rel == prefix or rel.startswith(prefix + "/"):
+            found = {"area": name}
+            if name == "skills":
+                skill = rel[len(prefix) + 1:].split("/")[0]
+                if skill in SKILL_OPS:
+                    found["skill"] = skill
+            return found
+    return {"area": "harness"}
 
 
 def classify(payload: dict) -> dict:
@@ -119,7 +189,17 @@ def classify(payload: dict) -> dict:
             role = ROLES.get(tin.get("subagent_type") or "")
             event.update(kind="delegate", node=role or "unknown_subagent")
             if not role:
-                event["detail"]["subagent_type"] = short(tin.get("subagent_type"), 60)
+                event["detail"]["subagent_type"] = token(tin.get("subagent_type"))
+            response = payload.get("tool_response")
+            if hook == "PostToolUse" and isinstance(response, dict):
+                # A background subagent returns at once with status async_launched; its real return comes later
+                # (SubagentHandback, then SubagentStop with the same agent id).
+                event["detail"]["response_status"] = token(response.get("status"))
+                if response.get("isAsync") is True:
+                    event["detail"]["background"] = True
+                event["detail"]["launched_agent_id"] = token(response.get("agentId"))
+        elif tool == HANDBACK_TOOL:
+            event.update(kind="handback", node=actor)
         elif tool == "Skill":
             name = tin.get("skill") or tin.get("name") or tin.get("command")
             name = name if isinstance(name, str) else ""
@@ -140,21 +220,39 @@ def classify(payload: dict) -> dict:
                         event["detail"]["error"] = failed
             else:
                 event["kind"] = "shell"
-        elif tool == "Read":
-            path = tin.get("file_path") if isinstance(tin.get("file_path"), str) else ""
+                event["detail"]["programs"] = programs_of(command)
+        elif tool in FILE_TOOLS:
+            path = tin.get(FILE_TOOLS[tool]) if isinstance(tin.get(FILE_TOOLS[tool]), str) else ""
             match = SKILL_MD.search(path.replace("\\", "/"))
-            if match and match.group(1) in SKILL_OPS:
+            if tool == "Read" and match and match.group(1) in SKILL_OPS:
                 event.update(kind="skill_load", node=match.group(1), basis="instruction_loaded")
+            else:
+                event["kind"] = "file"
+                event["detail"].update(area_of(path, payload.get("cwd")))
         elif tool in WEB_TOOLS:
             event["kind"] = "web"
             if tool == "WebFetch":
                 host = urlsplit(tin.get("url") if isinstance(tin.get("url"), str) else "").hostname
                 event["detail"]["host"] = short(host, 120)
     elif hook == "UserPromptSubmit":
-        event.update(kind="request", node="main", actor="main")
+        # Claude Code delivers a subagent's result and task notices as user turns. They are told apart by their
+        # opening marker only; no prompt text is kept.
+        prompt = payload.get("prompt") if isinstance(payload.get("prompt"), str) else ""
+        head = prompt.lstrip()[:200]
+        if head.startswith("Another Claude session sent a message:") or head.startswith("<agent-message"):
+            found = AGENT_FROM.search(head)
+            event.update(kind="handback_delivered", node="main", actor="main")
+            if found:
+                event["detail"]["from_agent_id"] = found.group(1)
+        elif head.startswith("<task-notification>"):
+            event.update(kind="notification", node="main", actor="main")
+        else:
+            event.update(kind="request", node="main", actor="main")
     elif hook in ("SubagentStart", "SubagentStop"):
         role = ROLES.get(payload.get("agent_type") or "") or "other_subagent"
         event.update(kind="subagent", node=role, actor=role, phase="start" if hook == "SubagentStart" else "end")
+        if role == "other_subagent":
+            event["detail"]["agent_type"] = token(payload.get("agent_type"))
     elif hook == "Stop":
         event.update(kind="turn_end", node="main", actor="main")
     elif hook in ("SessionStart", "SessionEnd"):

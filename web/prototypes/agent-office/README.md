@@ -49,6 +49,8 @@ turn 상태·수정 횟수, 후보 수, 전달·검토한 근거 수, 취소 여
 | `skill_load` | `Skill` 도구, `skills/<skill>/SKILL.md` 읽기 | `instruction_loaded` |
 | `web` | WebFetch(호스트만)·WebSearch | `observed` |
 | `request`·`turn_end`·`session` | UserPromptSubmit·Stop·SessionStart/End | `observed` |
+| `shell` | 위가 아닌 셸 명령. 명령 원문 대신 각 부분의 첫 단어가 정해진 목록(ls·cat·python·Get-ChildItem 등)에 있을 때 그 이름만, 하네스의 `product-doctor.py`는 "설치 점검", 그 밖은 `other` | `observed` |
+| `file` | Read·Write·Edit·Grep·Glob이 다룬 **폴더 구역**만(작업 기록·결과 내보내기·웹 근거 보관·문서·Skill 폴더·하네스 밖 등). 파일 이름은 남기지 않는다 | `observed` |
 
 하위 에이전트 안의 도구 사건은 Claude Code가 주는 `agent_id`와 `agent_type`이 모두 있을 때만 그 역할의 행동으로 적는다.
 호출 순서·시간 겹침으로 위임·메시지 관계를 만들지 않는다. 미측정 값은 0이 아니라 비워 둔다.

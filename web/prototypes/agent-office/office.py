@@ -265,16 +265,56 @@ def label_of(event: dict) -> str:
         base = f"{SKILL_KO.get(node, node)} · {event.get('op')}"
         return base + (" 실패" if phase == "fail" else " 끝" if phase == "end" else "")
     if kind == "delegate":
-        return f"{who}에 맡김" if phase == "start" else f"{who} 돌려받음" if phase == "end" else f"{who} 실패"
+        if phase == "start":
+            return f"{who}에 맡김"
+        if phase == "end":
+            return f"{who} 백그라운드로 시작" if (event.get("detail") or {}).get("background") else f"{who} 돌려받음"
+        return f"{who} 실패"
     if kind == "subagent":
+        if node == "other_subagent":
+            kind_name = (event.get("detail") or {}).get("agent_type")
+            return "Claude Code 보조 작업 " + ("시작" if phase == "start" else "끝") + (f" ({kind_name})" if kind_name else "")
         return f"{who} 시작" if phase == "start" else f"{who} 끝"
+    if kind == "handback":
+        return f"{who} 결과 돌려줌" + (" 완료" if phase == "end" else "")
+    if kind == "handback_delivered":
+        return "메인이 연구 결과 받음"
+    if kind == "notification":
+        return "작업 알림 받음"
     if kind == "skill_load":
         return f"{who} 지침 읽음"
+    detail = event.get("detail") or {}
     if kind == "web":
-        host = (event.get("detail") or {}).get("host")
-        return f"웹 열람 · {host}" if host else "웹 검색"
+        return f"웹 열람 · {detail['host']}" if detail.get("host") else "웹 검색"
+    if kind == "shell":
+        names = [PROGRAM_KO.get(p, p) for p in detail.get("programs") or [] if p != "other"]
+        return "명령 실행" + (" · " + ", ".join(dict.fromkeys(names)) if names else "")
+    if kind == "file":
+        area = AREA_KO.get(detail.get("area"), "")
+        if detail.get("skill"):
+            area = f"{SKILL_KO.get(detail['skill'], detail['skill'])} 참고 문서"
+        return f"{FILE_TOOL_KO.get(event.get('tool'), event.get('tool'))}" + (f" · {area}" if area else "")
     return {"request": "새 질문", "turn_end": "답변 끝", "session": "세션 " + ("시작" if phase == "start" else "끝"),
-            "shell": "명령 실행", "tool": f"{event.get('tool')} 사용"}.get(kind, kind or "")
+            "tool": f"{event.get('tool')} 사용"}.get(kind, kind or "")
+
+
+PROGRAM_KO = {
+    "product_doctor": "설치 점검", "ls": "파일 목록 보기", "dir": "파일 목록 보기", "get-childitem": "파일 목록 보기",
+    "cat": "파일 읽기", "type": "파일 읽기", "get-content": "파일 읽기", "head": "파일 앞부분 보기", "tail": "파일 끝부분 보기",
+    "find": "파일 찾기", "grep": "내용 찾기", "rg": "내용 찾기", "select-string": "내용 찾기", "wc": "줄 수 세기",
+    "measure-object": "개수 세기", "pwd": "위치 확인", "cd": "폴더 이동", "set-location": "폴더 이동", "echo": "글자 출력",
+    "write-output": "글자 출력", "mkdir": "폴더 만들기", "new-item": "파일·폴더 만들기", "cp": "파일 복사", "copy-item": "파일 복사",
+    "mv": "파일 옮기기", "move-item": "파일 옮기기", "rm": "파일 지우기", "remove-item": "파일 지우기", "python": "파이썬 실행",
+    "python3": "파이썬 실행", "py": "파이썬 실행", "uv": "uv 실행", "git": "git", "sed": "글자 바꾸기", "awk": "글자 처리",
+    "jq": "JSON 보기", "curl": "웹 받아오기", "wget": "웹 받아오기", "invoke-webrequest": "웹 받아오기", "sort": "정렬",
+    "uniq": "중복 정리", "node": "node 실행", "npm": "npm 실행", "npx": "npm 실행", "test-path": "경로 확인",
+    "get-item": "파일 정보 보기", "out-file": "파일 쓰기", "set-content": "파일 쓰기",
+}
+AREA_KO = {"exports": "결과 내보내기", "web_evidence": "웹 근거 보관", "catalogs": "근거 목록", "deliverables": "보고서",
+           "runtime": "작업 기록", "skills": "Skill 폴더", "agents": "에이전트 설명", "docs": "문서", "data": "자료",
+           "tools": "도구 코드", "web": "화면 파일", "harness": "하네스 폴더", "outside": "하네스 밖"}
+FILE_TOOL_KO = {"Read": "파일 읽기", "Write": "파일 쓰기", "Edit": "파일 고치기", "NotebookEdit": "노트 고치기",
+                "Grep": "내용 찾기", "Glob": "파일 찾기"}
 
 
 def to_trace(events: list) -> dict:
@@ -286,9 +326,14 @@ def to_trace(events: list) -> dict:
         at = (datetime.fromisoformat(e["ts"].replace("Z", "+00:00")) - start).total_seconds() if start and e.get("ts") else 0
         actor, node, kind, phase = e.get("actor") or "main", e.get("node") or "main", e.get("kind"), e.get("phase")
         source, target = actor, node
-        if kind == "delegate" and phase == "end":
+        background = bool((e.get("detail") or {}).get("background"))
+        if kind == "delegate" and phase == "end" and not background:
             source, target = node, actor
+        if kind == "handback":
+            source, target = actor, "main"
         status = {"start": "active", "end": "done", "fail": "error"}.get(phase, "done")
+        if kind == "delegate" and background:
+            status = "active"  # launched in the background; the return is the later handback / SubagentStop
         out.append({"id": e.get("id"), "at": round(at, 3), "kind": kind, "source": source, "target": target,
                     "label": label_of(e), "detail": (e.get("op") or "") if kind == "skill_op" else "", "status": status,
                     "ts": e.get("ts"), "basis": e.get("basis"), "call": e.get("call"), "session": e.get("session")})
