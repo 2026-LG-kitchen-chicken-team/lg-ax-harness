@@ -727,6 +727,10 @@ class BuildViewTests(TempCase):
         self.assertEqual(re.findall(r'<link[^>]*href="(https?://[^"]+)"', html),
                          ["https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"])
         self.assertNotIn("/assets/", html)
+        # 묶어 넣은 라이브러리와 고쳐 쓴 컴포넌트의 라이선스 고지가 파일 끝에 남는다
+        notices = html[html.index("THIRD-PARTY NOTICES"):]
+        for needle in ("react@", "Cult UI", "Copyright (c) 2023 Jordan-Gilliam", "Skiper UI", "reveal.js@"):
+            self.assertIn(needle, notices)
         export = self.h.add("microwave")
         report = self.h.out / "report-test.html"
         build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report)
@@ -735,7 +739,7 @@ class BuildViewTests(TempCase):
         self.assertIn("window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = ", text)
         self.assertIn('"id": "story"', text)
         # 공유용 B·C 파일은 처음 열 때의 보기를 담는다(받은 사람 브라우저의 기억과 상관없이)
-        for mode in ("slides", "poster", "editorial"):
+        for mode in ("slides", "poster", "editorial", "board"):
             build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode=mode)
             self.assertIn(f'window.LGAX_DEFAULT_MODE = "{mode}"; window.LGAX_VIEW = ', report.read_text(encoding="utf-8"))
         with self.assertRaises(SystemExit):

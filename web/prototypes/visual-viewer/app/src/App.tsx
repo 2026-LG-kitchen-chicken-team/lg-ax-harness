@@ -10,6 +10,7 @@ import { storyOf } from './lib/story'
 import Slides from './variants/Slides'
 import Poster from './variants/Poster'
 import Editorial from './variants/Editorial'
+import Board from './variants/Board'
 import { cn, Md } from './lib/utils'
 import { useView, type LiveState } from './lib/useView'
 import type { Page, View } from './types'
@@ -86,6 +87,7 @@ export default function App() {
   )
   // B and C re-arrange the story page; without one (request-only exports, insights-only views) they fall back to A.
   if (view && story && mode === 'slides') return <>{<Slides view={view} story={story} mode={mode} setMode={setMode} />}{toastsEl}</>
+  if (view && story && mode === 'board') return <>{<Board view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'editorial') return <>{<Editorial view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
   if (view && story && mode === 'poster') return <>{<Poster view={view} story={story} mode={mode} setMode={setMode} copy={copy} />}{toastsEl}</>
 
