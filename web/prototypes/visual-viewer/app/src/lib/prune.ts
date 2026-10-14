@@ -42,13 +42,13 @@ function dashboard(blocks: Block[], moved: Block[]): Block[] {
 }
 
 function history(blocks: Block[]): Block[] {
-  return blocks.filter((b, i) => {
-    if (b.type === 'section' && (startsWith(b, 'text', 'turn별 등록 근거') || startsWith(b, 'text', '관측 사용량'))) return false
-    if (b.type === 'line') return false
-    if (b.type === 'chips' && blocks[i - 1]?.type === 'line') return false
-    if (b.type === 'callout' && (has(b, 'text', '사용량') || has(b, 'text', 'invocations'))) return false
-    return true
-  })
+  // Usage notes and charts go; the per-question evidence chart stays only when the session has two or more questions
+  // (with one question it is a single dot that repeats the table's 근거 column).
+  const chart = blocks.find((b) => b.type === 'line')
+  const keepChart = Array.isArray(chart?.x) && chart.x.length >= 2
+  let out = dropAfterHeading(blocks, (b) => b.type === 'section' && startsWith(b, 'text', '관측 사용량'), (b) => b.type === 'section')
+  if (!keepChart) out = dropAfterHeading(out, (b) => b.type === 'section' && startsWith(b, 'text', 'turn별 등록 근거'), (b) => b.type === 'section')
+  return out.filter((b) => !(b.type === 'callout' && (has(b, 'text', '사용량') || has(b, 'text', 'invocations'))))
 }
 
 function exportPage(blocks: Block[]): Block[] {
