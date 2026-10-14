@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Captions, CaptionsOff, ChevronLeft, ChevronRight, FileJson, FileText, Menu, RefreshCw, Search, X } from 'lucide-react'
 import { Badge, Button } from './components/ui'
 import { BlockView } from './components/blocks'
@@ -17,6 +17,7 @@ import Corporate from './variants/Corporate'
 import Landing from './variants/Landing'
 import { cn, Md } from './lib/utils'
 import { useView } from './lib/useView'
+import { MERGED_EVIDENCE_SKINS, mergedTarget, mergeEvidencePages } from './lib/merge'
 import type { Page, View } from './types'
 
 const LG_RED = 'text-[#d0111b]'
@@ -62,12 +63,17 @@ export default function App() {
     return () => window.removeEventListener('hashchange', on)
   }, [view])
 
+  const [mode, setMode] = useMode()
+  // J and M draw the evidence dashboard and the evidence text as one page (lib/merge.ts); the data keeps both.
+  const merged = MERGED_EVIDENCE_SKINS.has(mode)
+  const shownView = useMemo(() => (merged ? mergeEvidencePages(view) : view), [merged, view])
   const page = view?.pages.find((p) => p.id === current) || null
+  const shownPage = shownView?.pages.find((p) => p.id === (merged ? mergedTarget(current) : current)) || null
   useEffect(() => {
     if (!page || !view) return
     try { if (hashId() !== page.id) history.replaceState(null, '', '#' + encodeURIComponent(page.id)) } catch { /* previews may block */ }
-    document.title = page.title + ' · ' + (view.app?.title || 'LG AX 상품기획')
-  }, [page, view])
+    document.title = (shownPage || page).title + ' · ' + (view.app?.title || 'LG AX 상품기획')
+  }, [page, shownPage, view])
 
   const go = (id: string) => {
     try { history.pushState(null, '', '#' + encodeURIComponent(id)) } catch { /* ignore */ }
@@ -87,7 +93,6 @@ export default function App() {
   const toggleCaption = () => setCapHidden((h) => { write('lgax-cap-hidden', h ? '0' : '1'); return !h })
   const toggleBig = () => setBig((b) => { write('lgax-text-big', b ? '0' : '1'); return !b })
 
-  const [mode, setMode] = useMode()
   const story = storyOf(view)
   const toastsEl = (
     <div className="no-print pointer-events-none fixed right-4 top-20 z-[70] flex flex-col items-end gap-2">
@@ -105,7 +110,8 @@ export default function App() {
   if (isSkin(mode)) {
     return (
       <IdTipProvider view={view}>
-        <DashApp skin={mode} view={view} page={page} go={go} pick={pick} copy={copy} live={live} reload={reload}
+        <DashApp skin={mode} view={shownView} page={shownPage}
+          go={(id) => go(merged ? mergedTarget(id) || id : id)} pick={pick} copy={copy} live={live} reload={reload}
           openFile={openFile} inline={inline} mode={mode} setMode={setMode} big={big} toggleBig={toggleBig}
           searchOpen={searchOpen} openSearch={openSearch} closeSearch={() => setSearchOpen(false)} />
         {toastsEl}
