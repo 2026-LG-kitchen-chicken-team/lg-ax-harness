@@ -33,6 +33,8 @@ completion은 저장된 decision_notes의 text/basis/source_ids와 해당 URL/�
 
 ## 시작과 실행
 
+현재 업무의 재개는 원래 active-workflow handle·request·research_id·시계를 유지한다. 사용자가 새 후속 업무를 명시하면 같은 business session_id와 이전 실제 prior_turn_id, 새 question 원문과 새 request_key를 open_product_workflow에 전달한다. 반환된 새 handle/research_id가 후속 업무의 현재 값이며 이전 완료 결과·수정 횟수·finish 시계는 역사적 참조로 보존한다. 이전 결과의 현재 valid 여부는 새 문맥에 따라 달라질 수 있다. 실패·timeout·저장 오류 때문에 같은 업무를 새 request/turn으로 만들거나 기존 시계를 초기화하지 않는다. 실행 지침·오류 복구 메시지를 새 사용자 업무 질문으로 꾸미지 않는다.
+
 웹 실패는 원래 research/clock에 남긴다. transient 실패만 같은 HTTP page_id로 기술 재시도 최대1회이며, page_id를 바꿔 같은 URL/focus의 한도를 초기화하지 않는다. 실제 제공되는 브라우저/PDF 도구로 대체 관측하면 별도 page_id/mode와 관측시각·원문을 보존하고 앞선 HTTP 실패를 유지한다. capture에 tool 이름을 썼다는 사실만으로 실제 native 관측을 인증하지 않는다. 다른 출처가 허용된 요청에서만 정확 모델·시장·버전·조건이 맞는 대안을 찾고, 사용자가 출처를 제한하면 임의로 넓히지 않는다. 보존 자료는 범위·시점·충분성을 확인해 재사용 여부를 밝힌다. 클라우드 모델은 인터넷 연결이 필요하며 저장 자료 재생을 새 실시간 조사처럼 설명하지 않는다. 인증/차단/CAPTCHA/robots를 우회하거나 실패를 감추지 않는다. 사용자에게는 해당 사이트의 접근 실패·부분 관측과 업무 영향을 설명한다. HTTP code/원인은 실제 해당 URL 응답에 있을 때만 적고, 불명확하면 접근 실패로 남긴다. 오류 파일 방문을 요구하거나 다른 URL의 HTTP receipt·없는 로그 경로를 연결하지 않는다. 상세 실패 원문은 내부 이력으로 보존한다.
 
 이 프로젝트에서 브랜드·시장을 지정하지 않은 제품군 요청은 LG전자 국내 판매 모델을 대상으로 조사한다. 접근 가능한 공식 제품 정체성과 실제 후기 범위를 비교해 AI가 후보를 선택하고 선택 이유·조사 범위를 밝힌다. 고정 모델을 자동 지정하거나 브랜드 확인을 무조건 사용자에게 요구하지 않는다. 해외 LG와 경쟁 브랜드 자료는 비교 맥락으로 사용할 수 있으나 기본 대상 모델로 바꾸지 않는다. 사용자가 정확 모델·다른 브랜드·시장을 명시했다면 원문을 보존하고 조사 전에 evidence-retrieval의 set_request_scope_policy로 해당 원문 quote와 해석을 기록한다. 명시 모델은 explicit_model/model_id/user_quote, 명시 브랜드·시장은 explicit_brand_market/brand/user_quote와 선택 market/market_quote다. 시장만 명시하면 explicit_market/market/market_quote/user_quote로 기본 LG 브랜드를 유지한다. market 의미는 AI가 원문으로 해석하며 코드가 언어로 판매국을 인증하지 않는다. 초기 기본 정책은 요청 연결 전 명시 원문 정책으로 한 번 바꿀 수 있고, 연결 후 바꾸거나 새 키로 우회하지 않는다.

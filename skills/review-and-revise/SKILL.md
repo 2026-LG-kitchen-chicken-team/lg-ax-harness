@@ -5,6 +5,8 @@ description: "상품기획 후보의 원문 의미·모델·기존 기능 중복
 
 # 검토·수정·저장
 
+명시된 새 사용자 후속 업무는 같은 business session_id와 실제 prior_turn_id, 새 원질문/question·새 request_key로 open_product_workflow를 시작할 수 있다. open_product_workflow는 evidence-retrieval wrapper의 OP이며 이 Skill은 반환된 후속 현재 handle/version을 저장·finish에 사용한다. 이전 완료 결과·수정 횟수·완료 시계는 역사적 참조로 남고 새 문맥에서의 valid 여부와 구별한다. 같은 업무의 실패/timeout/저장 복구는 원래 request/turn/research_id를 유지하며 새 입력으로 한도를 우회하지 않는다. active-workflow 재개와 새 후속 업무를 구분해 현재 handle을 확인한다.
+
 최종 답변은 save_and_export의 completion_summary.text를 그대로 전달한다. 누락 시 get_completion_summary({session_id,turn_id,expected_result_version})로 같은 현재 결과에서 얻는다. 추가 설명에도 저장된 기획 문구·조건·출처 범위를 유지하며 새 사실을 넣지 않는다. '검토 완료/확인 필요/기획 보류'를 고정 제목으로 붙이지 않는다. 내부 receipt와 status는 보존한다. 파일 생성·구조 검사와 실제 이미지 검수를 구분하며, contact sheet 생성이나 caller의 passed 신고만으로 화면 검수 완료라고 쓰지 않는다. 실제 이미지 도구로 확인한 범위만 설명한다.
 
 명시 파일 출력에만 기존 코드 보고서를 먼저 사용한다. 별도 구성은 title/summary/sections와 sources:[]로 작성하며, 원문과 긴 메타데이터는 catalog에서 코드가 채운다. 정확 block.source_ids와 중요한 한계는 유지한다. 자료 폭·원문을 줄이거나 충돌하는 원문을 바꿔 시간을 단축하지 않는다.

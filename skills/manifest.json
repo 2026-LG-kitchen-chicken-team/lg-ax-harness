@@ -160,7 +160,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "9f467fe3338a08161dbcc1146c829f66f6f300e3da028f08e10e0f4b85e7e03e"
+          "sha256": "7134f1325d851d8d3a7e14b9b9ad191eb153dabe89db2f0508e2f8f68424321e"
         }
       ]
     }
@@ -168,7 +168,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "9fe379afab16d24c87538070d10d152e9fa832094560bbbff92d91acff11cd2c"
+      "sha256": "d5bfa889fb8598b0f22bf6ce0364ed0eacdaaedc31699b86b9e4d31eb4a388d3"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
@@ -204,7 +204,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "593997e5cebedf0c0ed2fe94a79ab61bdbd8e13aa4a28b74d91b53ba499fce79"
+      "sha256": "03a2bbd7627c801b392cb3b1f6446993041ca4c04aa32b207943cf170305082a"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -288,7 +288,7 @@
     },
     {
       "path": "docs/contracts/product-workflow.md",
-      "sha256": "ff56ff8c553cf34e755a2e91414dbce6c7b02579cdbc44fc1dc81bd86eac19f7"
+      "sha256": "ce4d3c54ed0d505ae093f596eee3d273b8d43e44b05225047104f596a99d7765"
     },
     {
       "path": "product-tools/requirements.in",

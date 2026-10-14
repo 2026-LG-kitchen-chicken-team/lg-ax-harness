@@ -2,6 +2,8 @@
 
 @AGENTS.md
 
+현재 업무 재개는 active-workflow의 원래 handle/request/research_id를 사용한다. 사용자가 새 후속 업무를 명시하면 open_product_workflow에 같은 business session_id, 이전 실제 prior_turn_id, 새 question 원문과 새 request_key를 전달하고 반환된 후속 handle을 현재 업무로 유지한다. 이전 완료 결과·수정 횟수·finish 시계는 역사적 참조이며 새 문맥의 valid 여부와 구별한다. 실패/timeout 때문에 같은 업무를 새 request/turn으로 만들거나 기존 시계를 초기화하지 않는다.
+
 업무 Skill은 이 프로젝트의 `.claude/skills/`다. 실제 발견·적용 경로를 확인한다. 개인·관리 Skill과 이름이 충돌하면 자동으로 동일 지침이 적용됐다고 가정하지 않는다.
 Claude 자신의 모델·Tool을 사용하고 Codex 또는 다른 모델을 내부 실행하지 않는다. 허용된 셸에서 Python wrapper를 호출한다. 프로젝트 지침은 실행 권한을 강제하지 않는다.
 이 설치 사본의 native 발견·대화·보류·오류·사용량 검증은 아직 미완료다. 설정·권한·로그인을 자동 우회하지 않는다.

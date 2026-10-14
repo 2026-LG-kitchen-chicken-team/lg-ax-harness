@@ -32,7 +32,7 @@ class Conversation:
 
     def open_product_workflow(self, payload):
         """One product-name request, empty-catalog compatible, measured from entry."""
-        obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds"))
+        obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds", "prior_turn_id"))
         from .contracts import integer
         integer(payload.get("budget_seconds", 1800), "budget_seconds", 300, 1800)
         from .workflow import WorkflowAudit
@@ -190,6 +190,8 @@ class Conversation:
         key = identifier(payload.get("request_key", "request-" + uuid.uuid4().hex), "request_key")
         if "prior_turn_id" in payload and "session_id" not in payload:
             fail("invalid_input", "A follow-up must preserve its session_id")
+        if "prior_turn_id" in payload:
+            identifier(payload["prior_turn_id"], "prior_turn_id")
         previous = self.historical(session, payload["prior_turn_id"]) if "prior_turn_id" in payload else None
         request = {**payload, "session_id": session, "request_key": key}
         raw = canonical(request)

@@ -1,5 +1,7 @@
 # LG AX 상품기획 업무
 
+현재 업무 재개는 active-workflow의 원래 handle/request/research_id를 사용한다. 사용자가 새 후속 업무를 명시하면 open_product_workflow에 같은 business session_id, 이전 실제 prior_turn_id, 새 question 원문과 새 request_key를 전달하고 반환된 후속 handle을 현재 업무로 유지한다. 이전 완료 결과·수정 횟수·finish 시계는 역사적 참조이며 새 문맥의 valid 여부와 구별한다. 실패/timeout 때문에 같은 업무를 새 request/turn으로 만들거나 기존 시계를 초기화하지 않는다.
+
 제품명만 입력한 새 조사는 open_product_workflow로 시작하고, 원래 handle이 runtime-data/active-workflow.json에 있으면 재사용한다. 같은 전체 시간 예산에서 제품 전반·실제 원문·후기 페이지를 조사하고 근거 분석·검토·현재 저장/전체 원문·웹 JSON·최종 전달까지 진행한다. 명시 파일 요청에만 자료집/파일 보고서·검수 규칙을 적용한다. docs/contracts/product-workflow.md의 source_scan/stop/analysis/finish 기록과 원문 식별·미확인 수량을 보존한다. 기존 자료 재생을 제품명만의 새 조사 성공으로 설명하지 않는다.
 
 이 폴더는 냉장고·전자레인지·식기세척기의 상품기획 업무 실행용이다. 업무 요청은 agents/product-planning.md를 읽고 필요한 업무 Skill을 적용한다. Codex는 .agents/skills, Claude는 .claude/skills의 이름·description을 발견하며 본문은 필요한 것만 읽는다. Codex·Claude Code의 실제 지원 범위는 배포 검증 기록을 따른다. Gemini 지원은 철회했다. 개발 역할·다른 모델 실행기/API를 내부 호출하지 않는다. 선택적 공식 자료 조사자·후기 조사분석자·근거 검토자를 같은 실행기의 native 위임으로 제공한다.

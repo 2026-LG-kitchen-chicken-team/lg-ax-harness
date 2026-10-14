@@ -1,5 +1,7 @@
 # 같은 제품명 요청의 실제 조사와 전달
 
+명시된 새 사용자 후속 업무의 timed 입력은 `{question:실제새원문,user_submitted:true,session_id:같은업무세션,request_key:새키,prior_turn_id:이전실제turn,budget_seconds?:300~1800}`다. prior_turn_id는 선택 ID이며 같은 session에 있는 실제 turn이어야 한다. 이를 기존 open_request lineage로 전달해 새 turn/research_id/시계를 만들고, 이전 결과는 역사적 참조로 보존한다. 완료된 원 업무의 결과/수정 횟수/finished_at은 바꾸지 않으며 이전 valid 여부는 새 문맥의 재사용 규칙과 별개다. CLI·evidence-retrieval wrapper는 동일 JSON을 전달한다. 단순 현재 업무 재개·실패/timeout·전달 복구에는 원래 request/turn/clock을 유지하고 새 입력/키로 한도를 초기화하지 않는다. user_submitted는 호출자 신고이며 코드가 새 사용자 의도를 의미적으로 인증하지 않는다.
+
 2026-10-13 최신: 웹팀의 작업 화면·보고서 HTML에 현재 정형결과/원문/근거/검토·조사이력을 전달한다. 기본 save_and_export(report:false)의 web_ready/web_result를 확인하고 prepare_web_result로 같은 버전 복구한다. PDF/DOCX 생성·이미지검수는 기본 필수가 아니며 아래 파일규칙은 명시 report:true 호환 경로다. [웹 데이터 계약](web-result.md)을 우선한다. 신규기본1800초는 성능목표가 아닌 안전상한이고 natural-completion-v1 정책으로 전량전달/신고검토와 최종90초예약을 유지한다. 과거300/600초요청/이력은 변경하지 않는다.
 
 2026-10-13 정정: workflow_status.layout_review는 원본 finish의 declared_status/scope와 verification_status=not_verified를 구분한다. 파일 SHA 일치는 실제 이미지 열람을 인증하지 않는다. native 이미지 도구/실제 화면 검수는 외부 관찰로 대조하며 과거 caller 신고를 소급 수정하지 않는다. 목표300초/외부600초는 과거 비교 조건이고, 이후 모델 비교는 충분한 동일 자료·품질과 자연 완료시간을 우선한다. 새 요청에 명시한 안전 budget은 유지하되 이미 시작된 clock을 연장하지 않는다.
