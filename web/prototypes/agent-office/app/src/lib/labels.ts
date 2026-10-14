@@ -27,6 +27,12 @@ export const OP_KO: Record<string, string> = {
   unknown_operation: '알아보지 못한 작업',
 }
 
+// Tools without a room of their own (Claude Code and Codex). Same words as office.py TOOL_KO.
+export const TOOL_KO: Record<string, string> = {
+  exec: 'Codex 코드 실행 묶음', wait: '실행 결과 기다림', js: 'JS 실행', update_plan: '계획 갱신',
+  ToolSearch: '도구 찾기', TodoWrite: '할 일 정리', TaskCreate: '할 일 만들기', TaskUpdate: '할 일 갱신',
+}
+
 export const PROGRAM_KO: Record<string, string> = {
   product_doctor: '설치 점검', ls: '파일 목록 보기', dir: '파일 목록 보기', 'get-childitem': '파일 목록 보기',
   cat: '파일 읽기', type: '파일 읽기', 'get-content': '파일 읽기', head: '파일 앞부분 보기', tail: '파일 끝부분 보기',
@@ -122,7 +128,7 @@ export function labelOf(e: OfficeEvent): string {
     const tool = e.tool ?? ''
     if (isBrowserTool(tool)) return `브라우저 · ${shortTool(tool)}`
     if (FILE_TOOL_KO[tool]) return FILE_TOOL_KO[tool]
-    return `${shortTool(tool)} 사용`
+    return TOOL_KO[shortTool(tool)] ?? `${shortTool(tool) || '도구'} 사용`
   }
   return ({ request: '새 질문', turn_end: '답변 끝', session: `세션 ${phase === 'start' ? '시작' : '끝'}` } as Record<string, string>)[kind] ?? kind
 }

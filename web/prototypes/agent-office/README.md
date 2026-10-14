@@ -2,8 +2,9 @@
 
 하네스가 **지금 무엇을 하고 있는지** 보여 주는 "기획 사무실"이다. 두 부분으로 되어 있다.
 
-1. **관측 장치** (`observe.py`, `office.py`): Claude Code의 훅으로 도구 시작·끝, 연구 역할 위임·반환, 어느 Skill의 어느
+1. **관측 장치** (`observe.py`, `codex_follow.py`, `office.py`): Claude Code의 훅으로 도구 시작·끝, 연구 역할 위임·반환, 어느 Skill의 어느
    작업인지를 시각과 함께 남기고, 하네스 DB를 읽기 전용으로 잠깐 확인해 작업 일지·후보 저장 상태를 함께 적는다.
+   Codex는 훅 대신 Codex가 남기는 세션 기록(rollout)을 따라가며 같은 형식으로 적는다.
 2. **사무실 화면** (`index.html`, 원본은 `app/`): 그 기록을 3D 사무실로 보여 준다. 방이나 사람을 누르면 하는 일·지금 상태·
    지금까지의 기록이 나온다. 실시간 보기와 기록 재생을 할 수 있다.
 
@@ -61,6 +62,45 @@ uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py i
 화면 고치기: `app/`에서 `npm ci` 후 `npm run build` (타입 검사 → Vite 빌드 → `scripts/publish.mjs`가 JS·CSS를 넣은 `../index.html`
 한 파일과 제3자 라이선스 고지를 만든다). `index.html`을 직접 고치지 않는다. 설치(`office.py install`)가 이 파일을 하네스로 복사한다.
 
+## Codex 따라가기 (3단계)
+
+Codex에는 이 장치의 훅을 넣지 않는다(설정·`/hooks` 신뢰를 바꾸지 않는다). 대신 Codex가 스스로 남기는 세션 기록
+`CODEX_HOME/sessions/YYYY/MM/DD/rollout-*.jsonl`(기본 `%USERPROFILE%\.codex`)을 **별도 터미널에서** 읽는다.
+
+```powershell
+# 먼저 켜 두기: 새 Codex 세션이 생기면 따라간다 (그다음 하네스 폴더에서 codex를 열고 질문)
+uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex --harness C:/내-하네스-폴더 --wait
+# 이미 연 세션: 이 폴더의 가장 최근 세션을 따라간다
+uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex --harness C:/내-하네스-폴더 --latest
+# 지난 세션: 목록을 보고 파일을 골라 한 번에 옮긴다
+uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex-sessions --harness C:/내-하네스-폴더
+uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex --harness C:/내-하네스-폴더 --rollout <rollout 파일> --once
+```
+
+- 고르는 법: `--wait`는 명령을 켠 뒤 이 폴더에서 새로 시작된 세션, `--rollout`은 그 파일, `--latest`는 **세션 기록 첫 줄(session_meta)의 작업 폴더가 이 하네스인** 가장 최근
+  메인 세션이다. 다른 폴더의 세션·하위 에이전트 기록은 거절한다. 신원(session_meta의 id)을 확인하기 전 줄은 쓰지 않고,
+  아직 줄바꿈이 오지 않은 마지막 줄은 읽지 않는다(팀 `observer/`와 같은 규칙).
+- 연구 역할: Codex는 하위 에이전트마다 기록 파일을 따로 만든다. 첫 줄이 고른 세션을 부모로 적은 파일만 따라가고,
+  `agent_role`이 `product_official_researcher`·`product_review_researcher`·`product_evidence_reviewer`면 그 연구실에,
+  아니면 "다른 하위 에이전트"로 적는다.
+- 멈춤: Ctrl+C, `--until-complete`(메인 답변과 하위 에이전트가 모두 끝나면), `--max-minutes`(기본 180). 다시 실행하면
+  이어서 읽고 같은 사건을 두 번 적지 않는다(`runtime-data/agent-office/codex-follow.json`, 파일 이름·위치만 저장).
+- 남기는 것은 Claude 쪽과 같다: 시각(**Codex 기록의 시각**, `ts_basis: codex_log`), 스레드·turn·호출 ID, 도구 종류,
+  `run.py` 경로의 Skill·작업 이름, 프로그램 이름, 폴더 구역, 웹 호스트, 종료 상태·오류 코드, 저장 승인/거절. 질문·답변·
+  추론·명령·출력·검색어·주소 경로·파일 이름과 내용은 남기지 않는다. 밖으로 보내지 않는다(팀 observer의 Langfuse 전송 없음).
+- Claude와 다른 점: Codex 0.162는 명령을 코드 실행 묶음(`exec`) 안에서 돌리고, 명령 하나하나의 기록
+  (`item_completed`의 CommandExecution·웹 검색·MCP·파일 변경)을 **끝난 뒤에** 쓴다. 그래서 실시간 화면에서는 명령이 끝날 때
+  실제 시작 시각부터 그려지고, 그동안 메인은 "Codex 코드 실행 묶음"으로 보인다. 팀 `observer/`는 `exec` 안을 보지 않아
+  Skill·작업 이름이 나오지 않기 때문에, 같은 규칙으로 이 기록까지 읽는 별도 읽기 프로그램을 두었다.
+
+## 결과 화면 연결
+
+출고실을 누르거나 위쪽의 **결과 화면 열기**를 누르면 시각자료 뷰어(`web/prototypes/visual-viewer`)가 만든
+`runtime-data/visual-viewer/index.html`이 열린다. 사무실 화면은 옆 폴더의 `view-data.js`를 4초마다 다시 읽어 export 이름·
+만든 시각·상태만 보여 준다(나머지 내용은 읽지 않는다). 뷰어가 없으면(`viewer.py install` 전이거나 결과가 아직 없으면)
+버튼 대신 안내가 나온다. 뷰어는 가장 최근 export를 그리므로 재생 위치의 결과와 다를 수 있다. 관측 장치의 DB 확인에는
+가장 최근 export의 파일 이름(내용 지문)·시각·개수도 들어간다.
+
 ## 하네스 동작을 바꾸지 않는 이유
 
 - 백그라운드 훅이라 Claude Code가 기다리지 않는다. 훅은 아무것도 출력하지 않고 항상 exit 0이라 도구 호출을 막거나 바꿀 수 없다.
@@ -104,4 +144,6 @@ status`)에 시각·근거를 더한 `mode: "observed"` JSON으로 바꾼다.
 - 백그라운드 PreToolUse가 모든 버전에서 지원되는지(문서에 사건별 목록이 없다). 지원되지 않아도 막지는 않는다.
 - 연구 역할이 실제 업무에서 쓰인 실행과 저장이 승인된 실행은 아직 실제 기록으로 보지 못했다(데모와 합성 시험으로만 확인).
 - 사양이 낮은 PC에서의 화면 속도. 브라우저가 WebGL을 쓰지 못하면 3D 화면이 나오지 않는다.
-- Codex 연결(팀 `observer`의 기록 읽기)은 다음 단계다.
+- Codex: 실제 0.162.1 기록(이 PC의 지난 세션 3개)으로 명령·웹·MCP·파일 기록을 확인했다. v0.10.0 연구 역할을 쓴 실제 Codex
+  실행은 아직 보지 못했다. 하위 에이전트 기록에서 역할 이름이 `agent_role`(또는 `source.subagent.thread_spawn`)에 온다는 것은
+  합성 기록으로만 시험했다.

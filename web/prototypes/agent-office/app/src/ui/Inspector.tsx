@@ -1,7 +1,9 @@
 // Right panel: what the clicked room or person is, what it is doing at this moment, and what it did so far.
 import type { ReactNode } from 'react'
 import { NODE, ROLE_IDS, SKILL_IDS } from '../lib/catalog'
-import { AREA_KO, BASIS_KO, PROGRAM_KO, STATUS_KO, clock, opKo, secs } from '../lib/labels'
+import { RESULT_VIEW_URL } from '../lib/data'
+import { AREA_KO, BASIS_KO, PROGRAM_KO, STATUS_KO, clock, dayClock, opKo, secs } from '../lib/labels'
+import type { ResultView } from '../types'
 import type { SessionModel, Span } from '../lib/model'
 import { feedAt, pointLabel, type Snapshot } from '../lib/state'
 import { statusText } from '../scene/Room'
@@ -45,7 +47,7 @@ function spansFor(model: SessionModel, id: string, t: number): Span[] {
   return model.spans.filter((s) => s.start <= t && (s.target === id || (ROLE_IDS.includes(id) && s.actor === id) || (id === 'main' && s.actor === 'main')))
 }
 
-export function Inspector({ id, model, snap, onClose }: { id: string; model: SessionModel; snap: Snapshot; onClose: () => void }) {
+export function Inspector({ id, model, snap, resultView, onClose }: { id: string; model: SessionModel; snap: Snapshot; resultView: ResultView | null; onClose: () => void }) {
   const node = NODE[id]
   if (!node) return null
   const st = snap.nodes[id]
@@ -100,6 +102,7 @@ export function Inspector({ id, model, snap, onClose }: { id: string; model: Ses
         {ROLE_IDS.includes(id) && <RolePresence id={id} model={model} t={t} spans={spans} />}
         {id === 'main' && <MainInfo model={model} t={t} />}
         {(id === 'review-and-revise' || id === 'shipping') && <Saves model={model} snap={snap} />}
+        {id === 'shipping' && <ResultCard model={model} view={resultView} />}
         {id === 'vault' && <Vault model={model} t={t} />}
         {id === 'reception' && (
           <Section title="질문">
@@ -231,6 +234,31 @@ function Saves({ model, snap }: { model: SessionModel; snap: Snapshot }) {
         <Row k="turn 최신 상태 (DB)" v={`${STATUS_KO[db.turn.status ?? ''] ?? db.turn.status} · 수정 ${db.turn.revision_count ?? '미측정'}/2`} tone={db.turn.status === 'completed' ? 'ok' : 'warn'} />
       )}
       <p className="text-[11px] leading-relaxed text-[var(--dim)]">승인은 저장 계약 검사 통과이며 원문 의미·효과를 자동으로 증명하지 않습니다.</p>
+    </Section>
+  )
+}
+
+function ResultCard({ model, view }: { model: SessionModel; view: ResultView | null }) {
+  const latest = model.db?.latest_export
+  const generated = view?.generated_at ? Date.parse(view.generated_at) : NaN
+  return (
+    <Section title="결과 화면 (시각자료 뷰어)">
+      {view ? (
+        <div className="result-card">
+          <div className="text-[12px]">{view.context?.file?.name ?? 'export 이름 미확인'}</div>
+          <div className="text-[11px] text-[var(--dim)]">{Number.isFinite(generated) ? `화면을 만든 시각 ${dayClock(generated)}` : '만든 시각 미확인'}</div>
+          {view.context?.status?.length ? (
+            <div className="flex flex-wrap gap-1">{view.context.status.map((s, i) => <span key={i} className="chip">{s.text}</span>)}</div>
+          ) : null}
+          <a className="btn btn-result mt-1 self-start" href={RESULT_VIEW_URL} target="_blank" rel="noopener">결과 화면 열기</a>
+          <p className="text-[10.5px] leading-relaxed text-[var(--dim)]">뷰어는 가장 최근 export를 그립니다. 이 재생 위치의 결과와 다를 수 있습니다.</p>
+        </div>
+      ) : (
+        <p className="text-[12px] leading-relaxed text-[var(--dim)]">이 하네스에 결과 화면이 아직 없습니다. 시각자료 뷰어를 설치(<code>viewer.py install</code>)하면 결과가 저장될 때 여기서 열 수 있습니다.</p>
+      )}
+      {latest?.name && (
+        <Row k="가장 최근 export (DB 확인 때)" v={`${latest.name.slice(0, 22)}${latest.name.length > 22 ? '…' : ''}${latest.modified_at ? ` · ${clock(Date.parse(latest.modified_at))}` : ''}`} />
+      )}
     </Section>
   )
 }

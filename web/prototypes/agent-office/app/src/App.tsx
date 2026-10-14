@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NODE } from './lib/catalog'
-import { useLiveFile, parseRecordFile } from './lib/data'
+import { RESULT_VIEW_URL, useLiveFile, useResultView, parseRecordFile } from './lib/data'
 import { demoLive } from './lib/demo'
 import { dayClock, mmss, secs, STATUS_KO } from './lib/labels'
 import { buildSession, parseTime, quietUntil, sessionsOf } from './lib/model'
@@ -42,6 +42,7 @@ function initialMode(): Mode {
 
 export function App() {
   const { live, checkedAt } = useLiveFile(true)
+  const resultView = useResultView()
   const [mode, setMode] = useState<Mode>(initialMode)
   const [file, setFile] = useState<Source | null>(null)
   const [fileNote, setFileNote] = useState<string | null>(null)
@@ -218,7 +219,7 @@ export function App() {
             <select className="select" value={sessionId ?? ''} onChange={(e) => { setPick(e.target.value); if (mode === 'live') setMode('replay') }} aria-label="세션 고르기">
               {sessions.map((s, i) => (
                 <option key={s.id} value={s.id}>
-                  {`${i + 1}. ${dayClock(s.start)} · ${mmss(s.end - s.start)} · 사건 ${s.count}${s.requests ? ` · 질문 ${s.requests}` : ''}${s.roles.length ? ` · 연구 역할 ${s.roles.length}` : ''}`}
+                  {`${i + 1}. ${s.src === 'codex' ? 'Codex' : 'Claude'} · ${dayClock(s.start)} · ${mmss(s.end - s.start)} · 사건 ${s.count}${s.requests ? ` · 질문 ${s.requests}` : ''}${s.roles.length ? ` · 연구 역할 ${s.roles.length}` : ''}`}
                 </option>
               ))}
             </select>
@@ -228,6 +229,9 @@ export function App() {
             <input type="file" accept=".jsonl,.json,.js,.txt" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void openFile(f); e.target.value = '' }} />
           </label>
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {resultView && mode !== 'demo' && (
+              <a className="btn btn-result" href={RESULT_VIEW_URL} target="_blank" rel="noopener" title={resultView.context?.file?.name ?? ''}>결과 화면 열기</a>
+            )}
             {turnStatus && <span className={`chip ${turnStatus === 'completed' ? 'chip-ok' : 'chip-warn'}`}>turn {STATUS_KO[turnStatus] ?? turnStatus}</span>}
             {db?.turn && <span className="chip">수정 {db.turn.revision_count ?? '미측정'}/2</span>}
             {snap.workflow && <span className="chip">업무 시계 {mmss(snap.workflow.elapsed)}{snap.workflow.budget ? ` / ${mmss(snap.workflow.budget)}` : ''}</span>}
@@ -253,7 +257,7 @@ export function App() {
           <div className="min-w-0 flex-1" />
           {selected ? (
             <div className="flex w-full max-w-[380px] shrink-0 sm:w-[380px]">
-              <Inspector id={selected} model={model} snap={snap} onClose={() => setSelected(null)} />
+              <Inspector id={selected} model={model} snap={snap} resultView={mode === 'demo' ? null : resultView} onClose={() => setSelected(null)} />
             </div>
           ) : (
             <div className="hidden w-[300px] shrink-0 flex-col justify-end gap-2 sm:flex">

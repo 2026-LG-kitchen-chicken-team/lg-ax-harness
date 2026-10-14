@@ -70,6 +70,14 @@ export interface DbSnapshot {
   evidence_delivered?: number | null
   evidence_reviews?: number | null
   cancelled?: boolean | null
+  latest_export?: { name: string | null; modified_at: string | null; count: number | null } | null
+}
+
+// The result viewer's data file (web/prototypes/visual-viewer build_view.py -> view-data.js); only these fields are read.
+export interface ResultView {
+  kind?: string
+  generated_at?: string
+  context?: { file?: { name?: string }; status?: { text?: string; tone?: string }[] }
 }
 
 export interface LiveFile {
@@ -86,5 +94,6 @@ export type Mode = 'live' | 'replay' | 'demo'
 declare global {
   interface Window {
     LGAX_OFFICE_LIVE?: LiveFile
+    LGAX_VIEW?: ResultView
   }
 }

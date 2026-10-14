@@ -5,6 +5,8 @@
     uv run python web/prototypes/agent-office/office.py uninstall --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py watch --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py open --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py codex --harness C:/my-harness --latest
+    uv run python web/prototypes/agent-office/office.py codex-sessions --harness C:/my-harness
     uv run python web/prototypes/agent-office/office.py trace C:/my-harness --out trace.json
     uv run python web/prototypes/agent-office/office.py selftest
 
@@ -33,7 +35,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 APP_REL = ("web", "prototypes", "agent-office")
-APP_FILES = ("observe.py", "office.py", "README.md")
+APP_FILES = ("observe.py", "office.py", "codex_follow.py", "README.md")
 PAGE = "index.html"  # the 3D office, one self-contained file built by app/ (npm run build)
 SETTINGS_REL = (".claude", "settings.local.json")
 MARKER = "LG_AX_AGENT_OFFICE_V1"
@@ -196,14 +198,7 @@ def install(harness: Path) -> str:
     harness = check_harness(harness)
     settings = harness.joinpath(*SETTINGS_REL)
     data = read_settings(settings)  # read and check first: nothing is copied when the settings cannot be merged
-    app = harness.joinpath(*APP_REL)
-    app.mkdir(parents=True, exist_ok=True)
-    for name in APP_FILES:
-        source = HERE / name
-        if source.resolve() != (app / name).resolve():
-            tmp = app / f"{name}.{os.getpid()}.tmp"
-            shutil.copyfile(source, tmp)
-            os.replace(tmp, app / name)
+    app = copy_files(harness)
     page = copy_page(harness)
     sha = digest(app / "observe.py")
     write_atomic(settings, json.dumps(merged(data, hook_command(sha)), ensure_ascii=False, indent=2) + "\n")
@@ -214,6 +209,63 @@ def install(harness: Path) -> str:
             f"[Claude Code] {settings.relative_to(harness)}에 관찰 훅 {events}개(백그라운드)를 추가했습니다. 다른 훅은 그대로 둡니다.\n"
             "  다음: 이 하네스 폴더에서 Claude Code를 새로 열고(처음이면 폴더 신뢰 허용) 질문하세요.\n"
             "  훅은 출력이 없고 항상 정상 종료하므로 도구 호출을 막거나 바꾸지 않습니다. 끄기: office.py uninstall --claude <폴더>")
+
+
+def copy_files(harness: Path) -> Path:
+    app = harness.joinpath(*APP_REL)
+    app.mkdir(parents=True, exist_ok=True)
+    for name in APP_FILES:
+        source = HERE / name
+        if source.resolve() != (app / name).resolve():
+            tmp = app / f"{name}.{os.getpid()}.tmp"
+            shutil.copyfile(source, tmp)
+            os.replace(tmp, app / name)
+    return app
+
+
+def codex(harness: Path, rollout=None, latest=False, once=False, until_complete=False, max_minutes=180.0, out=None, wait=False) -> int:
+    """Follow one Codex session into the office records (no hooks; Codex settings are not touched)."""
+    harness = check_harness(harness)
+    out = out or sys.stdout
+    copy_files(harness)  # the page and the follower live in the harness too (no Codex settings are changed)
+    copy_page(harness)
+    if str(HERE) not in sys.path:
+        sys.path.insert(0, str(HERE))
+    import codex_follow
+
+    def announce(path, meta):
+        print(f"Codex 세션 {meta['id']} ({meta.get('ts') or '시각 미확인'})\n기록 파일: {path}\n"
+              f"사무실 화면: {harness / 'runtime-data' / 'agent-office' / PAGE}" + ("" if once else "\n따라가는 중입니다. 멈추려면 Ctrl+C."), file=out)
+
+    def printer(event):
+        print(watch_line(event), file=out, flush=True)
+
+    def waiting():
+        print(f"새 Codex 세션을 기다립니다. 이제 {harness}에서 codex를 열고 질문하세요.\n"
+              f"사무실 화면: {harness / 'runtime-data' / 'agent-office' / PAGE}", file=out, flush=True)
+
+    try:
+        result = codex_follow.follow(harness, Path(rollout) if rollout else None, latest=latest, once=once,
+                                     until_complete=until_complete, max_seconds=max_minutes * 60, printer=printer, announce=announce,
+                                     wait=wait, waiting=waiting)
+    except codex_follow.FollowError as exc:
+        raise OfficeError(str(exc)) from None
+    print(f"끝: 사건 {result['events_written']}개 기록 · 하위 에이전트 기록 {result['agent_threads']}개 · {result['stop_reason']}", file=out)
+    return result["events_written"]
+
+
+def codex_sessions(harness: Path, out=None) -> int:
+    harness = check_harness(harness)
+    out = out or sys.stdout
+    if str(HERE) not in sys.path:
+        sys.path.insert(0, str(HERE))
+    import codex_follow
+    sessions = codex_follow.list_sessions(harness)
+    if not sessions:
+        print("최근 3일 동안 이 하네스 폴더에서 연 Codex 세션 기록이 없습니다.", file=out)
+    for i, s in enumerate(sessions, 1):
+        print(f"{i}. {s.get('ts') or '시각 미확인'} · {s['id']} · 하위 에이전트 {s['agents']}개 · Codex {s.get('cli_version') or '버전 미확인'}\n   {s['path']}", file=out)
+    return len(sessions)
 
 
 def copy_page(harness: Path) -> Path | None:
@@ -338,8 +390,16 @@ def label_of(event: dict) -> str:
         if detail.get("skill"):
             area = f"{SKILL_KO.get(detail['skill'], detail['skill'])} 참고 문서"
         return f"{FILE_TOOL_KO.get(event.get('tool'), event.get('tool'))}" + (f" · {area}" if area else "")
-    return {"request": "새 질문", "turn_end": "답변 끝", "session": "세션 " + ("시작" if phase == "start" else "끝"),
-            "tool": f"{event.get('tool')} 사용"}.get(kind, kind or "")
+    if kind == "tool":
+        tool = event.get("tool") or ""
+        name = tool.split("__")[-1] if tool.startswith("mcp__") else tool
+        return TOOL_KO.get(name, f"{name or '도구'} 사용")
+    return {"request": "새 질문", "turn_end": "답변 끝", "session": "세션 " + ("시작" if phase == "start" else "끝")}.get(kind, kind or "")
+
+
+# Tool names without a room of their own (Claude Code and Codex).
+TOOL_KO = {"exec": "Codex 코드 실행 묶음", "wait": "실행 결과 기다림", "js": "JS 실행", "update_plan": "계획 갱신",
+           "ToolSearch": "도구 찾기", "TodoWrite": "할 일 정리", "TaskCreate": "할 일 만들기", "TaskUpdate": "할 일 갱신"}
 
 
 PROGRAM_KO = {
@@ -492,6 +552,17 @@ def main(argv=None) -> int:
     p = sub.add_parser("open", help="사무실 화면(3D)을 기본 브라우저로 열기")
     p.add_argument("--claude", type=Path, required=True, metavar="HARNESS")
     p.add_argument("--print", action="store_true", help="열지 않고 주소만 출력")
+    p = sub.add_parser("codex", help="Codex 세션 기록(rollout)을 따라가며 사무실 기록으로 옮기기")
+    p.add_argument("--harness", type=Path, required=True)
+    pick = p.add_mutually_exclusive_group(required=True)
+    pick.add_argument("--rollout", type=Path, help="메인 세션의 rollout-*.jsonl 파일")
+    pick.add_argument("--latest", action="store_true", help="이 하네스 폴더에서 연 가장 최근 Codex 세션")
+    pick.add_argument("--wait", action="store_true", help="이 명령 뒤에 시작되는 새 Codex 세션을 기다렸다가 따라가기")
+    p.add_argument("--once", action="store_true", help="지금까지의 기록만 옮기고 끝내기 (지난 세션 재생용)")
+    p.add_argument("--until-complete", action="store_true", help="답변이 끝나면 멈추기")
+    p.add_argument("--max-minutes", type=float, default=180.0)
+    p = sub.add_parser("codex-sessions", help="이 하네스 폴더에서 연 최근 Codex 세션 목록")
+    p.add_argument("--harness", type=Path, required=True)
     p = sub.add_parser("watch")
     p.add_argument("--claude", type=Path, required=True, metavar="HARNESS")
     p.add_argument("--once", action="store_true", help="지금까지의 기록만 출력하고 끝내기")
@@ -510,6 +581,11 @@ def main(argv=None) -> int:
             print(uninstall(args.claude))
         elif args.command == "status":
             print(json.dumps(status(args.claude), ensure_ascii=False, indent=1))
+        elif args.command == "codex":
+            codex(args.harness, rollout=args.rollout, latest=args.latest, once=args.once,
+                  until_complete=args.until_complete, max_minutes=args.max_minutes, wait=args.wait)
+        elif args.command == "codex-sessions":
+            codex_sessions(args.harness)
         elif args.command == "open":
             print(open_page(args.claude, launch=not args.print))
         elif args.command == "watch":

@@ -70,6 +70,7 @@ export interface Workflow {
 
 export interface SessionInfo {
   id: string
+  src: string // claude or codex
   start: number
   end: number
   count: number
@@ -109,7 +110,7 @@ export function sessionsOf(events: OfficeEvent[]): SessionInfo[] {
     const id = e.session ?? 'unknown'
     const t = parseTime(e.ts)
     if (t == null) continue
-    const s = by.get(id) ?? { id, start: t, end: t, count: 0, requests: 0, roles: [] }
+    const s = by.get(id) ?? { id, src: e.src === 'codex' ? 'codex' : 'claude', start: t, end: t, count: 0, requests: 0, roles: [] }
     s.start = Math.min(s.start, t)
     s.end = Math.max(s.end, t)
     s.count += 1

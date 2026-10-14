@@ -58,6 +58,8 @@ code { background: rgba(255, 255, 255, 0.08); padding: 0 4px; border-radius: 4px
 .btn:hover { background: rgba(120, 160, 255, 0.14); border-color: rgba(120, 160, 255, 0.35); }
 .btn-sm { height: 24px; padding: 0 8px; font-size: 11px; }
 .btn-on { background: rgba(56, 225, 255, 0.18); border-color: rgba(56, 225, 255, 0.55); color: #c9f7ff; }
+.btn-result { color: #eaffd6; border-color: rgba(163, 255, 92, 0.6); background: linear-gradient(180deg, rgba(163, 255, 92, 0.22), rgba(80, 160, 60, 0.18)); font-weight: 700; text-decoration: none; }
+.result-card { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(163, 255, 92, 0.35); background: rgba(163, 255, 92, 0.05); }
 .btn-primary { background: linear-gradient(180deg, rgba(56, 225, 255, 0.3), rgba(56, 120, 255, 0.25)); border-color: rgba(56, 225, 255, 0.55); font-weight: 700; }
 
 .seg { display: inline-flex; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); }

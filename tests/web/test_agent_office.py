@@ -399,6 +399,191 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual((c["status"], c["basis"], c["label"]), ("error", "command_based_mapping", "콘셉트 작성 · validate_constraints 실패"))
 
 
+MAIN_ID = "01a20000-0000-7000-8000-000000000001"
+CHILD_ID = "01a20000-0000-7000-8000-000000000002"
+
+
+def codex_records(harness, main=MAIN_ID, child=CHILD_ID):
+    """A Codex 0.162-style main thread and one research-agent thread (synthetic; secrets must not leak)."""
+    t = 1792000000000
+
+    def at(ms):
+        return {"timestamp": f"2026-10-14T03:00:{ms // 1000:02d}.{ms % 1000:03d}Z"}
+
+    def item(ms, body, took=1000):
+        return {**at(ms + took), "type": "event_msg", "payload": {"type": "item_completed", "thread_id": main, "turn_id": "turn-1",
+                "started_at_ms": t + ms, "completed_at_ms": t + ms + took, "item": body}}
+
+    run = ".claude/skills/{}/scripts/run.py {} --input runtime-data/" + SECRET + ".json"
+    save_out = json.dumps({"ok": True, "result": {"save": {"accepted": True, "turn": {"status": "completed", "result_version": 1, "revision_count": 0}}}})
+    main_lines = [
+        {**at(0), "type": "session_meta", "payload": {"id": main, "cwd": str(harness), "cli_version": "0.162.1", "source": "cli",
+                                                    "base_instructions": SECRET}},
+        {**at(1), "type": "event_msg", "payload": {"type": "task_started", "turn_id": "turn-1"}},
+        item(1000, {"type": "UserMessage", "id": "u1", "content": [{"type": "text", "text": SECRET}]}, 1),
+        {**at(2000), "type": "response_item", "payload": {"type": "custom_tool_call", "name": "exec", "call_id": "call_exec1", "input": SECRET}},
+        item(2100, {"type": "CommandExecution", "id": "c1", "command": ["pwsh", "-Command", "Get-Content .claude/skills/evidence-retrieval/SKILL.md"],
+                    "parsed_cmd": [{"type": "read", "cmd": SECRET, "name": "SKILL.md", "path": ".claude/skills/evidence-retrieval/SKILL.md"}],
+                    "status": "completed", "exit_code": 0, "stdout": SECRET, "duration": {"secs": 0, "nanos": 300000000}}),
+        item(3000, {"type": "CommandExecution", "id": "c2", "command": ["pwsh", "-Command", "uv run python " + run.format("evidence-retrieval", "open_request_bundle")],
+                    "parsed_cmd": [{"type": "unknown", "cmd": SECRET}], "status": "completed", "exit_code": 0,
+                    "stdout": '{"ok": true, "result": {"note": "' + SECRET + '"}}', "duration": {"secs": 1, "nanos": 0}}),
+        item(4500, {"type": "CommandExecution", "id": "c3", "command": ["pwsh", "-Command", "uv run python " + run.format("evidence-retrieval", "retrieve_reviews")],
+                    "status": "failed", "exit_code": 1, "stdout": '{"ok": false, "error": {"code": "model_not_found", "message": "' + SECRET + '"}}'}),
+        item(5000, {"type": "Extension", "kind": "web.search", "query": SECRET, "action": {"type": "search", "query": SECRET}}),
+        {**at(5900), "type": "response_item", "payload": {"type": "custom_tool_call_output", "call_id": "call_exec1", "output": [{"type": "input_text", "text": SECRET}]}},
+        item(20000, {"type": "CommandExecution", "id": "c4", "command": ["pwsh", "-Command", "uv run python " + run.format("review-and-revise", "save_and_export")],
+                     "status": "completed", "exit_code": 0, "stdout": save_out}),
+        item(22000, {"type": "FileChange", "id": "f1", "changes": {str(Path(harness) / "runtime-data" / "exports" / (SECRET + ".md")): {"type": "add", "content": SECRET}},
+                     "status": "completed"}),
+        {**at(23000), "type": "event_msg", "payload": {"type": "task_complete", "turn_id": "turn-1", "last_agent_message": SECRET}},
+    ]
+    child_lines = [
+        {**at(6000), "type": "session_meta", "payload": {"id": child, "cwd": str(harness), "parent_thread_id": main, "agent_role": "product_review_researcher",
+                                                       "source": {"subagent": {"thread_spawn": {"parent_thread_id": main}}}}},
+        {**at(6001), "type": "event_msg", "payload": {"type": "task_started", "turn_id": "turn-c"}},
+        {**item(7000, {"type": "Extension", "kind": "web.search", "query": SECRET, "action": {"type": "openPage", "url": f"https://reviews.example/p?q={SECRET}"}})},
+        {**at(15000), "type": "event_msg", "payload": {"type": "task_complete", "turn_id": "turn-c"}},
+    ]
+    return main_lines, child_lines
+
+
+import io  # noqa: E402
+
+
+class CodexFollowTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix="agent-office-codex-")
+        base = Path(self.tmp.name)
+        self.root = base / "harness"
+        (self.root / ".claude").mkdir(parents=True)
+        (self.root / "product-install.json").write_text("{}", encoding="utf-8")
+        self.home = base / "codex-home"
+        from datetime import datetime, timezone
+        today = datetime.now(timezone.utc)
+        self.day = self.home / "sessions" / f"{today.year:04d}" / f"{today.month:02d}" / f"{today.day:02d}"
+        self.day.mkdir(parents=True)
+        self.old_home = os.environ.get("CODEX_HOME")
+        os.environ["CODEX_HOME"] = str(self.home)
+        self.out = self.root / "runtime-data" / "agent-office"
+
+    def tearDown(self):
+        if self.old_home is None:
+            os.environ.pop("CODEX_HOME", None)
+        else:
+            os.environ["CODEX_HOME"] = self.old_home
+        self.tmp.cleanup()
+
+    def write_logs(self, main_lines, child_lines, tail=""):
+        main = self.day / f"rollout-2026-10-14T12-00-00-{MAIN_ID}.jsonl"
+        child = self.day / f"rollout-2026-10-14T12-00-06-{CHILD_ID}.jsonl"
+        main.write_text("".join(json.dumps(r) + "\n" for r in main_lines) + tail, encoding="utf-8")
+        child.write_text("".join(json.dumps(r) + "\n" for r in child_lines), encoding="utf-8")
+        return main
+
+    def events(self):
+        return [json.loads(line) for line in (self.out / "events.jsonl").read_text(encoding="utf-8").splitlines()]
+
+    def test_latest_session_with_agent_thread_becomes_office_records(self):
+        import io
+        self.write_logs(*codex_records(self.root))
+        buf = io.StringIO()
+        written = office.codex(self.root, latest=True, once=True, out=buf)
+        events = self.events()
+        self.assertEqual(written, len(events))
+        kinds = [(e["hook"], e["kind"], e["actor"], e.get("node"), e.get("op"), e["phase"]) for e in events]
+        self.assertIn(("SessionStart", "session", "main", "main", None, "start"), kinds)
+        self.assertIn(("UserPromptSubmit", "request", "main", "main", None, "point"), kinds)
+        self.assertIn(("PreToolUse", "skill_load", "main", "evidence-retrieval", None, "start"), kinds)
+        self.assertIn(("PostToolUse", "skill_op", "main", "evidence-retrieval", "open_request_bundle", "end"), kinds)
+        self.assertIn(("PostToolUseFailure", "skill_op", "main", "evidence-retrieval", "retrieve_reviews", "fail"), kinds)
+        self.assertIn(("SubagentStart", "subagent", "product_review_researcher", "product_review_researcher", None, "start"), kinds)
+        self.assertIn(("SubagentStop", "subagent", "product_review_researcher", "product_review_researcher", None, "end"), kinds)
+        self.assertIn(("Stop", "turn_end", "main", "main", None, "point"), kinds)
+        failed = next(e for e in events if e["op"] == "retrieve_reviews" and e["phase"] == "fail")
+        self.assertEqual(failed["detail"]["error"], "model_not_found")
+        save = next(e for e in events if e["op"] == "save_and_export" and e["phase"] == "end")
+        self.assertEqual((save["detail"]["accepted"], save["detail"]["turn_status"]), (True, "completed"))
+        web = [e for e in events if e["kind"] == "web" and e["actor"] == "product_review_researcher"]
+        self.assertEqual({e["detail"].get("host") for e in web}, {"reviews.example"})
+        self.assertEqual(next(e for e in events if e["kind"] == "file" and e["phase"] == "end")["detail"], {"area": "exports"})
+        exec_end = next(e for e in events if e["call"] == "call_exec1" and e["phase"] == "end")
+        self.assertEqual(exec_end["tool"], "exec")
+        self.assertTrue(all(e["src"] == "codex" and e["session"] == MAIN_ID for e in events))
+        for name in ("events.jsonl", "live.js", "codex-follow.json"):
+            self.assertNotIn(SECRET, (self.out / name).read_text(encoding="utf-8"), name)
+        self.assertIn("근거 조회 · open_request_bundle", buf.getvalue())
+        self.assertEqual(office.codex(self.root, latest=True, once=True, out=io.StringIO()), 0)  # nothing twice
+
+    def test_start_times_come_from_the_log(self):
+        self.write_logs(*codex_records(self.root))
+        office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        start = next(e for e in self.events() if e["op"] == "open_request_bundle" and e["phase"] == "start")
+        end = next(e for e in self.events() if e["op"] == "open_request_bundle" and e["phase"] == "end")
+        from datetime import datetime
+        gap = datetime.fromisoformat(end["ts"].replace("Z", "+00:00")) - datetime.fromisoformat(start["ts"].replace("Z", "+00:00"))
+        self.assertAlmostEqual(gap.total_seconds(), 1.0, places=2)
+        self.assertEqual((start["ts_basis"], end["detail"]["duration_ms"]), ("codex_log", 1000.0))
+
+    def test_unfinished_last_line_waits_for_its_newline(self):
+        main_lines, child_lines = codex_records(self.root)
+        half = json.dumps(main_lines[-1])[:40]
+        self.write_logs(main_lines[:-1], child_lines, tail=half)
+        office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        self.assertFalse(any(e["kind"] == "turn_end" for e in self.events()))
+        self.write_logs(main_lines, child_lines)
+        office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        self.assertEqual(sum(e["kind"] == "turn_end" for e in self.events()), 1)
+
+    def test_selection_is_checked(self):
+        main_lines, child_lines = codex_records(self.root)
+        other = [dict(main_lines[0], payload={**main_lines[0]["payload"], "cwd": str(Path(self.tmp.name) / "elsewhere")})] + main_lines[1:]
+        path = self.write_logs(other, child_lines)
+        with self.assertRaises(office.OfficeError):
+            office.codex(self.root, rollout=path, once=True, out=io.StringIO())
+        with self.assertRaises(office.OfficeError):
+            office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        child = self.day / f"rollout-2026-10-14T12-00-06-{CHILD_ID}.jsonl"
+        with self.assertRaises(office.OfficeError):
+            office.codex(self.root, rollout=child, once=True, out=io.StringIO())
+        self.assertFalse((self.out / "events.jsonl").exists())
+
+    def test_records_before_the_identity_are_ignored(self):
+        main_lines, child_lines = codex_records(self.root)
+        stray = {"timestamp": "2026-10-14T02:59:00.000Z", "type": "event_msg", "payload": {"type": "task_complete"}}
+        path = self.write_logs(main_lines, child_lines)
+        path.write_text(json.dumps(stray) + "\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
+        office.codex(self.root, rollout=path, once=True, out=io.StringIO())
+        self.assertEqual(sum(e["kind"] == "turn_end" for e in self.events()), 1)
+
+    def test_wait_follows_only_a_session_started_later(self):
+        import threading
+        import time
+        old_id = "01a20000-0000-7000-8000-0000000000ff"
+        old_main, _ = codex_records(self.root, main=old_id)
+        (self.day / f"rollout-2026-10-14T11-00-00-{old_id}.jsonl").write_text("".join(json.dumps(r) + "\n" for r in old_main), encoding="utf-8")
+        result = {}
+
+        def run():
+            result["n"] = office.codex(self.root, wait=True, once=True, max_minutes=0.5, out=io.StringIO())
+
+        worker = threading.Thread(target=run)
+        worker.start()
+        time.sleep(1.5)
+        self.write_logs(*codex_records(self.root))
+        worker.join(40)
+        self.assertGreater(result.get("n", 0), 0)
+        self.assertEqual({e["session"] for e in self.events()}, {MAIN_ID})
+
+    def test_sessions_list(self):
+        import io
+        self.write_logs(*codex_records(self.root))
+        buf = io.StringIO()
+        self.assertEqual(office.codex_sessions(self.root, out=buf), 1)
+        self.assertIn(MAIN_ID, buf.getvalue())
+        self.assertIn("하위 에이전트 1개", buf.getvalue())
+
+
 class PageTests(unittest.TestCase):
     @unittest.skipUnless((APP / "index.html").is_file(), "page not built (app: npm run build)")
     def test_page_is_one_file_that_reads_live_js(self):

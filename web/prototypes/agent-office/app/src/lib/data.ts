@@ -1,7 +1,7 @@
 // Loading the observer's records: live.js next to the page (re-read every second), or an events.jsonl / live.js file
 // the user opens. Nothing is sent anywhere; the page only reads.
 import { useEffect, useState } from 'react'
-import type { LiveFile, OfficeEvent } from '../types'
+import type { LiveFile, OfficeEvent, ResultView } from '../types'
 
 const POLL_MS = 1000
 
@@ -40,6 +40,41 @@ export function useLiveFile(enabled: boolean): { live: LiveFile | null; checkedA
     }
   }, [enabled])
   return { live, checkedAt }
+}
+
+export const RESULT_VIEW_URL = '../visual-viewer/index.html'
+
+// The result viewer writes runtime-data/visual-viewer/view-data.js (window.LGAX_VIEW) beside this folder. Re-read
+// every few seconds; null when it is not there (viewer not installed or no export yet).
+export function useResultView(): ResultView | null {
+  const [view, setView] = useState<ResultView | null>(null)
+  useEffect(() => {
+    let stopped = false
+    let tag: HTMLScriptElement | null = null
+    const tick = () => {
+      if (stopped) return
+      tag?.remove()
+      tag = document.createElement('script')
+      tag.src = `../visual-viewer/view-data.js?ts=${Date.now()}`
+      tag.charset = 'utf-8'
+      tag.onload = () => {
+        const v = window.LGAX_VIEW
+        window.LGAX_VIEW = undefined // keep only the few fields below, not the whole result
+        const next = v && v.kind === 'lgax-view' ? { kind: v.kind, generated_at: v.generated_at, context: { file: v.context?.file, status: v.context?.status } } : null
+        setView((old) => (old?.generated_at === next?.generated_at && old?.context?.file?.name === next?.context?.file?.name ? old : next))
+      }
+      tag.onerror = () => setView(null)
+      document.head.appendChild(tag)
+    }
+    tick()
+    const id = window.setInterval(tick, 4000)
+    return () => {
+      stopped = true
+      window.clearInterval(id)
+      tag?.remove()
+    }
+  }, [])
+  return view
 }
 
 function isEvent(v: unknown): v is OfficeEvent {

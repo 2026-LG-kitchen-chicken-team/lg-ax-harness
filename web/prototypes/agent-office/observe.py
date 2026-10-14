@@ -95,6 +95,15 @@ AREAS = (("runtime-data/exports", "exports"), ("runtime-data/web-evidence", "web
          ("data", "data"), ("product-tools", "tools"), ("web", "web"))
 
 
+def use_harness(harness: Path):
+    """Point the readers and writers at another harness folder (codex_follow.py runs outside a hook)."""
+    global HARNESS, OUT, EVENTS, LIVE, SNAPSHOT, LOCK, ERRORS, DB
+    HARNESS = Path(harness).resolve()
+    OUT = HARNESS / "runtime-data" / "agent-office"
+    EVENTS, LIVE, SNAPSHOT = OUT / "events.jsonl", OUT / "live.js", OUT / "snapshot.json"
+    LOCK, ERRORS, DB = OUT / ".observe.lock", OUT / "observe-error.log", HARNESS / "runtime-data" / "product.sqlite"
+
+
 def now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
@@ -423,20 +432,35 @@ def host_of(url) -> str | None:
     return short(urlsplit(url).hostname, 120) if isinstance(url, str) else None
 
 
+def latest_export() -> dict | None:
+    """Name and time of the newest saved export (names are content fingerprints; nothing inside is read)."""
+    folder = HARNESS / "runtime-data" / "exports"
+    try:
+        files = [p for p in folder.iterdir() if p.suffix == ".json" and p.is_file()]
+    except OSError:
+        return None
+    if not files:
+        return None
+    newest = max(files, key=lambda p: p.stat().st_mtime)
+    stamp = datetime.fromtimestamp(newest.stat().st_mtime, timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return {"name": short(newest.name, 120), "modified_at": stamp, "count": len(files)}
+
+
 def snapshot_db() -> dict:
     """A short read-only look at the harness database. Never creates or changes it; a busy database is skipped.
 
     product-tools writes with BEGIN IMMEDIATE and a 5 s timeout on a rollback journal, so this reader opens the file
     read-only, waits at most 0.2 s and closes at once."""
     if not DB.is_file():
-        return {"available": False, "reason": "no_database"}
+        return {"available": False, "reason": "no_database", "latest_export": latest_export()}
     uri = DB.resolve().as_uri() + "?mode=ro"
     con = sqlite3.connect(uri, uri=True, timeout=0.2, isolation_level=None)
     try:
         con.execute("PRAGMA query_only=1")
         tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         snap = {"available": True, "read_at": now(), "workflow": None, "workflow_events": [], "request": None, "turn": None,
-                "results": 0, "candidates": [], "evidence_delivered": None, "evidence_reviews": None, "cancelled": False}
+                "results": 0, "candidates": [], "evidence_delivered": None, "evidence_reviews": None, "cancelled": False,
+                "latest_export": latest_export()}
         if "product_workflows" in tables:
             row = con.execute("SELECT research_id, started_at, budget_seconds, research_stopped_at, finished_at "
                               "FROM product_workflows ORDER BY started_at DESC LIMIT 1").fetchone()
