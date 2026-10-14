@@ -1,0 +1,110 @@
+{
+  "release": "product-v0.13.1",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.13.1",
+  "published_at": "2026-10-14T07:29:24Z",
+  "prerelease": true,
+  "draft": false,
+  "snapshot_commit": "4185309b437ec0666d893fe6b786b0f9a9e389f6",
+  "snapshot_parent_count": 0,
+  "development_provenance_commit": "9f79875fdf86806b34c51861a633dbdbc3ab5040",
+  "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+  "assets": [
+    {
+      "name": "lg-ax-harness-product-v0.13.1.zip",
+      "size": 421254
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 100
+    }
+  ],
+  "downloaded_archive_sha256": "1608d6994b4f8b0a13f4305005f7bc670e7130100f073e4479715e68f6c88123",
+  "checksum_bytes_equal": true,
+  "automatic_source_zip_raw_bytes_equal": 108,
+  "remote_notes_bytes_equal": true,
+  "release_notes_sha256": "f2b912c5d67a38d232ca3815272ed50b3b22179d522aec3179ae57755ad8c826",
+  "installations": {
+    "commands": 5,
+    "recorded_exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "raw_log_sha256": [
+      {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "502ad7ddc4ba414eb4d74afb3012fd2641106cd6a617a4fe7b5285832f47a914"
+      },
+      {
+        "stdout": "6ec3569b3d2bc9d2ef4b20f6eafdc4e3b3121f654e3aaefed890d5788c017536",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "stdout": "d33c140f3e288e8ddcfbe25b364ec4f83314c258d7f1f43be533c800d61a690d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "6a4b5bdc9e7d7f4452b862001ef6c55ded3d733eb9a26cce5dc842c9eb32fcae"
+      },
+      {
+        "stdout": "f08262e9b2906224bf053f404ff451cc20837da47cd37206656924f5b6d4db0b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "checks": {
+    "total": 419,
+    "passed": 418,
+    "skipped": 1,
+    "exit_code": 0,
+    "seconds": 62.124,
+    "receipt": "f6249b004a6a464cbbf68728fa8298f3"
+  },
+  "check_receipt_sha256": "1975870d92181e871f8474537dd57e3fc7dfbfd31e49665d72c9fa893bd6a2dc",
+  "check_inputs": {
+    "product-tools/product_tools/dataset.py": "d4340d466ffc249cc3716f9ffcb1083919dee3e21e37a0ef0e22b3efcb49157f",
+    "product-tools/product_tools/research_scope.py": "aa6e3e2be7c78670fdb296cbafe265721833d5aec6a1bdc137d3067e5c327a94",
+    "product-tools/product_tools/state.py": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf",
+    "product-tools/product_tools/workflow.py": "923ed390b4f5a227dc082bd8507579b45b149eacd1a1493207184df537df1b5a",
+    "skills/manifest.json": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+    "tests/product-tools/test_product_workflow.py": "e86395ccc8c118b3f2038c2f8e14b33fc17402ac28adb7b870aa705859ee6036",
+    "tests/product-tools/test_research_scope.py": "5305f0299ec54d44879a33de9b8259b74be17fc212ede4050f01086129f91784"
+  },
+  "model_comparison_record_sha256": "63c0f0078c5104dba85d24bb7ed487f21f946c34596cbf06d7f44868273536fa",
+  "native_from_release_zip": "not_run",
+  "fresh_remote_clone": "not_run",
+  "default_Windows_autocrlf_checkout": "not verified; use ZIP",
+  "HTML_UI": "not_run; team-owned",
+  "physical_effect": "not_measured",
+  "full_backend_billing": "unknown",
+  "main_web_existing_tags_changed": false,
+  "final_submission": "not_completed",
+  "provenance_link_fix": {
+    "changed_archive_files": [
+      "THIRD_PARTY_NOTICES.md",
+      "product-install.json",
+      "submission-source-manifest.json"
+    ],
+    "changed_installed_files": [
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "pinned_links": [
+      {
+        "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/blob/14dfa1a2d8b732258105e6725edeee7cfb94ff57/vendor/codex-harness/import-manifest.json",
+        "git_blob": "81ebdd41e4fafd43486ebb8969301c3dd5584986",
+        "pinned_revision": "14dfa1a2d8b732258105e6725edeee7cfb94ff57"
+      },
+      {
+        "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/blob/14dfa1a2d8b732258105e6725edeee7cfb94ff57/vendor/codex-harness/patches.json",
+        "git_blob": "6b6ad236d61bfb5616f0760d54dc6b6e3ccce71f",
+        "pinned_revision": "14dfa1a2d8b732258105e6725edeee7cfb94ff57"
+      }
+    ],
+    "business_source_bytes_unchanged": true
+  },
+  "new_native_replay": "not_run; canonical business source unchanged",
+  "product_suite_scope": "prior code check; seven checked current inputs unchanged; fresh five install/doctor commands after notice fix"
+}
