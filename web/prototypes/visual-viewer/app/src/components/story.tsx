@@ -6,6 +6,7 @@ import { Badge, Badges, Card } from './ui'
 import { StatValue } from './magic'
 import { Blocks } from './blocks'
 import { HoverNote, SourceNote } from './hovernote'
+import { Lead } from './lead'
 import { useIdTip } from './idtip'
 import { useSkin } from '../lib/skin'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_SOFT, TONE_TEXT } from '../lib/utils'
@@ -119,6 +120,8 @@ function Matches({ b }: P) {
 // Columns of cards with connector curves between recorded links. The links are also printed inside each card,
 // so the meaning does not depend on the drawing (narrow screens hide the curves).
 export function Flow({ b, large }: P & { large?: boolean }) {
+  // K: each node shows the model's summary (or the first sentence); its ID chip opens the whole text.
+  const ops = useSkin()?.id === 'ops'
   const cols: Block[] = b.columns || []
   const nodes: Block[] = b.nodes || []
   const links: Block[] = useMemo(() => b.links || [], [b.links])
@@ -168,7 +171,7 @@ export function Flow({ b, large }: P & { large?: boolean }) {
                   <Badge chip={{ text: n.id, tone: n.tone }} />
                   {outgoing(n.id).map((l, k) => <Badge key={k} chip={{ text: `→ ${l.to}${l.label ? ' · ' + l.label : ''}`, tone: l.tone || 'gray' }} />)}
                 </div>
-                {n.text && <p className={cn('mt-2 leading-relaxed', large ? 'line-clamp-3 text-xl' : 'line-clamp-4 text-[13px]')}><Md text={n.text} /></p>}
+                {n.text && <p className={cn('mt-2 leading-relaxed', large ? 'line-clamp-3 text-xl' : 'line-clamp-4 text-[13px]')}>{ops ? <Lead text={n.text} summary={n.summary} max={60} /> : <Md text={n.text} />}</p>}
               </div>
             ))}
             {!nodes.some((n) => n.column === c.key) && <p className="text-xs text-muted-foreground">항목 없음</p>}
@@ -205,7 +208,7 @@ function Solutions({ b }: P) {
                 <Badge chip={{ text: s.id, tone: ops ? 'k4' : 'purple' }} />
                 <Badges items={s.chips} />
               </div>
-              <p className="text-[15px] leading-relaxed"><Md text={s.text} /></p>
+              <p className="text-[15px] leading-relaxed">{ops ? <Lead text={s.text} summary={s.summary} max={120} /> : <Md text={s.text} />}</p>
               {s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
               {s.requirements?.length > 0 && <MiniList title="요구사항" items={s.requirements} />}
             </div>

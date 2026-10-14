@@ -3,13 +3,14 @@
 // reference (chip tips, source notes, folded table details) and in every other view; build_view.py's data is unchanged.
 import type { View } from '../types'
 
-// "(completed)", "(held)", "(assumptions)", "(status · valid)": lowercase field names only.
-const CODE_PAREN = /\s*\((?:[a-z][a-z0-9_.]*)(?:\s*[·,/]\s*[a-z][a-z0-9_.]*)*\)/g
+// "(completed)", "(held)", "(assumptions)", "(status · valid)": lowercase field names (three letters or more) only, so
+// page and item references such as "(p10)" or "(c1)" stay.
+const CODE_PAREN = /\s*\((?:[a-z]{3}[a-z0-9_.]*)(?:\s*[·,/]\s*[a-z]{3}[a-z0-9_.]*)*\)/g
 const HEADINGS: Record<string, string> = { 'turn 목록': '질문 목록', '세션 export': '세션 기록 파일', 'turn별 등록 근거': '질문별 등록 근거' }
 const COLUMN_LABELS: Record<string, string> = { turn: '번호' }
 
 // Text kept exactly: what users, reviews and the model wrote; links and ids; and where codes are meant to be read.
-const KEEP = new Set(['quote', 'quotes', 'question', 'href', 'url', 'id', 'source_id', 'value', 'tip', 'source', 'key', 'type', 'tone'])
+const KEEP = new Set(['quote', 'quotes', 'question', 'href', 'url', 'id', 'source_id', 'value', 'tip', 'source', 'key', 'type', 'tone', 'summary'])
 
 // Field=value pairs that sentences carry ("valid=true", "semantic_status: **unverified**"), in Korean.
 const PHRASES: [RegExp, string][] = [

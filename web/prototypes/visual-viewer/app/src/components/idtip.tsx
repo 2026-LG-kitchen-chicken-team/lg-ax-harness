@@ -40,7 +40,7 @@ export function IdTipProvider({ view, children }: { view: View | null; children:
     const entry = index.get(id)
     if (!entry) return
     const r = el.getBoundingClientRect()
-    const left = Math.max(8, Math.min(r.left, window.innerWidth - 368))
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - (el.closest('.skin-ops') ? 424 : 368)))
     const light = !!el.closest('.skin-ops')
     // Open below the chip, or above it near the bottom of the window.
     setTip(r.bottom > window.innerHeight - 200 ? { id, entry, left, light, bottom: window.innerHeight - r.top + 8 } : { id, entry, left, light, top: r.bottom + 8 })
@@ -57,10 +57,11 @@ export function IdTipProvider({ view, children }: { view: View | null; children:
       {children}
       {tip?.light && (
         <div key={tip.id} role="tooltip" data-side={tip.top != null ? 'below' : 'above'}
-          className="lg-tip no-print pointer-events-none fixed z-[80] w-max max-w-[min(22rem,calc(100vw-1rem))] rounded-xl border border-[#e3e8e3] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-zinc-800 shadow-[0_14px_36px_-14px_rgb(0_0_0/0.3)]"
+          className="lg-tip no-print pointer-events-none fixed z-[80] w-max max-w-[min(26rem,calc(100vw-1rem))] rounded-xl border border-[#e3e8e3] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-zinc-800 shadow-[0_14px_36px_-14px_rgb(0_0_0/0.3)]"
           style={{ left: tip.left, top: tip.top, bottom: tip.bottom }}>
           <div className="text-xs text-zinc-500"><span className="font-semibold text-[#2f7d4f]">{tip.id}</span> · {tip.entry.kind}</div>
-          <p className="mt-1 line-clamp-6">{tip.entry.text}</p>
+          {/* K's cards show only the first sentence, so the card here gives the whole text. */}
+          <p className="mt-1 whitespace-pre-line">{tip.entry.text}</p>
         </div>
       )}
       {tip && !tip.light && (

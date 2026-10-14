@@ -445,6 +445,8 @@ def insights_shape_errors(ins) -> list[str]:
             errors.append(key)
     if ins.get("captions") is not None and not (isinstance(ins["captions"], dict) and all(isinstance(v, dict) for v in ins["captions"].values())):
         errors.append("captions")
+    if ins.get("summaries") is not None and not (isinstance(ins["summaries"], dict) and all(isinstance(v, str) for v in ins["summaries"].values())):
+        errors.append("summaries")
     steps = ins.get("concept_steps")
     if steps is not None and not (isinstance(steps, dict) and all(dict_list(v) for v in steps.values())):
         errors.append("concept_steps")
@@ -871,12 +873,19 @@ def quote_items(c: Ctx, ids: list[str], limit: int = 2) -> list[dict]:
     return out
 
 
+def summary_of(c: Ctx, item_id) -> str | None:
+    """insights summaries: the model's short summary of one item (P1, F1, RP1, C1 …), shown beside the saved text."""
+    s = (c.ins.get("summaries") or {}).get(item_id)
+    return clip(s.strip(), 300) if isinstance(s, str) and s.strip() else None
+
+
 def claim_items(c: Ctx, claims: list[dict]) -> list[dict]:
     items = []
     for cl in claims:
         ids = cl.get("source_ids") or []
         chips = [{"text": f"근거 {len(ids)}건" + (f" · 앞의 2건만 표시" if len(ids) > 2 else ""), "tone": "gray", "tip": ", ".join(ids)}]
-        items.append({"id": cl.get("id"), "text": cl.get("text", ""), "quotes": quote_items(c, ids), "chips": chips})
+        items.append({"id": cl.get("id"), "text": cl.get("text", ""), "summary": summary_of(c, cl.get("id")),
+                      "quotes": quote_items(c, ids), "chips": chips})
     return items
 
 
@@ -926,7 +935,7 @@ def page_story(c: Ctx) -> list[dict]:
                    "blocks": check_blocks})
 
     ids = {"pain": [x.get("id") for x in pains], "remaining": [x.get("id") for x in remaining], "concept": [x.get("id") for x in concepts]}
-    nodes = [{"id": x.get("id"), "column": col, "tone": tone_, "text": x.get("text", "")}
+    nodes = [{"id": x.get("id"), "column": col, "tone": tone_, "text": x.get("text", ""), "summary": summary_of(c, x.get("id"))}
              for col, items, tone_ in (("pain", pains, "red"), ("remaining", remaining, "orange"), ("concept", concepts, "purple")) for x in items]
     flow_links = [{"from": fm.get("pain_id"), "to": fm.get("remaining_pain_id"),
                    "label": RESOLUTION_LABEL.get(fm.get("resolution"), fm.get("resolution") or ""), "tone": RESOLUTION_TONE.get(fm.get("resolution"), "gray")}
@@ -954,7 +963,8 @@ def page_story(c: Ctx) -> list[dict]:
             if link.get("geometry_required"):
                 chips_.append({"text": "내부 치수 필요", "tone": "orange"})
         plan = cl.get("validation_plan")
-        sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""), "chips": chips_,
+        sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""),
+                    "summary": summary_of(c, cl.get("id")), "chips": chips_,
                     "requirements": cl.get("requirements") or [], "steps": cl.get("implementation_steps") or [],
                     "plan": {"status": PLAN_STATUS.get(plan.get("status"), plan.get("status") or "상태 미기록"),
                              "rows": [{"k": label, "v": plan.get(key) or "미작성"} for key, label in PLAN_FIELDS]} if plan else None,

@@ -12,6 +12,7 @@ import { Blocks, useTableRows } from '../components/blocks'
 import { QuoteLine } from '../components/story'
 import { useIdTip } from '../components/idtip'
 import { HoverNote, SourceNote as SourceTip } from '../components/hovernote'
+import { Lead } from '../components/lead'
 import { barWidth, NoData, SegmentBar, SkinBars, SkinDonut, SkinLine, useToneHex } from './charts'
 import { useSkin, type BlockRenderer, type Skin, type SkinId } from '../lib/skin'
 import { cn, fmt, Md, safeHref, tone } from '../lib/utils'
@@ -821,7 +822,8 @@ function Claims({ b }: P) {
                 <Badge chip={{ text: it.id, tone: t }} />
                 {b.kind_label && <span className="text-xs text-muted-foreground">{b.kind_label}</span>}
               </div>
-              <p className={cn('font-medium leading-relaxed', size)}><Md text={it.text} /></p>
+              {/* K: the model's summary (or the first sentence) here; the ID chip above opens the whole text. */}
+              <p className={cn('font-medium leading-relaxed', size)}>{id === 'ops' ? <Lead text={it.text} summary={it.summary} /> : <Md text={it.text} />}</p>
             </>
           )
           const quoteList = quotes && <div className="flex min-w-0 flex-col gap-2">{it.quotes.map((q: Block, k: number) => <QuoteLine key={k} q={q} />)}</div>

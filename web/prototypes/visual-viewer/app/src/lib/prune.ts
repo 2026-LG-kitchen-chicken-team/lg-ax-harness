@@ -74,7 +74,7 @@ function withFeatureColumn(blocks: Block[]): Block[] {
     blocks: (b.blocks || []).map((f: Block) => (f.type !== 'flow' || (f.columns || []).some((c: Block) => c.key === 'feature') ? f : {
       ...f,
       columns: [f.columns[0], { key: 'feature', title: '기존 기능', tone: 'blue' }, ...f.columns.slice(1)],
-      nodes: [...(f.nodes || []), ...features.map((it) => ({ id: it.id, column: 'feature', tone: 'blue', text: it.text }))],
+      nodes: [...(f.nodes || []), ...features.map((it) => ({ id: it.id, column: 'feature', tone: 'blue', text: it.text, summary: it.summary }))],
       note: `${f.note || ''} 기존 기능 칸은 같은 모델에서 대조한 기능입니다. 불편·기능 사이의 연결은 검토 기록에 ID로 적혀 있지 않아 선을 그리지 않습니다.`.trim(),
     })),
   }))

@@ -890,6 +890,23 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
         self.assertIn('"donut"', dashboard)
         self.assertIn("insights insights-bom.json · turn_id 일치", dashboard)
 
+    def test_summaries_attach_to_story_items_and_bad_ones_are_refused(self):
+        export = self.h.add("microwave")
+        sid, turn = export_of("microwave")["session_id"], current_turn("microwave")
+        self.h.insights("insights-sum.json", {"session_id": sid, "turn_id": turn,
+                                              "summaries": {"p1": f"{SYNTH} 불편 요약", "c1": f"{SYNTH} 제안 요약", "ZZ9": "없는 항목"}})
+        summary, view = self.build(path=export)
+        self.assertEqual((summary["insights"], summary["warnings"]), ("matched", []))
+        story = blob(page(view, "story"))
+        for text in (f"{SYNTH} 불편 요약", f"{SYNTH} 제안 요약"):
+            self.assertIn(text, story)
+        self.assertNotIn("없는 항목", story)  # only IDs in the current result get a summary
+        self.h.insights("insights-sum.json", {"session_id": sid, "turn_id": turn, "summaries": {"p1": 3}})
+        summary, view = self.build(path=export)
+        self.assertEqual(summary["insights"], "invalid")
+        self.assertTrue(any("summaries" in w for w in summary["warnings"]), summary["warnings"])
+        self.assertNotIn(f"{SYNTH} 불편 요약", blob(page(view, "story")))
+
     def test_insights_without_turn_id_only_for_single_turn_sessions(self):  # v07-format-05 partial
         groups = [{"key": "g1", "label": f"{SYNTH} T1 묶음", "source_ids": [RID]}]
         sid = export_of("two_turns")["session_id"]
