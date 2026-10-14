@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .contracts import canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from . import research_scope
 
 
 def utc_now():
@@ -28,6 +29,9 @@ class WorkflowAudit:
         if "timing_policy" not in {r[1] for r in db.execute("PRAGMA table_info(product_workflows)")}:
             db.execute("ALTER TABLE product_workflows ADD COLUMN timing_policy TEXT")
 
+        if "research_policy" not in {r[1] for r in db.execute("PRAGMA table_info(product_workflows)")}:
+            db.execute("ALTER TABLE product_workflows ADD COLUMN research_policy TEXT")
+
     def request(self, research_id):
         identifier(research_id, "research_id")
         try:
@@ -48,8 +52,8 @@ class WorkflowAudit:
         if row and row[0] != budget_seconds:
             fail("workflow_conflict", "Original whole-request budget cannot be reset or extended")
         if not row:
-            self.db.execute("INSERT INTO product_workflows(research_id,started_at,budget_seconds,timing_policy) VALUES(?,?,?,?)",
-                            (research_id, utc_now().isoformat(), budget_seconds, "natural-completion-v1"))
+            self.db.execute("INSERT INTO product_workflows(research_id,started_at,budget_seconds,timing_policy,research_policy) VALUES(?,?,?,?,?)",
+                            (research_id, utc_now().isoformat(), budget_seconds, "natural-completion-v1", research_scope.POLICY))
         return self.status(research_id)
 
     def active(self, research_id):
@@ -99,7 +103,8 @@ class WorkflowAudit:
         if kind in ("research_plan", "source_scan"):
             self.collection_allowed(research)
         if kind == "research_plan":
-            obj(data, ("product_name", "coverage", "source_plan"))
+            obj(data, ("product_name", "coverage", "source_plan"), ("goals",))
+            research_scope.validate_plan(data, self.events(research))
             text(data["product_name"], "product_name", 200)
             self._strings(data["coverage"], "coverage", 30)
             if not {"positive", "negative", "long_term", "conditions", "counterexamples"} <= set(data["coverage"]):
@@ -107,7 +112,8 @@ class WorkflowAudit:
             self._strings(data["source_plan"], "source_plan", 100)
         elif kind == "source_scan":
             from .web_evidence import public_url
-            obj(data, ("source_url", "page_label", "status", "reviews", "reason"), ("snapshot_ids", "list_total", "remaining_scope", "source_type"))
+            obj(data, ("source_url", "page_label", "status", "reviews", "reason"), ("snapshot_ids", "list_total", "remaining_scope", "source_type", "goal_ids"))
+            research_scope.validate_scan(data, self.events(research), self.scope_required(research))
             public_url(data["source_url"])
             if not any(e["kind"] == "research_plan" for e in self.events(research)):
                 fail("workflow_plan_missing", "Record whole-product coverage before source scans")
@@ -155,12 +161,14 @@ class WorkflowAudit:
                 if review.get("text_coverage", "partial") not in ("full_review_observed", "partial"):
                     fail("invalid_input", "Declare full-review observation or partial excerpt")
         elif kind == "research_stop":
-            obj(data, ("code", "basis", "new_findings", "remaining_scope"))
+            obj(data, ("code", "basis", "new_findings", "remaining_scope"), ("remaining_goal_ids", "limitation_basis"))
             if data["code"] not in ("completion_time_reserve", "sources_exhausted", "sufficient_evidence", "access_failure", "insufficient_evidence", "whole_budget_expired"):
                 fail("invalid_input", "Distinguish the actual investigation stop reason")
             text(data["basis"], "stop basis", 8000)
             self._strings(data["new_findings"], "new_findings", 100)
             self._strings(data["remaining_scope"], "remaining_scope", 100)
+            if self.scope_required(research):
+                research_scope.validate_stop(data, self.events(research))
             if data["code"] == "whole_budget_expired" and not self.status(research)["expired"]:
                 fail("workflow_stop_reason", "The whole-request clock has not expired")
             if self.db.execute("SELECT research_stopped_at FROM product_workflows WHERE research_id=?", (research,)).fetchone()[0]:
@@ -264,13 +272,21 @@ class WorkflowAudit:
             if not was_in_transaction and self.db.isolation_level is not None:
                 self.db.commit()
         counts = self.counts(events, self.used_sources(research))
+        counts["provider_count"] = len(counts["providers"])
+        counts["providers"] = counts["providers"][:6]
+        counts["analysed_source_ids"] = counts["analysed_source_ids"][:20]
         for provider in counts["providers"]:
             provider["source_url_count"] = len(provider["source_urls"])
             provider["scan_count"] = len(provider["scans"])
-            provider["detail_scope"] = "last six URL/scan previews; full investigation events retained in export_session"
-            provider["source_urls"] = provider["source_urls"][-6:]
-            provider["scans"] = provider["scans"][-6:]
-        return {"tracked": True, "research_id": research, "started_at": row[0], "deadline": deadline.isoformat(),
+            provider["detail_scope"] = "bounded URL/scan previews; full investigation events retained in export_session"
+            provider["source_urls"] = [url[:150] for url in provider["source_urls"][-2:]]
+            provider["namespace_ambiguous_literal_id_count"] = len(provider["namespace_ambiguous_literal_ids"])
+            provider["namespace_ambiguous_literal_ids"] = [sid[:100] for sid in provider["namespace_ambiguous_literal_ids"][:5]]
+            provider["scans"] = [{**scan, "page": scan["page"][:100], "reason": scan["reason"][:100],
+                "goal_id_count": len(scan["goal_ids"]), "goal_ids": scan["goal_ids"][:5],
+                "remaining_scope_count": len(scan["remaining_scope"]),
+                "remaining_scope": [part[:100] for part in scan["remaining_scope"][:2]]} for scan in provider["scans"][-2:]]
+        result = {"tracked": True, "research_id": research, "started_at": row[0], "deadline": deadline.isoformat(),
                 "budget_seconds": row[1], "elapsed_seconds": round(elapsed, 3),
                 "remaining_seconds": max(0, round((deadline-end).total_seconds(), 3)), "expired": end > deadline,
                 "research_stopped_at": row[2], "finished_at": row[3], "twenty_minute_checkpoint": checkpoint,
@@ -286,7 +302,29 @@ class WorkflowAudit:
                 "stop": next((e["data"] for e in reversed(events) if e["kind"] == "research_stop"), None),
                 "layout_review": self.layout_review(events),
                 "counts": counts, "event_count": len(events),
+                "research_scope": {"policy": self.db.execute("SELECT research_policy FROM product_workflows WHERE research_id=?", (research,)).fetchone()[0],
+                                   "required": self.scope_required(research), **research_scope.preview(research_scope.summary(events)),
+                                   "stop_scope_file": self.scope_file(research, events) if self.scope_required(research) else None},
                 "scope": "measured request clock and literal/caller-reported investigation journal; not semantic sufficiency certification"}
+        if result["stop"]:
+            stop = result["stop"]
+            result["stop"] = {**stop, "basis": stop["basis"][:400],
+                "new_findings_count": len(stop["new_findings"]), "new_findings": [v[:100] for v in stop["new_findings"][:5]],
+                "remaining_scope_count": len(stop["remaining_scope"]), "remaining_scope": [v[:100] for v in stop["remaining_scope"][:5]],
+                "remaining_goal_count": len(stop.get("remaining_goal_ids", [])), "remaining_goal_ids": stop.get("remaining_goal_ids", [])[:20],
+                "limitation_basis": (stop.get("limitation_basis") or "")[:400], "detail_scope": "stop preview; complete immutable event in export_session"}
+        # Complete fields remain in the immutable scope file and event journal.
+        # Bound the whole status even after many legitimate providers/checkpoints.
+        if len(canonical(result).encode("utf-8")) > 60000:
+            result["counts"]["providers"] = []
+            result["research_scope"]["goals"] = []
+            result["status_detail_truncated"] = True
+        if len(canonical(result).encode("utf-8")) > 60000:
+            result["twenty_minute_checkpoint"] = None
+            result["target_checkpoint"] = None
+            result["status_detail_truncated"] = True
+        return result
+
 
     @staticmethod
     def layout_review(events):
@@ -324,7 +362,7 @@ class WorkflowAudit:
             item = providers.setdefault(provider, {"source_urls": [], "scans": [], "observations": [], "exclusions": {}})
             if data["source_url"] not in item["source_urls"]:
                 item["source_urls"].append(data["source_url"])
-            item["scans"].append({"page": data["page_label"], "status": data["status"], "reason": data["reason"], "list_total": data.get("list_total"), "source_type": data.get("source_type", "unknown")})
+            item["scans"].append({"page": data["page_label"], "status": data["status"], "reason": data["reason"], "list_total": data.get("list_total"), "source_type": data.get("source_type", "unknown"), "goal_ids": data.get("goal_ids", []), "remaining_scope": data.get("remaining_scope", [])})
             item["observations"].extend({**r, "_source_url": data["source_url"]} for r in data["reviews"])
         result = []
         for provider, item in providers.items():
@@ -402,9 +440,54 @@ class WorkflowAudit:
             self.db.execute("UPDATE product_workflows SET finished_at=COALESCE(finished_at,?) WHERE research_id=?", (utc_now().isoformat(), research))
         return self.status(research)
 
+    def scope_file(self, research, events):
+        # Immutable metadata for stop input; review bodies stay in their original
+        # snapshots/journal. This does not shorten or replace collected evidence.
+        report = research_scope.summary(events)
+        value = {"research_id": research, "research_policy": research_scope.POLICY,
+                 "workflow_audit_sha256": self.report_audit_hash(research),
+                 "remaining_goal_ids": report["remaining_goal_ids"], "remaining_scope": report["remaining_scope"],
+                 "goals": [{"goal_id": goal["goal_id"], "kind": goal["kind"], "state": goal["state"],
+                            "remaining_scope": goal["remaining_scope"]} for goal in report["goals"]],
+                 "scope": "complete declared stop metadata, not source bodies or semantic certification"}
+        raw = canonical(value).encode("utf-8")
+        if len(raw) > 16 * 1024 * 1024:
+            fail("workflow_scope_limit", "Stop-scope metadata exceeds 16 MiB; retain full journal and disclose the limit")
+        digest = hashlib.sha256(raw).hexdigest()
+        base = (self.workspace / "runtime-data/research-scopes").resolve()
+        if not base.is_relative_to(self.workspace / "runtime-data"):
+            fail("invalid_path", "Scope metadata must stay in this workspace runtime-data")
+        base.mkdir(parents=True, exist_ok=True)
+        target = base / (digest + ".json")
+        if target.exists():
+            if not target.is_file() or target.resolve().parent != base or target.read_bytes() != raw:
+                fail("workflow_scope_integrity", "Immutable scope metadata changed; retain the original journal")
+        else:
+            with target.open("xb") as stream:
+                stream.write(raw)
+        return {"path": target.relative_to(self.workspace).as_posix(), "sha256": digest, "bytes": len(raw),
+                "content": "full remaining_goal_ids/remaining_scope and goal states; read selected JSON fields from file",
+                "binding": "research_id + current workflow audit hash; prior file cannot authorize newer scan state"}
+
+    def scope_required(self, research):
+        row = self.db.execute("SELECT research_policy FROM product_workflows WHERE research_id=?", (research,)).fetchone()
+        if not row or row[0] != research_scope.POLICY:
+            return False
+        table = self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='web_pages'").fetchone()
+        return bool(table and self.db.execute("SELECT 1 FROM web_pages WHERE research_id=? LIMIT 1", (research,)).fetchone())
+
+    def require_scope_disclosure(self, research, finalizing=True):
+        if self.scope_required(research):
+            events = self.events(research)
+            stop = next((e["data"] for e in reversed(events) if e["kind"] == "research_stop"), None)
+            if stop is None:
+                fail("workflow_research_open", "Record scope and actual stop before completing new web research")
+            research_scope.validate_stop(stop, events, finalizing=finalizing)
+
     def require_stopped(self, research):
         if self.active(research) and not self.status(research)["research_stopped_at"]:
             fail("workflow_research_open", "Record investigation scope and actual stop reason before resolving analysis")
+        self.require_scope_disclosure(research, finalizing=False)
 
     def check_review_import(self, research, entry):
         if not self.active(research) or entry.get("kind") != "review":

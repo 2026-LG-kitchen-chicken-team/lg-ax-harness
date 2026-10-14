@@ -117,3 +117,5 @@ delivery_ready=true와 현재 handle·candidate_result_version=current_result_ve
 decision_notes의 source_fact도 정확 모델 한 개의 원문 귀속을 유지한다. 여러 모델에서 같은 수치/설치 안내가 관측됐더라도 한 모델의 source_id만으로 다른 모델 전부의 사실을 묶어 쓰지 않는다. 모델별 문장/출처로 나누거나 실제 인용 모델로 범위를 한정한다. 기획·보고서·최종 답변의 사실/AI 판단/미확인도 현재 저장된 동일 범위와 연결한다.
 
 조건이 원문에서 미확인이면 '조건이 달라서'로 확정해 설명하지 않는다. '조건이 서로 다른지는 미확인이고 결과가 상반된다'처럼 관측과 해석을 분리한다. 기존 기능 존재를 제외한 불편의 해소로 압축하지 않는다. workflow/file 완료 시각은 native 최종 응답 시각이 아니며 외부 관측 없이는 전체600초 준수를 추정하지 않는다.
+
+새 웹 조사의 연구범위 장부(research-scope-v1)는 업무 web-evidence-collection Skill의 goals/goal_ids/remaining_goal_ids/limitation_basis 계약을 따른다. 공식 사양·연결 설명서·외부 후기·다음 페이지·사용조건·반례를 실제 원출처로 계획하고, source_scan과 결속해 미시도/부분/접근실패를 구분한다. 충분/소진 종료는 scan 없이 신고하지 않으며 남은 범위의 결론 영향과 후속 확인을 공개한다. 조건부 completed는 가능하지만 의미 충분성/대표성이 코드로 인증된 것은 아니다. 여러 페이지/출처를 조사하고 batch100/10/20에서 멈추지 않는다. 고정 catalog 재사용·구행 NULL 이력의 호환은 새 실시간 조사와 구분한다.

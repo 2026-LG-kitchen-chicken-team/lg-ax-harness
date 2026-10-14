@@ -47,3 +47,17 @@ HTML 설명서는 실제 선택한 절의 본문만 관측하여 절별 page_id�
 실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence/import_web_evidence_bulk/configure_web_research다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.
 
 접근 실패는 사용자에게 사이트/원URL의 접근 실패·일부 관측과 영향을 설명한다. 상세 오류 파일 확인을 요구하지 않는다. 실제 해당 URL 응답이 없는 HTTP code/원인을 생성하거나 다른 사이트 receipt를 보조 근거로 붙이지 않는다. 실제 실패 원문·시각·시도는 같은 연구 내부 이력에 보존한다.
+
+## 신규 웹 조사 범위 장부
+
+새 workflow에서 실제 웹 관측/접근을 시작하면 research-scope-v1을 적용한다. research_plan의 goals에 {goal_id,kind,scope_note,source_url?}를 선언한다. kind는 official_spec/manual/external_reviews/next_pages/conditions/counterexamples이며 실제 필요한 절·페이지·출처를 같은 종류의 서로 다른 목표로 확장한다. 개수는 충분성 기준이 아니다. source_scan에 goal_ids와 source_type을 넣어 같은 요청의 목표에 연결하고, 정확 source_url을 계획했으면 그대로 유지한다. 목표ID·scope는 덮어쓰지 않는다.
+
+source_scan.remaining_scope에 미관측 다음 페이지·설명서 절·조건을 보존한다. 같은 목표/URL의 후속 scan은 현재 남은 범위를 갱신하는 신고이며 과거 원이력은 남는다. 접근 실패는 inaccessible/실제 이유, 옵션·게시일/고유 후기ID 미확인은 null/해당 disposition으로 남긴다. 다양한 원출처의 역할과 후기 긍정·유보/현재·이전 경험을 원문으로 검토한다. 제조사 자료·설명서는 고객 후기의 대체 표본이 아니다.
+
+충분/소진 종료에는 계획과 실제 scan이 있어야 한다. research_stop.remaining_goal_ids는 workflow_status.research_scope.remaining_goal_ids와 정확히 같아야 하고 remaining_scope에는 scan에서 남긴 범위를 누락 없이 넣는다. 남은 범위가 있으면 limitation_basis에 결론에 미치는 영향·조건/다음 확인을 구체적으로 기록한다. 접근 실패가 있어도 근거 있는 조건부안은 가능하지만 이 자유 서술은 의미/충분성 자동 인증이 아니며 독립검토 대상이다. 미시도 목표와 실제 접근 실패를 구분한다. 자료 부족은 held로 전달한다. fixed_catalog 재사용(web 시도0)·기존 research_policy:null 이력은 소급 변경하지 않는다.
+
+source_scan100/import10/retrieve20은 분할 처리 크기다. catalog 파일의 유한 상한은16MiB이고 정확scope20·catalog발췌4000자는 유지한다. 원문 긴 후기는 연속 발췌로 나누되 같은 후기ID/원URL/전체·부분 맥락과 journal을 유지한다. 배치·파일 상한 도달을 전체 조사 종료나 의미 충분성으로 쓰지 않는다.
+
+workflow_status.research_scope는 목표10개/남은ID20개와 scan 요약 미리보기·전체count를 반환한다. 상세/잘린 문자열은 export_session의 원래 workflow_events에서 전량 확인하여 research_stop의 정확 ID/남은 범위를 작성한다. 미리보기 생략은 조사 완료가 아니다.
+
+신규 web 조사 status의 research_scope.stop_scope_file은 runtime-data/research-scopes 안의 불변 JSON path/SHA/bytes를 제공한다. 같은 research_id·현재 workflow_audit_sha256에 결속된 전체 remaining_goal_ids/remaining_scope/목표상태만 담으며 후기본문은 기존원문에 유지한다. 파일SHA와 research_id를 확인하고 필요한 JSON 필드/목표를 선택해 읽는다. 전체 export/원문을 문맥에 통째출력하지 않는다. 이후 scan이면 새지문 파일을 읽고 과거파일로 남은범위를 신고하지 않는다. 정지 입력은 원 journal 전체와 재대조한다.

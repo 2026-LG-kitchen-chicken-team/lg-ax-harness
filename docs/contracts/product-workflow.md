@@ -32,3 +32,19 @@ open_product_workflow의 새 기본 budget_seconds는600, 허용범위는300~180
 명시1200~1800초 계약의 twenty_minute_checkpoint와 예전 SQLite 이력은 유지한다. short-request-v1의 completed는 모든 선택 catalog 등록본문의 실제 전달과 caller-reviewed/excluded 이유 이력을 확인한다. 긍정/부정/장기/조건/반례/사양/설명서 다양성과 의미 충분성은 별도 판단이다. 미검토/불충분은 held가 가능하다. 자료를 줄여 시간 목표를 맞추지 않는다.
 
 Tool의 finished_at은 저장 reader 파일 확인 시각이다. native의 최종 답변/process exit와 backend 중단은 이 일반 코드로 강제/인증되지 않는다. 외부 평가 실행기는 실제 native 시작→최종 전달/process exit까지600초를 별도 적용하고 backend 상태 미관측은 unknown으로 남긴다. 목표300/상한600 구현은 실제 전체 업무 목표 달성이나 이전1800초 실패 원인 해결의 근거가 아니다.
+
+## 신규 웹 조사 계획 결속 — research-scope-v1
+
+새 workflow 행은 research_policy=research-scope-v1을 저장하며 구행은 NULL로 유지한다. web_pages 시도가 실제 존재하는 새 조사에 적용하고, web 시도0 fixed_catalog 재사용은 기존 stop 계약을 유지한다. timing_policy/clock/최종90초 예약은 변경하지 않는다.
+
+research_plan에 선택 goals:[{goal_id,kind,scope_note,source_url?}]를 추가한다(한 계획 batch100 이하). 새 웹 조사에서 충분/소진 종료 또는 completed에는 official_spec/manual/external_reviews/next_pages/conditions/counterexamples 목적을 선언해야 한다. 목표 수는 충분성 최소건수가 아니며 같은 kind에 여러 절/페이지/출처를 계획할 수 있다. goal_id는 불변이며 다른 scope/URL로 교체하지 않는다. source_scan의 goal_ids는 같은 요청의 선언 목표만 허용하며 정확 계획URL과 document/review 종류를 확인한다. 원문·공식성·사용 조건·의미는 별도검토다.
+
+workflow_status.research_scope에는 목표별 pending/partial/inaccessible/observed/not_applicable, 실제 scan URL/이유와 남은 범위를 제공한다. 원인은 호출자 신고이며 접근 실패와 미시도를 구분한다. 같은 goal/URL의 후속 scan을 현재상태로 사용하되 이전 이벤트는 export에 보존한다. source_scan.remaining_scope는 후속페이지/설명서절/조건의 미관측 범위를 유지한다.
+
+research_stop에는 선택 remaining_goal_ids/limitation_basis를 추가한다. 새 웹 조사는 남은 목표ID 전부를 정확히 신고하고 현재 scan.remaining_scope를 누락 없이 공개해야 한다. 충분/소진에는 실제 source_scan이 필요하다. 남은 범위가 있으면 limitation_basis에 결론 영향·조건·다음 확인을 명시한다. 실제 inaccessible 및 명시적 미처리 범위가 있어도 독립 의미검토를 거친 조건부안은 가능하며 code는 이 서술의 충분성·대표성을 인증하지 않는다. 접근/시간/근거부족 종료는 계획 작성 전 실패도 보존할 수 있지만 새 completed의 계획·공개 gate와 혼동하지 않는다.
+
+StateStore의 신규 completed에는 기존 catalog 전량 전달/신고검토와 이 조사 범위 공개 gate를 함께 적용한다. held 저장은 허용한다. source_scan100/import10/retrieve20은 batch 상한이며 조사 종료 기준이 아니다. 유한 catalog 파일16MiB·scope20·발췌4000자를 유지하며 원문 단축이나 고객 수 부풀리기로 상한을 피하지 않는다.
+
+workflow_status.research_scope는 목표10개/남은ID20개와 scan 요약 미리보기·전체count를 반환한다. 상세/잘린 문자열은 export_session의 원래 workflow_events에서 전량 확인하여 research_stop의 정확 ID/남은 범위를 작성한다. 미리보기 생략은 조사 완료가 아니다.
+
+신규 web 조사 status의 research_scope.stop_scope_file은 runtime-data/research-scopes 안의 불변 JSON path/SHA/bytes를 제공한다. 같은 research_id·현재 workflow_audit_sha256에 결속된 전체 remaining_goal_ids/remaining_scope/목표상태만 담으며 후기본문은 기존원문에 유지한다. 파일SHA와 research_id를 확인하고 필요한 JSON 필드/목표를 선택해 읽는다. 전체 export/원문을 문맥에 통째출력하지 않는다. 이후 scan이면 새지문 파일을 읽고 과거파일로 남은범위를 신고하지 않는다. 정지 입력은 원 journal 전체와 재대조한다.

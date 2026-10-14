@@ -57,6 +57,8 @@ class ProductWorkflowTests(unittest.TestCase):
         self.request = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.research = self.request["research_id"]
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
 
     def tearDown(self):
@@ -121,6 +123,8 @@ class ProductWorkflowTests(unittest.TestCase):
         self.store = StateStore(self.root / "runtime-data/product.sqlite", Dataset(ROOT / "data/business/empty"))
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
         replay = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.assertEqual((replay["workflow"]["started_at"], replay["workflow"]["elapsed_seconds"]),
@@ -207,6 +211,8 @@ class ProductWorkflowTests(unittest.TestCase):
         self.store = StateStore(self.root / "runtime-data/product.sqlite", Dataset(ROOT / "data/synthetic/kitchen-v1"))
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
         resolved = self.conv.resolve_request(resolve)
         self.assertEqual(resolved["turn"]["input"]["question"], self.original["question"])
@@ -380,7 +386,7 @@ class ProductWorkflowTests(unittest.TestCase):
             self.scan(captured, [], key="scan-" + str(index), source_type="manual")
         provider = self.audit.status(self.research)["counts"]["providers"][0]
         self.assertEqual((provider["scan_count"], provider["source_url_count"]), (8, 8))
-        self.assertEqual((len(provider["scans"]), len(provider["source_urls"])), (6, 6))
+        self.assertEqual((len(provider["scans"]), len(provider["source_urls"])), (2, 2))
         exported = self.conv.export_session({"session_id": self.original["session_id"]})
         payload = json.loads((self.root / exported["path"]).read_text(encoding="utf-8"))
         scans = [event for event in payload["requests"][0]["workflow_events"] if event["kind"] == "source_scan"]
@@ -513,6 +519,8 @@ class ProductWorkflowTests(unittest.TestCase):
         self.store = StateStore(self.root / "runtime-data/product.sqlite", Dataset(ROOT / "data/synthetic/kitchen-v1"))
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
         turn = self.conv.resolve_request({"session_id": self.original["session_id"], "request_key": self.original["request_key"],
             "expected_request_version": 0, "event_key": "resolve-file-clock", "selection": {

@@ -323,6 +323,8 @@ class StateStore:
             if clock and (clock[0] <= 600 or clock[1] == "natural-completion-v1"):
                 from .evidence_coverage import EvidenceCoverage
                 EvidenceCoverage(self).require_complete(session_id, turn_id)
+                from .workflow import WorkflowAudit
+                WorkflowAudit(self.db, self.path.parent.parent).require_scope_disclosure(research)
 
     def record_usage(self, session_id, turn_id, call):
         obj(call, ("call_id", "status", "input_tokens", "output_tokens", "cache_tokens", "reasoning_tokens", "cost_usd"))

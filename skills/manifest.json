@@ -59,7 +59,7 @@
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "142442d06508d86a4b0fefe42b6303fcf0d5bbf9c0ebfc8ce01d5445c319459a"
+          "sha256": "2c8d070164bc5a3bf050430095d00f6040963d190fac3b6947ddd9df6ee43015"
         }
       ]
     },
@@ -168,7 +168,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "bcbd2b09c3061a31f114739e88e754e318efbc028eac440623cce738fe238a75"
+      "sha256": "8987fb75bddfb2a2210ff6637a875a39202d5d515a3b25616c206b639c4187a4"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
@@ -208,7 +208,7 @@
     },
     {
       "path": "product-tools/product_tools/dataset.py",
-      "sha256": "6df8beeb0d55e9563d333cd35ed9d20ec7febf0de349081cbea850966823d006"
+      "sha256": "d4340d466ffc249cc3716f9ffcb1083919dee3e21e37a0ef0e22b3efcb49157f"
     },
     {
       "path": "product-tools/product_tools/delivery.py",
@@ -235,6 +235,10 @@
       "sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6"
     },
     {
+      "path": "product-tools/product_tools/research_scope.py",
+      "sha256": "aa6e3e2be7c78670fdb296cbafe265721833d5aec6a1bdc137d3067e5c327a94"
+    },
+    {
       "path": "product-tools/product_tools/reviewer_packet.py",
       "sha256": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4"
     },
@@ -244,7 +248,7 @@
     },
     {
       "path": "product-tools/product_tools/state.py",
-      "sha256": "ecbfe3ed5232f235d175057b76f49997b8ecad01fe00d1315ea50955932f24f2"
+      "sha256": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf"
     },
     {
       "path": "product-tools/product_tools/tools.py",
@@ -260,7 +264,7 @@
     },
     {
       "path": "product-tools/product_tools/workflow.py",
-      "sha256": "1cec6bbdd1bdcc2befbe5b80e97c5f11c911c3abe468d4089cdbe693ae94defc"
+      "sha256": "d8b1a2702943a589014a2608b31dc49c6a8402b6a98a7914f6b8afc3256aa39b"
     },
     {
       "path": "docs/contracts/common-tools.md",
@@ -272,7 +276,7 @@
     },
     {
       "path": "docs/contracts/web-evidence.md",
-      "sha256": "38efa46d04fc82d17174b303d557e07304da10c8b8399e3eee19c9d3c1b2a22a"
+      "sha256": "d855939acfa1b2039738ee954224da3d8c12721a7e3894d7f4d2cc7d5263c407"
     },
     {
       "path": "docs/contracts/codex-product.md",
@@ -284,7 +288,7 @@
     },
     {
       "path": "docs/contracts/product-workflow.md",
-      "sha256": "c0a92bfca1d34377fb858b0395ead65ffb72048ad0aaa773eb5aacce7a5541e1"
+      "sha256": "ff56ff8c553cf34e755a2e91414dbce6c7b02579cdbc44fc1dc81bd86eac19f7"
     },
     {
       "path": "product-tools/requirements.in",
