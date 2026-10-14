@@ -193,7 +193,9 @@ function OpsKpis({ items }: { items: Kpi[] }) {
       {items.map((k, i) => (
         <div key={i} className={cn(LOOK.ops.card, 'min-w-0 p-4')} title={k.source ? '출처: ' + k.source : undefined}>
           <div className="flex items-center gap-2 text-[13px] text-zinc-600"><span aria-hidden className="size-2 rounded-[2px]" style={{ background: hex[tone(k.tone)] }} />{k.label}</div>
-          <div className={cn('mt-3 font-medium leading-tight tracking-tight tabular-nums', vsize(k.value, k.unit, ['text-[30px]', 'text-xl', 'text-sm break-all']), tone(k.tone) === 'gray' ? 'text-zinc-500' : 'text-zinc-950')}>
+          {/* lg-num: K motion 2, the stored number settles into place (no counting; index.css). */}
+          <div className={cn('lg-num mt-3 font-medium leading-tight tracking-tight tabular-nums', vsize(k.value, k.unit, ['text-[30px]', 'text-xl', 'text-sm break-all']), tone(k.tone) === 'gray' ? 'text-zinc-500' : 'text-zinc-950')}
+            style={{ ['--i' as string]: Math.min(i, 4) }}>
             {fmt(k.value)}{k.unit && <span className="ml-1 text-[13px] font-normal text-zinc-500">{k.unit}</span>}
           </div>
           {k.note && <div className="mt-1.5 text-[12px] leading-snug text-zinc-500">{k.note}</div>}
@@ -484,7 +486,7 @@ function OpsTable({ b, tools, cols, shown }: { b: Block; tools: ReactNode; cols:
                 on && (
                   <tr key={k + '-more'}>
                     <td colSpan={visible.length + 1} className="border-b border-[#efefef] bg-[#fafafa] px-3 py-2.5">
-                      <dl className="grid gap-x-6 gap-y-1.5 text-[12.5px] sm:grid-cols-2">
+                      <dl className="lg-open grid gap-x-6 gap-y-1.5 text-[12.5px] sm:grid-cols-2">
                         {folded.map((c) => (
                           <div key={c.key} className="flex min-w-0 items-baseline gap-2">
                             <dt className="w-24 shrink-0 text-zinc-500">{c.label}</dt>

@@ -105,6 +105,34 @@
 .skin-ops [data-card] { box-shadow: none; }
 .skin-ops [data-badge] { border-radius: 4px; }
 
+/* K motion: five kinds, each 0.6s or less, all off under prefers-reduced-motion (and in print). Everything is fully
+   visible without them: nothing is hidden unless the motion that shows it will run.
+   1 blocks below the first screen rise in once (DashApp marks them) · 2 KPI numbers settle into place (the final number
+   from the start; no counting) · 3 hover on buttons and the prev/next cards · 4 opened folds fade in · 5 the search
+   highlight fades out (the outline itself is a state and shows for everyone). */
+.skin-ops .lg-flash { animation: none; border-radius: 0.5rem; box-shadow: 0 0 0 3px rgb(47 143 87 / 0.4); }
+@media (prefers-reduced-motion: no-preference) {
+  .skin-ops [data-block] { transition: box-shadow 0.3s ease-out; }
+  .skin-ops [data-reveal] { transition: opacity 0.45s ease-out, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease-out; }
+  .skin-ops [data-reveal="wait"] { opacity: 0; transform: translateY(12px); }
+  .skin-ops .lg-num { animation: lg-num 0.36s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
+  .skin-ops [data-reveal="wait"] .lg-num { animation: none; }
+  .skin-ops .lg-lift { transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out; }
+  .skin-ops .lg-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -10px rgb(0 0 0 / 0.25); }
+  .skin-ops .lg-lift .lg-nudge { transition: transform 0.2s ease-out; }
+  .skin-ops .lg-lift:hover .lg-nudge-prev { transform: translateX(-3px); }
+  .skin-ops .lg-lift:hover .lg-nudge-next { transform: translateX(3px); }
+  .skin-ops details[open] > :not(summary), .skin-ops .lg-open { animation: lg-open 0.24s ease-out; }
+}
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .skin-ops :is(button, summary, a) { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
+  }
+}
+@keyframes lg-num { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
+@keyframes lg-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media print { .skin-ops [data-reveal] { opacity: 1 !important; transform: none !important; } }
+
 /* L analytics: white, orange accent, light borders. */
 .skin-analytics {
   --background: #ffffff; --foreground: #18181b; --card: #ffffff; --card-foreground: #18181b; --muted: #f6f6f7;
