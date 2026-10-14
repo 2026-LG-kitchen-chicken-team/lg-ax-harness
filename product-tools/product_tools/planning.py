@@ -135,4 +135,4 @@ def review_product_result(dataset, payload):
             "can_finalize_reported_result": result["status"] != "completed" or not findings,
             "findings": findings, "qualified_claim_ids": sorted(qualified), "completion_scope": "planning_draft_only",
             "semantic_status": "unverified", "acceptance_ready": False,
-            "note": "Checks the model's report, not whether its interpretation is true. Original-source evaluation remains required."}
+            "note": "Checks the model's report, not whether its interpretation is true. Original-source evaluation remains required; planning_quality_diagnostics is nonblocking field presence only."}

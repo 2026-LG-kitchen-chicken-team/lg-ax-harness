@@ -23,6 +23,10 @@ workflow의 elapsed_seconds는 시작부터 finish까지 모델 판단·Tool·�
 
 보류의 판단 근거도 decision_notes에 원문 사실·AI 해석·미확인으로 구분하고 정확 refs에 연결한다. 원문 직접 인용은 support_quote의 연속 구간이며 요약/판단은 공식 발언으로 표시하지 않는다. 후기의 실제 영향·발생/회피 조건·긍정·유보 문맥과 고유 후기 ID/분모를 확인한다. bundle의 truncated=false/누락 ID 없음만으로 원페이지나 판단 문맥 전체를 확인했다고 쓰지 않는다. 중요 문맥 미확인은 조건부 한계 또는 held에 반영한다. 최종 답변에도 이 구분과 사용한 URL/위치를 전달한다. 자체 추정 실행시간은 쓰지 않으며 외부 실제 기록이 없으면 미측정이다.
 
+completion_summary는 같은 저장 버전의 decision_notes/basis와 사용한 URL/위치를 코드로 전달하고 JSON sidecar에 실제 전체 notes/refs를 보존한다. source_fact도 AI 분류로 유지하며 사용하지 않은 catalog를 사용 근거로 세지 않는다. 노트만 있는 held의 근거를 생략하거나 원문 전체를 모델에게 다시 작성시키지 않는다.
+
+계획의 전체 사전 배정 시도 분모·실패/중단/미응답·미확인, 같은 과업·환경의 조건통제, 오안내·완료품질·실패 탐지 비퇴행을 함께 검토한다. 선택 condition_controls/guardrail_metrics는 payload.md의 타입/범위를 따른다. planning_quality_diagnostics는 structural_only/blocking=false의 누락 안내다. 누락만으로 전체 기획을 거절하지 않고 필드 존재로 의미·측정·품질을 인증하지 않는다.
+
 저장 크기를 조정한 뒤에는 바뀐 문장마다 각 절의 술어·정확 모델·조건·시점이 현재 연결 source_ids의 원문으로 지지되는지 다시 대조한다. 술어를 남기고 그 근거만 삭제하지 않는다. 여러 출처를 묶은 문장은 출처별로 나누거나 필요한 직접 근거를 모두 유지한다. 집계/제외/인과는 원문 직접사실과 구분해 AI 판단으로 표시한다. 긴 본문은 별도 report_plan으로 옮기되 자료 폭·원문·미확인·반례는 줄이지 않는다. 수정 후보와 현재 저장/export/보고서/최종의 주장 범위를 대조하고 미완문·수정 전 단정이 남지 않았는지 확인한다.
 
 일반 업무는 기존6필드의 save_and_export(report:false)로 저장/export와 웹 정형 데이터 전달을 수행한다. web_ready/web_result.path/sha256/binding을 확인한다. 데이터에는 현재 결과·전체 선택 원문·출처·검토/조사 이력이 있고 웹팀이 작업 화면/보고서HTML을 만든다. PDF/DOCX/XLSX 생성·이미지검수는 기본 필수가 아니다. 명시 파일 요청에만 report:true와 기존 옵션/파일 생성·검수 규칙을 적용한다. 저장 accepted=false도 최초0/수정1/2를 소비하며 새 turn으로 초기화하지 않는다. semantic_status=unverified, acceptance_ready=false를 유지한다. 현재 completion_summary.text를 전달하고 실제 web/export 응답 위치를 유지한다. 요약은 일반 코드가 저장된 내용을 선택한 것이며 새 의미 승인이나 모델의 모든 출력 강제가 아니다.
