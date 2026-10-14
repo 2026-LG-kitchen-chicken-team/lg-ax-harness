@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "source": "M2",
+  "source_commit": "48e907a",
+  "canonical_manifest_sha256": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+  "scope": "Actual combined final code checks; not a native or semantic acceptance result",
+  "checks": [
+    {
+      "kind": "product",
+      "receipt_id": "869f86c5422b43c5a7015b2318e8c356",
+      "receipt_sha256": "237fa1f62004962b8801228707e5cab31dc1cd9f2b579e21ee63ff08b6e359d0",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:52:58.164803+00:00",
+      "finished_at": "2026-10-14T11:54:26.111906+00:00",
+      "duration_seconds": 87.9465,
+      "exit_code": 0,
+      "total_tests": 443,
+      "passed_tests": 443,
+      "skipped_tests": 0,
+      "inputs": {
+        "product-tools/product_tools/conversation.py": "03a2bbd7627c801b392cb3b1f6446993041ca4c04aa32b207943cf170305082a",
+        "product-tools/requirements.lock": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033",
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+        "tests/product-tools/test_timed_followup.py": "bcfc1affe1bc3e167f097e526213aa08241c99b2e46c21716f333aff88daaae1"
+      },
+      "logs_sha256": {
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr.log": "e4e63800f78ad73ca021b6416a530e53fa504acba724b750f92ee8d9a5e5ee7c"
+      }
+    },
+    {
+      "kind": "web",
+      "receipt_id": "b9d817c8fddb4b709abb7370c5540488",
+      "receipt_sha256": "885b4142793b2d32da333c36910dd4c56b0648d148cd17bb700ad8ee54a3ec9c",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/web",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:52:58.145950+00:00",
+      "finished_at": "2026-10-14T11:54:08.225415+00:00",
+      "duration_seconds": 70.079,
+      "exit_code": 0,
+      "total_tests": 105,
+      "passed_tests": 105,
+      "skipped_tests": 0,
+      "inputs": {
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+        "tests/web/test_visual_viewer.py": "52760c089f64a1e14909b25c4751506c7177091a4b724a09bcbbaeb8740539e5",
+        "web/prototypes/visual-viewer/build_view.py": "1c302c2eac9a46390d07acfa4deddb118ca2bbddb69044d30b4aa1a46499d9d1"
+      },
+      "logs_sha256": {
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr.log": "76959fbc27e82301ad9a778c6cc229dac4e81a5758c15e052bae1413e245f775"
+      }
+    },
+    {
+      "kind": "assets",
+      "receipt_id": "a85ac00737434c67b3d22e4d33b36ba1",
+      "receipt_sha256": "8adcc6815fbfd45dc8755b8cc92037135d7127fa5c1e853fcaa3222e50d80c98",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "scripts/check-product-assets.py"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:55:00.421701+00:00",
+      "finished_at": "2026-10-14T11:55:00.529955+00:00",
+      "duration_seconds": 0.1082,
+      "exit_code": 0,
+      "total_tests": null,
+      "passed_tests": null,
+      "skipped_tests": null,
+      "inputs": {
+        "scripts/check-product-assets.py": "8225cd85c7cff9e975632e7b674b19ca2a4352e7ec401df73d180cd8089bd29f",
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff"
+      },
+      "logs_sha256": {
+        "stdout.log": "0bd15dfc7e568dcd86fdf8552ef3c10ada039b09d3831e6e6ca9310664ab1f72",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "kind": "development",
+      "receipt_id": "6809f595e79f44a59b43ab73b249bcaa",
+      "receipt_sha256": "86abf5a167e38a46a4fd22a585256a608d20b713f13f2874b99f72c7de28bbf2",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "dev-harness/cli.py",
+        "validate"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:55:00.425386+00:00",
+      "finished_at": "2026-10-14T11:55:00.853071+00:00",
+      "duration_seconds": 0.4277,
+      "exit_code": 0,
+      "total_tests": null,
+      "passed_tests": null,
+      "skipped_tests": null,
+      "inputs": {
+        "dev-harness/cli.py": "845fba2b31368d1bf4720f63debf5816f29be7645396d601bbb47bd41cc94b96",
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff"
+      },
+      "logs_sha256": {
+        "stdout.log": "eb18bd79b0dd6f196e0c2a41983925abfdc6369627218e9e4618891f29d012c3",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "native_inputs_from_these_checks": 0,
+  "frontend_styles_changed": false,
+  "ci": "not_started_due_account_spending_limit",
+  "raw_receipts": "Git-excluded local receipts retained; identifiers and hashes only",
+  "M1_results_relabelled": false
+}
