@@ -5,16 +5,144 @@ import importlib.util
 from pathlib import Path
 import sys
 import sqlite3
+import shutil
 import tempfile
 import threading
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
-from product_tools.contracts import ToolError, canonical, strict_json
+from product_tools.contracts import ToolError, canonical, fingerprint, strict_json
 from product_tools.dataset import Dataset
 from product_tools.state import StateStore
 from product_tools.conversation import Conversation
+from product_tools.web_evidence import WebEvidence
+from product_tools.workflow import WorkflowAudit
+
+
+class CancellationResearchTests(unittest.TestCase):
+    """Actual local APIs and retained fixtures; no HTTP or native browser call."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.workspace = Path(self.temp.name)
+        for relative in ("skills/manifest.json", "agents/product-planning.md"):
+            target = self.workspace / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / relative, target)
+        self.data = Dataset(ROOT / "data/business/lg-research-v3")
+        self.store = StateStore(self.workspace / "runtime-data/cancel.sqlite", self.data)
+        self.addCleanup(self.store.close)
+        self.conv = Conversation(self.store, self.workspace)
+        self.web = WebEvidence(self.store.path, self.workspace)
+        self.addCleanup(self.web.close)
+        self.audit = WorkflowAudit(self.store.db, self.workspace)
+        self.url = "https://www.lge.co.kr/refrigerators/t876mqq012"
+        self.body = "T876MQQ012 취소 장벽 계약 시험 본문."
+
+    def start(self, timed=True):
+        payload = {"question": "실제 제품 평가가 아닌 취소 API 계약 시험", "model_id": "T876MQQ012",
+                   "session_id": "cancel-research-" + str(getattr(self, "request_count", 0)), "request_key": "original", "user_submitted": True}
+        self.request_count = getattr(self, "request_count", 0) + 1
+        if timed:
+            payload.pop("model_id")
+        response = (self.conv.open_product_workflow if timed else self.conv.open_request)(payload)
+        self.original = payload
+        self.research = "research-" + fingerprint([payload["session_id"], payload["request_key"]])
+        model = next(m for m in self.data.models if m["model_id"] == "T876MQQ012")
+        self.scope = {key: model[key] for key in ("model_id", "model_version", "document_version")}
+        if "turn" in response:
+            turn = response["turn"]
+            self.handle = {"session_id": turn["session_id"], "turn_id": turn["turn_id"]}
+        else:
+            self.handle = None
+
+    def capture(self, page):
+        return self.web.collect({"research_id": self.research, "page_id": page, "url": self.url,
+                                 "observed_text": self.body, "native_tool_name": "unit_fixture_no_browser"}, True)
+
+    def cancel(self):
+        if self.handle is None:
+            remaining = self.audit.status(self.research)["research_scope"]["remaining_goal_ids"]
+            self.conv.record_workflow_event({"research_id": self.research, "event_key": "stop", "kind": "research_stop", "data": {
+                "code": "insufficient_evidence", "basis": "Local fixture only", "new_findings": [],
+                "remaining_scope": ["Unobserved fixture scope"], "remaining_goal_ids": remaining,
+                "limitation_basis": "Local API fixture does not establish product evidence"}})
+            response = self.conv.resolve_request({"session_id": self.original["session_id"], "request_key": self.original["request_key"],
+                "event_key": "resolve", "expected_request_version": 0, "selection": self.scope})
+            self.handle = {"session_id": response["turn"]["session_id"], "turn_id": response["turn"]["turn_id"]}
+        response = self.store.cancel_turn(**self.handle, cancel_key="cancel", reason="계약 시험 사용자 취소",
+                                         expected_result_version=0, user_submitted=True)
+        self.assertEqual(response["turn"]["status"], "cancelled")
+        self.assertEqual(response["turn"]["result_version"], 0)
+
+    def import_payload(self, captured, include_research=True):
+        payload = {"data_version": "cancel-contract-fixture", "observations": [{
+            "snapshot_id": captured["snapshot_id"], "source_id": "CANCEL-CONTRACT-FACT", "kind": "product_fact",
+            "scope": self.scope, "location": "Local cancellation fixture", "text": self.body, "support_quote": self.body,
+            "published_date": None, "model_matching": "explicit_model_verified", "purchase_verified": None,
+            "sponsorship": None, "feature_key": "cancel-contract-fixture", "availability": "present"}]}
+        if include_research:
+            payload["research_id"] = self.research
+        return payload
+
+    def blocked(self, callback):
+        try:
+            unexpected = callback()
+        except ToolError as error:
+            self.assertEqual(error.code, "terminal_turn")
+        else:
+            self.fail("Cancelled turn permitted a new write: " + canonical(unexpected))
+
+    def test_cancelled_timed_and_untimed_requests_block_new_capture(self):
+        for timed in (True, False):
+            with self.subTest(timed=timed):
+                # Each case gets its own original request and clock.
+                self.start(timed)
+                self.cancel()
+                self.blocked(lambda: self.capture("late-" + str(timed)))
+        self.assertEqual(self.web.db.execute("SELECT COUNT(*) FROM web_pages").fetchone()[0], 0)
+
+    def test_cancelled_single_import_blocks_catalog_write_and_retains_snapshot(self):
+        self.start()
+        captured = self.capture("before-cancel")
+        self.cancel()
+        self.blocked(lambda: self.web.import_evidence(self.data, self.import_payload(captured)))
+        self.assertFalse((self.workspace / "runtime-data/catalogs/cancel-contract-fixture").exists())
+        self.assertEqual(self.audit.snapshot(self.research, captured["snapshot_id"])["text"], self.body)
+
+    def test_untimed_import_cannot_omit_cancelled_snapshot_request(self):
+        self.start(False)
+        captured = self.capture("before-cancel")
+        self.cancel()
+        self.blocked(lambda: self.web.import_evidence(self.data, self.import_payload(captured, False)))
+        self.assertFalse((self.workspace / "runtime-data/catalogs/cancel-contract-fixture").exists())
+
+    def test_cancel_preserves_read_replay_and_failure_audit_without_observed_sources(self):
+        self.start()
+        plan = {"research_id": self.research, "event_key": "plan", "kind": "research_plan", "data": {
+            "product_name": "Local cancellation fixture", "coverage": ["positive", "negative", "long_term", "conditions", "counterexamples"],
+            "source_plan": ["Local fixture"], "goals": [{"goal_id": "fixture", "kind": "official_spec", "scope_note": "Fixture only"}]}}
+        self.conv.record_workflow_event(plan)
+        captured = self.capture("before-cancel")
+        self.cancel()
+        scan = {"research_id": self.research, "event_key": "late-scan", "kind": "source_scan", "data": {
+            "source_url": self.url, "page_label": "Local fixture", "status": "observed", "reviews": [],
+            "snapshot_ids": [captured["snapshot_id"]], "source_type": "product_document", "goal_ids": ["fixture"], "reason": "Fixture only"}}
+        self.blocked(lambda: self.conv.record_workflow_event(scan))
+        self.assertEqual(self.conv.record_workflow_event(plan)["event_count"], 2)
+        failure = copy.deepcopy(scan)
+        failure.update(event_key="late-failure")
+        failure["data"].update(status="inaccessible", snapshot_ids=[], reason="Caller-reported failure; no new observation")
+        self.assertEqual(self.conv.record_workflow_event(failure)["event_count"], 3)
+        self.assertEqual(self.store.get_turn(**self.handle)["status"], "cancelled")
+
+    def test_open_request_still_collects_and_imports_without_new_cancel_api(self):
+        self.start(False)
+        captured = self.capture("open")
+        imported = self.web.import_evidence(self.data, self.import_payload(captured))
+        self.assertTrue((self.workspace / imported["data_path"]).is_dir())
+        self.assertEqual(self.store.get_turn(**self.handle)["status"], "pending")
 
 
 class CancellationTests(unittest.TestCase):

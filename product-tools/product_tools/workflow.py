@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .contracts import canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from .contracts import ToolError, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from . import research_scope
 
 
@@ -59,7 +59,26 @@ class WorkflowAudit:
     def active(self, research_id):
         return self.db.execute("SELECT 1 FROM product_workflows WHERE research_id=?", (research_id,)).fetchone() is not None
 
+    def request_turn_status(self, research_id):
+        """Recognize registered terminal turns without requiring a timed workflow."""
+        try:
+            request = self.request(research_id)
+        except ToolError as error:
+            if error.code == "research_not_registered":
+                return None  # Legacy standalone evidence has no request journal.
+            raise
+        if request[2] is None:
+            return None
+        row = self.db.execute("SELECT status FROM turns WHERE session_id=? AND turn_id=?",
+                              (request[0], request[2])).fetchone()
+        return row[0] if row else None
+
+    def require_request_open(self, research_id):
+        if self.request_turn_status(research_id) in ("cancelled", "failed"):
+            fail("terminal_turn", "The original turn is cancelled/failed; no new collection or catalog writes")
+
     def collection_allowed(self, research_id):
+        self.require_request_open(research_id)
         if not self.active(research_id):
             return
         state = self.status(research_id)
@@ -100,7 +119,12 @@ class WorkflowAudit:
             return self.status(research)
         if self.status(research)["finished_at"]:
             fail("workflow_finished", "A finished workflow cannot accept new audit events")
-        if kind in ("research_plan", "source_scan"):
+        # A late failed observation can be audited without adding any observed
+        # source. It does not reopen collection, import or a finished workflow.
+        terminal_failure_audit = (kind == "source_scan" and isinstance(data, dict)
+            and data.get("status") == "inaccessible" and not data.get("reviews")
+            and not data.get("snapshot_ids") and self.request_turn_status(research) in ("cancelled", "failed"))
+        if kind in ("research_plan", "source_scan") and not terminal_failure_audit:
             self.collection_allowed(research)
         if kind == "research_plan":
             obj(data, ("product_name", "coverage", "source_plan"), ("goals",))

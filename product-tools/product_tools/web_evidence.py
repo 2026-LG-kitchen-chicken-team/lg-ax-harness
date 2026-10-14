@@ -191,15 +191,15 @@ class WebEvidence:
     def _reserve(self, payload, mode):
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.db, self.workspace)
-        if audit.active(payload["research_id"]):
-            audit.request(payload["research_id"])
-            audit.collection_allowed(payload["research_id"])
         identifier(payload["research_id"], "research_id")
         identifier(payload["page_id"], "page_id")
         public_url(payload["url"])
         key = fingerprint({"mode": mode, **payload})
         with self.db:
             self.db.execute("BEGIN IMMEDIATE")
+            if audit.active(payload["research_id"]):
+                audit.request(payload["research_id"])
+            audit.collection_allowed(payload["research_id"])
             if mode == "http":
                 previous = self.db.execute("SELECT page_id,request_hash FROM web_pages WHERE research_id=?",
                                            (payload["research_id"],)).fetchall()
@@ -656,6 +656,17 @@ class WebEvidence:
             fail("workflow_snapshot_scope", "Publisher linkage imports require the original request's research_id")
         if research is None and self.db.execute("SELECT 1 FROM product_workflows LIMIT 1").fetchone():
             fail("workflow_snapshot_scope", "Timed workflow imports require their original research_id")
+        import_requests = {research} if research is not None else set()
+        if research is None:
+            # Untimed legacy imports may omit research_id. A retained snapshot
+            # still cannot be used to evade its registered request's cancel.
+            for observed in payload["observations"]:
+                for sid in (observed.get("snapshot_id"), observed.get("association_snapshot_id")):
+                    if sid is not None:
+                        import_requests.update(row[0] for row in self.db.execute(
+                            "SELECT DISTINCT research_id FROM web_pages WHERE snapshot_id=?", (sid,)))
+        for original in import_requests:
+            audit.require_request_open(original)
         if research is not None:
             audit.request(research)
             for observed in payload["observations"]:
@@ -804,6 +815,8 @@ class WebEvidence:
         base.mkdir(parents=True, exist_ok=True)
         if target.exists():
             fail("version_conflict", "Dataset version already exists; never overwrite a snapshot")
+        for original in import_requests:
+            audit.require_request_open(original)
         target.mkdir()
         try:
             (target / "models.json").write_text(canonical(models), encoding="utf-8")
