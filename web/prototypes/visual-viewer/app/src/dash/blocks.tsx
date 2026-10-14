@@ -705,7 +705,7 @@ const SECTION_NO: Record<string, number> = { problem: 1, check: 2, flow: 3, solu
 const REPORT_TITLES: Record<string, (n: string | null) => string | null> = {
   problem: (n) => (n ? `현재 불편 ${n}건 확인` : null),
   check: (n) => (n ? `기존 기능 ${n}건과 대조` : null),
-  flow: () => '불편 → 남은 불편 → 제안',
+  flow: () => '불편 → 기존 기능 → 남은 불편 → 제안',
   solution: (n) => (n ? `남은 불편 대응 제안 ${n}건` : null),
   trust: () => '근거 신뢰도와 한계',
 }

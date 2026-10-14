@@ -55,8 +55,26 @@ function exportPage(blocks: Block[]): Block[] {
   return dropAfterHeading(blocks, (b) => b.type === 'section' && startsWith(b, 'text', '관측 사용량'), isHeading)
 }
 
+// The 기능 대조 page is gone in K, so the story's link chart gets its 기존 기능 column (현재 불편 → 기존 기능 → 남은 불편
+// → 제안). The review record links pains to remaining pains (feature_matches) and remaining pains to proposals
+// (concept_links) by id; it has no pain-to-feature id, so no line is drawn to or from a feature and the note says so.
+function withFeatureColumn(blocks: Block[]): Block[] {
+  const check = blocks.find((b) => b.type === 'story' && b.key === 'check')
+  const features: Block[] = (check?.blocks || []).find((x: Block) => x.type === 'claims')?.items || []
+  if (!features.length) return blocks
+  return blocks.map((b) => (b.type !== 'story' || b.key !== 'flow' ? b : {
+    ...b,
+    blocks: (b.blocks || []).map((f: Block) => (f.type !== 'flow' || (f.columns || []).some((c: Block) => c.key === 'feature') ? f : {
+      ...f,
+      columns: [f.columns[0], { key: 'feature', title: '기존 기능', tone: 'blue' }, ...f.columns.slice(1)],
+      nodes: [...(f.nodes || []), ...features.map((it) => ({ id: it.id, column: 'feature', tone: 'blue', text: it.text }))],
+      note: `${f.note || ''} 기존 기능 칸은 같은 모델에서 대조한 기능입니다. 불편·기능 사이의 연결은 검토 기록에 ID로 적혀 있지 않아 선을 그리지 않습니다.`.trim(),
+    })),
+  }))
+}
+
 function story(blocks: Block[], moved: Block[]): Block[] {
-  return blocks.map((b) => {
+  return withFeatureColumn(blocks).map((b) => {
     if (b.type !== 'story' || b.key !== 'trust') return b
     const inner = (b.blocks || [])
       .filter((x: Block) => !(x.type === 'chips' && startsWith(x, 'title', '판단 메모')))
