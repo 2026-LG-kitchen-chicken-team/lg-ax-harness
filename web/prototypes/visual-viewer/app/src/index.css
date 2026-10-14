@@ -104,6 +104,11 @@
 }
 .skin-ops [data-card] { box-shadow: none; }
 .skin-ops [data-badge] { border-radius: 4px; }
+/* K keeps hue only for failures and warnings, a shade quieter than elsewhere (lib/ktone.ts moves the rest to its green). */
+.skin-ops [data-badge][data-tone="red"] { background-color: #fbf0ef; color: #9c423c; --tw-ring-color: rgb(196 97 91 / 0.25); }
+.skin-ops [data-badge][data-tone="orange"] { background-color: #fbf4e8; color: #85581a; --tw-ring-color: rgb(207 148 66 / 0.28); }
+/* Links (원문 ↗, 더 보기) in K's deep green; the arrow icon and hover underline still mark them as links. */
+.skin-ops .text-blue-700 { color: #2f6b49; }
 
 /* K motion: five kinds, each 0.6s or less, all off under prefers-reduced-motion (and in print). Everything is fully
    visible without them: nothing is hidden unless the motion that shows it will run.

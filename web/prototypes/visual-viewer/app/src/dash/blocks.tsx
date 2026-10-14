@@ -550,9 +550,11 @@ function Callout({ b }: P) {
     )
   }
   if (id === 'ops') {
+    // K's one hue: notes and successes take its green; warnings and errors keep amber and rose.
+    const calm = n === NOTE.info || n === NOTE.success
     return (
-      <div role="note" className={cn('flex gap-2.5 rounded-md border border-l-[3px] border-[#e6e6e6] bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-800', n.bar)}>
-        <Icon className={cn('mt-0.5 size-4 shrink-0', n.ic)} aria-hidden /><div className="min-w-0"><Md text={b.text} /></div>
+      <div role="note" className={cn('flex gap-2.5 rounded-md border border-l-[3px] border-[#e6e6e6] bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-800', calm ? 'border-l-[#5fae80]' : n.bar)}>
+        <Icon className={cn('mt-0.5 size-4 shrink-0', calm ? 'text-[#2f8f57]' : n.ic)} aria-hidden /><div className="min-w-0"><Md text={b.text} /></div>
       </div>
     )
   }
@@ -885,11 +887,12 @@ const COMMON: Record<string, BlockRenderer> = {
 
 // Chart colours per view. Tones keep their meaning (red = pain, green = supported, orange = uncertain …).
 const HEXES: Record<SkinId, Skin['hex']> = {
-  navy: { blue: '#4f5bd5', green: '#1f9d6b', red: '#e5484d', orange: '#f5a524', purple: '#7c5cff', gray: '#b4b9c6' },
-  mono: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3' },
-  ops: { blue: '#2f80ed', green: '#2f9e5b', red: '#e5484d', orange: '#f2994a', purple: '#8b5cf6', gray: '#a3a3a3' },
-  analytics: { blue: '#7170f5', green: '#3ccf6e', red: '#ef5350', orange: '#f7931e', purple: '#a78bfa', gray: '#b8b8c0' },
-  monoops: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3' },
+  navy: { blue: '#4f5bd5', green: '#1f9d6b', red: '#e5484d', orange: '#f5a524', purple: '#7c5cff', gray: '#b4b9c6', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  mono: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  // K: the ramp carries the colour; warnings and failures keep a muted amber and rose.
+  ops: { blue: '#5fae80', green: '#2f8f57', red: '#c4615b', orange: '#cf9442', purple: '#1d5c39', gray: '#a3a3a3', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  analytics: { blue: '#7170f5', green: '#3ccf6e', red: '#ef5350', orange: '#f7931e', purple: '#a78bfa', gray: '#b8b8c0', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  monoops: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
 }
 const GREYS = ['#111111', '#c9c9c9', '#6b6b6b', '#e4e4e4', '#3f3f46', '#a3a3a3']
 

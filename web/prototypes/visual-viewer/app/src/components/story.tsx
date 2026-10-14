@@ -202,7 +202,7 @@ function Solutions({ b }: P) {
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-bold">제안 {s.n}</span>
-                <Badge chip={{ text: s.id, tone: 'purple' }} />
+                <Badge chip={{ text: s.id, tone: ops ? 'k4' : 'purple' }} />
                 <Badges items={s.chips} />
               </div>
               <p className="text-[15px] leading-relaxed"><Md text={s.text} /></p>

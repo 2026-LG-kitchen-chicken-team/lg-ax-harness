@@ -17,7 +17,7 @@ export function useColor() {
   const s = useSkin()
   return (t: string | undefined, i: number) => (s?.series ? s.series[i % s.series.length] : (s?.hex || HEX)[tone(t || 'blue')])
 }
-const HEX = { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a1a1aa' }
+const HEX = { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a1a1aa', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' }
 export function useToneHex() {
   return useSkin()?.hex || HEX
 }
