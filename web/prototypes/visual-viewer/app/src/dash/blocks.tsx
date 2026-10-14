@@ -699,6 +699,21 @@ function Claims({ b }: P) {
 }
 
 const SECTION_NO: Record<string, number> = { problem: 1, check: 2, flow: 3, solution: 4, trust: 5 }
+
+// K only (the user's choice): short report-style section titles. The count is the one in build_view.py's own title;
+// when a title has no count the original title stays.
+const REPORT_TITLES: Record<string, (n: string | null) => string | null> = {
+  problem: (n) => (n ? `현재 불편 ${n}건 확인` : null),
+  check: (n) => (n ? `기존 기능 ${n}건과 대조` : null),
+  flow: () => '불편 → 남은 불편 → 제안',
+  solution: (n) => (n ? `남은 불편 대응 제안 ${n}건` : null),
+  trust: () => '근거 신뢰도와 한계',
+}
+function reportTitle(b: Block): string {
+  const n = /(\d+)\s*(?:가지|개)/.exec(String(b.title || ''))?.[1] ?? null
+  return REPORT_TITLES[b.key]?.(n) || b.title
+}
+
 function StorySection({ b, copy }: P) {
   const id = useId()
   const L = LOOK[id]
@@ -710,7 +725,7 @@ function StorySection({ b, copy }: P) {
     <section className={cn('flex flex-col', id === 'ops' ? 'mt-4 gap-3' : id === 'monoops' ? 'mt-6 gap-4' : 'mt-8 gap-4', id === 'mono' ? 'gap-5' : '')}>
       <div className={id === 'ops' ? 'border-b border-[#e6e6e6] pb-2' : ''}>
         <div className={cn('text-[13px]', label)}>{no ? `${no}. ` : ''}{name}</div>
-        <h2 className={cn('mt-1 text-balance tracking-tight text-foreground', title)}>{b.title}</h2>
+        <h2 className={cn('mt-1 text-balance tracking-tight text-foreground', title)}>{id === 'ops' ? reportTitle(b) : b.title}</h2>
         {b.text && <p className={cn('mt-1.5 max-w-3xl leading-relaxed text-muted-foreground', id === 'ops' ? 'text-[13px]' : 'text-[15px]')}><Md text={b.text} /></p>}
       </div>
       <div className={cn('flex flex-col', L.gap)}><Blocks blocks={b.blocks || []} copy={copy} /></div>
