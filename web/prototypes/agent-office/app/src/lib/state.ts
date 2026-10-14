@@ -74,7 +74,7 @@ export function snapshot(m: SessionModel, t: number, feedLimit = 0): Snapshot {
       if (st.lastAt == null || endT >= st.lastAt) {
         st.lastAt = endT
         st.activity = s.endLabel ?? s.label
-        st.status = t - endT < RECENT_MS ? (s.status === 'fail' || s.detail.accepted === false ? 'fail' : 'done') : 'idle'
+        st.status = t - endT < RECENT_MS ? (['fail', 'interrupted', 'unknown'].includes(s.status) || s.detail.accepted === false ? 'fail' : 'done') : 'idle'
       }
     }
   }
@@ -122,7 +122,7 @@ export function snapshot(m: SessionModel, t: number, feedLimit = 0): Snapshot {
     const lastEnd = Math.max(turn!.start, ...m.spans.filter((s) => s.actor === 'main' && s.end != null && s.end <= t).map((s) => s.end as number))
     main = { mode: 'thinking', label: '생각 중 (도구 사용 없음)', since: lastEnd }
   } else {
-    main = { mode: 'idle', label: m.turns.length ? '답변을 마치고 다음 질문을 기다림' : '질문을 기다림', since: turn?.end ?? null }
+    main = { mode: 'idle', label: turn?.outcome === 'cancelled' ? 'turn 취소 관측 · 다음 질문을 기다림' : m.turns.length ? '답변을 마치고 다음 질문을 기다림' : '질문을 기다림', since: turn?.end ?? null }
   }
   const mainNode = nodes.main
   mainNode.status = main.mode === 'idle' ? 'idle' : 'active'
@@ -213,10 +213,10 @@ export function feedAt(m: SessionModel, t: number, limit: number): FeedItem[] {
   const items: FeedItem[] = []
   for (const s of m.spans) {
     if (s.start <= t) items.push({ key: `${s.key}:s`, t: s.start, who: who(s.actor), label: s.label, tone: 'start', basis: s.basis, node: nodeOf(s) })
-    if (s.end != null && s.end <= t && s.status !== 'running' && s.events.some((e) => e.phase !== 'start')) {
+    if (s.end != null && s.end <= t && s.status !== 'running') {
       items.push({
         key: `${s.key}:e`, t: s.end, who: who(s.actor), label: `${s.endLabel ?? s.label} · ${secs(s.durationMs)}`,
-        tone: s.status === 'fail' || s.detail.accepted === false ? 'fail' : 'end', basis: s.basis, node: nodeOf(s),
+        tone: ['fail', 'interrupted', 'unknown'].includes(s.status) || s.detail.accepted === false ? 'fail' : 'end', basis: s.basis, node: nodeOf(s),
       })
     }
   }

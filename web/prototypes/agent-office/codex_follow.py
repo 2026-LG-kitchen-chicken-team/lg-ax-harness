@@ -313,6 +313,7 @@ class Thread:
         ts = iso(record.get("timestamp"))
         if kind == "event_msg" and ptype == "task_started":
             self.turn = ob.short(payload.get("turn_id"), 80)
+            self.finished = False
             return []
         if kind == "event_msg" and ptype in ("task_complete", "turn_aborted"):
             if self.child:
@@ -320,7 +321,8 @@ class Thread:
                 return [self.event(f"end:{seq}", "SubagentStop", "subagent", ts, phase="end",
                                    detail={"reason": ptype})]
             self.finished = True
-            return [self.event(f"end:{seq}", "Stop", "turn_end", ts, detail={"reason": ptype} if ptype == "turn_aborted" else {})]
+            return [self.event(f"end:{seq}", "Stop", "turn_cancelled" if ptype == "turn_aborted" else "turn_end", ts,
+                               detail={"reason": ptype, "interrupted": True} if ptype == "turn_aborted" else {})]
         if kind == "event_msg" and ptype == "item_completed" and isinstance(payload.get("item"), dict):
             return self.item(payload, payload["item"], ts)
         if kind == "response_item" and ptype in ("custom_tool_call", "function_call"):
@@ -375,6 +377,8 @@ class Thread:
                     failed, detail["error"] = True, code
                 elif not failed and fields["op"] in ob.SAVE_OPS:
                     detail.update(ob.save_outcome(stdout))
+                if not failed:
+                    detail.update(ob.business_binding(stdout))
             if failed and isinstance(item.get("exit_code"), int) and "error" not in detail:
                 detail["exit_code"] = item["exit_code"]
             finish = self.event(key, "PostToolUseFailure" if failed else "PostToolUse", found["kind"], t1,

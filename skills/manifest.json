@@ -204,7 +204,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "6238adcf786e9bbe9c719d62ae4869d8ca586f1120fdb14ca849b3bd1ce5af52"
+      "sha256": "593997e5cebedf0c0ed2fe94a79ab61bdbd8e13aa4a28b74d91b53ba499fce79"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -312,7 +312,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "dcca839a401730599bd5680c9a7e74b7b078bfd1072b878401fe341333412702"
+      "sha256": "21adf029be7af736b08cd401c3cf930aa3bf2888683a9a0efb900a2b81450c9d"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -320,11 +320,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/hook.py",
-      "sha256": "74251e7e4727c4dc6e84689ef983807f679c649fdd5dca5ba7dc95ece8d09f6d"
+      "sha256": "7711a336a6672f552c4b4d8092036e27453e1bdf8780165fc2f21a58df496e80"
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "3e424ac0c58b05246800f65513d50acff2a430e8d21bc22d41ed7761e6ffe4fc"
+      "sha256": "5c1939cf99ecb97e526a14948dd797e70a013d5ee7ec6da51c98557f549743f7"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",

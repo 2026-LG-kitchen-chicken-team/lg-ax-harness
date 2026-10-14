@@ -76,7 +76,8 @@ class TypedSourceIntegrationTests(unittest.TestCase):
         row = self.row(export)
         self.assertEqual([build_view.ev_type(r) for r in row["result"]["evidence_refs"]], ["후기", "제품 사실", "후기"])
         ctx = build_view.Ctx(export, Path("synthetic-export.json"), {})
-        self.assertEqual(ctx.values["reviews"], 2)
+        self.assertEqual(ctx.values["reviews"], 0)
+        self.assertFalse(ctx.has_result, "Structural-only fixture with no web payload is history, not current delivery")
 
     def test_explicit_unknown_does_not_turn_prefix_into_known_review(self):
         export = fixture([ref("REVIEW-legacy-with-unknown")], [None])
@@ -121,7 +122,8 @@ class TypedSourceIntegrationTests(unittest.TestCase):
         expected_validation = copy.deepcopy(export["turns"][0]["candidates"][0]["validation"])
         row = self.row(export)
         self.assertTrue(row["valid"])
-        self.assertEqual(row["validation"], expected_validation)
+        self.assertEqual(row["validation"], {})
+        self.assertFalse(build_view.accepted(export["turns"][0]["candidates"][0]))
         self.assertEqual(row["result"], row["candidates"][0]["result"])
         self.assertEqual(row["result"]["evidence_refs"][0]["kind"], "review")
 

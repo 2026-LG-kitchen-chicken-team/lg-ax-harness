@@ -394,7 +394,7 @@ def label_of(event: dict) -> str:
         tool = event.get("tool") or ""
         name = tool.split("__")[-1] if tool.startswith("mcp__") else tool
         return TOOL_KO.get(name, f"{name or '도구'} 사용")
-    return {"request": "새 질문", "turn_end": "답변 끝", "session": "세션 " + ("시작" if phase == "start" else "끝")}.get(kind, kind or "")
+    return {"request": "새 질문", "turn_end": "답변 끝", "turn_cancelled": "turn 취소 관측 · 실행 결과 미확인", "session": "세션 " + ("시작" if phase == "start" else "끝")}.get(kind, kind or "")
 
 
 # Tool names without a room of their own (Claude Code and Codex).

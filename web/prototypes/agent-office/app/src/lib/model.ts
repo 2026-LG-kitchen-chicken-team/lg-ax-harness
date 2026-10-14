@@ -19,7 +19,7 @@ export interface Span {
   endLabel: string | null
   start: number
   end: number | null
-  status: 'running' | 'done' | 'fail'
+  status: 'running' | 'done' | 'fail' | 'interrupted' | 'unknown'
   durationMs: number | null
   basis: string
   detail: Record<string, unknown>
@@ -49,6 +49,7 @@ export interface Turn {
   start: number
   end: number | null
   kind: string // request, handback_delivered, notification
+  outcome?: 'completed' | 'cancelled'
 }
 
 export interface SaveOutcome {
@@ -187,7 +188,7 @@ export function buildSession(all: OfficeEvent[], sessionId: string, db: DbSnapsh
         spans.push(span)
       }
       span.events.push(e)
-      if (e.phase === 'end' || e.phase === 'fail') {
+      if ((e.phase === 'end' || e.phase === 'fail') && span.status !== 'interrupted' && span.status !== 'unknown') {
         span.end = t
         span.status = e.phase === 'fail' ? 'fail' : 'done'
         span.durationMs = typeof detail.duration_ms === 'number' ? detail.duration_ms : t - span.start
@@ -204,11 +205,19 @@ export function buildSession(all: OfficeEvent[], sessionId: string, db: DbSnapsh
     if (e.kind === 'request' || e.kind === 'handback_delivered' || e.kind === 'notification') {
       turns.push({ start: t, end: null, kind: e.kind })
       points.push({ key: e.id, t, kind: e.kind, node: e.kind === 'request' ? 'reception' : 'main', label, basis: e.basis, ev: e })
-    } else if (e.kind === 'turn_end') {
+    } else if (e.kind === 'turn_end' || e.kind === 'turn_cancelled') {
       const open = [...turns].reverse().find((x) => x.end == null)
       if (open) open.end = t
       for (const x of turns) if (x.end == null) x.end = t
-      points.push({ key: e.id, t, kind: 'turn_end', node: 'main', label, basis: e.basis, ev: e })
+      if (open) open.outcome = e.kind === 'turn_cancelled' ? 'cancelled' : 'completed'
+      for (const s of spans) if (s.end == null) {
+        s.end = t
+        s.status = e.kind === 'turn_cancelled' ? 'interrupted' : 'unknown'
+        s.durationMs = t - s.start
+        s.detail.outcome = 'unknown'
+        s.endLabel = e.kind === 'turn_cancelled' ? 'turn 취소 관측 · 도구 종료 결과 미확인' : '기록 종료 · 도구 결과 미확인'
+      }
+      points.push({ key: e.id, t, kind: e.kind, node: 'main', label, basis: e.basis, ev: e })
     } else if (e.kind === 'session') {
       points.push({ key: e.id, t, kind: e.phase === 'start' ? 'session_start' : 'session_end', node: 'main', label, basis: e.basis, ev: e })
     } else if (e.kind === 'subagent') {
@@ -218,10 +227,15 @@ export function buildSession(all: OfficeEvent[], sessionId: string, db: DbSnapsh
     }
   }
   // A call with no end: still running when live, otherwise it stopped being recorded at the session's last event.
-  for (const s of spans) if (s.end == null && !live) s.end = Math.max(end, s.start)
+  for (const s of spans) if (s.end == null && !live) {
+    s.end = Math.max(end, s.start)
+    s.status = 'unknown'
+    s.endLabel = '기록 종료 · 도구 결과 미확인'
+    s.detail.outcome = 'unknown'
+  }
 
   const saves: SaveOutcome[] = spans
-    .filter((s) => s.kind === 'skill_op' && SAVE_OPS.has(s.op ?? '') && s.status !== 'running')
+    .filter((s) => s.kind === 'skill_op' && SAVE_OPS.has(s.op ?? '') && ['done', 'fail'].includes(s.status))
     .map((s) => ({
       span: s,
       t: s.end ?? s.start,
@@ -243,7 +257,12 @@ export function buildSession(all: OfficeEvent[], sessionId: string, db: DbSnapsh
       const t = parseTime(v)
       return t != null && t >= lo && t <= hi
     }
-    dbMatched = inside(db.workflow?.started_at) || inside(db.turn?.created_at)
+    // Time overlap is not evidence that a native session owns this business turn.
+    const binding = db.binding
+    dbMatched = !!binding && events.some(({ e }) => {
+      const b = e.detail?.business_binding as Record<string, unknown> | undefined
+      return e.actor === 'main' && !!b && ['session_id', 'turn_id', 'request_key'].every((k) => b[k] === binding[k as keyof typeof binding])
+    })
     if (dbMatched) {
       const ws = parseTime(db.workflow?.started_at)
       if (db.workflow && ws != null && inside(db.workflow.started_at)) {

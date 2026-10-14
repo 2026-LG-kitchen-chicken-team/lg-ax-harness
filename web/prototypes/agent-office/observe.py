@@ -16,6 +16,7 @@ are kept. Where a node comes from a command path the event says so (basis `comma
 is `instruction_loaded`, and a subagent call seen as a tool call is `observed`. Nothing is inferred from call order.
 Standard library only. Errors go to `runtime-data/agent-office/observe-error.log` and nowhere else.
 """
+import hashlib
 import json
 import os
 import re
@@ -60,7 +61,7 @@ SKILL_OPS = {
     "needs-structuring": {"select_evidence", "validate_source_refs"},
     "feature-comparison": {"match_product_scope", "retrieve_product_facts", "select_evidence"},
     "concept-writing": {"validate_constraints", "validate_source_refs"},
-    "review-and-revise": {"save_and_export", "prepare_web_result", "deliver_result", "save_reviewed_result", "export_session",
+    "review-and-revise": {"save_and_export", "prepare_web_result", "get_completion_summary", "deliver_result", "save_reviewed_result", "export_session",
                           "current_request", "get_turn", "record_usage", "cancel_turn", "prepare_review_packet",
                           "verify_review_packet", "validate_result_contract", "review_product_result", "start_turn",
                           "save_result", "begin_invocation", "finish_invocation"},
@@ -235,6 +236,7 @@ def classify(payload: dict) -> dict:
                         event["detail"]["error"] = failed
                     elif op in SAVE_OPS:
                         event["detail"].update(save_outcome(payload.get("tool_response")))
+                    event["detail"].update(business_binding(payload.get("tool_response")))
             else:
                 event["kind"] = "shell"
                 event["detail"]["programs"] = programs_of(command)
@@ -271,7 +273,7 @@ def classify(payload: dict) -> dict:
         if role == "other_subagent":
             event["detail"]["agent_type"] = token(payload.get("agent_type"))
     elif hook == "Stop":
-        event.update(kind="turn_end", node="main", actor="main")
+        event.update(kind="turn_cancelled" if payload.get("is_interrupt") is True else "turn_end", node="main", actor="main")
     elif hook in ("SessionStart", "SessionEnd"):
         event.update(kind="session", node="main", actor="main", phase="start" if hook == "SessionStart" else "end")
         source = payload.get("source") or payload.get("reason")
@@ -289,6 +291,24 @@ def stdout_json(response):
         return json.loads(text[text.find("{"):])
     except ValueError:
         return None
+
+
+def business_binding(response) -> dict:
+    """Only complete identifiers reported by the product tool can join a native session to the DB."""
+    queue, found = [stdout_json(response)], []
+    for _ in range(6):
+        following = []
+        for item in queue:
+            if not isinstance(item, dict):
+                continue
+            keys = ("session_id", "turn_id", "request_key")
+            if all(isinstance(item.get(k), str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,200}", item[k]) for k in keys):
+                found.append({k: item[k] for k in keys})
+            following.extend(v for v in item.values() if isinstance(v, dict))
+        queue = following
+    if found and all(value == found[0] for value in found):
+        return {"business_binding": found[0]}
+    return {}
 
 
 def save_outcome(response) -> dict:
@@ -457,13 +477,20 @@ def snapshot_db() -> dict:
     con = sqlite3.connect(uri, uri=True, timeout=0.2, isolation_level=None)
     try:
         con.execute("PRAGMA query_only=1")
+        con.execute("BEGIN")
         tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         snap = {"available": True, "read_at": now(), "workflow": None, "workflow_events": [], "request": None, "turn": None,
                 "results": 0, "candidates": [], "evidence_delivered": None, "evidence_reviews": None, "cancelled": False,
                 "latest_export": latest_export()}
-        if "product_workflows" in tables:
+        turn_row = con.execute("SELECT turn_id, status, revision_count, result_version, valid, created_at, session_id, request_key "
+                               "FROM turns ORDER BY created_at DESC,turn_id DESC LIMIT 1").fetchone() if "turns" in tables else None
+        binding = {"session_id": turn_row[6], "turn_id": turn_row[0], "request_key": turn_row[7]} if turn_row else None
+        snap.update(binding=binding, binding_status="unverified_native_session")
+        if "product_workflows" in tables and binding:
+            research = "research-" + hashlib.sha256(json.dumps([binding["session_id"], binding["request_key"]],
+                                   ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
             row = con.execute("SELECT research_id, started_at, budget_seconds, research_stopped_at, finished_at "
-                              "FROM product_workflows ORDER BY started_at DESC LIMIT 1").fetchone()
+                              "FROM product_workflows WHERE research_id=?", (research,)).fetchone()
             if row:
                 snap["workflow"] = {"research_id": row[0], "started_at": row[1], "budget_seconds": row[2],
                                     "research_stopped_at": row[3], "finished_at": row[4]}
@@ -472,16 +499,15 @@ def snapshot_db() -> dict:
                             "SELECT kind, observed_at, payload FROM product_workflow_events WHERE research_id=? "
                             "ORDER BY observed_at, rowid", (row[0],)).fetchall()[-80:]:
                         snap["workflow_events"].append({"kind": kind, "observed_at": at, **workflow_detail(kind, raw)})
-        if "conversation_requests" in tables:
-            row = con.execute("SELECT payload, turn_id, response FROM conversation_requests ORDER BY rowid DESC LIMIT 1").fetchone()
+        if "conversation_requests" in tables and binding:
+            row = con.execute("SELECT turn_id, response FROM conversation_requests WHERE session_id=? AND request_key=? AND turn_id=?",
+                              (binding["session_id"], binding["request_key"], binding["turn_id"])).fetchone()
             if row:
-                payload = loads(row[0])
-                response = loads(row[2])
-                snap["request"] = {"question": short(payload.get("question"), 300), "turn_id": row[1],
+                response = loads(row[1])
+                snap["request"] = {"turn_id": row[0], "request_key": binding["request_key"],
                                    "status": short(response.get("status"), 40) if isinstance(response, dict) else None}
         if "turns" in tables:
-            row = con.execute("SELECT turn_id, status, revision_count, result_version, valid, created_at FROM turns "
-                              "ORDER BY created_at DESC LIMIT 1").fetchone()
+            row = turn_row
             if row:
                 snap["turn"] = {"turn_id": row[0], "status": row[1], "revision_count": row[2], "result_version": row[3],
                                 "valid": bool(row[4]), "created_at": row[5]}

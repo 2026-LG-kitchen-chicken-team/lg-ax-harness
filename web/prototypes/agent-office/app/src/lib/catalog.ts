@@ -26,7 +26,7 @@ const SKILL_OPS: Record<string, string[]> = {
   'feature-comparison': ['match_product_scope', 'retrieve_product_facts', 'select_evidence'],
   'concept-writing': ['validate_constraints', 'validate_source_refs'],
   'review-and-revise': ['start_turn', 'prepare_review_packet', 'verify_review_packet', 'validate_result_contract', 'review_product_result',
-    'save_result', 'save_reviewed_result', 'save_and_export', 'prepare_web_result', 'deliver_result', 'export_session', 'current_request',
+    'save_result', 'save_reviewed_result', 'save_and_export', 'prepare_web_result', 'get_completion_summary', 'deliver_result', 'export_session', 'current_request',
     'get_turn', 'record_usage', 'cancel_turn', 'begin_invocation', 'finish_invocation'],
 }
 

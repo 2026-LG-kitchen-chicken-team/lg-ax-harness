@@ -1,3 +1,13 @@
+# 2026-10-14 현재 결과 연결
+
+현재 전달은 `export_session`의 마지막 turn에 있는 `web_binding`과 같은 불변 `runtime-data/web-deliveries/web-<sha256>.json`을 연결해야 표시한다. 저장 구조 검사만 통과한 후보, 취소된 마지막 turn, 다른 결과 버전·코드·자료·문맥·조사 지문은 현재 전달로 표시하지 않는다. 파일 바이트 SHA-256과 파일명도 대조한다. 파일이 없거나 맞지 않으면 현재 웹 전달 미검증 안내와 후보 이력을 유지한다. 연결 검증은 출처 의미 품질 인증이 아니다.
+
+`build_view.py --export <export.json> --web-result <web-sha256.json> --web-result-sha256 <sha256> --standalone <report.html>`로 명시할 수 있다. 생략하면 export 옆의 web-deliveries에서 **정확한 binding**으로 찾으며 파일 수정 시각으로 선택하지 않는다. 기존 단일 HTML 출력과 13종 보기는 유지한다. 이 경로는 모델 호출을 추가하지 않는다.
+
+근거 화면은 결과에 사용한 인용과 선택 등록본문 전체를 구분한다. 전체 등록본문, ID, 모델·문서·자료 버전, 전체 SHA-256, 위치와 origin을 접어 보기로 제공한다. 검토·조사 이력 화면도 같은 웹 JSON의 coverage/evidence_history/investigation_events를 표시한다. 등록본문은 원본 전체 문서 인증이 아니다.
+
+`insights`에는 현재 export의 `web_binding` 전체를 `binding`으로 복사해야 한다. 같은 session_id·turn_id만 있는 해석은 적용하지 않는다. 같은 turn에서 결과나 조사 이력이 바뀌면 새 binding으로 검토·저장해야 한다. 기존 아래 설명 중 session/turn만으로 적용하는 기준은 이 조건으로 대체한다.
+
 ## 2026-10-12 통합 검토
 
 PR #6 bdb187b 작성자의 최신 댓글은 Windows Codex 0.162.1 Stop와 Claude Code 2.1.289 실제 실행 성공을 보고합니다. 아래 이전 미확인 문구는 그 댓글 이전의 이력입니다. 이번 제품 통합에서는 원저장 payload를 유지한 source_metadata 종류 연결과 하위 연결 경로 검사를 추가하고 별도 회귀를 수행합니다. 실제 결과·설정·훅은 기본 패키지에 넣지 않으며 install은 사용자가 선택합니다. 원격에 올린 시제품과 최신 제품 업무의 새 native 인수를 구분합니다.

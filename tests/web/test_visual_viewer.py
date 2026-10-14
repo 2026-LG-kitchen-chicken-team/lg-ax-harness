@@ -341,6 +341,10 @@ class Harness:
             shutil.copyfile(EXPORTS[key], dest)
         else:
             dest.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        web = self.root / "runtime-data/web-deliveries"
+        web.mkdir(exist_ok=True)
+        for source in (EXPORTS[key].parent.parent / "web-deliveries").glob("web-*.json"):
+            shutil.copyfile(source, web / source.name)
         stamp = time.time() + len(list(self.exports.iterdir()))  # strictly newer than earlier copies
         os.utime(dest, (stamp, stamp))
         return dest
@@ -351,6 +355,15 @@ class Harness:
     def insights(self, name: str, value: dict, bom: bool = False) -> Path:
         self.out.mkdir(parents=True, exist_ok=True)
         path = self.out / name
+        # Explicit turn fixtures use the same full binding as their saved export.
+        # Unbound fixture tests deliberately omit turn_id and remain unverified.
+        if value.get("turn_id") and "binding" not in value:
+            for export in self.exports.glob("*.json"):
+                data = json.loads(export.read_text(encoding="utf-8"))
+                current = (data.get("turns") or [{}])[-1]
+                if data.get("session_id") == value.get("session_id") and (current.get("state") or {}).get("turn_id") == value["turn_id"]:
+                    value = {**value, "binding": current.get("web_binding")}
+                    break
         path.write_bytes(json.dumps(value, ensure_ascii=False).encode("utf-8-sig" if bom else "utf-8"))
         return path
 
@@ -558,13 +571,10 @@ class BuildViewTests(TempCase):
                         ref["origin"]["representation"] = "excerpt"
         _, view = self.build(path=self.h.add("synthetic_catalog", "export-renamed.json", data))
         dashboard = page(view, "dashboard")
-        kpi = next(b for b in dashboard["blocks"] if b["type"] == "kpis")["items"][1]
-        self.assertEqual((kpi["label"], kpi["value"], kpi["note"]), ("원문 발췌", 1, "후기인지 기록 없음"))
-        self.assertNotIn('"미확인"', blob(dashboard))
-        self.assertIn("원문 발췌를 고객 후기로 세지 않았습니다", blob(dashboard))
-        screening = blob(page(view, "screening"))
-        self.assertIn("후기인지 기록되지 않은 원문 근거 1건", screening)
-        self.assertNotIn("근거가 없습니다", screening)
+        self.assertIn("현재 웹 전달 미검증", blob(dashboard))
+        self.assertNotIn('"kpis"', blob(dashboard))
+        refs = build_view.read_turns(data)[-1]["result"]["evidence_refs"]
+        self.assertEqual(build_view.ev_type(next(r for r in refs if r["source_id"] == "rv-001")), "원문 발췌")
 
     def test_dashboard_without_insights_counts_only_what_the_export_records(self):
         _, view = self.build("microwave")
@@ -617,9 +627,8 @@ class BuildViewTests(TempCase):
                     assessment["feature_matches"], assessment["concept_links"] = [], []
         _, view = self.build(path=self.h.add("microwave", "export-nolinks.json", data))
         blocks = blob_blocks(page(view, "story"))
-        flow = next(b for b in blocks if b["type"] == "flow")
-        self.assertEqual((len(flow["nodes"]), flow["links"]), (3, []))
-        self.assertIn("검토 기록에 기존 기능 대조 판단이 없습니다", blob(blocks))
+        self.assertNotIn('"flow"', blob(blocks))
+        self.assertIn("현재 웹 전달 미검증", blob(blocks))
         # 승인된 결과가 없으면 이야기 화면을 비우고 이유를 보인다
         summary, view = self.build("reject1")
         self.assertEqual(summary["focus"], "overview")
@@ -644,10 +653,8 @@ class BuildViewTests(TempCase):
                     ref["kind"] = kinds[ref["source_id"]]
         _, view = self.build(path=self.h.add("microwave", "export-kind.json", data))
         dashboard = page(view, "dashboard")
-        kpi = next(b for b in dashboard["blocks"] if b["type"] == "kpis")["items"][1]
-        self.assertEqual((kpi["label"], kpi["value"], kpi["note"]), ("후기 근거", 1, "후기로 분류된 근거"))
-        types = next(b for b in blob_blocks(dashboard) if b.get("title") == "유형별 등록 근거")["items"]
-        self.assertEqual([(t["label"], t["value"]) for t in types], [("후기", 1), ("제품 사실", 1)])
+        self.assertIn("현재 웹 전달 미검증", blob(dashboard))
+        self.assertEqual([build_view.ev_type(r) for r in build_view.read_turns(data)[-1]["result"]["evidence_refs"]], ["후기", "제품 사실"])
         # 모르는 kind는 후기로 세지 않고 이름 그대로 보인다(차트에서 빠지지 않는다)
         for turn in data["turns"]:
             for result in [turn["state"].get("latest_result")] + [c["result"] for c in turn["candidates"]]:
@@ -656,11 +663,9 @@ class BuildViewTests(TempCase):
                         ref["kind"] = "forum_post"
         _, view = self.build(path=self.h.add("microwave", "export-kind2.json", data))
         dashboard = page(view, "dashboard")
-        kpi = next(b for b in dashboard["blocks"] if b["type"] == "kpis")["items"][1]
-        self.assertEqual((kpi["label"], kpi["value"]), ("종류 미기록 근거", 1))
-        types = next(b for b in blob_blocks(dashboard) if b.get("title") == "유형별 등록 근거")["items"]
-        self.assertEqual([t["label"] for t in types], ["제품 사실", "미지원(forum_post)"])
-        self.assertIn("미지원(forum_post)", blob(page(view, "evidence")))
+        self.assertIn("현재 웹 전달 미검증", blob(dashboard))
+        self.assertEqual([build_view.ev_type(r) for r in build_view.read_turns(data)[-1]["result"]["evidence_refs"]], ["미지원(forum_post)", "제품 사실"])
+        self.assertIn("현재 웹 전달 미검증", blob(page(view, "evidence")))
 
     def invalidated(self, key: str) -> dict:
         data = export_of(key)
@@ -795,14 +800,13 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
         self.assertNotIn("T1 전용 제목", blob(view))
         self.assertIn("어느 turn의 해석인지 알 수 없어", blob(page(view, "dashboard")))
         summary, view = self.build(path=self.h.add("two_turns", "export-explicit.json"), insights_path=self.h.out / "insights-t1.json")
-        self.assertEqual(summary["insights"], "unverified_turn")
-        self.assertIn("turn_id가 없어 이 turn의 해석인지 확인하지 못했습니다", page(view, "overview")["blocks"][0]["text"])
-        self.assertIn("직접 지정 · turn 미확인", blob(page(view, "dashboard")))
+        self.assertEqual(summary["insights"], "unbound")
+        self.assertNotIn("T1 전용 제목", blob(view))
         single = self.h.add("microwave")
         self.h.insights("insights-single.json", {"session_id": export_of("microwave")["session_id"], "groups": groups})
         summary, view = self.build(path=single)
-        self.assertEqual((summary["insights"], summary["warnings"]), ("single_turn", []))
-        self.assertIn("turn이 하나뿐인 세션", blob(page(view, "dashboard")))
+        self.assertEqual((summary["insights"], summary["warnings"]), ("unverified_binding", []))
+        self.assertNotIn(f"{SYNTH} T1 묶음", blob(page(view, "dashboard")))
 
     def test_other_turn_and_stale_insights_are_not_applied_and_warn_visibly(self):
         export = self.h.add("microwave")
@@ -811,7 +815,7 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
         summary, view = self.build(path=export)
         self.assertEqual(summary["insights"], "other_turn")
         self.assertIn("다른 turn(turn_id)용", blob(page(view, "dashboard")))
-        self.h.insights("insights-b.json", {"session_id": sid, "groups": [{"key": "g", "label": "x", "source_ids": ["REVIEW-B502S33-09"]}],
+        self.h.insights("insights-b.json", {"session_id": sid, "turn_id": current_turn("microwave"), "groups": [{"key": "g", "label": "x", "source_ids": ["REVIEW-B502S33-09"]}],
                                             "kpis": [{"label": "확인한 후기", "value": 595, "verify_in": "assumptions"}]})
         summary, view = self.build(path=export)
         self.assertEqual(summary["insights"], "stale")
@@ -841,7 +845,7 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
         self.assertEqual(summary["insights"], "mismatch")
         self.assertIn("session_id가 이 export와 달라", page(view, "overview")["blocks"][0]["text"])
         sid = export_of("microwave")["session_id"]
-        path = self.h.insights("insights-y.json", {"session_id": sid, "kpis": [{"label": "고정", "value": 595, "verify_in": "assumptions"}]})
+        path = self.h.insights("insights-y.json", {"session_id": sid, "turn_id": current_turn("microwave"), "kpis": [{"label": "고정", "value": 595, "verify_in": "assumptions"}]})
         summary, view = self.build(path=export, insights_path=path)
         self.assertIn("595가 결과 assumptions 원문에 없어 그리지 않았습니다", " ".join(summary["warnings"]))
         self.assertNotIn('"value": 595', blob(page(view, "dashboard")))
@@ -850,6 +854,22 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
 # ---------------------------------------------------------------- hook (in-process)
 
 class HookTests(TempCase):
+
+    def test_export_before_web_payload_is_rebuilt_when_exact_payload_arrives(self):
+        export = self.h.add("microwave")
+        body = json.loads(export.read_text(encoding="utf-8"))
+        expected = body["turns"][-1]["web_binding"]
+        web = self.h.root / "runtime-data/web-deliveries"
+        path = next(p for p in web.glob("web-*.json") if json.loads(p.read_bytes())["binding"] == expected)
+        raw = path.read_bytes()
+        path.unlink()
+        with mock.patch.object(hook, "open_browser"):
+            self.assertTrue(hook.run({"session_id": "late-web"}, "claude", hook.Paths(str(self.h.root)))["changed"])
+            self.assertEqual(self.h.state()["web_delivery"], "mismatch")
+            self.assertFalse((self.h.out / ".hook-last-export").exists())
+            path.write_bytes(raw)
+            self.assertTrue(hook.run({"session_id": "late-web"}, "claude", hook.Paths(str(self.h.root)))["changed"])
+            self.assertEqual(self.h.state()["web_delivery"], "verified_binding")
     def run_hook(self, payload, source=None):
         src, _ = hook.parse_args([source] if source else [], payload)
         return hook.run(payload, src, hook.Paths(str(self.h.root)))

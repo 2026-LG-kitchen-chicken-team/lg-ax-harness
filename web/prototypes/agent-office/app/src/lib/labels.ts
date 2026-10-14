@@ -13,6 +13,7 @@ export const OP_KO: Record<string, string> = {
   resolve_request: '요청 해석', resolve_request_bundle: '요청 해석', current_request: '현재 요청 확인',
   record_request_research: '조사 기록', open_product_workflow: '업무 시계 시작', record_workflow_event: '작업 일지 쓰기',
   workflow_status: '업무 시계 확인', evidence_inventory: '근거 목록 보기', read_evidence_batch: '근거 원문 읽기',
+  get_completion_summary: '최종 전달 내용 확인',
   record_evidence_review: '근거 검토 기록', evidence_coverage: '근거 범위 확인', prepare_planning_input: '기획 입력 준비',
   retrieve_reviews: '후기 조회', retrieve_product_facts: '제품 사양 조회', select_evidence: '근거 고르기',
   match_product_scope: '제품 범위 맞추기', set_request_scope_policy: '범위 정책 정하기',
@@ -90,6 +91,7 @@ export function labelOf(e: OfficeEvent): string {
   const { kind, node, phase } = e
   const detail = e.detail ?? {}
   const who = nodeName(node)
+  if (kind === 'turn_cancelled') return 'turn 취소 관측 · 실행 결과 미확인'
   if (kind === 'skill_op') {
     const base = `${SKILL_KO[node ?? ''] ?? node} · ${opKo(e.op)}`
     if (phase === 'end' && typeof detail.accepted === 'boolean') {

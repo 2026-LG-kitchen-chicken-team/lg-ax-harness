@@ -1,5 +1,6 @@
 """Real web payload/version/finish checks; no UI, model or synthetic business success."""
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -78,6 +79,77 @@ class WebDeliveryTests(unittest.TestCase):
         self.assertIn("<script>", body["result"]["validation_findings"][0])
         self.assertFalse((self.root / "runtime-data/deliverables").exists())
         self.assertLess(len(canonical(saved).encode()), 65536)
+        exported = json.loads((self.root / saved["export"]["path"]).read_bytes())
+        self.assertEqual(exported["turns"][-1]["web_binding"], body["binding"])
+
+    def viewer(self, saved, **extra):
+        spec = importlib.util.spec_from_file_location("web_delivery_viewer", ROOT / "web/prototypes/visual-viewer/build_view.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        response = module.generate(self.root / saved["export"]["path"], out_dir=self.root / "runtime-data/view", **extra)
+        raw = (self.root / "runtime-data/view/view-data.js").read_text(encoding="utf-8")
+        view = json.loads(raw[raw.index("window.LGAX_VIEW = ") + len("window.LGAX_VIEW = "):].rstrip().rstrip(";"))
+        return module, response, view
+
+    def test_viewer_full_sources_and_history_have_exact_snapshot_binding(self):
+        self.clock()
+        saved = self.save()
+        _, response, view = self.viewer(saved)
+        self.assertEqual(response["web_delivery"], "verified_binding")
+        body = json.loads((self.root / saved["web_result"]["path"]).read_bytes())
+        evidence = next(p for p in view["pages"] if p["id"] == "evidence")
+        rows = [row for block in evidence["blocks"] if block["type"] == "expander"
+                for table in block["blocks"] for row in table.get("rows", [])]
+        for source in body["sources"]:
+            self.assertIn({"field": "text", "value": source["text"]}, rows)
+            self.assertIn({"field": "sha256", "value": source["sha256"]}, rows)
+        history = next(p for p in view["pages"] if p["id"] == "history")
+        self.assertIn("조사 사건", json.dumps(history, ensure_ascii=False))
+
+    def test_viewer_rejects_structural_only_and_missing_hash_or_changed_audit(self):
+        saved = self.save()
+        path = self.root / saved["web_result"]["path"]
+        _, response, _ = self.viewer(saved, web_result_path=path, web_result_sha256="0" * 64)
+        self.assertEqual(response["web_delivery"], "mismatch")
+        path.write_bytes(path.read_bytes() + b" ")
+        _, response, _ = self.viewer(saved)
+        self.assertEqual(response["web_delivery"], "mismatch")
+        exported = json.loads((self.root / saved["export"]["path"]).read_bytes())
+        exported["turns"][-1]["candidates"][-1]["validation"]["review_required"] = False
+        (self.root / saved["export"]["path"]).write_text(canonical(exported), encoding="utf-8")
+        _, response, view = self.viewer(saved)
+        self.assertEqual(response["web_delivery"], "not_reviewed_current")
+        self.assertIn("현재 웹 전달 미검증", json.dumps(view, ensure_ascii=False))
+
+    def test_same_turn_new_version_audit_and_cancel_never_reuse_past_payload_or_insights(self):
+        research, audit = self.clock()
+        old = self.save()
+        binding = old["web_result"]["binding"]
+        new = self.save(1, "new")
+        module, response, _ = self.viewer(new, web_result_path=self.root / old["web_result"]["path"])
+        self.assertEqual(response["web_delivery"], "mismatch")
+        export = json.loads((self.root / new["export"]["path"]).read_bytes())
+        self.assertEqual(module.classify_insights(export, {**self.handle, "binding": binding}), "unverified_binding")
+        self.conv.record_workflow_event({"research_id": research, "event_key": "scope", "kind": "analysis_scope",
+                                        "data": {"source_ids": [], "scope_note": "Same result changed audit"}})
+        new["export"] = self.conv.export_session({"session_id": self.handle["session_id"]})
+        _, response, _ = self.viewer(new)
+        self.assertEqual(response["web_delivery"], "mismatch")
+        self.store.cancel_turn(**self.handle, cancel_key="stop", reason="사용자 취소", expected_result_version=2, user_submitted=True)
+        new["export"] = self.conv.export_session({"session_id": self.handle["session_id"]})
+        _, response, _ = self.viewer(new)
+        self.assertEqual(response["web_delivery"], "not_reviewed_current")
+
+    def test_same_result_with_later_delivery_history_selects_only_matching_history(self):
+        saved = self.save()
+        self.conv.read_evidence_batch({**self.handle, "limit": 1})
+        saved["export"] = self.conv.export_session({"session_id": self.handle["session_id"]})
+        _, response, _ = self.viewer(saved)
+        self.assertEqual(response["web_delivery"], "mismatch")
+        current = self.prepare()
+        self.assertEqual(current["binding"], saved["web_result"]["binding"])
+        _, response, _ = self.viewer(saved)
+        self.assertEqual(response["web_delivery"], "verified_binding")
 
     def test_replay_is_immutable_and_corruption_is_not_silently_overwritten(self):
         saved = self.save()["web_result"]

@@ -69,6 +69,8 @@ INSIGHTS_WHY = {
     "stale": "insights가 현재 결과에 없는 근거 ID를 가리켜(다른 turn용으로 보임) 쓰지 않았습니다.",
     "unbound": "같은 세션의 insights는 있지만 turn_id가 없고 이 세션에 turn이 여러 개라, 어느 turn의 해석인지 알 수 없어 쓰지 않았습니다.",
     "invalid": "insights 파일의 형식이 README의 insights 형식과 달라 쓰지 않았습니다.",
+    "unverified_binding": "현재 결과의 버전·코드·자료·조사 지문과 같은 binding이 없어 해석을 적용하지 않았습니다.",
+    "unverified_delivery": "현재 웹 전달을 검증하지 못해 해석을 적용하지 않았습니다.",
 }
 # 기획자에게 보이는 이유(한 줄). 파일·ID가 든 자세한 이유(INSIGHTS_WHY)는 접힌 운영 안내에 둔다.
 INSIGHTS_WHY_PLAIN = {
@@ -78,6 +80,8 @@ INSIGHTS_WHY_PLAIN = {
     "stale": "AI 해석 파일이 이 결과에 없는 근거를 가리켜(다른 질문용으로 보임) 쓰지 않았습니다.",
     "unbound": "AI 해석 파일에 어느 질문용인지 적혀 있지 않고 이 세션에는 질문이 여러 개라 쓰지 않았습니다.",
     "invalid": "AI 해석 파일의 형식이 맞지 않아 쓰지 않았습니다.",
+    "unverified_binding": "현재 결과와 같은 버전·조사 기록의 해석인지 확인하지 못했습니다.",
+    "unverified_delivery": "현재 전달이 검증되지 않아 해석을 적용하지 않았습니다.",
 }
 INSIGHTS_APPLIED = {"matched": "turn_id 일치", "single_turn": "turn이 하나뿐인 세션", "given": "직접 지정",
                     "unverified_turn": "직접 지정 · turn 미확인"}
@@ -238,13 +242,94 @@ def accepted(cand: dict) -> bool:
     v = cand.get("validation") or {}
     if v.get("error"):
         return False
-    return bool(v.get("contract_valid", v.get("structural_valid", False)))
+    return (v.get("contract_valid") is True and v.get("review_required") is True
+            and isinstance(v.get("assessment"), dict)
+            and (v.get("review") or {}).get("can_finalize_reported_result") is True)
+
+
+BINDING_KEYS = {"session_id", "turn_id", "request_key", "result_version", "result_sha256", "context_sha256",
+                "code_sha256", "data_sha256", "data_version", "workflow_audit_hash"}
+
+
+def digest_json(value) -> str:
+    raw = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def current_export_turn(export: dict) -> dict:
+    return (export.get("turns") or [{}])[-1]
+
+
+def load_web_result(export: dict, export_path: Path, web_result_path: Path | None = None,
+                    web_result_sha256: str | None = None) -> tuple[dict, str]:
+    """Join immutable bytes to the latest export snapshot; never use mtime as a binding."""
+    turn = current_export_turn(export)
+    st, expected = turn.get("state") or {}, turn.get("web_binding") or {}
+    result = st.get("latest_result")
+    candidate = next((c for c in reversed(turn.get("candidates") or [])
+                      if c.get("result_version") == st.get("result_version") and c.get("result") == result), {})
+    if (not st.get("valid") or st.get("status") not in ("completed", "held", "needs_input")
+            or not result or not accepted(candidate)):
+        return {}, "not_reviewed_current"
+    if (set(expected) != BINDING_KEYS or expected.get("session_id") != export.get("session_id")
+            or any(expected.get(k) != st.get(k) for k in ("turn_id", "request_key", "result_version"))
+            or expected.get("context_sha256") != st.get("context_fingerprint")
+            or expected.get("result_sha256") != digest_json(result)):
+        return {}, "unbound"
+    for key in ("result_sha256", "context_sha256", "code_sha256", "data_sha256"):
+        if not re.fullmatch(r"[0-9a-f]{64}", str(expected.get(key) or "")):
+            return {}, "unbound"
+    if expected["workflow_audit_hash"] is not None and not re.fullmatch(r"[0-9a-f]{64}", str(expected["workflow_audit_hash"])):
+        return {}, "unbound"
+    paths = [Path(web_result_path)] if web_result_path else sorted((export_path.parent.parent / "web-deliveries").glob("web-*.json"))
+    mismatch = False
+    for path in paths:
+        try:
+            raw = path.read_bytes()
+            digest = hashlib.sha256(raw).hexdigest()
+            if len(raw) > 16 * 1024 * 1024 or path.name != f"web-{digest}.json" or (web_result_sha256 and digest != web_result_sha256):
+                mismatch = True
+                continue
+            body = json.loads(raw)
+            if (body.get("contract_version") != "product-web-result-v1" or body.get("binding") != expected
+                    or body.get("result") != result or body.get("status") != st.get("status")
+                    or body.get("input") != st.get("input") or body.get("validation") != candidate.get("validation")
+                    or not accepted({"validation": body.get("validation")})):
+                mismatch = True
+                continue
+            if body.get("evidence_history") != turn.get("evidence_coverage_history"):
+                mismatch = True
+                continue
+            sources, refs = body.get("sources"), body.get("source_references")
+            if not isinstance(sources, list) or not isinstance(refs, list) or len(sources) != len(refs):
+                mismatch = True
+                continue
+            by_id = {s.get("source_id"): s for s in sources if isinstance(s, dict)}
+            if len(by_id) != len(sources):
+                mismatch = True
+                continue
+            keys = ("source_id", "model_id", "model_version", "document_version", "data_version", "sha256", "location", "origin")
+            if any(not isinstance(r, dict) or not isinstance(by_id.get(r.get("source_id")), dict)
+                   or any(r.get(k) != by_id[r["source_id"]].get(k) for k in keys)
+                   or r.get("quote") != by_id[r["source_id"]].get("text")
+                   or hashlib.sha256(str(r.get("quote", "")).encode("utf-8")).hexdigest() != r.get("sha256") for r in refs):
+                mismatch = True
+                continue
+            if any(r not in refs for r in result.get("evidence_refs") or []):
+                mismatch = True
+                continue
+            return body, "verified_binding"
+        except (OSError, ValueError, TypeError, AttributeError):
+            mismatch = True
+    return {}, "mismatch" if mismatch else "missing"
 
 
 def rejection_of(cand: dict) -> dict | None:
     if not cand or accepted(cand):
         return None
     v = cand.get("validation") or {}
+    if v.get("contract_valid") is True and not v.get("error"):
+        return {"code": "stored_unreviewed", "message": "구조 저장 승인 · 현재 웹 전달을 위한 검토 기록 미확인", "findings": []}
     err = v.get("error") or {}
     return {"code": err.get("code") or "rejected", "message": err.get("message") or "",
             "findings": [str(f) for f in (v.get("review") or {}).get("findings") or []]}
@@ -367,6 +452,7 @@ def read_turns(export: dict) -> list[dict]:
             "out_unknown": out_unknown,
             "invocations": len(t.get("invocations") or []),
             "state": st,
+            "web_binding": t.get("web_binding"),
         })
     for i, r in enumerate(rows, 1):
         r["n"] = i
@@ -374,8 +460,8 @@ def read_turns(export: dict) -> list[dict]:
 
 
 def current_row(rows: list[dict]) -> dict:
-    valid = [r for r in rows if r["valid"]]
-    return valid[-1] if valid else rows[-1]
+    # A cancelled or stale latest turn must never resurrect a previous one.
+    return rows[-1]
 
 
 def turnless_requests(export: dict, rows: list[dict]) -> list[dict]:
@@ -462,8 +548,13 @@ def classify_insights(export: dict | None, insights: dict) -> str:
     rows = read_turns(export)
     turn = insights.get("turn_id")
     if turn:
-        return "matched" if rows and turn == current_row(rows)["turn_id"] else "other_turn"
-    return "single_turn" if len(rows) <= 1 else "unbound"
+        if not rows or turn != current_row(rows)["turn_id"]:
+            return "other_turn"
+    elif len(rows) > 1:
+        return "unbound"
+    binding = current_export_turn(export).get("web_binding")
+    return "matched" if (isinstance(binding, dict) and set(binding) == BINDING_KEYS
+                         and insights.get("binding") == binding) else "unverified_binding"
 
 
 def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, str]:
@@ -485,7 +576,7 @@ def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, 
             seen.add("invalid")
             continue
         state = classify_insights(export, data)
-        if state in ("other_turn", "unbound"):
+        if state != "matched":
             seen.add(state)
             continue
         rank = 0 if state == "matched" else 1
@@ -493,7 +584,7 @@ def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, 
             best = (rank, path, data, state)
     if best:
         return best[1], best[2], best[3]
-    for state in ("unbound", "other_turn", "invalid"):
+    for state in ("unverified_binding", "unbound", "other_turn", "invalid"):
         if state in seen:
             return None, {}, state
     return None, {}, "missing"
@@ -503,7 +594,7 @@ def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, 
 
 class Ctx:
     def __init__(self, export: dict, export_path: Path, insights: dict, insights_state: str = "given",
-                 insights_file: str | None = None):
+                 insights_file: str | None = None, web_result: dict | None = None, delivery_state: str = "missing"):
         self.export = export
         self.export_path = export_path
         self.rows = read_turns(export)
@@ -514,12 +605,16 @@ class Ctx:
         # 요청 순서를 알 수 없으므로 turn 없이 멈춘 요청은 모두 앞에 드러낸다(마지막 turn 뒤인지는 아는 것만 표시).
         self.pending = self.turnless
         self.invalid = not self.cur["valid"]
+        self.web = web_result or {}
+        self.delivery_state = delivery_state
         if self.cur["status"] == "cancelled":
             self.result, self.validation = {}, {}
         elif self.invalid:  # 무효 표시와 함께, 무효 직전에도 승인 결과였던 것만 보여준다
             self.result, self.validation = self.cur["invalid_result"], self.cur["invalid_validation"]
         else:
-            self.result, self.validation = self.cur["result"], self.cur["validation"]
+            self.result, self.validation = ((self.cur["result"], self.cur["validation"]) if self.web else ({}, {}))
+        if not self.web:
+            insights, insights_state = {}, "unverified_delivery" if insights else insights_state
         self.has_result = bool(self.result)
         self.evidence = self.result.get("evidence_refs") or []
         self.ev = {e["source_id"]: e for e in self.evidence}
@@ -1401,11 +1496,12 @@ def page_history(c: Ctx) -> list[dict]:
             res, ok = cand.get("result") or {}, accepted(cand)
             rej = rejection_of(cand)
             shown = ok and r is c.cur and c.has_result and res == c.result
-            note = ("무효 결과(현재 아님)" if c.invalid else "현재 결과") if shown else ("역사적 기록" if ok else "거절 후보(현재 결과 아님)")
+            stored_only = rej and rej["code"] == "stored_unreviewed"
+            note = ("무효 결과(현재 아님)" if c.invalid else "현재 결과") if shown else ("역사적 기록" if ok else "구조 저장 이력(현재 전달 아님)" if stored_only else "거절 후보(현재 결과 아님)")
             cand_rows.append({
                 "t": f"T{r['n']}", "v": f"v{cand.get('result_version', '?')}", "key": cand.get("result_key", ""),
                 "status": {"text": status_text(res.get("status")), "tone": STATUS_TONE.get(res.get("status"), "gray") if ok else "gray"},
-                "check": {"text": "승인" if ok else f"거절 · {rej['code']}", "tone": "green" if ok else "red"},
+                "check": {"text": "승인" if ok else "구조 저장 · 검토 미확인" if stored_only else f"거절 · {rej['code']}", "tone": "green" if ok else "orange" if stored_only else "red"},
                 "why": "" if ok else rejection_text(rej),
                 "ev": len(res.get("evidence_refs") or []),
                 "note": note,
@@ -1421,6 +1517,14 @@ def page_history(c: Ctx) -> list[dict]:
             "rows": cand_rows,
             "source": "turns[].candidates · 저장 판정은 validation.contract_valid·error · 승인도 의미 품질 통과가 아닙니다",
         }]})
+    if c.web:
+        blocks += [{"type": "section", "text": "현재 버전의 검토·조사 이력"}]
+        for label, key in (("근거 범위", "coverage"), ("근거 검토·전달 이력", "evidence_history"),
+                           ("조사 상태", "investigation"), ("조사 사건", "investigation_events")):
+            blocks.append({"type": "expander", "title": label, "blocks": [
+                {"type": "table", "columns": [{"key": "record", "label": "저장 기록", "kind": "wide"}],
+                 "rows": [{"record": json.dumps(c.web.get(key), ensure_ascii=False, indent=2)}],
+                 "source": "검토된 현재 결과와 동일한 버전·조사 지문의 불변 웹 자료"}]})
     return blocks
 
 
@@ -1432,7 +1536,7 @@ def page_evidence(c: Ctx) -> list[dict]:
         m = (e.get("origin") or {}).get("model_matching") or "미기록"
         matching[m] = matching.get(m, 0) + 1
     doc_versions = sorted({e.get("document_version") or "미기록" for e in c.evidence})
-    if not c.evidence:
+    if not c.evidence and not c.web:
         return [{"type": "callout", "tone": "warning", "text": f"현재 결과에 등록된 근거가 없습니다. 상태: **{status_text(c.cur['status'])}**"}]
     representation = {"excerpt": "원문 발췌", "factual_summary": "사실 요약", "synthetic": "합성"}
     rows = []
@@ -1452,10 +1556,10 @@ def page_evidence(c: Ctx) -> list[dict]:
             "scope": MATCHING_LABEL.get(origin.get("model_matching"), origin.get("model_matching") or "미기록"),
             "dates": f"게시 {origin.get('published_date') or '미기재'}\n관측 {origin.get('retrieved_date') or '미기록'}",
             "pv": pv,
-            "sha": (e.get("sha256") or "")[:12] or "미기록",
+            "sha": e.get("sha256") or "미기록",
             "url": {"href": url, "text": re.sub(r"^https://([^/]+).*$", r"\1", url)} if url else None,
         })
-    return stale_blocks(c) + [
+    blocks = stale_blocks(c) + [
         {"type": "chips", "items": [{"text": f"문서 {v}", "mono": True} for v in doc_versions]
          + [{"text": f"자료 {c.cur['data_version']}", "mono": True}]
          + [{"text": f"{MATCHING_LABEL.get(k, k)} {v}", "tone": "blue"} for k, v in matching.items()]},
@@ -1469,6 +1573,18 @@ def page_evidence(c: Ctx) -> list[dict]:
          "rows": rows, "source": "현재 결과의 evidence_refs · 유형은 원문 지문이 일치하는 출처 메타데이터의 kind, 이전 export는 "
                                  "source_id 접두어나 원문 표현 · 링크는 HTTPS 주소만 표시"},
     ]
+    if c.web:
+        blocks += [{"type": "section", "text": "선택 등록본문 전체"},
+                   {"type": "callout", "tone": "info", "text": "위 표는 결과에 사용한 인용입니다. 아래는 선택된 등록본문 전체이며, 원본 전체 문서 인증이나 의미 품질 통과를 뜻하지 않습니다."}]
+        for source in c.web.get("sources") or []:
+            blocks.append({"type": "expander", "title": source["source_id"], "blocks": [
+                {"type": "table", "columns": [{"key": "field", "label": "항목"}, {"key": "value", "label": "저장 내용", "kind": "wide"}],
+                 "rows": [{"field": key, "value": (source.get(key) if isinstance(source.get(key), str)
+                           else json.dumps(source.get(key), ensure_ascii=False, indent=2))}
+                          for key in ("source_id", "kind", "model_id", "model_version", "document_version", "data_version",
+                                      "sha256", "location", "origin", "text")],
+                 "source": "sources[] · 등록본문·전체 SHA-256과 출처 메타데이터 · 본문 생략 없음"}]})
+    return blocks
 
 
 def usage_metric(usage: dict, label: str, field: str) -> dict:
@@ -1607,7 +1723,8 @@ def build(c: Ctx | None, ins: dict, focus: str | None) -> dict:
                 "title_icon": title_icon or ins.get("title_icon") or (FAMILY[family][1] if family in FAMILY else "📋"),
                 "caption": {"title": f"{i:02d} · " + fill(given.get("title", cap_title), c.values),
                             "text": fill(given.get("text", cap_text), c.values)},
-                "blocks": BUILDERS[pid](c),
+                "blocks": BUILDERS[pid](c) + ([] if c.web else [{"type": "callout", "tone": "warning", "text":
+                    "현재 웹 전달 미검증: 검토된 현재 결과와 같은 버전·코드·자료·조사 지문의 웹 자료 연결을 확인하지 못했습니다. 저장된 후보는 이력에서 확인할 수 있습니다."}]),
             })
     pages += custom_pages(ins, len(pages) + 1, c.values if c else {})
     if not pages:
@@ -1770,7 +1887,8 @@ VIEW_MODES = ("app", "slides", "poster", "editorial", "board", "exhibit", "corpo
 
 def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
              standalone: Path | None = None, out_dir: Path | None = None, insights_dir: Path | None = None,
-             index_sha256: str | None = None, mode: str | None = None) -> dict:
+             index_sha256: str | None = None, mode: str | None = None,
+             web_result_path: Path | None = None, web_result_sha256: str | None = None) -> dict:
     """view를 out_dir(기본: 이 폴더)의 view-data.js로 쓰고 요약을 돌려준다. focus="auto"는 상태로 고른다.
 
     - insights_path가 없고 insights_dir가 있으면 그 폴더의 insights-*.json에서 session_id·turn_id로 고른다.
@@ -1782,6 +1900,7 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
     warnings.clear()
     out_dir = Path(out_dir) if out_dir else HERE
     export = load_json(export_path) if export_path else None
+    web_result, delivery_state = load_web_result(export, Path(export_path), web_result_path, web_result_sha256) if export and export.get("turns") else ({}, "no_current_turn")
     insights_file = None
     if insights_path:
         insights = load_json(insights_path)
@@ -1792,22 +1911,20 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
             insights, state = {}, "invalid"
         else:
             state = classify_insights(export, insights)
-        if state in ("mismatch", "other_turn"):
+        if export is not None and state != "matched":
             warn(f"insights {insights_file}의 {'session_id' if state == 'mismatch' else 'turn_id'}가 이 export와 달라 쓰지 않았습니다.")
             insights = {}
-        elif state == "unbound":  # 사람이 직접 지정한 파일은 쓰되, turn을 확인하지 못했다고 화면에 적는다
-            state = "unverified_turn"
     elif insights_dir and export is not None:
         path, insights, state = pick_insights(Path(insights_dir), export)
         insights_file = path.name if path else None
     else:
         insights, state = {}, "missing"
     if focus == "auto":
-        focus = auto_focus(export)
+        focus = auto_focus(export) if web_result else "overview"
     if export is not None and not export.get("turns"):
         view = build_requests_only(export, export_path, insights, focus)
     else:
-        ctx = Ctx(export, export_path, insights, state, insights_file) if export else None
+        ctx = Ctx(export, export_path, insights, state, insights_file, web_result, delivery_state) if export else None
         if ctx:
             state, insights_file = ctx.insights_state, ctx.insights_file
         view = build(ctx, ctx.ins if ctx else insights, focus)
@@ -1847,12 +1964,14 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
         write_atomic(Path(standalone), text.replace(tag, inline))
         outputs["standalone"] = Path(standalone).as_posix()
     return {"ok": True, "pages": len(view["pages"]), "focus": view["focus"], "insights": state, "insights_file": insights_file,
-            "outputs": outputs, "warnings": list(warnings)}
+            "outputs": outputs, "warnings": list(warnings), "web_delivery": delivery_state}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="하네스 세션 export → 시각자료 뷰어 데이터")
     ap.add_argument("--export", type=Path, help="export_session이 만든 세션 JSON (없으면 insights의 pages만 그림)")
+    ap.add_argument("--web-result", type=Path, help="현재 export와 정확 지문이 일치하는 불변 웹 JSON")
+    ap.add_argument("--web-result-sha256", help="명시한 웹 JSON 바이트의 SHA-256")
     ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
     ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + ", insights pages의 id, 또는 auto(상태로 선택)")
     ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
@@ -1865,7 +1984,8 @@ def main() -> int:
         ap.error("--export나 --insights 중 하나는 필요합니다.")
     if args.mode and not args.standalone:
         ap.error("--mode는 --standalone과 함께 씁니다(열어 둔 화면은 오른쪽 위 버튼으로 바꿉니다).")
-    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir, mode=args.mode)
+    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir, mode=args.mode,
+                       web_result_path=args.web_result, web_result_sha256=args.web_result_sha256)
     if args.open:
         webbrowser.open(Path(summary["outputs"]["index"]).resolve().as_uri())
     sys.stdout.reconfigure(encoding="utf-8")

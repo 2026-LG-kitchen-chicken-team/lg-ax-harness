@@ -81,8 +81,11 @@ class Harness:
         con.execute("INSERT INTO product_workflow_events VALUES('R1','e2','source_scan','2026-10-13T12:01:00+00:00',?)",
                     (json.dumps({"data": {"source_url": f"https://reviews.example/item?q={SECRET}", "page_label": "후기 1쪽",
                                           "status": "observed", "reviews": [{"x": 1}, {"x": 2}], "reason": SECRET}}),))
+        research = "research-" + hashlib.sha256(b'["S1","K1"]').hexdigest()
+        con.execute("UPDATE product_workflows SET research_id=?", (research,))
+        con.execute("UPDATE product_workflow_events SET research_id=?", (research,))
         con.execute("INSERT INTO conversation_requests VALUES('S1','K1',?,'T1',?)",
-                    (json.dumps({"question": "합성 시험 질문입니다"}), json.dumps({"status": "research_required"})))
+                    (json.dumps({"question": SECRET}), json.dumps({"status": "research_required"})))
         con.execute("INSERT INTO turns VALUES('T1','S1','K1','{}','c','d','e','completed',1,1,2,NULL,'2026-10-13T12:05:00+00:00')")
         candidate = {"status": "held", "pains": [{"text": SECRET}, {"text": SECRET}], "existing_features": [],
                      "remaining_pains": [{"text": SECRET}], "concepts": [{"text": SECRET}], "evidence_refs": [{"quote": SECRET}] * 3}
@@ -109,6 +112,34 @@ class ObserverTests(unittest.TestCase):
 
     def tearDown(self):
         self.h.close()
+
+    def test_canonical_operation_names_and_interrupted_stop_are_distinct(self):
+        import ast
+        parsed = ast.parse((ROOT / "product-tools/cli.py").read_text(encoding="utf-8"))
+        choices = next(ast.literal_eval(k.value) for node in ast.walk(parsed) if isinstance(node, ast.Call)
+                       and any(isinstance(a, ast.Constant) and a.value == "operation" for a in node.args)
+                       for k in node.keywords if k.arg == "choices")
+        spec = importlib.util.spec_from_file_location("office_observer_check", APP / "observe.py")
+        observer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(observer)
+        self.assertEqual(set(choices), observer.CLI_OPS)
+        event = observer.classify({"hook_event_name": "Stop", "session_id": "S1", "is_interrupt": True})
+        self.assertEqual(event["kind"], "turn_cancelled")
+
+    def test_other_latest_request_and_workflow_are_not_joined_to_this_turn(self):
+        db = self.h.make_db()
+        con = sqlite3.connect(db)
+        con.execute("INSERT INTO conversation_requests VALUES('other','K2',?,NULL,?)",
+                    (json.dumps({"question": SECRET}), json.dumps({"status": "held"})))
+        con.execute("INSERT INTO product_workflows VALUES('other-research','2026-10-14T12:00:00+00:00',1800,NULL,NULL,NULL)")
+        con.commit()
+        con.close()
+        self.h.run({"hook_event_name": "SessionStart", "session_id": "other-native"})
+        raw = (self.h.out / "live.js").read_text(encoding="utf-8")
+        value = json.loads(raw[raw.index("window.LGAX_OFFICE_LIVE = ") + len("window.LGAX_OFFICE_LIVE = "):].rstrip().rstrip(";"))
+        self.assertEqual(value["db"]["binding"], {"session_id": "S1", "turn_id": "T1", "request_key": "K1"})
+        self.assertNotEqual(value["db"]["workflow"]["research_id"], "other-research")
+        self.assertNotIn(SECRET, self.h.all_text())
 
     def test_skill_operation_from_command_path_without_command_text(self):
         command = f"uv run python .claude/skills/needs-structuring/scripts/run.py select_evidence --input {SECRET}.json"
@@ -266,7 +297,8 @@ class ObserverTests(unittest.TestCase):
         text = (self.h.out / "live.js").read_text(encoding="utf-8")
         live = json.loads(text[text.index("window.LGAX_OFFICE_LIVE = ") + len("window.LGAX_OFFICE_LIVE = "):].rstrip().rstrip(";"))
         snap = live["db"]
-        self.assertEqual(snap["request"], {"question": "합성 시험 질문입니다", "turn_id": "T1", "status": "research_required"})
+        self.assertEqual(snap["request"], {"turn_id": "T1", "request_key": "K1", "status": "research_required"})
+        self.assertEqual(snap["binding_status"], "unverified_native_session")
         self.assertEqual([e["kind"] for e in snap["workflow_events"]], ["research_plan", "source_scan"])
         scan = snap["workflow_events"][1]
         self.assertEqual((scan["host"], scan["reviews"], scan["status"]), ("reviews.example", 2, "observed"))
@@ -484,6 +516,22 @@ class CodexFollowTests(unittest.TestCase):
     def events(self):
         return [json.loads(line) for line in (self.out / "events.jsonl").read_text(encoding="utf-8").splitlines()]
 
+    def test_codex_actual_abort_record_is_distinct_from_normal_end(self):
+        import io
+        main, child = codex_records(self.root)
+        changed = False
+        for record in main:
+            if (record.get("payload") or {}).get("type") == "task_complete":
+                record["payload"]["type"] = "turn_aborted"
+                changed = True
+        self.assertTrue(changed)
+        self.write_logs(main, child)
+        office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        cancelled = [e for e in self.events() if e["kind"] == "turn_cancelled"]
+        self.assertEqual(len(cancelled), 1)
+        self.assertEqual(cancelled[0]["detail"], {"reason": "turn_aborted", "interrupted": True})
+        self.assertFalse(any(e["kind"] == "turn_end" for e in self.events()))
+
     def test_latest_session_with_agent_thread_becomes_office_records(self):
         import io
         self.write_logs(*codex_records(self.root))
@@ -585,6 +633,57 @@ class CodexFollowTests(unittest.TestCase):
 
 
 class PageTests(unittest.TestCase):
+
+    def test_actual_typescript_cancel_closes_open_spans_and_time_overlap_is_not_binding(self):
+        node = shutil.which("node")
+        if not node:
+            self.fail("Node is required to verify the actual office state/model code")
+        script = r'''
+const fs = require('node:fs');
+const path = require('node:path');
+const {pathToFileURL} = require('node:url');
+const assert = require('node:assert/strict');
+const app = process.argv[1], target = process.argv[2];
+fs.writeFileSync(path.join(target, 'package.json'), '{"type":"module"}');
+for (const file of ['catalog', 'labels', 'model', 'state']) {
+  const result = fs.readFileSync(path.join(target, file + '.js'), 'utf8');
+  fs.writeFileSync(path.join(target, file + '.js'), result.replace(/from '([.][^']+)'/g, (_,p) => `from '${p}.js'`));
+}
+(async () => {
+  const {buildSession} = await import(pathToFileURL(path.join(target, 'model.js')));
+  const {snapshot} = await import(pathToFileURL(path.join(target, 'state.js')));
+  const base = Date.parse('2026-10-13T12:00:00Z');
+  const ev = (i, kind, phase='point', hook='UserPromptSubmit') => ({v:1,id:String(i),ts:new Date(base+i*1000).toISOString(),
+    session:'native',agent_id:null,actor:'main',kind,phase,hook,call:kind==='tool'?'open':null,tool:'exec',basis:'observed',node:'main',op:null,detail:{}});
+  const events = [ev(0,'request'), ev(1,'tool','start','PreToolUse'), ev(2,'turn_cancelled','point','Stop')];
+  const db = {available:true,turn:{created_at:new Date(base).toISOString()},binding:{session_id:'business',turn_id:'turn',request_key:'request'}};
+  const model = buildSession(events, 'native', db, true, true);
+  assert.equal(model.dbMatched, false);
+  assert.equal(model.spans[0].status, 'interrupted');
+  assert.equal(model.spans[0].detail.outcome, 'unknown');
+  assert.equal(model.spans[0].end, base+2000);
+  const state = snapshot(model, base+2500, 10);
+  assert.equal(state.active.length, 0);
+  assert.match(state.main.label, /취소/);
+  assert.ok(state.feed.some(x=>x.label.includes('도구 종료 결과 미확인')));
+  events.push(ev(3,'tool','end','PostToolUse'));
+  assert.equal(buildSession(events, 'native', db, true, true).spans[0].status, 'interrupted');
+  const replay = buildSession(events.slice(0,2), 'native', db, false, true);
+  assert.equal(replay.spans[0].status, 'unknown');
+  assert.equal(snapshot(replay, base+2500).active.length, 0);
+  events[1].detail.business_binding = db.binding;
+  assert.equal(buildSession(events, 'native', db, true, true).dbMatched, true);
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        with tempfile.TemporaryDirectory(prefix="office-model-check-") as target:
+            compile_result = subprocess.run([node, str(APP / "app/node_modules/typescript/bin/tsc"),
+                "--target", "es2022", "--module", "es2022", "--moduleResolution", "bundler", "--skipLibCheck",
+                "--outDir", target, *[str(APP / "app/src/lib" / (name + ".ts")) for name in ("model", "state", "catalog", "labels")]],
+                capture_output=True, text=True, timeout=30)
+            self.assertEqual(compile_result.returncode, 0, compile_result.stdout + compile_result.stderr)
+            compiled = str(Path(target) / "lib") if (Path(target) / "lib").is_dir() else target
+            result = subprocess.run([node, "-e", script, str(APP / "app"), compiled], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
     @unittest.skipUnless((APP / "index.html").is_file(), "page not built (app: npm run build)")
     def test_page_is_one_file_that_reads_live_js(self):
         import re

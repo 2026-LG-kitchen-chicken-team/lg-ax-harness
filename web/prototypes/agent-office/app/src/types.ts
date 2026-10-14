@@ -48,6 +48,8 @@ export interface DbSnapshot {
   available: boolean
   reason?: string
   read_at?: string
+  binding?: { session_id: string; turn_id: string; request_key: string } | null
+  binding_status?: string
   workflow?: {
     research_id: string
     started_at: string | null
@@ -56,7 +58,7 @@ export interface DbSnapshot {
     finished_at: string | null
   } | null
   workflow_events?: WorkflowEvent[]
-  request?: { question: string | null; turn_id: string | null; status: string | null } | null
+  request?: { question?: string | null; turn_id: string | null; request_key?: string; status: string | null } | null
   turn?: {
     turn_id: string
     status: string | null
