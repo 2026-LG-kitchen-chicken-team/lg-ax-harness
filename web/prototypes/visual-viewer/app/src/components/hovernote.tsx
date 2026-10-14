@@ -18,7 +18,7 @@ export function HoverNote({ children, note, className, label }: { children: Reac
     const r = el.getBoundingClientRect()
     const left = Math.max(8, Math.min(r.left, window.innerWidth - Math.min(352, window.innerWidth - 16) - 8))
     // Below the trigger, or above it near the bottom of the window.
-    setPos(r.bottom > window.innerHeight - 180 ? { left, bottom: window.innerHeight - r.top + 6 } : { left, top: r.bottom + 6 })
+    setPos(r.bottom > window.innerHeight - 180 ? { left, bottom: window.innerHeight - r.top + 8 } : { left, top: r.bottom + 8 })
   }
   const hide = () => setPos(null)
   useEffect(() => {
@@ -36,8 +36,8 @@ export function HoverNote({ children, note, className, label }: { children: Reac
         {children}
       </button>
       {pos && createPortal(
-        <div id={id} role="tooltip" style={pos}
-          className="no-print pointer-events-none fixed z-[80] w-max max-w-[min(22rem,calc(100vw-1rem))] break-words rounded-lg bg-zinc-900 px-3 py-2 text-[12px] leading-relaxed text-white shadow-xl">
+        <div id={id} role="tooltip" style={pos} data-side={pos.top != null ? 'below' : 'above'}
+          className="lg-tip no-print pointer-events-none fixed z-[80] w-max max-w-[min(22rem,calc(100vw-1rem))] break-words rounded-xl border border-[#e3e8e3] bg-white px-3.5 py-2.5 text-[12.5px] leading-relaxed text-zinc-800 shadow-[0_14px_36px_-14px_rgb(0_0_0/0.3)]">
           {note}
         </div>,
         document.body,
