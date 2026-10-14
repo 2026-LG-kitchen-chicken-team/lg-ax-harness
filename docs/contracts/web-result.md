@@ -1,5 +1,7 @@
 # 웹 작업 화면·보고서 HTML의 공통 데이터
 
+2026-10-14: 사용자에게 보여줄 접근 실패는 `access_failures`와 `diagnostic_links_required:false`를 사용한다. source_url/page_label/status/message를 전달하지만 free-form reason의 내부 파일명·추정 HTTP코드를 사용자 행동 링크로 만들지 않는다. HTTP상태 미관측은null이며 오류가HTTP라고 단정하지 않는다. 원본 investigation_events는 내부 감사/개발 진단용으로 그대로 보존한다. 프론트/HTML은 웹팀이 소유하고 이번 계약 보완은 화면 구현이나 시각 인수를 뜻하지 않는다.
+
 2026-10-13 사용자 선택. 웹팀이 기획자 작업 화면과 '보고서로 보기' HTML을 구현한다. 하네스는 현재 버전의 정형 결과·원문·근거·조사/검토 이력만 전달한다. HTML/웹/모델 호출을 추가하지 않는다.
 
 ## 실행과 내용

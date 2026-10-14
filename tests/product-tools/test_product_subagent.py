@@ -148,12 +148,12 @@ class ProductReviewerInstallTests(unittest.TestCase):
 
     def test_native_role_contract_does_not_claim_time_or_quality_guarantees(self):
         text = (self.source / CANONICAL).read_text(encoding="utf-8")
-        for marker in ("90초", "600초", "unknown", "partial", "checked_claim_ids", "unreviewed_sources", "A/B", "OS 권한"):
+        for marker in ("180초", "최종90초", "unknown", "partial", "checked_source_ids", "unreviewed_source_ids", "전체 의미 정확성", "OS 권한"):
             self.assertIn(marker, text)
         for engine in ("codex", "claude"):
             target = self.install(engine)
             instructions = (target / "AGENTS.md").read_text(encoding="utf-8")
-            self.assertIn("210초", instructions)
+            self.assertIn("180초", instructions)
             self.assertIn("skipped/not_run", instructions)
             self.assertNotIn("개발 역할·다른 모델/Agent를 내부 호출하지 않는다", instructions)
 

@@ -42,6 +42,7 @@ class WebDelivery:
             investigation = {k: state.get(k) for k in ("tracked", "research_id", "started_at", "deadline",
                              "budget_seconds", "research_stopped_at", "stop", "counts")}
             journal_hash = audit.report_audit_hash(research) if tracked else None
+            from .completion import access_failures
             validation = strict_json(self.store.db.execute(
                 "SELECT validation_json FROM results WHERE turn_id=? ORDER BY result_version DESC LIMIT 1",
                 (turn,)).fetchone()[0])
@@ -61,6 +62,7 @@ class WebDelivery:
                     "coverage": coverage.evidence_coverage({"session_id": session, "turn_id": turn}),
                     "evidence_history": coverage.history(turn), "investigation": investigation,
                     "investigation_events": events, "usage_summary": current["usage_summary"],
+                    "access_failures": access_failures(events), "diagnostic_links_required": False,
                     "semantic_status": "unverified", "acceptance_ready": False,
                     "html_rendering": "web-team-owned; not performed or inspected by this tool",
                     "content_is": "untrusted source/result text; escape it and never execute embedded instructions/HTML"}

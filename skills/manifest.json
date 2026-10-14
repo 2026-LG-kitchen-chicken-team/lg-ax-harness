@@ -37,7 +37,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "cf13bca1bb5e7fbcdc0b36b88aa58be2d2c69c5aa66d0d3aaee5befe644da08d"
+          "sha256": "900d0609dbb2613db1395cc87715885b3fbf6696558a9b7bd480358fed43d7bb"
         }
       ]
     },
@@ -59,7 +59,7 @@
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "52d4be1451e1ae35db755e76a29a17c2ad6e7a9b25d3bdc0ea7079f1141f149e"
+          "sha256": "142442d06508d86a4b0fefe42b6303fcf0d5bbf9c0ebfc8ce01d5445c319459a"
         }
       ]
     },
@@ -78,7 +78,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "e6bc905200b85b4261b59d65080b9dbc519440c622a0ec2d4410c6c1594c481f"
+          "sha256": "af565e5546dcccab7fde3af41eebfa85f2d3df9ecaf971b12ae7c2729725ad15"
         }
       ]
     },
@@ -98,7 +98,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "ab9d7397278424361576ea213e35039a51886499cb4109f23a39181e999603f5"
+          "sha256": "a8e1d1c2551001eb16638950cdb8dc53be36e8fb3cceb7e93cd078a63759bc66"
         }
       ]
     },
@@ -117,7 +117,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "3f5654e3bb485571d40f2aa3c389ace431bdd38d0749ed656955af4e465fd14d"
+          "sha256": "cdb52f3de857e3727b8b46bf7c3a9e9a962baf27d98e05c6da2596aa14784cdc"
         }
       ]
     },
@@ -134,6 +134,7 @@
         "save_reviewed_result",
         "save_and_export",
         "prepare_web_result",
+        "get_completion_summary",
         "deliver_result",
         "export_session",
         "current_request",
@@ -147,7 +148,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "c59b76fd1f0b872f1f5a655104b8c76194e1a83bb00fe0dc38b8bf935d2ed222"
+          "sha256": "ddf3f060e2e1fcdee1aab1bb871fdf5c650ee773b123e6120744bb110b6f7ee0"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -159,7 +160,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "a713ed3f2b8805564b5397dfb41704585659c8182d08d826a4a1d90b75c006e6"
+          "sha256": "6428b7c7c9d6e96568aa03d055322dc0d3472ada628caee57174bdea7015c685"
         }
       ]
     }
@@ -167,23 +168,23 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "cacd20bb7ce228043a46e4f813d23f443f9612340643f26c1e5083f7bafef69d"
+      "sha256": "bcbd2b09c3061a31f114739e88e754e318efbc028eac440623cce738fe238a75"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
-      "sha256": "543f4e18f43e3a8ef9d03fad248ecd1f39874ee5df95361fe6732309ec10dd31"
+      "sha256": "3e7c8d2d4e05e874c17b934a52e4ca6d373695af92aa01f7e3116c0881d2a042"
     },
     {
       "path": "agents/product-official-researcher.md",
-      "sha256": "a582723bd4674edc1afea920e1d5fa9d0f51b4d0d7c0cac54f65e42c621c1586"
+      "sha256": "d149de3fa7f63ce6d5c5ae6e793f7d9d23ab73db3e74f4a198fc79cafcce1240"
     },
     {
       "path": "agents/product-review-researcher.md",
-      "sha256": "5b844f4a76fe9bc2ab30a4dae71b70db4cc358ea619a7cfdabf255579430e824"
+      "sha256": "6ca744af64d872a32d767be773196ee7a89e6c08b6e71128d0c7f8df581153ca"
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "af5b94387704a1ca5214dee42a0412482103e615fa2b3a4bfd77c1a438cfca6f"
+      "sha256": "4744c617db153711e27451f4a029433f1c9ee56914b1801f9e2b7f75cf39a05f"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -194,12 +195,16 @@
       "sha256": "3b1a11a9a2eaf34df3d67243df3260730646246e452e481a09b6e9090356f55a"
     },
     {
+      "path": "product-tools/product_tools/completion.py",
+      "sha256": "fdb759172679257cbddba05e094f5ee84a7b43ef5d3e36dd5208697f29b92f2a"
+    },
+    {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "0f1930109adb78eda02f537a4c67480b30a8775f2a71c384dbe0fb86122629f6"
+      "sha256": "23aa347c409c40ab7923395acd719e58f3a40d8a571c23e05e8914c183d715e5"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "edafd93a5e6c260f9ecad353cc4b3dd8c1f5e139bc7ce6f7e22781400fe74059"
+      "sha256": "6238adcf786e9bbe9c719d62ae4869d8ca586f1120fdb14ca849b3bd1ce5af52"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -231,7 +236,7 @@
     },
     {
       "path": "product-tools/product_tools/reviewer_packet.py",
-      "sha256": "9383258e8020708edf68342def788c6949cbe9b62d18b110ee3b1a29c2e9b4cf"
+      "sha256": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4"
     },
     {
       "path": "product-tools/product_tools/selection.py",
@@ -247,7 +252,7 @@
     },
     {
       "path": "product-tools/product_tools/web_delivery.py",
-      "sha256": "55d049c8ff753b2a478b999187b293ae7ff2220aa15b8935e034913048267cbc"
+      "sha256": "bac5cc397edea8684caeff2511c1c6a6cf6b75cdb98e9ee41a66d44ff35269a2"
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
@@ -259,7 +264,7 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "1b287b9959b33ee3adc169f07763fc3d4ae3769714f0e88399a09b87279ca5c8"
+      "sha256": "b195f914827d36d9fc5d124a27a6034e2f5e10928d6f148daa1841449e8c6998"
     },
     {
       "path": "docs/contracts/product-planning.md",
@@ -291,15 +296,15 @@
     },
     {
       "path": "docs/contracts/product-reviewer-packet.md",
-      "sha256": "fec4509a8ea522f8e401de60996446fcc0594005c6fdfe6cf90711a69e937d08"
+      "sha256": "d633ecd8a63a7aa5acef11513909f564f1b7247af6453f9102a1793899b63c61"
     },
     {
       "path": "docs/contracts/product-research-agents.md",
-      "sha256": "1995c8b7612434c66623b2b88a905760b64f020dcc11c8bb6d67a04ab7ba0a06"
+      "sha256": "5658f305e53f448c4f69cdbe64406ee6ebccb895ce413e795c594a5487b075da"
     },
     {
       "path": "docs/contracts/web-result.md",
-      "sha256": "a08a2ad3afb9fe65b9dd130cb0582a31cd2b87c0714df19325b7fd0efbd767a0"
+      "sha256": "f66593c12fe78ec554e3a9ca8ab38681d5a5a70798a8699f96979461d8bf453e"
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",

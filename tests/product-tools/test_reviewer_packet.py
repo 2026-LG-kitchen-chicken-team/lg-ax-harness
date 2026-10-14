@@ -88,6 +88,30 @@ class ReviewerPacketTests(unittest.TestCase):
         (self.root/prepared["candidate_copy"]).write_bytes(b"{}")
         self.error("packet_integrity", self.verify, prepared)
 
+    def test_cited_full_source_bodies_are_immutable_and_not_only_quotes(self):
+        prepared = self.prepare()
+        path = self.root / prepared["evidence_sources_path"]
+        raw = path.read_bytes()
+        records = [strict_json(line) for line in raw.decode("utf-8").splitlines()]
+        self.assertEqual(prepared["evidence_source_count"], 2)
+        self.assertEqual(records, [self.data.source(s) for s in sorted(r["source_id"] for r in self.candidate["result"]["evidence_refs"])])
+        path.write_bytes(raw + b" ")
+        self.error("packet_integrity", self.verify, prepared)
+        path.write_bytes(raw)
+        self.assertTrue(self.verify(prepared)["ready"])
+
+    def test_invalid_reference_shapes_remain_diagnostics_without_uncaught_type_errors(self):
+        for number, result in enumerate((None, [], {"evidence_refs":None}, {"evidence_refs":123})):
+            with self.subTest(result=result):
+                self.candidate["result"] = result
+                self.write()
+                prepared = self.prepare("invalid-shape-" + str(number))
+                self.assertTrue(prepared["ready"])
+                self.assertFalse(prepared["candidate_source_refs_valid"])
+                self.assertEqual(prepared["evidence_source_count"],0)
+                self.assertEqual((self.root/prepared["candidate_copy"]).read_bytes(),self.path.read_bytes())
+                self.assertTrue(self.verify(prepared)["ready"])
+
     def test_different_session_candidate_and_packet_are_rejected(self):
         self.candidate["session_id"] = "other"
         self.write()

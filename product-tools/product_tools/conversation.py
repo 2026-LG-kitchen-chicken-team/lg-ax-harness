@@ -6,7 +6,7 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import uuid
-from .contracts import MAX_RESULT_BYTES, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from .contracts import MAX_BYTES, MAX_RESULT_BYTES, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from .payload import candidate_template
 
 
@@ -460,7 +460,21 @@ class Conversation:
                 from .workflow import utc_now
                 response["workflow_file_confirmation_at"] = utc_now().isoformat()
                 response["workflow_files_within_budget"] = bool((response.get("report_ready") or response.get("web_ready")) and utc_now() <= datetime.fromisoformat(response["workflow"]["deadline"]))
+        response.update(completion_summary=None, completion_error=None)
+        if response["delivery_ready"]:
+            try:
+                response["completion_summary"] = self.get_completion_summary({"session_id": payload["session_id"],
+                    "turn_id": payload["turn_id"], "expected_result_version": receipt["current_result_version"]})
+            except (OSError, ValueError, sqlite3.Error) as exc:
+                response["completion_error"] = {"code": getattr(exc, "code", "completion_failed"), "message": str(exc)[:512]}
+        if response["completion_summary"] and len(canonical(response).encode("utf-8")) > MAX_BYTES:
+            response["completion_summary"].pop("text", None)
+            response["completion_summary"].update(text_omitted=True, detail_operation="get_completion_summary")
         return response
+
+    def get_completion_summary(self, payload):
+        from .completion import CompletionSummary
+        return CompletionSummary(self.store, self.workspace).get_completion_summary(payload)
 
     def prepare_web_result(self, payload):
         from .web_delivery import WebDelivery

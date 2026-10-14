@@ -8,6 +8,7 @@ from .state import now
 
 FIELDS = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
 MAX_PACKET_BYTES = 524288
+MAX_REVIEW_SOURCES_BYTES = 4 * 1024 * 1024
 
 
 class ReviewPackets:
@@ -89,6 +90,15 @@ class ReviewPackets:
         except FileExistsError:
             fail("packet_conflict", "Another writer reserved this immutable reviewer file")
 
+    def _cited_sources(self, candidate):
+        result = candidate.get("result")
+        refs = result.get("evidence_refs") if isinstance(result, dict) else None
+        if not isinstance(refs, list):
+            return []
+        return sorted({r["source_id"] for r in refs
+                       if isinstance(r, dict) and isinstance(r.get("source_id"), str)
+                       and r["source_id"] in self.store.dataset.sources})
+
     def prepare_review_packet(self, payload):
         obj(payload, ("session_id", "turn_id", "candidate_path", "packet_key"))
         session, turn = payload["session_id"], payload["turn_id"]
@@ -114,6 +124,13 @@ class ReviewPackets:
                 return {**verified, "cached": True}
             candidate_copy = self.base / ("candidate-" + candidate_sha + ".json")
             diagnostic = self._diagnose(candidate, planning)
+            source_ids = self._cited_sources(candidate)
+            evidence = [self.store.dataset.source(sid) for sid in source_ids]
+            evidence_raw = ("".join(canonical(s) + "\n" for s in evidence)).encode("utf-8")
+            if len(evidence_raw) > MAX_REVIEW_SOURCES_BYTES:
+                fail("input_limit", "Cited whole source bodies exceed review file budget; do not shorten them")
+            evidence_sha = hashlib.sha256(evidence_raw).hexdigest()
+            evidence_path = self.base / ("sources-" + evidence_sha + ".jsonl")
             packet = {"schema_version": 1, "packet_key": key, "created_at": now(), "binding": binding,
                       "operation_input_sha256": input_sha, "candidate_sha256": candidate_sha,
                       "candidate_copy": candidate_copy.relative_to(self.workspace).as_posix(),
@@ -122,7 +139,9 @@ class ReviewPackets:
                       "candidate": {k: candidate[k] for k in FIELDS}, "reference_diagnostic": diagnostic,
                       "candidate_source_refs_valid": diagnostic["structural_valid"],
                       "content_trust": "untrusted candidate and cited source data",
-                      "semantic_status": "unverified", "review_scope": "candidate used references only; no complete catalog/conversation/skills copied",
+                      "evidence_sources_path": evidence_path.relative_to(self.workspace).as_posix(),
+                      "evidence_sources_sha256": evidence_sha, "evidence_source_count": len(evidence),
+                      "semantic_status": "unverified", "review_scope": "complete registered bodies of cited sources; not complete catalog/conversation/skills",
                       "uncertainty_scope": "candidate.result assumptions/validation_findings and caller assessment; no uncertainty or qualification generated"}
             # The native file reader may cap a single long JSON line. Preserve
             # original candidate bytes separately; only the handoff is pretty.
@@ -135,12 +154,15 @@ class ReviewPackets:
             # handoff registration row is created.
             self.base.mkdir(parents=True, exist_ok=True)
             self._immutable(candidate_copy, raw)
+            self._immutable(evidence_path, evidence_raw)
             self._immutable(path, body)
             name = path.relative_to(self.workspace).as_posix()
             self.store.db.execute("INSERT INTO product_review_packets VALUES(?,?,?,?,?,?)", (session, turn, key, input_sha, name, digest))
         return {"ready": True, "cached": False, "packet_path": name, "packet_sha256": digest,
                 "candidate_copy": candidate_copy.relative_to(self.workspace).as_posix(), "candidate_sha256": candidate_sha,
                 "binding": binding, "reference_diagnostic": diagnostic, "semantic_status": "unverified",
+                "evidence_sources_path": packet["evidence_sources_path"], "evidence_sources_sha256": evidence_sha,
+                "evidence_source_count": len(evidence),
                 "candidate_source_refs_valid": diagnostic["structural_valid"],
                 "acceptance_ready": False,
                 "note": "Ready for review of this immutable candidate; incomplete candidate diagnostics are not acceptance"}
@@ -157,7 +179,14 @@ class ReviewPackets:
         candidate_path, candidate_raw = self._read_path(packet["candidate_copy"], self.base, MAX_INPUT_BYTES)
         if hashlib.sha256(candidate_raw).hexdigest() != packet["candidate_sha256"]:
             fail("packet_integrity", "Immutable candidate copy changed after delegation")
+        evidence_path, evidence_raw = self._read_path(packet["evidence_sources_path"], self.base, MAX_REVIEW_SOURCES_BYTES)
+        if hashlib.sha256(evidence_raw).hexdigest() != packet["evidence_sources_sha256"]:
+            fail("packet_integrity", "Immutable cited whole source bodies changed after delegation")
         candidate = self._json(candidate_raw, MAX_INPUT_BYTES)
+        evidence = [strict_json(line) for line in evidence_raw.decode("utf-8").splitlines()]
+        expected = self._cited_sources(candidate)
+        if len(evidence) != packet["evidence_source_count"] or evidence != [self.store.dataset.source(sid) for sid in expected]:
+            fail("packet_integrity", "Reviewer sources must match all exact cited current catalog records")
         if {k: candidate[k] for k in FIELDS} != packet["candidate"]:
             fail("packet_integrity", "Packet candidate differs from immutable original")
         if packet["question"] != planning["question"] or packet["constraints"] != planning["constraints"]:
@@ -169,6 +198,8 @@ class ReviewPackets:
         return {"ready": True, "packet_path": path.relative_to(self.workspace).as_posix(),
                 "packet_sha256": payload["packet_sha256"], "candidate_copy": candidate_path.relative_to(self.workspace).as_posix(),
                 "candidate_sha256": packet["candidate_sha256"], "binding": binding, "reference_diagnostic": diagnostic,
+                "evidence_sources_path": evidence_path.relative_to(self.workspace).as_posix(),
+                "evidence_sources_sha256": packet["evidence_sources_sha256"], "evidence_source_count": len(evidence),
                 "candidate_source_refs_valid": diagnostic["structural_valid"],
                 "semantic_status": "unverified", "acceptance_ready": False,
                 "scope": "verifies immutable handoff/current binding only; no result write, semantic approval, or child-run certification"}

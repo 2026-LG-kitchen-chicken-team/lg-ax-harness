@@ -1,5 +1,9 @@
 # 공통 자료·입출력·상태 도구
 
+2026-10-14 보완: `save_and_export`는 현재 검토 저장 결과에서 일반 코드로 만든 `completion_summary`를 함께 반환한다. 별도 `get_completion_summary({session_id,turn_id,expected_result_version})`로 같은 현재 버전의 텍스트·불변 파일/SHA를 재조회할 수 있다. 새로운 사실을 생성하거나 전체 원문을 다시 모델에 넣지 않는다. 응답 크기 때문에 text가 생략되면 text_omitted/detail_operation을 확인한다. 기본 최종 답변은 이 text의 기획·조건 범위를 유지한다. 코드는 네이티브 최종 자유문장을 가로채지는 않으며 실제 최종 전달은 별도 대조한다.
+
+접근 실패는 코드가 만든 access_failures로 간단히 알리고, 사용자에게 진단 파일 방문을 요구하지 않는다. free-form reason에서 HTTP코드나 파일 링크를 추정하지 않는다. 원래 실패 원문/사건은 내부 이력에 보존한다. 이후 같은 URL을 관측한 경우 ‘아직 접근 못한 자료’로 표시하지 않는다. validation_plan의 선택 evaluation_protocol:{unit,failed_or_stopped,unknown}은 실물 시험 준비를 돕는 항목이며 없다는 이유만으로 유효한 조건부 기획을 모두 실패 처리하지 않는다. 실측 효과나 수치 개선율을 주장하기 전에는 전체 시도·실패·중단·미확인 처리까지 확인한다.
+
 2026-10-13 최신: 웹팀의 작업 화면·보고서 HTML에 현재 정형결과/원문/근거/검토·조사이력을 전달한다. 기본 save_and_export(report:false)의 web_ready/web_result를 확인하고 prepare_web_result로 같은 버전 복구한다. PDF/DOCX 생성·이미지검수는 기본 필수가 아니며 아래 파일규칙은 명시 report:true 호환 경로다. [웹 데이터 계약](web-result.md)을 우선한다. 신규기본1800초는 성능목표가 아닌 안전상한이고 natural-completion-v1 정책으로 전량전달/신고검토와 최종90초예약을 유지한다. 과거300/600초요청/이력은 변경하지 않는다.
 
 브랜드/시장 미지정 새 요청은 국내 LG 대상 기본 정책을 저장한다. set_request_scope_policy는 {session_id,request_key,policy}이며 policy의 mode는 explicit_model(model_id,user_quote), explicit_brand_market(brand,user_quote,market?,market_quote?) 또는 explicit_market(market,market_quote,user_quote)다. 시장만 지정하면 기본 LG 브랜드를 유지한다. quote는 실제 원질문의 연속 부분이어야 한다. 연결 전 기본 정책만 명시 의도로 변경할 수 있다. 같은 공유 검사는 대상 등록·request 연결·후보 저장에 적용한다. 명시 시장은 AI 해석의 원문 근거를 남기며 언어/모델 prefix로 판매국을 자동 인증하지 않는다. legacy 정책 없는 과거 이력과 합성 코드 자료는 이 기본 정책의 새 업무 인수로 설명하지 않는다.

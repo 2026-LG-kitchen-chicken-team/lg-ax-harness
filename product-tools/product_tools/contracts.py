@@ -204,11 +204,15 @@ def claim(value, concept=False):
             for step in steps:
                 text(step, "implementation step", 1000)
         if "validation_plan" in value:
-            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"))
+            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"), ("evaluation_protocol",))
             for key in ("metric", "baseline", "method", "success_criterion", "business_value"):
                 text(plan[key], key, 1000)
             if plan["status"] != "planned_not_measured":
                 fail("invalid_input", "Model-authored validation plans cannot certify measured effects")
+            if "evaluation_protocol" in plan:
+                protocol = obj(plan["evaluation_protocol"], ("unit", "failed_or_stopped", "unknown"))
+                for key in ("unit", "failed_or_stopped", "unknown"):
+                    text(protocol[key], key, 1000)
 
 def product_result(value, planning):
     obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"), optional=("decision_notes",))

@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # Explicit state-detail operations can return the complete stored candidate.
 # Evidence/bundle/receipt operations keep their smaller context budget.
-STATE_DETAIL_OPERATIONS = frozenset(("get_turn", "current_request", "open_request", "start_turn", "resolve_request",
+STATE_DETAIL_OPERATIONS = frozenset(("get_turn", "get_completion_summary", "current_request", "open_request", "start_turn", "resolve_request",
                                     "record_request_research", "cancel_turn", "save_result", "save_reviewed_result"))
 
 def output_limit(operation):
@@ -31,7 +31,7 @@ def dispatch(data, store, operation, payload):
     if operation in ("prepare_review_packet", "verify_review_packet"):
         from product_tools.reviewer_packet import ReviewPackets
         return getattr(ReviewPackets(store, ROOT), operation)(payload)
-    if operation in ("evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result", "prepare_web_result"):
+    if operation in ("evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result", "prepare_web_result", "get_completion_summary"):
         return getattr(Conversation(store, ROOT), operation)(payload)
     if operation == "save_reviewed_result":
         obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment", "response_mode"))
@@ -109,7 +109,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / DEFAULT_DATA_PATH)
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("prepare_review_packet", "verify_review_packet", "evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "prepare_web_result", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("prepare_review_packet", "verify_review_packet", "evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "get_completion_summary", "prepare_web_result", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None
