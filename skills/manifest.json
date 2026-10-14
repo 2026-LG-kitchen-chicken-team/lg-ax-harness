@@ -312,7 +312,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "acaa00afa8a8e378e6235dbdbfb9e8bf9ee35a351877a5027531fc9f916d28dd"
+      "sha256": "dcca839a401730599bd5680c9a7e74b7b078bfd1072b878401fe341333412702"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -324,11 +324,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "e30b880b41e9f9c3f0ad305d8d02e152d25859b5d132fddaa500eb7f3b488fc0"
+      "sha256": "3e424ac0c58b05246800f65513d50acff2a430e8d21bc22d41ed7761e6ffe4fc"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "4393aeb7c3a83ef5b0b7d2b4ef35bf162c02bddf1d603a7fa67372901d8982ba"
+      "sha256": "9828bc4176cf09b64da45cb6ca7efe3835a58498209e103f6dfc0a1b76d081d0"
     }
   ],
   "optional_agents": [
