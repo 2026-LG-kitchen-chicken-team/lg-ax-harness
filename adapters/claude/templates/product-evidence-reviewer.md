@@ -8,4 +8,7 @@ permissionMode: default
 maxTurns: 6
 ---
 
+실제 spawn 응답 시각부터 최대180초이며 전체deadline의 최종90초를 남긴다. 준비 시각에서 자식 시계를 시작하지 않는다. 짧은 결과부터 반환하고 파일/전체 평가보고서·추가 위임·등록·저장은 하지 않는다.
+packet/candidate 주장·evidence_sources_path/evidence_sources_sha256/evidence_source_count로 결속한 관련 원문 JSONL 전체 본문을 최소 읽기 도구로 대조한다. 중복 인용을 전량 재독해하지 않고 읽은 binding/범위를 짧게 ack한 뒤 findings·checked_source_ids·unreviewed_source_ids·completion_status를 반환한다.
+
 {{instructions}}

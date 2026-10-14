@@ -5,6 +5,8 @@ description: "질문에서 지정하거나 해석한 제품군 또는 정확 모
 
 # 저장 근거 조회
 
+국소 표현/검증 계획 보완과 핵심 근거 오류는 영향 범위를 구분한다. 전자는 보완 항목이며 그 자체로 업무 전체 실패를 뜻하지 않는다. 최종 전달은 현재 저장 버전의 completion_summary.text를 유지하고 새 사실·조건·매체를 추가하지 않는다.
+
 ## 전달·검토 범위 기록
 
 초기 bundle 3~4개만 읽고 기획을 끝내지 않는다. 새조사는 자연 완료 측정이며 기본1800초는 안전 상한이고 마지막90초는 새수집을 닫아 전달을 준비한다. 명시 예산과 이미 시작된 시계는 변경하지 않으며 과거300/600초는 당시 요청 이력이다. 같은 session_id/turn_id와 최종 --data를 유지해 evidence_inventory/evidence_coverage로 등록·완전본문전달·호출자신고검토·제외·누락을 확인한다. 이는 전체 웹 원문이나 고객 수·의미 충분성 인증이 아니다.
@@ -18,7 +20,7 @@ record_evidence_review 입력은 {session_id,turn_id,review_key,records:[{source
 
 제품명에서 새 실제 조사를 시작할 때는 open_product_workflow를 사용하고 같은 요청의 record_workflow_event/workflow_status로 전체 예산·출처 이력·종료·분석 범위를 보존한다. 실행기 active-workflow.json이 있으면 원래 요청을 재사용한다. 상세 필드는 프로젝트 루트 docs/contracts/product-workflow.md다. 반환 bundle은 전체 조사원문이 아니며 turn결속 read_evidence_batch의 offset/next_offset로 등록본문을 순회한다. turn전 진단에는 retrieve_reviews/retrieve_product_facts를 사용할 수 있다. 분석하지 않은 항목을 전량 분석으로 표시하지 않는다.
 
-독자용 자료집은 [보고서 작성](../review-and-revise/references/report-writing.md)의 실제 종류별 구성에 맞춘다. 확보한 원문·요약·모델/문서 버전·관측 범위·URL/위치를 보존하며 등록 ID는 내부 연결에만 사용한다. 비어 있는 조사 종류나 가상 통계로 파일을 채우지 않는다.
+명시 자료집 파일 출력에만 [보고서 작성](../review-and-revise/references/report-writing.md)의 실제 종류별 구성에 맞춘다. 확보한 원문·요약·모델/문서 버전·관측 범위·URL/위치를 보존하며 등록 ID는 내부 연결에만 사용한다. 비어 있는 조사 종류나 가상 통계로 파일을 채우지 않는다.
 
 원래 질문의 제품 범위·목표·제약은 native AI가 판단한다. 제품군은 product_family/scope_mode=family_catalog, 정확 모델은 model_id로 명시하며 코드가 질문 키워드로 고르지 않는다. 기본 data/business/empty에는 제품·후기·정답이 없다. 필요한 자료·관측일·정확 버전을 확인하고 신규/부족/갱신이면 web-evidence-collection을 적용한다. 이미 충분한 저장 자료만 직접 재사용하며 현재 질문에 맞는 이유와 한계를 밝힌다.
 

@@ -5,6 +5,8 @@ description: "저장 근거 부족·자료 갱신·모델 또는 문서 연결 �
 
 # 외부 근거 조사
 
+국소 표현/검증 계획 보완과 핵심 근거 오류는 영향 범위를 구분한다. 전자는 보완 항목이며 그 자체로 업무 전체 실패를 뜻하지 않는다. 최종 전달은 현재 저장 버전의 completion_summary.text를 유지하고 새 사실·조건·매체를 추가하지 않는다.
+
 자동 HTTP 수집 전 실제 채널의 UA와 공개 robots/접근 정책을 확인한다. 알려진 차단 경로에서 재시도하거나 다른 봇 UA를 사칭하지 않는다. 실제 허용된 native 웹/브라우저·공개 API 경로로 접근할 수 있을 때만 대안을 사용하고, 목록·별점별 서버 카운트와 확보한 후기 본문 수를 구분한다. 초기 목록만 접근되면 추가 페이지·저평점·장기 사용의 미관측 범위를 보존한다. 정책을 뒤늦게 확인한 기존 수집 이력은 지우지 않으며 허용되지 않은 후속 호출을 중단한다.
 
 ## 충분한 자료와 일반 코드 분할 등록
@@ -43,3 +45,5 @@ HTML 설명서는 실제 선택한 절의 본문만 관측하여 절별 page_id�
 시장 통계·경쟁 제품 문서는 대상 제품의 product_fact로 등록하지 않는다. 같은 research_id로 실제 원문을 capture하고, 보고서만 보강하는 `report_sources_path`의 관측 snapshot/짧은 정확 발췌/자료 대상/적용 범위를 작성한다. 상세 계약은 docs/contracts/reader-deliverables.md를 따른다. 이는 ProductResult의 대상 모델 근거·불편·기존 기능 검토를 대신할 수 없으며 경쟁 기능이 대상 제품에 없다는 증명도 아니다.
 
 실행: `uv run python skills/web-evidence-collection/scripts/run.py OP --input JSON_PATH`. OP는 fetch_web_page/capture_web_page/import_web_evidence/import_web_evidence_bulk/configure_web_research다. 원문 로그·관측 snapshot·새 실행 catalog는 runtime-data에 저장하며 Git에 넣지 않는다. 이 Skill은 브라우저·MCP를 설치하거나 권한을 부여하지 않는다.
+
+접근 실패는 사용자에게 사이트/원URL의 접근 실패·일부 관측과 영향을 설명한다. 상세 오류 파일 확인을 요구하지 않는다. 실제 해당 URL 응답이 없는 HTTP code/원인을 생성하거나 다른 사이트 receipt를 보조 근거로 붙이지 않는다. 실제 실패 원문·시각·시도는 같은 연구 내부 이력에 보존한다.
