@@ -405,7 +405,7 @@ const isSecondary = (c: Block, rows: Block[]) => SECONDARY_LABELS.has(c.label)
 const FILTER: Record<SkinId, { wrap: string; on: string; off: string }> = {
   navy: { wrap: 'flex flex-wrap gap-1.5', on: 'h-8 rounded-full bg-[#4f5bd5] px-3 text-[12.5px] font-medium text-white', off: 'h-8 rounded-full px-3 text-[12.5px] text-[#5d6378] ring-1 ring-inset ring-[#e3e6ee] hover:bg-[#f5f6fa]' },
   mono: { wrap: 'flex flex-wrap gap-2', on: 'h-10 rounded-full bg-zinc-950 px-4 text-[13px] font-medium text-white', off: 'h-10 rounded-full border border-zinc-300 px-4 text-[13px] text-zinc-700 hover:bg-zinc-50' },
-  ops: { wrap: 'inline-flex flex-wrap rounded-md bg-[#efefef] p-0.5', on: 'h-7 rounded bg-white px-2.5 text-[12px] font-medium text-zinc-900 shadow-xs', off: 'h-7 rounded px-2.5 text-[12px] text-zinc-600 hover:text-zinc-900' },
+  ops: { wrap: 'inline-flex flex-wrap rounded-md bg-[#efefef] p-0.5', on: 'h-7 rounded bg-white px-2.5 text-[12px] font-medium text-zinc-900 shadow-xs', off: 'h-7 rounded px-2.5 text-[12px] text-zinc-600 hover:bg-white/70 hover:text-zinc-900' },
   monoops: { wrap: 'flex flex-wrap gap-1.5', on: 'h-8 rounded-full bg-zinc-950 px-3 text-[12.5px] font-medium text-white', off: 'h-8 rounded-full border border-zinc-300 px-3 text-[12.5px] text-zinc-700 hover:bg-zinc-50' },
   analytics: { wrap: 'inline-flex flex-wrap rounded-lg bg-[#f4f4f5] p-1', on: 'h-7 rounded-md bg-white px-2.5 text-[13px] font-medium text-zinc-900 shadow-xs ring-1 ring-black/5', off: 'h-7 rounded-md px-2.5 text-[13px] text-zinc-600 hover:text-zinc-900' },
 }
@@ -468,7 +468,7 @@ function OpsTable({ b, tools, cols, shown }: { b: Block; tools: ReactNode; cols:
             {/* relative: the screen-reader label must stay inside the scroll box (an unanchored sr-only span widens the page). */}
             {fold && <th className={cn(L.th, 'relative w-14')}><span className="sr-only">상세</span></th>}
           </tr></thead>
-          <tbody>
+          <tbody className="[&>tr:hover>td]:bg-[#f7faf7]">
             {shown.map((r) => {
               const k = rows.indexOf(r)
               const on = fold && open.has(k)
@@ -477,7 +477,7 @@ function OpsTable({ b, tools, cols, shown }: { b: Block; tools: ReactNode; cols:
                   {visible.map((c) => <Cell key={c.key} kind={c.kind} v={r[c.key]} cls={L.td} />)}
                   {fold && (
                     <td className={cn(L.td, 'whitespace-nowrap text-right')}>
-                      <button type="button" onClick={() => toggle(k)} aria-expanded={on} className="inline-flex items-center gap-0.5 rounded px-1 text-[12px] text-zinc-500 hover:text-zinc-900">
+                      <button type="button" onClick={() => toggle(k)} aria-expanded={on} className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[12px] text-zinc-500 hover:bg-[#e6f1e8] hover:text-[#2f7d4f]">
                         상세<ChevronDown className={cn('size-3.5 transition-transform', on && 'rotate-180')} aria-hidden />
                       </button>
                     </td>
@@ -696,7 +696,7 @@ function Expander({ b, copy }: P) {
   return (
     <details className={cn('group', L.card)} open={!!b.open}>
       <summary className={cn('flex cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden',
-        id === 'ops' ? 'px-4 py-3 text-[14px]' : id === 'mono' ? 'px-7 py-5 text-[17px]' : id === 'monoops' ? 'px-5 py-3.5 text-[15px]' : 'px-5 py-4 text-[15px]')}>
+        id === 'ops' ? 'rounded-lg px-4 py-3 text-[14px] hover:bg-[#f3f8f4] hover:text-[#2f7d4f] group-open:rounded-b-none' : id === 'mono' ? 'px-7 py-5 text-[17px]' : id === 'monoops' ? 'px-5 py-3.5 text-[15px]' : 'px-5 py-4 text-[15px]')}>
         <span>{b.title}</span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
@@ -718,7 +718,7 @@ function Files({ b, copy }: P) {
       <div className={cn('flex min-h-10 items-center gap-2 py-1', field)}>
         <span className="min-w-0 flex-1 break-all font-mono text-xs" title={short ? String(f.value) : undefined}>{short ? shortHex(String(f.value)) : f.value}</span>
         {f.copy !== false && (
-          <button type="button" onClick={() => copy(String(f.value))} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 border bg-white px-2.5 text-xs font-medium hover:bg-accent', isMono(id) ? 'rounded-full' : 'rounded-md')}>
+          <button type="button" onClick={() => copy(String(f.value))} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 border bg-white px-2.5 text-xs font-medium', id === 'ops' ? 'hover:border-[#2f8f57]/40 hover:bg-[#f3f8f4] hover:text-[#2f7d4f]' : 'hover:bg-accent', isMono(id) ? 'rounded-full' : 'rounded-md')}>
             <Copy className="size-3.5" aria-hidden />복사
           </button>
         )}

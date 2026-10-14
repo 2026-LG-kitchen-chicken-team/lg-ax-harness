@@ -32,7 +32,7 @@ export function HoverNote({ children, note, className, label }: { children: Reac
     <>
       <button ref={ref} type="button" aria-describedby={pos ? id : undefined} aria-label={label}
         onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide} onClick={show}
-        className={cn('cursor-help focus-visible:outline-2 focus-visible:outline-offset-2', className)}>
+        className={cn('cursor-help hover:bg-black/[0.05] focus-visible:outline-2 focus-visible:outline-offset-2', className)}>
         {children}
       </button>
       {pos && createPortal(

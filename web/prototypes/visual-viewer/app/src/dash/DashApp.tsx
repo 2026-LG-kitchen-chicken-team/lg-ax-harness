@@ -50,9 +50,9 @@ const SIDE: Record<SkinId, { aside: string; offset: string; group: string; list:
     aside: 'w-60 border-r border-[#e6e6e6] bg-[#f5f5f5] text-zinc-800', offset: 'lg:pl-60',
     group: 'px-2.5 pb-1 text-[11px] font-medium text-zinc-400', list: 'flex flex-col gap-0.5',
     item: 'flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[13px]',
-    on: 'bg-[#e2ece0] font-medium text-[#1f3a24]', off: 'text-zinc-700 hover:bg-black/[0.04]',
+    on: 'bg-[#e2ece0] font-medium text-[#1f3a24]', off: 'text-zinc-700 hover:bg-black/[0.06] hover:text-zinc-950',
     num: 'ml-auto font-mono text-[10px] text-zinc-400',
-    card: 'mx-3 rounded-lg border border-[#e3e3e3] bg-white p-3 text-zinc-700', button: 'mt-2.5 h-8 w-full rounded-md border border-[#e3e3e3] text-xs font-medium hover:bg-zinc-50',
+    card: 'mx-3 rounded-lg border border-[#e3e3e3] bg-white p-3 text-zinc-700', button: 'mt-2.5 h-8 w-full rounded-md border border-[#e3e3e3] text-xs font-medium hover:border-[#2f8f57]/40 hover:bg-[#f3f8f4] hover:text-[#2f7d4f]',
     foot: 'border-t border-[#e6e6e6] px-4 py-3 text-[11px] leading-relaxed text-zinc-500',
   },
   analytics: {
@@ -131,7 +131,7 @@ function Tools({ skin, view, openSearch, mode, setMode, big, toggleBig, live, in
       className="grid size-9 place-items-center rounded-full bg-white text-zinc-600 lg:hidden"><Search className="size-4" aria-hidden /></button>,
   }[skin]
   const bigCls = {
-    navy: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e3e6ee]', mono: 'h-11 rounded-full bg-white px-4', ops: 'h-8 rounded-md border border-[#e3e3e3] bg-white px-2.5',
+    navy: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e3e6ee]', mono: 'h-11 rounded-full bg-white px-4', ops: 'h-8 rounded-md border border-[#e3e3e3] bg-white px-2.5 hover:bg-zinc-100',
     analytics: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e4e4e7]', monoops: 'h-9 rounded-full bg-white px-3',
   }[skin]
   return (
@@ -534,7 +534,7 @@ function PageBlocks({ skin, blocks, copy }: { skin: SkinId; blocks: Block[]; cop
 function PrevNext({ skin, prev, next, go }: { skin: SkinId; prev?: Page; next?: Page; go: (id: string) => void }) {
   const box = {
     navy: 'rounded-[10px] bg-white p-5 ring-1 ring-[#eceef3] hover:ring-[#cfd3e6]', mono: 'rounded-full bg-white py-3 pl-3 pr-6 hover:bg-zinc-50',
-    ops: 'lg-lift rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 hover:border-zinc-300', analytics: 'rounded-xl border border-[#ececee] bg-white p-4 hover:border-zinc-300',
+    ops: 'lg-lift rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 hover:border-[#2f8f57]/45 hover:bg-[#fbfdfb]', analytics: 'rounded-xl border border-[#ececee] bg-white p-4 hover:border-zinc-300',
     monoops: 'rounded-full bg-white py-2.5 pl-2.5 pr-5 hover:bg-zinc-50',
   }[skin]
   const icon = skin === 'mono' ? 'grid size-11 shrink-0 place-items-center rounded-full bg-zinc-950 text-white'

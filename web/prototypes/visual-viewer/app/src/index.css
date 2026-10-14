@@ -118,11 +118,16 @@
   .skin-ops .lg-num { animation: lg-num 0.36s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
   .skin-ops [data-reveal="wait"] .lg-num { animation: none; }
   .skin-ops .lg-lift { transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out; }
-  .skin-ops .lg-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -10px rgb(0 0 0 / 0.25); }
+  .skin-ops .lg-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 22px -12px rgb(31 58 36 / 0.35); }
   .skin-ops .lg-lift .lg-nudge { transition: transform 0.2s ease-out; }
   .skin-ops .lg-lift:hover .lg-nudge-prev { transform: translateX(-3px); }
   .skin-ops .lg-lift:hover .lg-nudge-next { transform: translateX(3px); }
   .skin-ops details[open] > :not(summary), .skin-ops .lg-open { animation: lg-open 0.24s ease-out; }
+  /* 3 (more): the 원문 link's arrow points the way, a fold's chevron dips, a pressed button gives a little. */
+  .skin-ops a .lucide-external-link { transition: transform 0.2s ease-out; }
+  .skin-ops a:hover .lucide-external-link { transform: translate(2px, -2px); }
+  .skin-ops details:not([open]) > summary:hover > .lucide-chevron-down { transform: translateY(2px); }
+  .skin-ops button:not(.lg-lift):active { transform: scale(0.97); transition: transform 0.1s ease-out; }
 }
 @layer components {
   @media (prefers-reduced-motion: no-preference) {
