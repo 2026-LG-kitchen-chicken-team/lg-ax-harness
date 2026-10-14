@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "tag": "product-v0.14.0",
+  "release_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.14.0",
+  "prerelease": true,
+  "snapshot_commit": "8d5a26bb0607aec9bd94e795b1397eda3cadfcff",
+  "snapshot_parents": 0,
+  "snapshot_tree": "68395a180a82885dd670e7c5b11d13a876a6010f",
+  "archive_sha256": "a67fc2649da93cce5d5295332860078d469ed850de93357dcacc41f413318a4e",
+  "checksum_asset_byte_equal": true,
+  "release_notes_byte_equal_except_terminal_newline": true,
+  "remote_ZIP_and_automatic_source_raw_byte_equal": true,
+  "files": 108,
+  "source_manifest_entries": 107,
+  "native_from_release_ZIP": "not_run",
+  "actual_check": {
+    "argv": [
+      "python",
+      "-X",
+      "utf8",
+      "-B",
+      "release-M2/verify-remote.py"
+    ],
+    "exit_code": 0
+  },
+  "verification_script_sha256": "28992ea8312da0f991076643b6a41b67b8c8840a6def99d9669a518db0d4406a",
+  "evidence_sha256": {
+    "release.json": "7b4047ff23e121a7f93618b5451f4328d1db5d9145457c1ea3edb5dfcbba2a53",
+    "commit.json": "18d40b91d19730141a80189a6fcc690b4d1e0c93496b6fdfe61bcddfb004439c",
+    "automatic-source.zip": "80e15e3253d23c292140086f6625b39bd2cdd3bea69a1a569e1d899b8f4ca29e",
+    "SHA256SUMS.txt": "bd34adc8414980be19020cbb39d6d60394c556f4b559114ad524c3f6ef0679b2"
+  },
+  "main_merge": "not_run",
+  "remote_CI": "not_started_due_account_spending_limit",
+  "late_PR10_updates": "8 commits after pinned intake head not included",
+  "raw_personal_data_or_native_logs_in_release": false,
+  "private_verification_receipt_sha256": "f9de3ca682818a7b6c8413352196635b5c717bc7162d07a62a72bece5cd63bdb",
+  "canonical_manifest_sha256": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+  "code_provenance": "48e907a5a61088908eb3a9e4ccad4265b45e19f2",
+  "independent_package_review_sha256": "f087fe1083dbb96f85c1729a469aed5c139c534e42ea9231ad21f27ed1c15452",
+  "product_tests": 443,
+  "web_tests": 105,
+  "extra_visual_model_calls": 0,
+  "latest_metadata_evidence_sha256": {
+    "PR10-late-head-comparison.json": "8df9cf3c711783ce5b12456b83619c3d07b5a23f589238c260e00658db6c4f94",
+    "M2-current-check-runs.json": "b42790085eb66038cd73087e1d27f3bec06094b133d11d0215e5f938abbe8110",
+    "M2-current-CI-annotations.json": "01301c46b6558228c692ea30bd4b4ca25d60bf317bd6b5d6cb71efffdb21f8ab",
+    "M2-current-CI-jobs.json": "efb65db5f11a3260415c1fff5f1f2232a9c24c545f236259e4298e9e312e49d4"
+  },
+  "CI_evidence": {
+    "head_sha": "41d2cda8efecb16ced2fe056bd93c6679ddceaa7",
+    "run": 38581840838,
+    "check_run": 115913474226,
+    "jobs_steps": 0,
+    "annotation": "Job not started because recent account payments have failed or spending limit needs increase"
+  }
+}
