@@ -139,16 +139,18 @@
     .skin-ops :is(button, summary, a) { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
   }
 }
-/* K hover cards (ID cards and hover notes) are light and ease in from the side of their trigger; ID chips that open
-   one lift a little (both part of motion 3, hover). The strip under a lifted chip keeps the pointer on it. */
+/* K hover cards (ID cards and hover notes) are light and ease in from the side of their trigger. ID chips (p1, f1 …)
+   rest raised on a soft shadow without an outline and, under the pointer or keyboard focus, press down 1px into their
+   outline (part of motion 3, hover; under reduced motion only the shadow and outline swap). No dotted underline in K:
+   the raised chip already says it opens a card. */
 @media (prefers-reduced-motion: no-preference) {
   .lg-tip { animation: lg-tip-down 0.18s cubic-bezier(0.2, 0.7, 0.2, 1) both; transform-origin: top left; }
   .lg-tip[data-side="above"] { animation-name: lg-tip-up; transform-origin: bottom left; }
   .skin-ops [data-badge][tabindex] { transition: transform 0.15s ease-out, box-shadow 0.15s ease-out; }
-  .skin-ops [data-badge][tabindex]:is(:hover, :focus-visible) { transform: translateY(-2px); box-shadow: 0 5px 12px -6px rgb(31 58 36 / 0.4); }
+  .skin-ops [data-badge][tabindex]:is(:hover, :focus-visible) { transform: translateY(1px); }
 }
-.skin-ops [data-badge][tabindex] { position: relative; }
-.skin-ops [data-badge][tabindex]:hover::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 6px; }
+.skin-ops [data-badge][tabindex] { text-decoration: none; box-shadow: 0 4px 10px -5px rgb(31 58 36 / 0.35); }
+.skin-ops [data-badge][tabindex]:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1px var(--tw-ring-color); }
 @keyframes lg-tip-down { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes lg-tip-up { from { opacity: 0; transform: translateY(4px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes lg-num { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
