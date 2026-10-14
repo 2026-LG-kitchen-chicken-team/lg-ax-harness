@@ -264,7 +264,7 @@
     },
     {
       "path": "product-tools/product_tools/workflow.py",
-      "sha256": "d8b1a2702943a589014a2608b31dc49c6a8402b6a98a7914f6b8afc3256aa39b"
+      "sha256": "923ed390b4f5a227dc082bd8507579b45b149eacd1a1493207184df537df1b5a"
     },
     {
       "path": "docs/contracts/common-tools.md",

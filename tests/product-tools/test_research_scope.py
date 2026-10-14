@@ -9,6 +9,7 @@ import shutil
 from datetime import datetime, timezone
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product-tools"))
@@ -199,6 +200,32 @@ class ResearchScopeTests(unittest.TestCase):
         call("record_workflow_event",{"research_id":self.research,"event_key":"cli-stop","kind":"research_stop","data":stop})
         self.assertEqual(len(scope.goals(self.audit.events(self.research))),100)
         self.assertEqual(len(scope.summary(self.audit.events(self.research))["remaining_scope"]),100)
+
+    def test_report_keeps_all_analysed_sources_providers_and_long_stop(self):
+        self.plan()
+        self.web.configure({"research_id":self.research,"max_pages":30,"reason":"Synthetic multi-provider regression"})
+        for index in range(8):
+            snap=self.capture("report-"+str(index), "Synthetic source context", url="https://source"+str(index)+".example.org/reviews")
+            self.scan(snap, [], key="report-scan-"+str(index),goal_ids=["external_reviews"])
+        dataset=SimpleNamespace(sources={"source-"+str(i):{} for i in range(48)})
+        self.audit.record({"research_id":self.research,"event_key":"all-48","kind":"analysis_scope",
+            "data":{"source_ids":list(dataset.sources),"scope_note":"All 48 declared fixture records"}},dataset=dataset)
+        basis="b"*1000+"basis-complete-end"
+        findings=["f"*300+"finding-end-"+str(i) for i in range(12)]
+        remaining=["r"*300+"remaining-end-"+str(i) for i in range(12)]
+        impact="i"*1000+"impact-complete-end"
+        self.record("research_stop", self.stop_data(basis=basis,new_findings=findings,remaining_scope=remaining,limitation_basis=impact),"full-report-stop")
+        preview=self.audit.status(self.research)
+        self.assertEqual(len(preview["counts"]["analysed_source_ids"]),20)
+        self.assertEqual(len(preview["counts"]["providers"]),6)
+        self.assertNotEqual(preview["stop"]["basis"],basis)
+        report=self.audit.report_section(self.research,dataset)
+        text="\n".join(block.get("text","") for block in report["blocks"])
+        self.assertIn("신고한 항목 48개. 미신고 항목 0개",text)
+        for literal in [basis,impact,*findings,*remaining]:self.assertIn(literal,text)
+        tables=[block for block in report["blocks"] if block["type"]=="table"]
+        self.assertEqual(len(tables[0]["rows"]),8)
+        self.assertEqual(len(scope.summary(self.audit.events(self.research))["remaining_goal_ids"]),5)
 
     def test_malformed_goal_ids_do_not_raise_uncaught(self):
         self.plan();snap=self.capture("new", "Synthetic")

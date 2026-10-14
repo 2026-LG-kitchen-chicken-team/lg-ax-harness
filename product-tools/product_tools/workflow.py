@@ -411,7 +411,9 @@ class WorkflowAudit:
 
     def report_section(self, research, dataset):
         status = self.status(research)
-        counts = status["counts"]
+        events = self.events(research)
+        # UI status is a bounded preview; reports use the complete preserved journal.
+        counts = self.counts(events, self.used_sources(research))
         def number(value):
             return "미확인" if value is None else value
         rows = [[p["provider"], number(p["reviewed_unique_review_total"]), p["retained_literal_observation_count"],
@@ -422,7 +424,7 @@ class WorkflowAudit:
         blocks = [{"type": "paragraph", "text": "수집 항목·원문 발췌·고유 후기 ID·검토 페이지는 서로 다른 단위다. 아래 제외 수는 관측 처리 기록이며 고객 수가 아니다. 후기 고유 ID가 미확인인 출처의 고유 총수는 미확인으로 남겼다. 신고된 분류·문맥과 출처별 상세 이력은 보존 원문과 조사 기록에서 확인한다."}]
         if rows:
             blocks.append({"type": "table", "title": "출처별 이번 조사와 제안 사용 범위", "columns": ["출처", "검토 고유 후기", "보존 원문 관측", "제외 관측", "유효 고유 후기", "제안 사용 확인 ID"], "rows": rows})
-        stop = status["stop"]
+        stop = next((event["data"] for event in reversed(events) if event["kind"] == "research_stop"), None)
         if stop:
             labels = {"completion_time_reserve": "분석·검토·파일 전달 시간 확보", "sources_exhausted": "조사한 접근 경로의 자료 소진",
                       "sufficient_evidence": "근거 충분 판단", "access_failure": "접근 실패", "insufficient_evidence": "자료 부족", "whole_budget_expired": "전체 시간 예산 종료"}
@@ -431,6 +433,10 @@ class WorkflowAudit:
                 blocks.append({"type": "paragraph", "text": "추가 조사에서 확인한 사항: "+"; ".join(stop["new_findings"])})
             if stop["remaining_scope"]:
                 blocks.append({"type": "paragraph", "text": "남은 조사 범위: "+"; ".join(stop["remaining_scope"])})
+            if stop.get("limitation_basis"):
+                blocks.append({"type": "paragraph", "text": "남은 범위의 결론 영향과 조건: "+stop["limitation_basis"]})
+            if stop.get("remaining_goal_ids"):
+                blocks.append({"type": "paragraph", "text": "남은 조사 목표 ID: "+"; ".join(stop["remaining_goal_ids"])})
         blocks.append({"type": "paragraph", "text": f"등록 원문 항목 {len(scoped)}개 중 분석 범위를 신고한 항목 {len(scoped & analysed)}개. 미신고 항목 {len(scoped-analysed)}개는 전량 분석했다고 주장하지 않는다. ID 목록의 신고는 원문 의미 검토의 자동 인증이 아니다."})
         blocks.append({"type": "paragraph", "text": f"전체 업무 예산 {status['budget_seconds']}초. 조사 종료까지 {status['research_seconds'] if status['research_seconds'] is not None else '미확인'}초. 최종 답변과 종료의 실제 전체 시간은 실행 종료 기록으로 별도 확인한다."})
         return {"title": "이번 조사 범위와 자료 상태", "blocks": blocks}
