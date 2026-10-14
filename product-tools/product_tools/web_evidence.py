@@ -649,6 +649,12 @@ class WebEvidence:
 
     def import_evidence(self, dataset, payload):
         obj(payload, ("data_version", "observations"), ("new_models", "research_id"))
+        observations = items(payload["observations"], "observations", 10)
+        if not observations:
+            fail("invalid_input", "At least one observed source is required")
+        for observed in observations:
+            if not isinstance(observed, dict):
+                fail("invalid_input", "Each observation must be a JSON object")
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.db, self.workspace)
         research = payload.get("research_id")
@@ -680,9 +686,6 @@ class WebEvidence:
         version = identifier(payload["data_version"], "data_version")
         if dataset.synthetic or version == dataset.version:
             fail("invalid_dataset", "Business import requires a new real dataset version")
-        observations = items(payload["observations"], "observations", 10)
-        if not observations:
-            fail("invalid_input", "At least one observed source is required")
         new_models = copy.deepcopy(items(payload.get("new_models", []), "new_models", 10))
         models = copy.deepcopy(dataset.models)
         scopes = set(dataset.scopes)

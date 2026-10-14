@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import sqlite3
 import shutil
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -143,6 +144,30 @@ class CancellationResearchTests(unittest.TestCase):
         imported = self.web.import_evidence(self.data, self.import_payload(captured))
         self.assertTrue((self.workspace / imported["data_path"]).is_dir())
         self.assertEqual(self.store.get_turn(**self.handle)["status"], "pending")
+
+    def test_isolated_cli_normal_import_then_cancelled_import_keeps_json_errors(self):
+        self.start(False)
+        captured = self.capture("cli-before-cancel")
+        shutil.copytree(ROOT / "product-tools", self.workspace / "product-tools", ignore=shutil.ignore_patterns("__pycache__"))
+        command = [sys.executable, str(self.workspace / "product-tools/cli.py"), "--data", str(self.data.root),
+                   "--db", str(self.store.path), "import_web_evidence"]
+        payload = self.import_payload(captured, False)
+        for cancelled in (False, True):
+            with self.subTest(cancelled=cancelled):
+                if cancelled:
+                    self.cancel()
+                payload["data_version"] = "cli-cancelled" if cancelled else "cli-normal"
+                process = subprocess.run(command, input=canonical(payload), cwd=self.workspace,
+                    capture_output=True, text=True, encoding="utf-8", timeout=10)
+                self.assertEqual(process.returncode, 1 if cancelled else 0, process.stdout + process.stderr)
+                self.assertNotIn("Traceback", process.stderr)
+                response = strict_json(process.stdout)
+                if cancelled:
+                    self.assertEqual(response["error"]["code"], "terminal_turn")
+                    self.assertFalse((self.workspace / "runtime-data/catalogs/cli-cancelled").exists())
+                else:
+                    self.assertTrue(response["ok"])
+                    self.assertTrue((self.workspace / response["result"]["data_path"]).is_dir())
 
 
 class CancellationTests(unittest.TestCase):
