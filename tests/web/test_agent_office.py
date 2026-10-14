@@ -70,7 +70,8 @@ class Harness:
                 valid INTEGER NOT NULL DEFAULT 1, revision_count INTEGER NOT NULL DEFAULT 0, result_version INTEGER NOT NULL DEFAULT 0,
                 invalidation_reason TEXT, created_at TEXT NOT NULL);
             CREATE TABLE results(turn_id TEXT NOT NULL, result_key TEXT NOT NULL, payload TEXT NOT NULL, payload_hash TEXT NOT NULL,
-                result_version INTEGER NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(turn_id,result_key));
+                result_version INTEGER NOT NULL, created_at TEXT NOT NULL, validation_json TEXT NOT NULL DEFAULT '{}',
+                PRIMARY KEY(turn_id,result_key));
             CREATE TABLE evidence_deliveries(turn_id TEXT NOT NULL, binding TEXT NOT NULL, delivery_key TEXT NOT NULL, source_id TEXT NOT NULL,
                 source_sha256 TEXT NOT NULL, observed_at TEXT NOT NULL, PRIMARY KEY(turn_id,binding,delivery_key,source_id));
         """)
@@ -83,7 +84,12 @@ class Harness:
         con.execute("INSERT INTO conversation_requests VALUES('S1','K1',?,'T1',?)",
                     (json.dumps({"question": "합성 시험 질문입니다"}), json.dumps({"status": "research_required"})))
         con.execute("INSERT INTO turns VALUES('T1','S1','K1','{}','c','d','e','completed',1,1,2,NULL,'2026-10-13T12:05:00+00:00')")
-        con.execute("INSERT INTO results VALUES('T1','k',?,'h',1,'2026-10-13T12:05:01+00:00')", (SECRET,))
+        candidate = {"status": "held", "pains": [{"text": SECRET}, {"text": SECRET}], "existing_features": [],
+                     "remaining_pains": [{"text": SECRET}], "concepts": [{"text": SECRET}], "evidence_refs": [{"quote": SECRET}] * 3}
+        check = {"contract_valid": True, "structural_valid": True, "acceptance_ready": False, "semantic_status": "unverified",
+                 "note": SECRET}
+        con.execute("INSERT INTO results VALUES('T1','k',?,'h',1,'2026-10-13T12:05:01+00:00',?)",
+                    (json.dumps(candidate), json.dumps(check)))
         con.execute("INSERT INTO evidence_deliveries VALUES('T1','b','d1','src-1','a','2026-10-13T12:02:00+00:00')")
         con.commit()
         con.close()
@@ -125,6 +131,25 @@ class ObserverTests(unittest.TestCase):
                     "tool_response": {"stdout": json.dumps({"ok": False, "error": "invalid_input", "message": SECRET})}})
         e = self.h.events()[0]
         self.assertEqual((e["node"], e["op"], e["phase"], e["detail"]["error"]), ("review-and-revise", "save_and_export", "fail", "invalid_input"))
+        self.assertNotIn(SECRET, self.h.all_text())
+
+    def test_other_skill_operation_and_save_outcome(self):
+        self.h.run(pre("Bash", {"command": "uv run python .claude/skills/evidence-retrieval/scripts/run.py fetch_web_page --input x"}))
+        save = "uv run python .claude/skills/review-and-revise/scripts/run.py save_and_export --input x"
+        response = {"ok": True, "result": {"save": {"accepted": False, "reason": {"code": "claim_unsupported", "message": SECRET},
+                                                  "turn": {"status": "needs_revision", "result_version": 1, "revision_count": 0}},
+                                         "delivery_ready": False, "export": None}}
+        self.h.run({"hook_event_name": "PostToolUse", "session_id": "S1", "tool_name": "Bash", "tool_input": {"command": save},
+                    "tool_response": {"stdout": json.dumps(response)}})
+        accepted = {"ok": True, "result": {"save": {"accepted": True, "reason": None, "turn": {"status": "completed"}}}}
+        self.h.run({"hook_event_name": "PostToolUse", "session_id": "S1", "tool_name": "Bash", "tool_input": {"command": save},
+                    "tool_response": {"stdout": json.dumps(accepted)}})
+        a, b, c = self.h.events()
+        self.assertEqual((a["node"], a["op"], a["detail"]), ("evidence-retrieval", "fetch_web_page", {"other_skill_operation": True}))
+        self.assertEqual(b["detail"], {"accepted": False, "reason": "claim_unsupported", "turn_status": "needs_revision",
+                                       "result_version": 1, "revision_count": 0})
+        self.assertEqual(office.label_of(b), "검토·수정 · save_and_export 거절됨 (claim_unsupported, needs_revision)")
+        self.assertEqual(office.label_of(c), "검토·수정 · save_and_export 승인됨 (completed)")
         self.assertNotIn(SECRET, self.h.all_text())
 
     def test_unknown_operation_and_plain_shell(self):
@@ -248,6 +273,10 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual((snap["turn"]["status"], snap["turn"]["revision_count"], snap["results"], snap["evidence_delivered"]),
                          ("completed", 1, 1, 1))
         self.assertIsNone(snap["evidence_reviews"])  # table missing: unknown, not 0
+        self.assertEqual(snap["candidates"], [{
+            "result_version": 1, "created_at": "2026-10-13T12:05:01+00:00", "status": "held",
+            "counts": {"pains": 2, "existing_features": 0, "remaining_pains": 1, "concepts": 1, "evidence_refs": 3},
+            "contract_valid": True, "structural_valid": True, "acceptance_ready": False, "semantic_status": "unverified"}])
         self.assertEqual(len(live["events"]), 1)
         self.assertNotIn(SECRET, self.h.all_text())
 

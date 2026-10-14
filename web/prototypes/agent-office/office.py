@@ -263,6 +263,11 @@ def label_of(event: dict) -> str:
     who = ROLE_KO.get(node, SKILL_KO.get(node, node or ""))
     if kind == "skill_op":
         base = f"{SKILL_KO.get(node, node)} · {event.get('op')}"
+        detail = event.get("detail") or {}
+        if phase == "end" and isinstance(detail.get("accepted"), bool):
+            verdict = "승인됨" if detail["accepted"] else "거절됨"
+            extra = [x for x in (detail.get("reason"), detail.get("turn_status")) if x]
+            return f"{base} {verdict}" + (f" ({', '.join(extra)})" if extra else "")
         return base + (" 실패" if phase == "fail" else " 끝" if phase == "end" else "")
     if kind == "delegate":
         if phase == "start":

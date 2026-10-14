@@ -65,6 +65,10 @@ SKILL_OPS = {
                           "verify_review_packet", "validate_result_contract", "review_product_result", "start_turn",
                           "save_result", "begin_invocation", "finish_invocation"},
 }
+# Every operation product-tools/cli.py accepts (v0.10.0). A skill's wrapper forwards any of them, so a call through one
+# skill's run.py may carry another skill's operation (seen in a real run); the node stays the wrapper's skill.
+CLI_OPS = frozenset(op for ops in SKILL_OPS.values() for op in ops) | {"validate_result_contract", "review_product_result"}
+SAVE_OPS = {"save_and_export", "save_reviewed_result", "save_result"}
 RUN_PY = re.compile(r"skills[\\/]+([a-z0-9-]{1,60})[\\/]+scripts[\\/]+run\.py[\"']?\s+([A-Za-z_]{1,60})")
 SKILL_MD = re.compile(r"skills[\\/]+([a-z0-9-]{1,60})[\\/]+SKILL\.md$", re.I)
 ERROR_CODE = re.compile(r"^[a-z][a-z0-9_]{0,59}$")
@@ -210,14 +214,18 @@ def classify(payload: dict) -> dict:
             pairs = [(s, o) for s, o in RUN_PY.findall(command) if s in SKILL_OPS]
             if pairs:
                 skill, op = pairs[0]
-                event.update(kind="skill_op", node=skill, op=op if op in SKILL_OPS[skill] else "unknown_operation",
-                             basis="command_based_mapping",
-                             ops=[{"skill": s, "op": o if o in SKILL_OPS[s] else "unknown_operation"} for s, o in pairs[:8]])
+                op = op if op in CLI_OPS else "unknown_operation"
+                event.update(kind="skill_op", node=skill, op=op, basis="command_based_mapping",
+                             ops=[{"skill": s, "op": o if o in CLI_OPS else "unknown_operation"} for s, o in pairs[:8]])
+                if op in CLI_OPS and op not in SKILL_OPS[skill]:
+                    event["detail"]["other_skill_operation"] = True
                 if hook == "PostToolUse":
                     failed = tool_error(payload.get("tool_response"))
                     if failed:
                         event["phase"] = "fail"
                         event["detail"]["error"] = failed
+                    elif op in SAVE_OPS:
+                        event["detail"].update(save_outcome(payload.get("tool_response")))
             else:
                 event["kind"] = "shell"
                 event["detail"]["programs"] = programs_of(command)
@@ -261,6 +269,48 @@ def classify(payload: dict) -> dict:
         if isinstance(source, str) and ERROR_CODE.match(source):
             event["detail"]["reason"] = source
     return event
+
+
+def stdout_json(response):
+    text = response.get("stdout") if isinstance(response, dict) and isinstance(response.get("stdout"), str) else \
+        response if isinstance(response, str) else None
+    if not text or "{" not in text:
+        return None
+    try:
+        return json.loads(text[text.find("{"):])
+    except ValueError:
+        return None
+
+
+def save_outcome(response) -> dict:
+    """Whether the harness accepted a saved candidate: accepted, reason code, turn status and version only."""
+    data = stdout_json(response)
+    found, queue = None, [data]
+    for _ in range(4):
+        nxt = []
+        for item in queue:
+            if isinstance(item, dict):
+                if isinstance(item.get("accepted"), bool):
+                    found = item
+                    break
+                nxt += [v for v in item.values() if isinstance(v, dict)]
+        if found or not nxt:
+            break
+        queue = nxt
+    if not found:
+        return {}
+    out = {"accepted": found["accepted"]}
+    reason = found.get("reason")
+    reason = reason.get("code") if isinstance(reason, dict) else reason
+    if isinstance(reason, str) and ERROR_CODE.match(reason):
+        out["reason"] = reason
+    turn = found.get("turn") if isinstance(found.get("turn"), dict) else {}
+    if token(turn.get("status")):
+        out["turn_status"] = turn["status"]
+    for key in ("result_version", "revision_count"):
+        if isinstance(turn.get(key), int):
+            out[key] = turn[key]
+    return out
 
 
 def tool_error(response):
@@ -386,7 +436,7 @@ def snapshot_db() -> dict:
         con.execute("PRAGMA query_only=1")
         tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         snap = {"available": True, "read_at": now(), "workflow": None, "workflow_events": [], "request": None, "turn": None,
-                "results": 0, "evidence_delivered": None, "evidence_reviews": None, "cancelled": False}
+                "results": 0, "candidates": [], "evidence_delivered": None, "evidence_reviews": None, "cancelled": False}
         if "product_workflows" in tables:
             row = con.execute("SELECT research_id, started_at, budget_seconds, research_stopped_at, finished_at "
                               "FROM product_workflows ORDER BY started_at DESC LIMIT 1").fetchone()
@@ -413,6 +463,11 @@ def snapshot_db() -> dict:
                                 "valid": bool(row[4]), "created_at": row[5]}
                 if "results" in tables:
                     snap["results"] = con.execute("SELECT COUNT(*) FROM results WHERE turn_id=?", (row[0],)).fetchone()[0]
+                    columns = {r[1] for r in con.execute("PRAGMA table_info(results)")}
+                    validation = "validation_json" if "validation_json" in columns else "'{}'"
+                    rows = con.execute(f"SELECT result_version, created_at, payload, {validation} FROM results WHERE turn_id=? "
+                                       "ORDER BY result_version DESC LIMIT 3", (row[0],)).fetchall()
+                    snap["candidates"] = [candidate_summary(*r) for r in reversed(rows)]
                 if "evidence_deliveries" in tables:
                     snap["evidence_delivered"] = con.execute(
                         "SELECT COUNT(DISTINCT source_id) FROM evidence_deliveries WHERE turn_id=?", (row[0],)).fetchone()[0]
@@ -432,6 +487,26 @@ def loads(raw):
     except ValueError:
         return {}
     return value if isinstance(value, dict) else {}
+
+
+COUNTED = ("pains", "existing_features", "remaining_pains", "concepts", "evidence_refs")
+
+
+def candidate_summary(version, created_at, payload, validation) -> dict:
+    """A saved candidate as counts and check flags only (no text): what the structuring, comparison and concept steps
+    produced, known at the moment the candidate was saved."""
+    result, check = loads(payload), loads(validation)
+    out = {"result_version": version if isinstance(version, int) else None, "created_at": short(created_at, 40),
+           "status": token(result.get("status")), "counts": {}}
+    for key in COUNTED:
+        value = result.get(key)
+        out["counts"][key] = len(value) if isinstance(value, list) else None
+    for key in ("contract_valid", "structural_valid", "acceptance_ready"):
+        if isinstance(check.get(key), bool):
+            out[key] = check[key]
+    if token(check.get("semantic_status")):
+        out["semantic_status"] = check["semantic_status"]
+    return out
 
 
 def workflow_detail(kind: str, raw) -> dict:
