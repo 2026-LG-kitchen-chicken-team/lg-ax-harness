@@ -3,7 +3,7 @@
 // and M, which puts K's compact layout and page information into J's black-and-white look.
 // Only build_view.py's data is shown: nothing from the references' sample content (names, deltas, offers) is copied.
 import { useEffect, useState, type ReactNode } from 'react'
-import { ChartLine, ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Menu, PanelsTopLeft, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Menu, RefreshCw, Search, X } from 'lucide-react'
 import { Badge } from '../components/ui'
 import { BlockView } from '../components/blocks'
 import { SearchDialog, type Hit } from '../components/search'
@@ -14,6 +14,7 @@ import { SkinContext, type SkinId } from '../lib/skin'
 import { cn, Md } from '../lib/utils'
 import type { LiveState } from '../lib/useView'
 import type { Block, Page, View } from '../types'
+import lgLogo from '../assets/lg-logo.png'
 
 const IDS: SkinId[] = ['navy', 'mono', 'ops', 'analytics', 'monoops']
 export const isSkin = (m: string): m is SkinId => (IDS as string[]).includes(m)
@@ -211,6 +212,11 @@ function TopBar({ skin, view, page, tools, openNav }: Props & { tools: ReactNode
   )
 }
 
+// LG mark (the file the user supplied; white made transparent). On the dark navy sidebar it sits on a white tile.
+function LgMark({ className }: { className?: string }) {
+  return <img src={lgLogo} alt="LG" className={cn('shrink-0 object-contain', className)} draggable={false} />
+}
+
 function Brand({ skin, view, close }: { skin: SkinId; view: View | null; close: () => void }) {
   const title = view?.app?.title || 'LG AX 상품기획'
   const sub = view?.app?.subtitle || '하네스 시각자료 뷰어'
@@ -219,7 +225,7 @@ function Brand({ skin, view, close }: { skin: SkinId; view: View | null; close: 
     return (
       <div className="flex items-start gap-2 border-b border-white/10 px-6 pb-5 pt-6">
         <div className="min-w-0">
-          <div className="flex items-center gap-2.5 text-[16px] font-extrabold tracking-wide text-white"><PanelsTopLeft className="size-5 shrink-0" aria-hidden /><span className="truncate">{title}</span></div>
+          <div className="flex items-center gap-2.5 text-[16px] font-extrabold tracking-wide text-white"><span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white"><LgMark className="size-6" /></span><span className="truncate">{title}</span></div>
           <div className="mt-1 truncate text-xs text-[#8a90a2]">{sub}</div>
         </div>{x}
       </div>
@@ -227,14 +233,16 @@ function Brand({ skin, view, close }: { skin: SkinId; view: View | null; close: 
   }
   if (skin === 'mono') {
     return (
-      <div className="flex items-start gap-2 px-7 pb-7 pt-9">
+      <div className="flex items-center gap-3 px-7 pb-7 pt-9">
+        <LgMark className="size-11" />
         <div className="min-w-0"><div className="text-[21px] font-bold leading-tight tracking-tight">{title}</div><div className="mt-1 text-[13px] text-zinc-500">{sub}</div></div>{x}
       </div>
     )
   }
   if (skin === 'monoops') {
     return (
-      <div className="flex items-start gap-2 px-6 pb-4 pt-6">
+      <div className="flex items-center gap-2.5 px-6 pb-4 pt-6">
+        <LgMark className="size-9" />
         <div className="min-w-0"><div className="text-[18px] font-bold leading-tight tracking-tight">{title}</div><div className="mt-0.5 text-[12px] text-zinc-500">{sub}</div></div>{x}
       </div>
     )
@@ -243,7 +251,7 @@ function Brand({ skin, view, close }: { skin: SkinId; view: View | null; close: 
     return (
       <div className="flex items-center gap-2 p-3">
         <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg border border-[#e3e3e3] bg-white p-2">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-[#2f8f57] text-white"><PanelsTopLeft className="size-4" aria-hidden /></span>
+          <LgMark className="size-8" />
           <div className="min-w-0 leading-tight"><div className="truncate text-[11px] text-zinc-500">{sub}</div><div className="truncate text-[13px] font-semibold">{title}</div></div>
         </div>{x}
       </div>
@@ -251,7 +259,7 @@ function Brand({ skin, view, close }: { skin: SkinId; view: View | null; close: 
   }
   return (
     <div className="flex h-14 items-center gap-2.5 border-b border-[#ececee] px-4">
-      <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-500 text-white"><ChartLine className="size-4" aria-hidden /></span>
+      <LgMark className="size-7" />
       <div className="min-w-0 truncate text-[15px] font-semibold">{title}</div>{x}
     </div>
   )
