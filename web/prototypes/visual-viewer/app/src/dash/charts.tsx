@@ -5,6 +5,7 @@ import {
   VisScatterSelectors, VisSingleContainer, VisTooltip, VisXYContainer,
 } from '@unovis/react'
 import { useSkin } from '../lib/skin'
+import { useVoice } from '../lib/voice'
 import { esc, fmt, tone } from '../lib/utils'
 import type { Block } from '../types'
 
@@ -22,7 +23,8 @@ export function useToneHex() {
 }
 
 export function NoData() {
-  return <p className="py-6 text-center text-sm text-muted-foreground">표시할 값이 없습니다.</p>
+  const voice = useVoice()
+  return <p className="py-6 text-center text-sm text-muted-foreground">{voice('표시할 값이 없습니다.')}</p>
 }
 
 // Total in the middle, each part's label and stored value beside the ring.

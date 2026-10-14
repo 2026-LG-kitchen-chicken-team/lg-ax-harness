@@ -5,6 +5,7 @@ import {
   ArrowUp, BarChart3, FileText, Filter, GitCompareArrows, History, Home, Lightbulb, Package, Presentation,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useVoice } from '../lib/voice'
 import type { LiveState } from '../lib/useView'
 import type { Caption } from '../types'
 
@@ -90,11 +91,12 @@ export function LiveDot({ live, inline, wide = '2xl' }: { live: LiveState; inlin
 }
 
 export function Empty() {
+  const voice = useVoice()
   return (
     <div className="mx-auto mt-16 max-w-xl text-center">
       <h1 className="text-2xl font-bold tracking-tight">시각자료를 기다리는 중</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        CLI가 이 폴더에 <b>view-data.js</b>를 만들면 화면이 자동으로 그려집니다. 이미 만든 view JSON이 있으면 왼쪽에서 여세요.
+        {voice('CLI가 이 폴더에 view-data.js를 만들면 화면이 자동으로 그려집니다. 이미 만든 view JSON이 있으면 왼쪽에서 여세요.')}
       </p>
       <pre className="mt-6 overflow-x-auto rounded-xl bg-zinc-950 p-4 text-left font-mono text-xs text-zinc-100">python build_view.py --export &lt;export 파일&gt; --open</pre>
     </div>

@@ -18,6 +18,7 @@ import Landing from './variants/Landing'
 import { cn, Md } from './lib/utils'
 import { useView } from './lib/useView'
 import { MERGED_EVIDENCE_SKINS, mergedTarget, mergeEvidencePages } from './lib/merge'
+import { reportVoice, voiceView } from './lib/voice'
 import type { Page, View } from './types'
 
 const LG_RED = 'text-[#d0111b]'
@@ -66,7 +67,11 @@ export default function App() {
   const [mode, setMode] = useMode()
   // J, K and M draw the evidence dashboard and the evidence text as one page (lib/merge.ts); the data keeps both.
   const merged = MERGED_EVIDENCE_SKINS.has(mode)
-  const shownView = useMemo(() => (merged ? mergeEvidencePages(view) : view), [merged, view])
+  // K also reads in report style (lib/voice.ts): the harness's own sentences only.
+  const shownView = useMemo(() => {
+    const v = merged ? mergeEvidencePages(view) : view
+    return mode === 'ops' ? voiceView(v) : v
+  }, [merged, mode, view])
   const page = view?.pages.find((p) => p.id === current) || null
   const shownPage = shownView?.pages.find((p) => p.id === (merged ? mergedTarget(current) : current)) || null
   useEffect(() => {
@@ -96,7 +101,7 @@ export default function App() {
   const story = storyOf(view)
   const toastsEl = (
     <div className="no-print pointer-events-none fixed right-4 top-20 z-[70] flex flex-col items-end gap-2">
-      {toasts.map((t) => <div key={t.id} role="status" className="rounded-full bg-zinc-900 px-4 py-2 text-sm text-white shadow-lg">{t.msg}</div>)}
+      {toasts.map((t) => <div key={t.id} role="status" className="rounded-full bg-zinc-900 px-4 py-2 text-sm text-white shadow-lg">{mode === 'ops' ? reportVoice(t.msg) : t.msg}</div>)}
     </div>
   )
   // B–E, G and H re-arrange the story page; without one (request-only exports, insights-only views) they fall back to A.
