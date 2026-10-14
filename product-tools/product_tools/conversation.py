@@ -349,6 +349,12 @@ class Conversation:
         return {**value, "request_version": row[2], "research_id": self._research_id(session, key)}
 
     def export_session(self, payload):
+        # Binding and history must describe one snapshot, including when the
+        # web payload is written after this export by save_and_export.
+        with self.store.transaction():
+            return self._export_session(payload)
+
+    def _export_session(self, payload):
         obj(payload, ("session_id",))
         session = identifier(payload["session_id"], "session_id")
         requests = list(self.store.db.execute("SELECT * FROM conversation_requests WHERE session_id=?", (session,)))
@@ -367,6 +373,16 @@ class Conversation:
             histories[-1]["source_metadata"] = self._source_metadata(latest.get("evidence_refs", []) if latest else [])
             from .evidence_coverage import EvidenceCoverage
             histories[-1]["evidence_coverage_history"] = EvidenceCoverage(self.store).history(row["turn_id"])
+            from .workflow import WorkflowAudit
+            state = histories[-1]["state"]
+            audit = WorkflowAudit(self.store.db, self.workspace)
+            research = self._research_id(session, state["request_key"])
+            histories[-1]["web_binding"] = {
+                "session_id": session, "turn_id": state["turn_id"], "request_key": state["request_key"],
+                "result_version": state["result_version"], "result_sha256": fingerprint(latest) if latest else None,
+                "context_sha256": state["context_fingerprint"], "code_sha256": self.store.code_hash,
+                "data_sha256": self.store.dataset.fingerprint, "data_version": self.store.dataset.version,
+                "workflow_audit_hash": audit.report_audit_hash(research) if audit.active(research) else None}
         value = {"session_id": session, "requests": [{"input": strict_json(r["payload"]), "turn_id": r["turn_id"], "request_version": r["request_version"], "response": strict_json(r["response"]) if r["response"] else None,
                  "events": [{"kind": e["kind"], "version": e["version"], "input": strict_json(e["payload"])} for e in self.store.db.execute("SELECT * FROM request_events WHERE session_id=? AND request_key=? ORDER BY version", (session, r["request_key"]))],
                  "research_usage": {"status": "unknown", "coverage": "not measured by request journal; native session evidence required"}} for r in requests],

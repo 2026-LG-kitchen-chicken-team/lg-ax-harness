@@ -1,3 +1,13 @@
+# 2026-10-14 현재 결과 연결
+
+현재 전달은 `export_session`의 마지막 turn에 있는 `web_binding`과 같은 불변 `runtime-data/web-deliveries/web-<sha256>.json`을 연결해야 표시한다. 저장 구조 검사만 통과한 후보, 취소된 마지막 turn, 다른 결과 버전·코드·자료·문맥·조사 지문은 현재 전달로 표시하지 않는다. 파일 바이트 SHA-256과 파일명도 대조한다. 파일이 없거나 맞지 않으면 현재 웹 전달 미검증 안내와 후보 이력을 유지한다. 연결 검증은 출처 의미 품질 인증이 아니다.
+
+`build_view.py --export <export.json> --web-result <web-sha256.json> --web-result-sha256 <sha256> --standalone <report.html>`로 명시할 수 있다. 생략하면 export 옆의 web-deliveries에서 **정확한 binding**으로 찾으며 파일 수정 시각으로 선택하지 않는다. 기존 단일 HTML 출력과 13종 보기는 유지한다. 이 경로는 모델 호출을 추가하지 않는다.
+
+근거 화면은 결과에 사용한 인용과 선택 등록본문 전체를 구분한다. 전체 등록본문, ID, 모델·문서·자료 버전, 전체 SHA-256, 위치와 origin을 접어 보기로 제공한다. 검토·조사 이력 화면도 같은 웹 JSON의 coverage/evidence_history/investigation_events를 표시한다. 등록본문은 원본 전체 문서 인증이 아니다.
+
+`insights`에는 현재 export의 `web_binding` 전체를 `binding`으로 복사해야 한다. 같은 session_id·turn_id만 있는 해석은 적용하지 않는다. 같은 turn에서 결과나 조사 이력이 바뀌면 새 binding으로 검토·저장해야 한다. 기존 아래 설명 중 session/turn만으로 적용하는 기준은 이 조건으로 대체한다.
+
 ## 2026-10-12 통합 검토
 
 PR #6 bdb187b 작성자의 최신 댓글은 Windows Codex 0.162.1 Stop와 Claude Code 2.1.289 실제 실행 성공을 보고합니다. 아래 이전 미확인 문구는 그 댓글 이전의 이력입니다. 이번 제품 통합에서는 원저장 payload를 유지한 source_metadata 종류 연결과 하위 연결 경로 검사를 추가하고 별도 회귀를 수행합니다. 실제 결과·설정·훅은 기본 패키지에 넣지 않으며 install은 사용자가 선택합니다. 원격에 올린 시제품과 최신 제품 업무의 새 native 인수를 구분합니다.
@@ -5,6 +15,8 @@ PR #6 bdb187b 작성자의 최신 댓글은 Windows Codex 0.162.1 Stop와 Claude
 # 저장 결과 시각자료 뷰어 — 참고용 시제품
 
 2026-10-12 최길웅 제출. **웹 PM 황대겸의 기술·구조 결정 전 참고용 시제품**이며 채택·웹 통합·시연 인수 기록이 아니다. 팀이 공유한 Streamlit 고객 리뷰 분석 시연 영상(`KakaoTalk_20261009_191820838.mp4`, Git 제외)의 화면 느낌(남색 단계 사이드바, 어두운 지표 카드, Plotly풍 차트, 하단 단계 자막)을 참고해 새로 작성했다. 영상 앱의 코드는 가져오지 않았다. 대겸의 PR #7(`codex/local-harness-web`)은 사용자 결정에 따라 쓰지 않았고 코드도 가져오지 않았다. main·제품 ZIP 포함 여부는 [결정 요청 메모](RELEASE-MEMO.md)를 따른다.
+
+**2026-10-12 화면 재설계(브랜치 `web/visual-viewer-redesign`)**: 팀 피드백(발표 자료처럼 가독성 좋게, 많이 쓰는 UI 라이브러리 적극 사용)에 따라 화면을 Vite + React + TypeScript + Tailwind 4 + shadcn/ui 스타일 컴포넌트 + Unovis 차트(+ 슬라이드는 reveal.js)로 다시 만들었다. 사용자가 후보(visx·Unovis·Magic UI SaaS 템플릿·shadcnblocks 관리자 템플릿)를 직접 보고 골랐고, 유료 키트는 쓰지 않았다(shadcn/ui·Magic UI 스타일 부품은 이 폴더에 직접 작성). 결과물은 여전히 **`index.html` 한 파일**이라 훅·설치·`build_view.py`·단일 HTML 보고서 방식은 그대로다. 첫 화면은 발표형 `한눈에 보기`(질문 → 현재 불편 → 기존 기능 대조 → 연결 → 제안 → 한계)이고 나머지 8개 화면은 관리 화면 스타일이다.
 
 ## 기획자 설치 안내 (Claude Code·Codex 공용)
 
@@ -57,13 +69,14 @@ uv run python web/prototypes/visual-viewer/viewer.py uninstall --both
 
 - 훅은 업무·모델·Tool을 호출하지 않고 출력이 없다. Codex 훅은 항상 exit 0이다. 훅의 오류는 `runtime-data/visual-viewer/hook-error.log`에, Codex에서 uv·Python이 시작조차 못 한 오류는 같은 폴더의 `hook-start-error.log`에만 남는다.
 - 화면(`index.html`, `view-data.js`)·훅 상태·로그·insights는 모두 `<하네스>/runtime-data/visual-viewer/`에 생긴다. 실제 결과이므로 Git·공개 자료에 넣지 않는다.
-- 의견 묶음 도넛·구분별 막대·후기 원문 비교는 export에 없는 모델 해석이라 insights 파일(`runtime-data/visual-viewer/insights-<이름>.json`)이 있어야 그린다. 없거나 맞지 않으면 근거 대시보드 맨 위에 이유가 나온다.
+- 의견 묶음 도넛·구분별 막대·후기 원문 비교는 export에 없는 모델 해석이라 insights 파일(`runtime-data/visual-viewer/insights-<이름>.json`)이 있어야 그린다. 없거나 맞지 않으면 근거 대시보드 맨 위에 기획자용 한 줄 이유가, 맨 아래 접힌 `운영 안내`에 파일 위치·session_id·turn_id가 나온다.
 
 ## 파일과 동작
 
 | 파일 | 역할 |
 |---|---|
-| `index.html` | 뷰어. 같은 폴더의 `view-data.js`를 읽어 그린다. 로컬 파일로 열면 2초마다 데이터 변경을 확인한다. |
+| `index.html` | 뷰어(빌드 결과, 한 파일). 같은 폴더의 `view-data.js`를 읽어 그린다. 로컬 파일로 열면 2초마다 데이터 변경을 확인한다. 직접 고치지 않고 `app/`에서 다시 빌드한다. |
+| `app/` | 뷰어 원본(Vite + React + TypeScript + Tailwind 4 + Unovis + reveal.js). `npm run build`가 JS·CSS를 넣은 한 파일을 `../index.html`로 쓴다. 설치는 이 폴더를 복사하지 않는다(`index.html`만 복사). |
 | `build_view.py` | export와 insights를 읽어 `view-data.js`(필요하면 단일 HTML 보고서)를 만든다. 판단은 하지 않는다. |
 | `hook.py` | Claude Code·Codex 공용 훅. 새 export가 생기면 화면 데이터를 다시 만들고, CLI 세션마다 처음 한 번 브라우저를 연다. |
 | `viewer.py` | `install`·`uninstall`·`open --latest`·`status`·`selftest`. Windows Codex용 실행기 `.codex\visual-viewer-hook.cmd`도 설치 때 만든다. |
@@ -78,7 +91,7 @@ uv run python web/prototypes/visual-viewer/viewer.py uninstall --both
 - Codex macOS·Linux(`command`, sh): 같은 일(빠른 길, `/`에서 `uv python find --system`, 직접 실행, exit 0)을 sh 문법으로 한다.
 - `.codex\`는 Codex 샌드박스가 쓰기를 막는 폴더다(샌드박스 기록의 deny ACE). Codex 신뢰 지문은 hooks.json의 명령만 덮지만 명령에 실행기 SHA-256이 들어 있어 설치가 실행기를 바꾸면 다시 신뢰가 필요하다. 실행기 자체는 실행할 때 검사하지 않는다(사용자 권한으로 실행기를 고치면 다시 신뢰 없이 실행된다).
 - `hook.py`는 표준 라이브러리만 쓰고 stdout·stderr를 버린다. 새 export만 그리고, 두 번 읽지 못한 export는 로그에 한 번 남긴 뒤 export나 insights 파일이 바뀔 때까지 다시 시도하지 않는다(지문 불일치는 실패로 묶지 않는다). 여러 훅이 동시에 돌면 OS 파일 잠금으로 한 번만 만들고, `open`·`install`의 상태 기록도 같은 잠금을 쓴다. 브라우저를 열기 전에 세션 기록부터 저장해 한 세션에서 두 번 열리지 않게 한다. 출력 폴더의 index.html은 그릴 때마다 지문을 확인한 원본으로 되돌린다.
-- 승인된 유효 완료 결과이고 turn 없이 멈춘 요청이 없으면 근거 대시보드, 그 밖에는 요청·개요 화면을 먼저 보여준다.
+- 승인된 유효 완료 결과이고 turn 없이 멈춘 요청이 없으면 `한눈에 보기`, 그 밖에는 요청·개요 화면을 먼저 보여준다.
 
 ### 보안 범위 (Codex 샌드박스와 함께 쓸 때)
 
@@ -88,6 +101,23 @@ Codex는 신뢰한 훅을 샌드박스 밖에서, 사용자 권한으로 실행�
 - 남는 범위: 인터프리터는 uv가 고른 가상 환경이 아닌 Python 3.12다(uv 관리 설치 우선). 샌드박스가 쓸 수 있는 폴더가 PATH에 있고 그 안에 가짜 python 3.12가 있으면 이론상 고를 수 있다. 훅은 샌드박스가 쓸 수 있는 `runtime-data`의 export·insights를 읽고(데이터로만) `runtime-data/visual-viewer`에 쓴다. 표시 파일을 고치면 빠른 길이 그리기를 건너뛰게 할 수는 있다(코드 실행은 아님).
 - **Claude Code 명령은 그대로 `uv run`을 하네스에서 실행한다**: 하네스에 `.venv`가 있으면 그 Python을 쓴다. Windows의 Claude Code에는 이 경계를 둘 샌드박스가 없고(에이전트 명령이 이미 사용자 권한으로 돈다) 확인한 동작을 바꾸지 않으려고 그대로 두었다.
 
+## 화면 고치기 (app/, Node 필요)
+
+기획자는 Node가 필요 없다. 화면을 고치는 개발자만 Node 20 이상이 필요하다(확인: Node v24.16·npm 11.13).
+
+```powershell
+cd web/prototypes/visual-viewer/app
+npm ci
+npm run build   # 타입 검사 → vite build → scripts/publish.mjs가 ../index.html 한 파일을 쓴다
+```
+
+- `publish.mjs`는 `<script src="view-data.js" charset="utf-8"></script>` 태그를 그대로 한 번만 남기는지 확인한다(`--standalone`이 이 태그를 데이터로 바꾼다). 외부에서 불러오는 것은 Pretendard 글꼴 CSS(jsdelivr) 하나뿐이고, 인터넷이 없으면 맑은 고딕 등 시스템 글꼴로 보인다.
+- `vite-plugin-singlefile`은 하위 패키지(braces) 취약점 경고 때문에 쓰지 않고 `publish.mjs`가 직접 합친다. 합칠 때 묶어 넣은 패키지의 라이선스 원문(중복 제거)과 고쳐 쓴 Cult UI(MIT)·Skiper UI(무료판 출처 표시) 고지를 `index.html` 끝 주석(THIRD-PARTY NOTICES)으로 붙인다. 의존성은 `package-lock.json`으로 고정한다(`npm audit` 0건).
+- **A를 LG 웹 스타일로 고도화(2026-10-13, 사용자 요청)**: lge.co.kr처럼 거의 검은 글자, 옅은 회색 바탕 위 흰 둥근 카드(16~20px), LG 빨강은 지금 화면·작은 표시에만 쓴다(`index.css`의 `.theme-lg`, A에만 적용). 글꼴은 그대로 Pretendard다. 읽기: 본문 글자를 키우고(15~17px) 흐린 글자를 진하게 했다. 각 화면 제목 위에 `STEP 03 · 근거` 줄, 아래에 그 화면 설명(단계 자막 내용)을 둔다. 화면 아래를 가리던 떠 있는 자막은 머리줄 `발표 자막` 버튼으로 켤 때만 나온다. 표는 줄마다 바탕색을 번갈아 둔다. 쓰기: 머리줄 `검색`(Ctrl+K)은 모든 화면의 글·인용·표에서 찾아 그 화면의 해당 위치로 가서 잠깐 빨간 테두리로 알려 준다. P1·R1·C1·근거 ID 칩에 마우스를 올리거나 Tab으로 가면 그 내용이 뜬다(`components/idtip.tsx`, 한눈에 보기와 근거 원문 표에서만 읽는다). 넓은 화면에서는 오른쪽에 `이 화면 목차`, 화면 끝에 이전·다음 화면 버튼, 아래로 내리면 `맨 위로` 버튼이 있다. `가+`는 A의 글자를 12.5% 키우고 다른 보기로 가면 원래대로 둔다.
+- **비교용 보기(PM 요청, 2026-10-12)**: 화면 오른쪽 위 `보기` 버튼을 누르면 `A 앱 · B 슬라이드 · C 한 장 · D 전시 · E 보드 · F 앱+전시 · G 기업 · H 랜딩 · I 네이비 · J 모노 · K 업무형 · L 분석형 · M 모노+업무` 목록이 펼쳐진다(13개라 버튼 줄 대신 펼침 목록, 좁은 화면은 글자만). 셋 다 같은 `view-data.js`를 쓰고, B·C는 `한눈에 보기` 블록만 다시 배치한다(세거나 잇지 않는다). 고른 보기는 브라우저에 기억되고 주소에 `?mode=slides`·`?mode=poster`를 붙여도 된다. B는 reveal.js 16:9 발표(←/→, F 전체 화면, O·Esc 슬라이드 목록, `?slide=N`으로 N번째부터, `PDF` 버튼 = `?print-pdf` 인쇄 화면). C는 1920×1080 한 화면(벤토 칸 + 가운데 연결 지도, 칸·노드를 누르면 원문·검증 계획 창)이고 900px보다 좁으면 세로로 보여 준다. 한눈에 보기가 없는 export(요청 기록만)는 A로 보여 준다. 숫자가 0부터 올라가는 효과는 쓰지 않는다(멈추면 틀린 숫자가 남는다). D는 어두운 배경의 긴 스크롤 전시형이다(흩어진 질문 글자가 스크롤하면 모임 → 큰 글씨 목차 → 마우스를 올리면 펼쳐지는 불편 띠 → 기존 기능·대조 판단 → 검토 기록의 연결만 이은 연결 줄 → 큰 번호 제안 → 큰 글씨 한계). 움직임은 [Skiper UI](https://skiper-ui.com) 무료 컴포넌트 skiper31·52·58·89를 고쳐 썼고(`app/src/components/skiper.tsx`), 무료판 조건대로 화면 아래에 출처를 적는다. 움직임 줄이기 설정이면 글자가 처음부터 모여 있다. E는 종이 질감의 보드형이다: 현재 불편·기존 기능·남은 불편·제안 4열, 카드를 누르면 그 자리에서 원문·대조 판단·검증 계획이 펼쳐지고, 카드에 마우스를 올리면 검토 기록에 적힌 연결만 밝아진다. 위쪽 검은 다이내믹 아일랜드에 상태가 있고 누르면 한계 숫자로 커진다. [Cult UI](https://www.cult-ui.com)(MIT)의 texture-card·texture-overlay·dynamic-island·expandable을 고쳐 썼고(`app/src/components/cult.tsx`, MIT 고지 포함) 화면 아래에 출처를 적는다. F는 A의 왼쪽 메뉴·머리줄·색을 그대로 두고, 메뉴의 9개 화면을 D의 배치(큰 제목, 얇은 선, 고정폭 숫자, 맨 아래 다음 화면 큰 글씨 링크)로 그린다(`app/src/components/exhibit.tsx`). 블록은 A와 같은 build_view.py 블록을 그대로 쓰고 세거나 잇지 않는다. 한눈에 보기는 D 본문을 밝은 색으로 쓴다(`app/src/lib/exTheme.ts`가 D의 어두운 색을 A 색으로 바꾼다). Skiper UI 출처는 F의 모든 화면 아래에 적는다. B~F 모두 한눈에 보기의 상태 경고(보류·무효·turn 없이 멈춘 요청과 그 표·합성 자료)와 장 안의 안내(예: '결과에 제안이 없습니다')를 A와 같이 보여 준다(`lib/story.ts`의 `status`·`notesOf`): B는 '먼저 볼 상태' 슬라이드와 해당 장 뒤 안내 슬라이드, C는 포스터 맨 위 띠(인쇄에도 나온다)와 해당 칸 안, D·F는 표지 바로 뒤와 각 장 끝, E는 제목 아래와 각 열 맨 위, G·H는 첫 화면 바로 아래와 해당 부분 안. G는 국내 기업 사이트 느낌이다: 어두운 남색 첫 화면(그린 지구·연결선), 빨간 소제목, 둥근 카드 넘기기(현재 불편), 빨간 바로가기 띠, 옅은 분홍 판(기존 기능·대조 판단), 연결 줄, 번호 제안 카드, 어두운 한계 띠. H는 밝은 서비스 소개(랜딩) 느낌이다: 연보라 첫 화면 카드와 그린 그림, 파스텔 숫자 카드, 연파랑 카드 넘기기(현재 불편), STEP 01~03과 대조 판단 판, 연결 줄, 제안 카드, 회색 안내 상자(한계). 둘 다 사용자가 고른 참고 사이트의 분위기만 따랐고 그 사이트의 그림·글·파일은 쓰지 않았다(`app/src/variants/Corporate.tsx`, `Landing.tsx`). 연결 줄은 `lib/story.ts`의 `chainsOf`로 검토 기록의 연결만 쓰고, 현재 불편에서 이어지지 않은 남은 불편·제안도 '연결 기록 없음'으로 보여 준다. I~L은 사용자가 보낸 대시보드 그림 4장의 모양을 따른 대시보드 보기이고, M은 J의 흑백 모양에 K의 촘촘한 배치를 합친 보기다(`app/src/dash/`). A의 왼쪽 메뉴·9개 화면·build_view.py 블록·전체 검색(Ctrl+K)·ID 설명 카드·화면 소개·이전/다음·상태 경고와 장 안 안내를 그대로 두고 모양만 바꾼다(`lib/skin.ts`가 블록 그리기를 보기별로 바꾸고, 밖에서는 아무것도 바꾸지 않는다). I 네이비: 진한 남색 메뉴, 흰 머리줄의 검색 칸, 왼쪽 색 막대와 작은 아이콘 칸이 있는 숫자 카드. J 모노: 흑백, 아주 둥근 카드, 검은 알약 메뉴, 둥근 아이콘의 큰 숫자 타일(‘핵심 지표’ 제목이 왼쪽), 회색 둥근 줄 표, 회색 태그에 상태 색 점만 남김(경고·오류 안내는 옅은 색을 유지), 화면 제목 아래 `이름 : 값` 정보 카드(범위·파일·불러온 자료·상태)와 화면 순서, 위쪽 화면 생성 시각, `/` 검색, 대조 순서 노선 줄. K 업무형: 작은 글씨, 연회색 메뉴와 연초록 현재 화면, `/` 빠른 검색, 위치 줄과 화면 생성 시각, 화면 머리 카드의 `이름 : 값` 정보 줄(범위·파일·불러온 자료·상태), 촘촘한 표, 대조 순서를 잇는 노선 줄과 세로 단계선. L 분석형: 주황 강조, 화면 안 구성 탭(제목·장으로 이동), 한 줄로 나뉜 숫자 띠, 넓은 막대, 오른쪽 칸(xl 이상)에는 실제 있는 것만 둔다(마지막 저장 상태·세션 줄·다음 화면). M 모노+업무: J의 흑백·둥근 카드·아이콘 숫자 타일·따옴표 아이콘·색 점 태그에 K의 작은 글씨, 스크롤을 따라오는 위치 줄과 화면 생성 시각, 메뉴 번호와 `/` 빠른 검색 칸, 화면 머리 카드(검은 아이콘·화면 순서·정보 줄), 노선 줄, 세로 단계선, `이름 : 값` 요청 조건을 합쳤다. 막대 항목이 7개 이상이면 다섯 보기 모두 번호·항목·건수·작은 막대의 표로 보여 준다(항목 앞 ID는 설명 카드가 뜬다). 참고 그림의 사람 이름·사진·회사 로고·지난주 대비 증감·알림·업그레이드 안내·연속 기록·범위 버튼처럼 결과에 없는 것은 넣지 않았다.
+- 화면은 `build_view.py`가 만든 블록을 그릴 뿐 세거나 판단하지 않는다. 새 블록(hero·story·claims·matches·flow·solutions·tiles)도 값은 모두 `build_view.py`가 정한다.
+- `index.html`이 바뀌면 설치본의 지문도 바뀌므로 하네스마다 다시 설치하고 Codex는 `/hooks`에서 다시 신뢰한다.
+
 ## 직접 만들기 (build_view.py)
 
 ```
@@ -95,27 +125,31 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 ```
 
 - 기본은 이 폴더에 `view-data.js`가 생기고 `index.html`이 열린다. `--out-dir 폴더`를 주면 그 폴더에 `view-data.js`와 `index.html`을 둔다.
+- `--standalone 경로 --mode app|slides|poster|editorial|board|exhibit|corporate|landing|navy|mono|ops|analytics|monoops`: 공유용 단일 HTML을 처음부터 A 앱·B 슬라이드·C 한 장·D 전시·E 보드·F 앱+전시·G 기업·H 랜딩·I 네이비·J 모노·K 업무형·L 분석형·M 모노+업무로 열리게 한다(받은 사람이 버튼으로 다른 보기로 바꿀 수 있다).
 - `--standalone 경로`: 데이터를 넣은 단일 HTML. `--insights 파일`: 모델이 쓴 해석(의견 묶음·단계 자막·제외 사유 등). insights의 session_id·turn_id가 export와 다르면 쓰지 않고 경고한다. turn_id 없이 turn이 여러 개인 세션에 직접 주면 쓰되 "turn 미확인" 경고를 화면에 낸다. insights 없이도 결과 구조만으로 모든 화면을 그린다.
 - 생성물(`view-data.js`, `report-*.html`, `*.tmp`, 훅 상태·로그)과 실제 결과의 insights는 이 폴더의 `.gitignore`로 제외한다. 실제 결과 예시는 Git이 아닌 메일·접근 제한 링크로 공유한다.
 
 ## 화면과 표시 원칙
 
-요청·개요 / 근거 대시보드 / 후기 선별 / 기능 대조 / 제안 / 업무 기록 재생 / 근거 원문 / 내보내기의 8개 화면이다. [웹 연결 계약](../../../docs/contracts/team-web-kitchen.md)에 맞춰 다음을 표시한다.
+한눈에 보기 / 요청·개요 / 근거 대시보드 / 후기 선별 / 기능 대조 / 제안 / 업무 기록 재생 / 근거 원문 / 내보내기의 9개 화면이다. [웹 연결 계약](../../../docs/contracts/team-web-kitchen.md)에 맞춰 다음을 표시한다.
 
-- 모든 화면: `저장된 실행 결과`, 상태(`기획 초안 완료(completed)`·수정 필요·보류·입력 필요·조사 필요·진행 중·실패·취소), valid, `의미 검토 unverified · 인수 전`, 합성 자료면 `합성 시험 자료`(보여줄 결과가 없어도 모든 후보·자료 버전에서 찾아 표시), 화면 생성 경고 수.
+- 모든 화면: `저장된 실행 결과`, 상태(`기획 초안 완료`·수정 필요·보류·입력 필요·조사 필요·진행 중·실패·취소), `유효`/`무효`(valid), `의미 검토 전 · 인수 전`(semantic_status unverified·acceptance_ready false), 합성 자료면 `합성 시험 자료`(보여줄 결과가 없어도 모든 후보·자료 버전에서 찾아 표시), 화면 생성 경고 수.
+- 기획자 말: 사이드바 칩·자막·지표 설명은 한국어로만 쓰고 원래 값(`status: completed` 등)은 마우스를 올리면 보이는 설명(tip)에 둔다. 표·내보내기 화면처럼 자세한 곳은 `기획 초안 완료(completed)`처럼 원래 값을 함께 적는다. 파일 경로·session_id·turn_id·명령은 접힌 운영 안내와 세션 정보에만 둔다.
 - **현재 결과는 저장 도구가 승인한 결과(`state.latest_result`)뿐이다.** 거절 후보(`validation.contract_valid=false`·`error`)는 현재 결과·제안으로 그리지 않고 업무 기록의 후보 표에 `거절 · <code>`와 사유(error·review.findings)로 남긴다. 승인된 결과가 없으면 근거·대조·제안 화면은 비우고 이유를 적는다. 내보내기의 저장 검사는 보여주는 결과의 검사, 없으면 마지막 후보의 검사를 `(마지막 거절 후보)`·`(마지막 저장 후보 · 현재 결과 아님)`·`(저장된 후보 없음)`으로 구분해 보인다.
 - **turn 없이 멈춘 요청(needs_input·research_required·held 등)은 모두 상태 맨 앞과 요청·개요 맨 위에 보인다.** export에는 요청 시각이 없고 requests 순서도 시간 순서가 아니다. prior_turn_id가 마지막 turn인 요청만 `마지막 turn 뒤`라고 쓰고, 나머지는 `순서 미확인`으로 적는다. 어느 요청이 최신인지 고르지 않으며 이전 turn은 `마지막 turn …`으로 표시한다.
 - 취소는 `state.cancellation`의 사유·취소 전 상태를 적고, 실행 중단은 확인되지 않았다고 표시한다. 모델이 쓴 `cancelled` 결과는 그 결과의 사유를 적는다.
 - 무효 turn은 `invalidation_reason`을 그대로 적고, 무효 직전에도 승인 결과였던 것만 `무효 처리된 결과` 표시와 함께 보여준다(모든 결과 화면·후보 표·저장 검사). 그 뒤 거절된 후보가 있었으면 승인 결과가 없던 것으로 본다.
 - turn 순서는 export의 순서(created_at)를 그대로 쓴다. 후보가 없는 turn도 제자리에 둔다.
-- product_family는 냉장고·전자레인지·식기세척기로 표시하고 모르는 값은 `미지원(값)`으로 둔다. 제품군 요청(scope_mode `family_catalog`)은 `냉장고 제품군 N개 모델`로 쓰고 model_scope 전체와 결과 근거 모델을 보여준다. 자료 버전과 model_scope 원문을 바꾸지 않는다. 사용자가 뺀 불편(`constraints.exclude_pains`)을 요청 조건에 보인다.
+- product_family는 냉장고·전자레인지·식기세척기로 표시하고 모르는 값은 `미지원(값)`으로 둔다. 제품군 요청(scope_mode `family_catalog`)은 `냉장고 제품군 N개 모델`로 쓰고 model_scope 전체와 결과 근거 모델을 보여준다. 요청·개요의 큰 글씨 칸에는 짧은 값만 둔다: 모델은 결과 근거 모델이 하나면 그 모델, 아니면 `N개`, 범위는 `제품군`·`모델 지정`이고 원래 이름(`제품군 카탈로그`)은 설명 줄에 둔다. 긴 값은 글씨를 줄이고 한국어 낱말 중간에서 줄을 바꾸지 않는다. 자료 버전과 model_scope 원문을 바꾸지 않는다. 사용자가 뺀 불편(`constraints.exclude_pains`)을 요청 조건에 보인다.
 - 불편→기존 기능→남은 불편→제안을 원문 ID로 연결한 열로 보여준다. 열 사이 화살표는 업무 순서이며 항목 간 관계는 assessment의 feature_matches·concept_links에 적힌 것만 표시한다.
 - concept의 `implementation_steps`·`validation_plan`을 표시하고 없으면 `미작성`, `planned_not_measured`는 `검증 계획 · 실측 전`으로 둔다.
 - v0.7.0의 `decision_notes`는 요청·개요 화면에 `판단 메모`(D1…)로 보여준다. basis는 `원문 사실`·`AI 해석`·`미확인`으로 옮기되 모델이 붙인 라벨이며 공식 인용·의미 검증이 아니라고 적는다. 근거 원문 표의 연결 항목에도 D 번호가 붙는다.
-- 근거 유형: export의 evidence_refs에는 kind가 없다. source_id 접두어(REVIEW·REV=후기, MANUAL=설명서, SPEC=스펙, PART=소모품, DOC=문서)로 나누고, 관례가 아니면 원문 표현(`factual_summary`=제품 사실, `excerpt`=원문 발췌)으로만 나눈다. 원문 발췌를 후기라고 단정하지 않으며 그때 후기 근거 수는 `미확인`이다.
+- 근거 유형: 근거에 `kind`(evidence_refs 또는 origin)가 있으면 그 값을 먼저 쓴다(review=후기, product_fact=제품 사실, manual=설명서, spec=스펙, part=소모품, document=문서, 그 밖의 값은 `미지원(값)`이고 후기로 세지 않는다). v0.7.0 export에는 kind가 없다(이슈 #8). 그때는 source_id 접두어(REVIEW·REV=후기, MANUAL=설명서, SPEC=스펙, PART=소모품, DOC=문서)로 나누고, 관례가 아니면 원문 표현(`factual_summary`=제품 사실, `excerpt`=원문 발췌)으로만 나눈다. 원문 발췌를 후기라고 단정하지 않는다. 후기로 분류된 근거가 없고 종류를 모르는 근거만 있으면 대시보드 지표는 `후기 근거 미확인` 대신 아는 것만 `원문 발췌 N건 · 후기인지 기록 없음`(회색)으로 쓰고, 유형 차트 아래에 쉬운 말로 이유를 적는다.
 - 근거: source_id·인용·원문 발췌/사실 요약·위치·모델 범위·게시/관측일·구매/협찬(null은 미확인)·상업 고지(commercial_disclosure)·SHA·HTTPS 링크. export 경로는 `runtime-data/exports/<파일>`로만 보여주고 개인 절대 경로를 넣지 않는다.
 - 구조 검사와 `planning_detail_complete`(필드 존재 검사)를 의미 품질 통과로 표시하지 않는다.
 - 사용량: 기록이 없거나 미측정 호출이 섞이면 0으로 그리지 않고 차트를 생략한다. 합계가 일부 호출만이면 `부분 합계 · N건 중 M건 미측정`으로 적는다. 누적 값을 다시 더하지 않는다.
+- 근거 대시보드는 insights 없이도 결과에 적힌 것만 센다: 검토 기록의 대조 판단(feature_matches의 resolution), 항목별 근거 확인(claim_checks의 support_status·모델 불명확), 제안 연결(concept_links), 출처 사이트(HTTPS source_url의 사이트 이름), 유형, 모델 연결 방식·게시일·수집일, 항목별 연결 근거. 검토 기록은 모델이 쓰고 저장 도구가 형식만 검사한 것이라고 적는다. 항목 종류(현재 불편·기존 기능·남은 불편·제안)는 ID 접두어가 아니라 결과의 어느 목록에 있는지로 정한다(v0.7.0 ID는 E1·R1·pain-tones처럼 관례가 없다). 비율·발생률·의견 묶음은 만들지 않는다.
+- 한눈에 보기: 맨 위 숫자는 결과의 항목 수(근거·현재 불편·남은 불편·제안)이고, 불편·기능 카드의 인용은 그 항목의 근거 앞 2건을 저장된 그대로 보인다(나머지는 건수만). 연결도의 선은 검토 기록의 feature_matches(불편→남은 불편, 판단 라벨)와 concept_links(남은 불편→제안)에 적힌 것만 그리고, 같은 연결을 카드 안에 글자(`→ R1 · 불확실`)로도 적는다. 연결이 없는 항목은 선 없이 둔다. 제안 카드는 요구사항·구현 단계·검증 계획(`실측 전`)을 보이고 없으면 `미작성`이다. 마지막 `한계` 칸은 뒷받침된 항목 수, 모델 불명확 근거, 출처 사이트, 후기 여부 미기록, 의미 검토 전, 사용량 미측정을 보인다. 승인된 결과가 없으면 이 화면을 비우고 이유를 적는다. 살짝 올라오는 움직임과 C의 연결선 빛 효과는 꾸밈이며(인쇄·움직임 줄이기 설정이면 끔) 값을 바꾸지 않는다. 투명도·흐림을 쓰지 않고 숫자도 처음부터 실제 값이라, 효과가 멈춘 환경(인쇄·자동 캡처)에서도 내용이 그대로 보인다.
 - insights의 의견 묶음은 `모델 해석`으로 표시하고 건수는 ID 목록 길이로 센다. 붙인 insights 파일 이름과 붙인 근거(turn_id 일치 등)를 대시보드에 적는다. 관측 건수를 발생률·시장 수요로 표시하지 않는다.
 - 업무 turn이 없는 export는 요청 기록 화면만 만들고 요청마다 멈춘 이유(response.reason·events)를 보인다. 상태가 섞이면 한 상태로 안내하지 않는다.
 

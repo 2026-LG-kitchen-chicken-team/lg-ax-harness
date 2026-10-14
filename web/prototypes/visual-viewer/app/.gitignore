@@ -1,0 +1,4 @@
+node_modules/
+dist/
+# local dev data (real results never go to Git)
+public/view-data.js
