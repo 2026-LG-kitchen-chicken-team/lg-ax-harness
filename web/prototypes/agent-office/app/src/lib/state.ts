@@ -103,8 +103,8 @@ export function snapshot(m: SessionModel, t: number, feedLimit = 0): Snapshot {
       if (!st.active.length) st.activity = '생각 중 (도구 사용 없음)'
     } else if (p.end != null && p.end <= t && nodes[p.actor].status !== 'active') {
       const st = nodes[p.actor]
-      st.status = t - p.end < RECENT_MS ? 'done' : 'idle'
-      st.activity = '일을 마치고 결과를 돌려줌'
+      st.status = t - p.end < RECENT_MS ? (p.outcome === 'cancelled' ? 'fail' : 'done') : 'idle'
+      st.activity = p.outcome === 'cancelled' ? 'child 취소 관측 · 도구 종료 결과 미확인' : '일을 마치고 결과를 돌려줌'
       st.lastAt = p.end
     }
   }
