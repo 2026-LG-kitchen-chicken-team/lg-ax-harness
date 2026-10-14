@@ -501,11 +501,119 @@ def pick_insights(insights_dir: Path, export: dict) -> tuple[Path | None, dict, 
 
 # ---------------------------------------------------------------- context
 
+# ---------------------------------------------------------------- web result (product-web-result-v1)
+# The harness (product v0.11+) also writes runtime-data/web-deliveries/web-<SHA-256>.json when a reviewed result is saved:
+# the same current result plus every selected registered source, coverage counts, the investigation journal and access
+# failures. The viewer reads it only when the file name is its own SHA-256 and it binds to the session, turn and result
+# shown; anything else is left out and said so. Its text is untrusted data and is shown, never executed.
+WEB_CONTRACT = "product-web-result-v1"
+WEB_MAX_BYTES = 16 * 1024 * 1024
+WEB_NAME = re.compile(r"^web-([0-9a-f]{64})\.json$")
+WEB_SCAN_LIMIT = 40
+SCAN_STATUS = {"observed": "관측", "inaccessible": "접근 실패", "not_applicable": "해당 없음"}
+STOP_LABEL = {"completion_time_reserve": "마감 시간 확보", "sources_exhausted": "자료 소진", "sufficient_evidence": "근거 충분",
+              "access_failure": "접근 실패", "insufficient_evidence": "근거 부족", "whole_budget_expired": "전체 시간 소진"}
+EVENT_LABEL = {"research_plan": "조사 계획", "source_scan": "자료 훑기", "analysis_scope": "분석 범위", "research_stop": "조사 멈춤"}
+COVERAGE_PLAN = {"positive": "긍정", "negative": "불편", "long_term": "장기 사용", "conditions": "사용 조건", "counterexamples": "반례"}
+
+
+def read_web_result(path: Path) -> tuple[dict | None, str]:
+    """One web result file: (body, "ok") or (None, reason). The name must be the content's own SHA-256."""
+    try:
+        if path.stat().st_size > WEB_MAX_BYTES:
+            return None, "too_large"
+        raw = path.read_bytes()
+    except OSError:
+        return None, "unreadable"
+    named = WEB_NAME.match(path.name)
+    if named and hashlib.sha256(raw).hexdigest() != named.group(1):
+        return None, "sha_mismatch"
+    try:
+        body = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        return None, "not_json"
+    if not isinstance(body, dict) or body.get("contract_version") != WEB_CONTRACT or not isinstance(body.get("binding"), dict):
+        return None, "other_format"
+    return body, "ok"
+
+
+def same_result(web: dict, shown: dict) -> bool:
+    """The web file's result is the one shown. read_turns adds a "kind" to each evidence_ref, so that key is ignored."""
+    def plain(r):
+        if not isinstance(r, dict):
+            return r
+        refs = [{k: v for k, v in ref.items() if k != "kind"} if isinstance(ref, dict) else ref for ref in r.get("evidence_refs") or []]
+        return {**r, "evidence_refs": refs}
+    return bool(shown) and plain(web) == plain(shown)
+
+
+def web_folder(export_path: Path | None) -> Path | None:
+    """<harness>/runtime-data/web-deliveries next to an export that sits in <harness>/runtime-data/exports."""
+    if not export_path:
+        return None
+    parent = Path(export_path).resolve().parent
+    if parent.name != "exports" or parent.parent.name != "runtime-data":
+        return None
+    folder = parent.parent / "web-deliveries"
+    linked = folder.is_symlink() or getattr(folder, "is_junction", lambda: False)()
+    return folder if folder.is_dir() and not linked else None
+
+
+def match_web_result(export: dict, row: dict, result: dict, folder: Path | None) -> tuple[dict | None, Path | None, str | None]:
+    """The newest web result bound to this session/turn whose result is exactly the one shown."""
+    if folder is None:
+        return None, None, None
+    try:
+        files = sorted((p for p in folder.iterdir()
+                        if not p.is_symlink() and p.is_file() and p.name.startswith("web-") and p.suffix == ".json"),
+                       key=lambda p: p.stat().st_mtime, reverse=True)[:WEB_SCAN_LIMIT]
+    except OSError:
+        return None, None, "웹 전달 폴더를 읽지 못했습니다."
+    bad, other = [], 0
+    for path in files:
+        body, why = read_web_result(path)
+        if body is None:
+            if why == "sha_mismatch":
+                bad.append(path.name)
+            continue
+        b = body["binding"]
+        if b.get("session_id") == export.get("session_id") and b.get("turn_id") == row.get("turn_id") and same_result(body.get("result"), result):
+            return body, path, None
+        other += 1
+    if bad:
+        warn(f"웹 전달 파일 {', '.join(bad[:3])}{' 외' if len(bad) > 3 else ''}의 내용이 파일 이름(SHA-256)과 달라 쓰지 않았습니다.")
+    if other:
+        return None, None, (f"웹 전달 파일 {other}개가 있지만 지금 보여 주는 세션·질문·결과와 맞지 않아 쓰지 않았습니다"
+                            " (다른 질문이거나 옛 버전의 결과).")
+    return None, None, None
+
+
+def export_from_web(body: dict) -> dict:
+    """A one-turn export shape from a web result alone, so the same pages can be drawn."""
+    b = body.get("binding") or {}
+    result = json.loads(json.dumps(body.get("result"))) if isinstance(body.get("result"), dict) else {}
+    kinds = {s.get("source_id"): s.get("kind") for key in ("source_references", "sources")
+             for s in body.get(key) or [] if isinstance(s, dict)}
+    for ref in result.get("evidence_refs") or []:
+        if isinstance(ref, dict) and kinds.get(ref.get("source_id")) in ("review", "product_fact"):
+            ref.setdefault("kind", kinds[ref["source_id"]])
+    candidate = {"result": result, "result_version": b.get("result_version"), "result_key": "web-result",
+                 "validation": body.get("validation") if isinstance(body.get("validation"), dict) else {}}
+    state = {"turn_id": b.get("turn_id"), "input": body.get("input") or {}, "status": body.get("status"), "valid": True,
+             "latest_result": result, "result_version": b.get("result_version"),
+             "revision_count": result.get("revisions") or 0, "result_history": []}
+    return {"session_id": b.get("session_id"), "semantic_status": body.get("semantic_status"),
+            "acceptance_ready": body.get("acceptance_ready"), "requests": [{"turn_id": b.get("turn_id"), "input": body.get("input") or {}}],
+            "turns": [{"state": state, "candidates": [candidate], "invocations": [], "usage": []}],
+            "usage_summary": body.get("usage_summary") or {}}
+
+
 class Ctx:
     def __init__(self, export: dict, export_path: Path, insights: dict, insights_state: str = "given",
                  insights_file: str | None = None):
         self.export = export
         self.export_path = export_path
+        self.web, self.web_path, self.web_note, self.web_only = None, None, None, False
         self.rows = read_turns(export)
         if not self.rows:
             raise SystemExit("export에 turn이 없습니다.")
@@ -1332,7 +1440,71 @@ def turn_note(c: Ctx, r: dict) -> str:
     return "역사적 기록"
 
 
+def investigation_blocks(c: Ctx) -> list[dict]:
+    """The investigation journal and access failures from the web result (what was planned, opened, failed, stopped)."""
+    if not c.web:
+        return []
+    inv = c.web.get("investigation") if isinstance(c.web.get("investigation"), dict) else {}
+    events = [e for e in c.web.get("investigation_events") or [] if isinstance(e, dict)]
+    failures = [f for f in c.web.get("access_failures") or [] if isinstance(f, dict)]
+    if not inv.get("tracked") and not events and not failures:
+        return [{"type": "section", "text": "조사 과정 (웹 전달 파일)"},
+                {"type": "callout", "tone": "info", "text": "이 결과에는 조사 과정 기록이 없습니다(업무 시계를 쓰지 않은 요청)."}]
+    counts = inv.get("counts") if isinstance(inv.get("counts"), dict) else {}
+    budget = inv.get("budget_seconds")
+    stop = inv.get("stop") if isinstance(inv.get("stop"), dict) else {}
+    chips = [{"text": f"업무 시계 {budget // 60}분" if isinstance(budget, int) else "업무 시계 미기록", "tone": "gray"},
+             {"text": f"시작 {kst(inv.get('started_at'))}", "tone": "gray", "mono": True}]
+    if inv.get("research_stopped_at"):
+        chips.append({"text": f"조사 멈춤 {kst(inv['research_stopped_at'])} · {STOP_LABEL.get(stop.get('code'), stop.get('code') or '사유 미기록')}", "tone": "orange"})
+    if isinstance(counts.get("analysed_source_record_count"), int):
+        chips.append({"text": f"분석한 등록 원문 {counts['analysed_source_record_count']}건", "tone": "blue"})
+    rows = []
+    for e in events:
+        d = e.get("data") if isinstance(e.get("data"), dict) else {}
+        kind = e.get("kind")
+        if kind == "research_plan":
+            plan = "·".join(COVERAGE_PLAN.get(x, x) for x in d.get("coverage") or [])
+            what = f"{d.get('product_name') or '제품명 미기록'} · 살필 범위 {plan or '미기록'} · 자료 계획 {len(d.get('source_plan') or [])}개"
+            state = {"text": "계획", "tone": "gray"}
+        elif kind == "source_scan":
+            url = https(d.get("source_url"))
+            host = re.sub(r"^https://([^/]+).*$", r"\1", url) if url else "주소 없음"
+            reviews = d.get("reviews") if isinstance(d.get("reviews"), list) else []
+            what = f"{d.get('page_label') or '페이지 이름 미기록'} · {host}" + (f" · 후기 {len(reviews)}건" if reviews else "")
+            st = d.get("status")
+            state = {"text": SCAN_STATUS.get(st, st or "미기록"), "tone": "green" if st == "observed" else "red" if st == "inaccessible" else "gray"}
+        elif kind == "analysis_scope":
+            what = f"분석 범위 원문 {len(d.get('source_ids') or [])}건 · {clip(d.get('scope_note') or '', 160)}"
+            state = {"text": "범위", "tone": "blue"}
+        else:
+            remaining = d.get("remaining_scope") or []
+            what = clip(d.get("basis") or "근거 미기록", 200) + (f" · 남은 범위 {len(remaining)}개" if remaining else "")
+            state = {"text": STOP_LABEL.get(d.get("code"), d.get("code") or "미기록"), "tone": "orange"}
+        rows.append({"time": kst(e.get("observed_at")), "step": EVENT_LABEL.get(kind, kind or "미기록"), "state": state, "what": what})
+    blocks = [{"type": "section", "text": "조사 과정 (웹 전달 파일)"}, {"type": "chips", "items": chips}]
+    if failures:
+        lines = []
+        for f in failures[:8]:
+            url = https(f.get("source_url"))
+            host = re.sub(r"^https://([^/]+).*$", r"\1", url) if url else "주소 없음"
+            lines.append(f"{f.get('page_label') or '페이지 이름 미기록'} ({host})")
+        blocks.append({"type": "callout", "tone": "warning",
+                       "text": f"**접근하지 못한 자료 {len(failures)}건**: " + ", ".join(lines) + (" 외" if len(failures) > 8 else "")
+                               + ". 이 자료의 내용은 결과에 들어 있지 않습니다."})
+    if rows:
+        blocks.append({"type": "table", "columns": [
+            {"key": "time", "label": "시각(KST)", "kind": "mono"}, {"key": "step", "label": "단계"},
+            {"key": "state", "label": "상태", "kind": "pill"}, {"key": "what", "label": "내용", "kind": "wide"}],
+            "rows": rows, "source": "웹 전달 파일의 investigation_events · 하네스 작업 일지에 적힌 그대로 · 조사 폭·대표성의 증명이 아닙니다"})
+    return blocks
+
+
 def page_history(c: Ctx) -> list[dict]:
+    return history_blocks(c) + investigation_blocks(c)
+
+
+def history_blocks(c: Ctx) -> list[dict]:
     rows = c.rows
     x = [f"T{r['n']} {kst(r['created'], '%H:%M')}\n{r['model']}" for r in rows]
     usage = c.export.get("usage_summary") or {}
@@ -1424,7 +1596,46 @@ def page_history(c: Ctx) -> list[dict]:
     return blocks
 
 
+def web_source_blocks(c: Ctx) -> list[dict]:
+    """Every selected registered source from the web result, with whether the result cites it."""
+    if not c.web:
+        return []
+    sources = [s for s in c.web.get("sources") or [] if isinstance(s, dict)]
+    cov = c.web.get("coverage") if isinstance(c.web.get("coverage"), dict) else {}
+    kind_label = {"review": "후기", "product_fact": "제품 사실"}
+    rows = []
+    for s in sources:
+        sid = s.get("source_id") or ""
+        origin = s.get("origin") if isinstance(s.get("origin"), dict) else {}
+        url = https(origin.get("source_url"))
+        t = kind_label.get(s.get("kind"), "기타")
+        cited = sid in c.ev
+        rows.append({"id": sid, "type": {"text": t, "tone": TYPE_TONE.get(t, "gray")},
+                     "cited": {"text": "결과에 인용" if cited else "인용 안 함", "tone": "blue" if cited else "gray"},
+                     "quote": clip(s.get("text") or "", 600), "loc": s.get("location") or "",
+                     "url": {"href": url, "text": re.sub(r"^https://([^/]+).*$", r"\1", url)} if url else None})
+    count = lambda key: cov.get(key) if isinstance(cov.get(key), int) else "미기록"
+    return [
+        {"type": "section", "text": f"등록 원문 전체 {len(sources)}건 (웹 전달 파일)"},
+        {"type": "metrics", "items": [
+            {"label": "선택한 원문", "value": count("selected_count")}, {"label": "전달(읽음)", "value": count("delivered_count")},
+            {"label": "검토 신고", "value": count("caller_reviewed_count")}, {"label": "제외 신고", "value": count("caller_excluded_count")},
+            {"label": "전달 누락", "value": count("missing_delivery_count")}, {"label": "결과에 인용", "value": sum(1 for s in sources if s.get("source_id") in c.ev)}]},
+        {"type": "table", "search": True, "search_placeholder": "원문·위치·ID 검색", "filter": "type",
+         "columns": [{"key": "id", "label": "ID", "kind": "mono"}, {"key": "type", "label": "유형", "kind": "pill"},
+                     {"key": "cited", "label": "결과", "kind": "pill"}, {"key": "quote", "label": "등록 원문", "kind": "wide"},
+                     {"key": "loc", "label": "위치", "kind": "mid"}, {"key": "url", "label": "원문", "kind": "link"}],
+         "rows": rows,
+         "source": "웹 전달 파일의 sources · 인용한 원문만이 아니라 선택한 등록 원문 전체 · 원문은 저장된 그대로이며 화면이 고치지 않습니다 · "
+                   "건수는 등록 기록 수이며 고객 수나 대표성이 아닙니다 · 검토 신고는 모델이 신고한 처리이며 독립 인증이 아닙니다"},
+    ]
+
+
 def page_evidence(c: Ctx) -> list[dict]:
+    return evidence_blocks(c) + web_source_blocks(c)
+
+
+def evidence_blocks(c: Ctx) -> list[dict]:
     if not c.has_result:
         return no_result_blocks(c, "근거 원문")
     matching: dict[str, int] = {}
@@ -1483,12 +1694,41 @@ def usage_metric(usage: dict, label: str, field: str) -> dict:
     return {"label": label, "value": value}
 
 
+def web_file_blocks(c: Ctx) -> list[dict]:
+    if not c.web:
+        return [{"type": "callout", "tone": "info", "text": c.web_note}] if c.web_note else []
+    b = c.web.get("binding") or {}
+    raw = c.web_path.read_bytes()
+    return [
+        {"type": "section", "text": "웹 전달 파일"},
+        {"type": "files", "items": [
+            {"label": "파일", "value": c.web_path.name},
+            {"label": "경로", "value": f"runtime-data/web-deliveries/{c.web_path.name}"},
+            {"label": "SHA-256", "value": hashlib.sha256(raw).hexdigest()},
+            {"label": "결과 버전 · 자료 버전", "value": f"v{b.get('result_version', '?')} · {b.get('data_version') or '미기록'}", "copy": False},
+        ]},
+        {"type": "chips", "items": [
+            {"text": "✓ 파일 이름(SHA-256)과 내용 일치", "tone": "green"},
+            {"text": "✓ 지금 보여 주는 결과와 같은 세션·질문·결과", "tone": "green"},
+            {"text": f"의미 검토 {c.web.get('semantic_status') or '미기록'} · 인수 준비 {str(c.web.get('acceptance_ready')).lower()}", "tone": "orange"},
+            {"text": "화면 연결·HTML 검수는 하네스가 하지 않음", "tone": "gray"}]},
+    ]
+
+
 def page_export(c: Ctx) -> list[dict]:
+    blocks = export_blocks(c)
+    at = next((i for i, b in enumerate(blocks) if b.get("type") == "section" and b.get("text") == "관측 사용량 합계"), len(blocks))
+    return blocks[:at] + web_file_blocks(c) + blocks[at:]
+
+
+def export_blocks(c: Ctx) -> list[dict]:
     cur = c.cur
     val = c.validation if c.has_result else cur["last_validation"]
     review = val.get("review") or {}
     raw = c.export_path.read_bytes()
     sha = hashlib.sha256(raw).hexdigest()
+    # Drawn from a web result alone: there is no session export to name (the web file section shows the file).
+    export_section = [] if c.web_only else None
     # 사용자 이름이 든 절대 경로를 화면·공유 보고서에 넣지 않는다.
     resolved = c.export_path.resolve()
     in_exports = resolved.parent.name == "exports" and resolved.parent.parent.name == "runtime-data"
@@ -1533,13 +1773,14 @@ def page_export(c: Ctx) -> list[dict]:
                  "검토 통과는 원문 의미·성능·효과의 자동 증명이 아닙니다."},
         {"type": "section", "text": check_title},
         *check_blocks,
-        {"type": "section", "text": "세션 export"},
-        {"type": "files", "items": [
-            {"label": "파일", "value": c.export_path.name},
-            {"label": "경로", "value": rel_project},
-            {"label": "크기", "value": f"{len(raw):,}바이트 ({human_size(len(raw))})", "copy": False},
-            {"label": "SHA-256", "value": sha},
-        ]},
+        *(export_section if export_section is not None else [
+            {"type": "section", "text": "세션 export"},
+            {"type": "files", "items": [
+                {"label": "파일", "value": c.export_path.name},
+                {"label": "경로", "value": rel_project},
+                {"label": "크기", "value": f"{len(raw):,}바이트 ({human_size(len(raw))})", "copy": False},
+                {"label": "SHA-256", "value": sha},
+            ]}]),
         {"type": "section", "text": "관측 사용량 합계"},
         {"type": "metrics", "items": [
             {"label": "기록 호출", "value": calls if calls else "기록 없음",
@@ -1770,7 +2011,7 @@ VIEW_MODES = ("app", "slides", "poster", "editorial", "board", "exhibit", "corpo
 
 def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
              standalone: Path | None = None, out_dir: Path | None = None, insights_dir: Path | None = None,
-             index_sha256: str | None = None, mode: str | None = None) -> dict:
+             index_sha256: str | None = None, mode: str | None = None, web_result_path: Path | None = None) -> dict:
     """view를 out_dir(기본: 이 폴더)의 view-data.js로 쓰고 요약을 돌려준다. focus="auto"는 상태로 고른다.
 
     - insights_path가 없고 insights_dir가 있으면 그 폴더의 insights-*.json에서 session_id·turn_id로 고른다.
@@ -1782,6 +2023,13 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
     warnings.clear()
     out_dir = Path(out_dir) if out_dir else HERE
     export = load_json(export_path) if export_path else None
+    web_given = None
+    if web_result_path:
+        web_given, why = read_web_result(Path(web_result_path))
+        if web_given is None:
+            raise SystemExit(f"웹 전달 파일을 쓸 수 없습니다({why}): {Path(web_result_path).name}")
+        if export is None:  # only the web result: draw its one turn
+            export, export_path = export_from_web(web_given), Path(web_result_path)
     insights_file = None
     if insights_path:
         insights = load_json(insights_path)
@@ -1804,12 +2052,21 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
         insights, state = {}, "missing"
     if focus == "auto":
         focus = auto_focus(export)
+    ctx = None
     if export is not None and not export.get("turns"):
         view = build_requests_only(export, export_path, insights, focus)
     else:
         ctx = Ctx(export, export_path, insights, state, insights_file) if export else None
         if ctx:
             state, insights_file = ctx.insights_state, ctx.insights_file
+            if web_given is not None:
+                b = web_given["binding"]
+                if b.get("session_id") == export.get("session_id") and b.get("turn_id") == ctx.cur.get("turn_id") and same_result(web_given.get("result"), ctx.result):
+                    ctx.web, ctx.web_path, ctx.web_only = web_given, Path(web_result_path), not export_path or Path(export_path) == Path(web_result_path)
+                else:
+                    ctx.web_note = "지정한 웹 전달 파일이 지금 보여 주는 세션·질문·결과와 맞지 않아 쓰지 않았습니다."
+            else:
+                ctx.web, ctx.web_path, ctx.web_note = match_web_result(export, ctx.cur, ctx.result, web_folder(export_path))
         view = build(ctx, ctx.ins if ctx else insights, focus)
     payload = json.dumps(view, ensure_ascii=False, indent=1)
 
@@ -1846,13 +2103,16 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
                   + "window.LGAX_VIEW = " + shared_payload.replace("</", "<\\/") + ";</script>")
         write_atomic(Path(standalone), text.replace(tag, inline))
         outputs["standalone"] = Path(standalone).as_posix()
+    web = ctx.web_path.name if ctx and ctx.web_path else None
     return {"ok": True, "pages": len(view["pages"]), "focus": view["focus"], "insights": state, "insights_file": insights_file,
-            "outputs": outputs, "warnings": list(warnings)}
+            "web_result": web, "outputs": outputs, "warnings": list(warnings)}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="하네스 세션 export → 시각자료 뷰어 데이터")
     ap.add_argument("--export", type=Path, help="export_session이 만든 세션 JSON (없으면 insights의 pages만 그림)")
+    ap.add_argument("--web-result", type=Path, help="하네스가 만든 웹 전달 파일(web-*.json). --export 없이 주면 이 파일만으로 그림. "
+                    "주지 않아도 export 옆 runtime-data/web-deliveries에서 같은 결과의 파일을 찾음")
     ap.add_argument("--insights", type=Path, help="모델이 쓴 해석·화면 JSON")
     ap.add_argument("--focus", help="브라우저가 보여줄 화면 id: " + ", ".join(BUILDERS) + ", insights pages의 id, 또는 auto(상태로 선택)")
     ap.add_argument("--standalone", type=Path, help="데이터를 넣은 단일 HTML 보고서 경로")
@@ -1861,11 +2121,11 @@ def main() -> int:
     ap.add_argument("--out-dir", type=Path, help="view-data.js·index.html을 둘 폴더 (기본: 이 폴더)")
     ap.add_argument("--open", action="store_true", help="뷰어를 기본 브라우저로 연다")
     args = ap.parse_args()
-    if not args.export and not args.insights:
-        ap.error("--export나 --insights 중 하나는 필요합니다.")
+    if not args.export and not args.insights and not args.web_result:
+        ap.error("--export, --web-result, --insights 중 하나는 필요합니다.")
     if args.mode and not args.standalone:
         ap.error("--mode는 --standalone과 함께 씁니다(열어 둔 화면은 오른쪽 위 버튼으로 바꿉니다).")
-    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir, mode=args.mode)
+    summary = generate(args.export, args.insights, args.focus, args.standalone, args.out_dir, mode=args.mode, web_result_path=args.web_result)
     if args.open:
         webbrowser.open(Path(summary["outputs"]["index"]).resolve().as_uri())
     sys.stdout.reconfigure(encoding="utf-8")

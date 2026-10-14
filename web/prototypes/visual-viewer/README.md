@@ -117,6 +117,7 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 - 기본은 이 폴더에 `view-data.js`가 생기고 `index.html`이 열린다. `--out-dir 폴더`를 주면 그 폴더에 `view-data.js`와 `index.html`을 둔다.
 - `--standalone 경로 --mode app|slides|poster|editorial|board|exhibit|corporate|landing|navy|mono|ops|analytics|monoops`: 공유용 단일 HTML을 처음부터 A 앱·B 슬라이드·C 한 장·D 전시·E 보드·F 앱+전시·G 기업·H 랜딩·I 네이비·J 모노·K 업무형·L 분석형·M 모노+업무로 열리게 한다(받은 사람이 버튼으로 다른 보기로 바꿀 수 있다).
 - `--standalone 경로`: 데이터를 넣은 단일 HTML. `--insights 파일`: 모델이 쓴 해석(의견 묶음·단계 자막·제외 사유 등). insights의 session_id·turn_id가 export와 다르면 쓰지 않고 경고한다. turn_id 없이 turn이 여러 개인 세션에 직접 주면 쓰되 "turn 미확인" 경고를 화면에 낸다. insights 없이도 결과 구조만으로 모든 화면을 그린다.
+- **웹 전달 파일(`product-web-result-v1`, 하네스 product v0.11+)**: 하네스가 검토 결과를 저장하면 `runtime-data/web-deliveries/web-<SHA-256>.json`도 쓴다. export가 `<하네스>/runtime-data/exports`에 있으면 build_view·훅이 옆 폴더에서 같은 세션·질문·결과의 파일을 찾아 함께 읽는다. 파일 이름이 내용의 SHA-256과 다르거나(경고), 결과가 지금 보여 주는 결과와 다르면(내보내기 화면에 안내) 쓰지 않는다. 읽으면 근거 원문 화면에 `등록 원문 전체`(선택한 등록 원문 모두와 결과 인용 여부, 전달·검토·제외 건수), 업무 기록 화면에 `조사 과정`(업무 시계·조사 계획·자료 훑기·분석 범위·조사 멈춤과 접근하지 못한 자료), 내보내기 화면에 `웹 전달 파일`(경로·SHA-256·결과·자료 버전)을 더한다. `--web-result 파일`로 직접 줄 수 있고, `--export` 없이 주면 그 파일만으로 같은 화면을 그린다(세션 export 칸은 빠지고 시각은 미기록). 원문·페이지 이름은 글자로만 보여 주고 링크는 HTTPS만 건다. 파일의 `html_rendering`(웹 팀 몫, 하네스가 하지 않음)·`content_is`(믿지 않는 글, 실행하지 않음)를 따르며, 이 표시도 의미 검토나 화면 검수가 아니다.
 - 생성물(`view-data.js`, `report-*.html`, `*.tmp`, 훅 상태·로그)과 실제 결과의 insights는 이 폴더의 `.gitignore`로 제외한다. 실제 결과 예시는 Git이 아닌 메일·접근 제한 링크로 공유한다.
 
 ## 화면과 표시 원칙

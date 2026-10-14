@@ -756,6 +756,110 @@ class BuildViewTests(TempCase):
             build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode="deck")
 
 
+# ---------------------------------------------------------------- web result (product-web-result-v1)
+
+UNTRUSTED = '<img src=x onerror="alert(1)">'
+
+
+def web_body(key: str) -> dict:
+    """A web result shaped like the harness's (product v0.11+) for the current turn of an export fixture."""
+    export = export_of(key)
+    row = build_view.current_row(build_view.read_turns(export_of(key)))
+    turn = next(t for t in export["turns"] if (t.get("state") or {}).get("turn_id") == row["turn_id"])
+    state = turn["state"]
+    cand = next(c for c in reversed(turn["candidates"]) if c.get("result") == state["latest_result"])
+    review = {"source_id": RID, "kind": "review", "text": f"{SYNTH} 등록 후기 원문입니다.", "location": "후기/1",
+              "origin": {"source_url": "https://example.com/r1"}}
+    extra = {"source_id": "REVIEW-EXTRA-01", "kind": "review", "text": f"{SYNTH} 결과가 인용하지 않은 원문입니다.", "location": "후기/2",
+             "origin": {"source_url": "javascript:alert(1)"}}
+    return {
+        "contract_version": "product-web-result-v1", "status": state["status"], "semantic_status": "unverified", "acceptance_ready": False,
+        "binding": {"session_id": export["session_id"], "turn_id": row["turn_id"], "request_key": "rk", "result_version": 1,
+                    "data_version": state["input"].get("data_version")},
+        "input": state["input"], "result": state["latest_result"], "validation": cand["validation"],
+        "sources": [review, {"source_id": FID, "kind": "product_fact", "text": f"{SYNTH} 공식 사양 원문", "location": "사양/1",
+                             "origin": {"source_url": "https://example.com/spec"}}, extra],
+        "coverage": {"selected_count": 3, "delivered_count": 3, "caller_reviewed_count": 3, "caller_excluded_count": 0, "missing_delivery_count": 0},
+        "investigation": {"tracked": True, "budget_seconds": 1800, "started_at": "2026-10-14T03:00:00Z",
+                          "research_stopped_at": "2026-10-14T03:10:00Z", "stop": {"code": "sufficient_evidence"},
+                          "counts": {"analysed_source_record_count": 2}},
+        "investigation_events": [
+            {"kind": "research_plan", "observed_at": "2026-10-14T03:00:00Z",
+             "data": {"product_name": f"{SYNTH} 제품", "coverage": ["negative", "long_term"], "source_plan": ["공식", "후기"]}},
+            {"kind": "source_scan", "observed_at": "2026-10-14T03:05:00Z",
+             "data": {"source_url": "https://example.com/list", "status": "inaccessible", "page_label": UNTRUSTED}},
+            {"kind": "research_stop", "observed_at": "2026-10-14T03:10:00Z",
+             "data": {"code": "sufficient_evidence", "basis": f"{SYNTH} 멈춤 근거", "remaining_scope": ["목록"]}}],
+        "access_failures": [{"page_label": UNTRUSTED, "source_url": "https://example.com/list", "status": "inaccessible", "http_status": None}],
+    }
+
+
+class WebResultTests(TempCase):
+    def put(self, body: dict, name: str | None = None) -> Path:
+        raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        folder = self.h.root / "runtime-data" / "web-deliveries"
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / (name or f"web-{hashlib.sha256(raw).hexdigest()}.json")
+        path.write_bytes(raw)
+        return path
+
+    def test_matching_web_result_adds_sources_investigation_and_file(self):
+        path = self.put(web_body("microwave"))
+        summary, view = self.build("microwave")
+        self.assertEqual((summary["web_result"], summary["warnings"]), (path.name, []))
+        evidence = blob(page(view, "evidence"))
+        for text in ("등록 원문 전체 3건 (웹 전달 파일)", "결과에 인용", "인용 안 함", f"{SYNTH} 결과가 인용하지 않은 원문입니다."):
+            self.assertIn(text, evidence)
+        self.assertNotIn("javascript:", evidence)  # only HTTPS links
+        history = blob(page(view, "history"))
+        for text in ("조사 과정 (웹 전달 파일)", "업무 시계 30분", "근거 충분", "접근하지 못한 자료 1건", "접근 실패"):
+            self.assertIn(text, history)
+        self.assertIn(json.dumps(UNTRUSTED, ensure_ascii=False)[1:-1], history)  # kept as text; the app renders it as text
+        export = blob(page(view, "export"))
+        for text in ("웹 전달 파일", f"runtime-data/web-deliveries/{path.name}", path.name[4:-5], "의미 검토 unverified", "세션 export"):
+            self.assertIn(text, export)
+
+    def test_web_result_for_another_result_is_not_used(self):
+        body = web_body("microwave")
+        body["result"] = dict(body["result"], assumptions=[f"{SYNTH} 옛 결과"])
+        self.put(body)
+        summary, view = self.build("microwave")
+        self.assertIsNone(summary["web_result"])
+        self.assertNotIn("등록 원문 전체", blob(page(view, "evidence")))
+        self.assertNotIn("조사 과정", blob(page(view, "history")))
+        self.assertIn("맞지 않아 쓰지 않았습니다", blob(page(view, "export")))
+
+    def test_web_result_whose_name_is_not_its_sha_is_not_used(self):
+        self.put(web_body("microwave"), name="web-" + "0" * 64 + ".json")
+        summary, view = self.build("microwave")
+        self.assertIsNone(summary["web_result"])
+        self.assertTrue(any("SHA-256" in w for w in summary["warnings"]), summary["warnings"])
+        self.assertNotIn("등록 원문 전체", blob(page(view, "evidence")))
+
+    def test_export_outside_runtime_data_does_not_look_for_web_results(self):
+        self.put(web_body("microwave"))
+        summary, view = self.build(path=EXPORTS["microwave"])
+        self.assertIsNone(summary["web_result"])
+
+    def test_web_result_alone_draws_the_same_pages(self):
+        path = self.put(web_body("microwave"))
+        summary = build_view.generate(None, None, "auto", out_dir=self.h.out, web_result_path=path)
+        view = read_view(self.h.out)
+        self.assertEqual((summary["web_result"], summary["warnings"]), (path.name, []))
+        self.assertEqual([p["id"] for p in view["pages"]],
+                         ["story", "overview", "dashboard", "screening", "compare", "concepts", "history", "evidence", "export"])
+        _, full = self.build("microwave")
+        self.assertEqual(blob(page(view, "story")), blob(page(full, "story")))
+        export = blob(page(view, "export"))
+        self.assertIn("웹 전달 파일", export)
+        self.assertNotIn("세션 export", export)
+
+    def test_given_web_result_of_another_format_stops(self):
+        path = self.put(dict(web_body("microwave"), contract_version="other-v1"))
+        with self.assertRaises(SystemExit):
+            build_view.generate(None, None, "auto", out_dir=self.h.out, web_result_path=path)
+
+
 class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
     def test_missing_insights_shows_dashboard_notice(self):
         export = self.h.add("refrigerator")
@@ -884,6 +988,24 @@ class HookTests(TempCase):
             self.assertEqual(self.run_hook({"session_id": "s"}, "claude")["export"], export.name)
         self.assertEqual(self.h.state()["insights"], "matched")
         self.assertNotIn("failed_key", self.h.state())
+
+    def test_hook_draws_the_matching_web_result_and_refuses_a_linked_web_folder(self):
+        export = self.h.add("microwave")
+        WebResultTests.put(self, web_body("microwave"))
+        with mock.patch.object(hook, "open_browser"):
+            self.assertEqual(self.run_hook({"session_id": "s"}, "claude")["export"], export.name)
+        self.assertIn("등록 원문 전체 3건", blob(page(read_view(self.h.out), "evidence")))
+        web = self.h.root / "runtime-data" / "web-deliveries"
+        shutil.rmtree(web)
+        outside = Path(self.tmp.name) / "outside"
+        outside.mkdir()
+        try:
+            os.symlink(outside, web, target_is_directory=True)
+        except OSError:  # no symlink privilege on Windows: a junction is the same reparse point
+            made = subprocess.run(["cmd.exe", "/d", "/c", "mklink", "/J", str(web), str(outside)], capture_output=True, timeout=10)
+            self.assertEqual(made.returncode, 0, made.stderr.decode(errors="replace"))
+        with self.assertRaises(hook.IntegrityError):
+            hook.Paths(str(self.h.root)).validate()
 
     def test_broken_export_is_logged_once_then_skipped(self):
         (self.h.exports / "export-broken.json").write_text("{not json", encoding="utf-8")

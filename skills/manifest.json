@@ -251,7 +251,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "dcca839a401730599bd5680c9a7e74b7b078bfd1072b878401fe341333412702"
+      "sha256": "ca3c72f23906922e7bebe20d0f60c739c3bfe3aa7c8366e8835d419587d589ce"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -259,11 +259,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/hook.py",
-      "sha256": "74251e7e4727c4dc6e84689ef983807f679c649fdd5dca5ba7dc95ece8d09f6d"
+      "sha256": "06af3bf98af6ca513a5c69ea8328f99ad9353203a7ff1c6d18ad892f33b4601e"
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "3e424ac0c58b05246800f65513d50acff2a430e8d21bc22d41ed7761e6ffe4fc"
+      "sha256": "b291c3b2d90a884344dd210d86c00761d2a7b8764c8cb118e91cb07aa82825a1"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
