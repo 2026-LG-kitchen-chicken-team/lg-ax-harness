@@ -3,6 +3,8 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -72,11 +74,32 @@ class CompletionTests(unittest.TestCase):
         self.assertEqual(self.summary()["sha256"],summary["sha256"])
         self.assertEqual(self.store.get_turn(**self.handle)["result_version"],1)
 
-    def test_wrong_current_version_and_changed_code_are_rejected(self):
+    def test_wrong_current_version_and_changed_dependencies_are_rejected(self):
         self.save()
         self.error("current_state_changed",lambda:self.summary(2))
-        self.store.code_hash="changed"
-        self.error("current_state_changed",self.summary)
+        for target, key in ((self.store, "code_hash"), (self.data, "fingerprint")):
+            original = getattr(target, key)
+            setattr(target, key, "changed")
+            self.error("current_state_changed", self.summary)
+            setattr(target, key, original)
+        self.assertTrue(self.summary()["ready"])
+
+    def test_modified_saved_result_or_immutable_completion_is_rejected(self):
+        summary = self.save()["completion_summary"]
+        artifact = self.root / summary["path"]
+        artifact.write_bytes(b"{}")
+        self.error("completion_integrity", self.summary)
+        changed = copy.deepcopy(self.result)
+        changed["concepts"][0]["text"] = "Changed after review"
+        self.store.db.execute("UPDATE results SET payload=? WHERE turn_id=?", (canonical(changed), self.handle["turn_id"]))
+        self.error("result_integrity", self.summary)
+
+    def test_cancelled_held_result_cannot_reissue_completion(self):
+        changed = copy.deepcopy(self.result)
+        changed.update(status="held", validation_findings=["추가 근거 필요"])
+        self.save(changed)
+        self.store.cancel_turn(**self.handle, cancel_key="stop", reason="사용자 중단", expected_result_version=1, user_submitted=True)
+        self.error("current_state_changed", self.summary)
 
     def test_held_concept_retains_the_saved_reason_in_final_delivery(self):
         changed=copy.deepcopy(self.result)
@@ -99,6 +122,78 @@ class CompletionTests(unittest.TestCase):
         changed["concepts"][0]["validation_plan"]["evaluation_protocol"]={"unit":"전체 배정 과업",
             "failed_or_stopped":"실패와 중단 포함","unknown":"미확인 별도 보고"}
         self.assertTrue(self.save(changed)["delivery_ready"])
+
+    def test_optional_planning_details_are_nonblocking_in_stored_receipt(self):
+        changed = copy.deepcopy(self.result)
+        response = self.save(changed)
+        diagnostics = response["save"]["validation"]["planning_quality_diagnostics"]
+        self.assertTrue(response["delivery_ready"])
+        self.assertEqual(diagnostics["scope"], "structural_only")
+        self.assertFalse(diagnostics["blocking"])
+        self.assertEqual(diagnostics["concepts"], [{"concept_id": "c1", "missing_optional_fields":
+            ["evaluation_protocol", "condition_controls", "guardrail_metrics"]}])
+        self.assertEqual(self.store.get_turn(**self.handle)["latest_result"], changed)
+
+    def test_typed_planning_controls_and_guardrails_stay_unmeasured(self):
+        changed = copy.deepcopy(self.result)
+        plan = changed["concepts"][0]["validation_plan"]
+        plan.update(evaluation_protocol={"unit": "전체 배정 과업", "failed_or_stopped": "실패·중단도 전체 시도에 포함",
+                                        "unknown": "미응답을 미확인으로 별도 보고"},
+                    condition_controls=["같은 모델·버전·초기 상태·과업을 사전에 배정"],
+                    guardrail_metrics=[{"metric": "오안내 및 과업 완료품질", "method": "실패 포함 동일 조건 비교",
+                                        "non_regression_criterion": "오안내 증가와 완료품질 저하가 없을 것"}])
+        response = self.save(changed)
+        validation = response["save"]["validation"]
+        self.assertTrue(response["delivery_ready"])
+        self.assertEqual(validation["planning_quality_diagnostics"]["concepts"], [])
+        self.assertEqual(validation["semantic_status"], "unverified")
+        self.assertFalse(validation["acceptance_ready"])
+        self.assertEqual(self.store.get_turn(**self.handle)["latest_result"]["concepts"][0]["validation_plan"], plan)
+
+    def test_invalid_planning_detail_types_and_measurement_status_are_rejected(self):
+        invalid = [("condition_controls", "동일 조건"), ("condition_controls", []),
+                   ("condition_controls", [True]), ("guardrail_metrics", ["오류율"]),
+                   ("guardrail_metrics", [{"metric": "오류율", "method": "동일 비교", "non_regression_criterion": True}]),
+                   ("guardrail_metrics", [{"metric": "오류율", "method": "동일 비교", "non_regression_criterion": "악화 없음", "measured_value": 0}]),
+                   ("evaluation_protocol", {"unit": "전체", "failed_or_stopped": "포함", "unknown": False}),
+                   ("status", "measured")]
+        for key, value in invalid:
+            with self.subTest(field=key, value=value):
+                changed = copy.deepcopy(self.result)
+                changed["concepts"][0]["validation_plan"][key] = value
+                self.error("invalid_input", lambda: self.store.tools.validate_result_contract(self.turn["input"], changed))
+
+    def test_legacy_plan_omission_keeps_finalization_with_small_diagnostic(self):
+        changed = copy.deepcopy(self.result)
+        changed["concepts"][0].pop("validation_plan")
+        response = self.save(changed)
+        self.assertTrue(response["delivery_ready"])
+        self.assertFalse(response["save"]["validation"]["planning_detail_complete"])
+        self.assertEqual(response["save"]["validation"]["planning_quality_diagnostics"]["concepts"],
+                         [{"concept_id": "c1", "missing_optional_fields": ["validation_plan"]}])
+
+    def test_skill_wrapper_replays_current_completion_and_rejects_stale_version(self):
+        self.result["decision_notes"] = [{"text": "계약 시험의 적용 한계", "basis": "ai_interpretation",
+                                          "source_ids": [self.result["evidence_refs"][0]["source_id"]]}]
+        expected = self.save()["completion_summary"]
+        shutil.copytree(ROOT / "product-tools", self.root / "product-tools", ignore=shutil.ignore_patterns("__pycache__"))
+        for relative in ("skills/manifest.json", "skills/review-and-revise/scripts/run.py"):
+            target = self.root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / relative, target)
+        input_path = self.root / "summary-input.json"
+        command = [sys.executable, "skills/review-and-revise/scripts/run.py", "get_completion_summary",
+                   "--data", str(self.data.root), "--db", str(self.store.path), "--input", str(input_path)]
+        for version, exit_code in ((1, 0), (2, 1)):
+            input_path.write_text(canonical({**self.handle, "expected_result_version": version}), encoding="utf-8")
+            process = subprocess.run(command, cwd=self.root, capture_output=True, text=True, encoding="utf-8", timeout=10)
+            self.assertEqual(process.returncode, exit_code, process.stdout + process.stderr)
+            response = strict_json(process.stdout)
+            if exit_code == 0:
+                self.assertEqual(response["result"]["sha256"], expected["sha256"])
+                self.assertEqual(response["result"]["text"], expected["text"])
+            else:
+                self.assertEqual(response["error"]["code"], "current_state_changed")
 
     def test_error_reason_is_not_a_user_link_or_invented_http_status(self):
         event={"kind":"source_scan","data":{"source_url":"https://example.com/a","page_label":"자료 A",

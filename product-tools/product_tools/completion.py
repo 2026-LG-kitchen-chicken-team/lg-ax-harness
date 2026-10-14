@@ -58,6 +58,15 @@ class CompletionSummary:
             failures = access_failures(events)
             concepts = [{k: c[k] for k in ("id", "text", "source_ids", "assumptions")}
                         for c in result["concepts"]]
+            notes = result.get("decision_notes", [])
+            refs = result["evidence_refs"]
+            # These are the sources actually linked by the saved result, not
+            # every item delivered from the selected catalog.
+            used = list(dict.fromkeys(s for key in ("pains", "existing_features", "remaining_pains", "concepts")
+                                     for claim in result[key] for s in claim["source_ids"]))
+            used = list(dict.fromkeys(used + [s for note in notes for s in note["source_ids"]]))
+            displayed = list(dict.fromkeys([s for c in concepts for s in c["source_ids"]] +
+                                          [s for note in notes for s in note["source_ids"]]))
             # Exact stored text preserves its qualifications. Never invent a
             # source location/medium, a measured effect or a replacement claim.
             lines = []
@@ -76,6 +85,19 @@ class CompletionSummary:
                 if concepts:
                     lines.append("확정하지 못한 부분과 추가 확인 사항:")
                 lines.extend(result["validation_findings"])
+            if notes:
+                lines.append("판단에 사용한 근거와 한계:")
+                labels = {"source_fact": "원문 근거로 기록한 판단(AI 분류)",
+                          "ai_interpretation": "AI 해석", "unverified": "미확인"}
+                lines.extend(labels[note["basis"]] + ": " + note["text"] for note in notes)
+            if displayed:
+                lines.append("기획과 판단에 연결한 출처:")
+                by_id = {ref["source_id"]: ref for ref in refs}
+                for source_id in displayed:
+                    ref = by_id[source_id]
+                    location = source_id + " · " + ref["location"]
+                    url = ref["origin"]["source_url"]
+                    lines.append(location + (" · " + url if url else " · 합성 시험자료"))
             if failures:
                 lines.append("조사 중 일부 자료에 접근하지 못했습니다. 해당 실패 자체를 성공한 자료로 처리하지 않았습니다.")
             binding = {"session_id": session, "turn_id": turn, "result_version": version,
@@ -85,7 +107,9 @@ class CompletionSummary:
             body = {"contract_version": "product-completion-v1", "binding": binding,
                     "status": current["status"], "text": "\n\n".join(lines), "concepts": concepts,
                     "assumptions": result["assumptions"], "validation_findings": result["validation_findings"],
-                    "source_ids": list(dict.fromkeys(s for c in concepts for s in c["source_ids"])),
+                    "decision_notes": notes, "evidence_refs": refs, "source_ids": used,
+                    "text_source_ids": displayed,
+                    "decision_basis_scope": "exact stored model-reported labels; not official quote or semantic certification",
                     "access_failures": failures, "diagnostic_links_required": False,
                     "generation": "exact stored result projection; no model call",
                     "semantic_status": "unverified", "acceptance_ready": False,

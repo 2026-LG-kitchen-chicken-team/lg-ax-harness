@@ -204,7 +204,8 @@ def claim(value, concept=False):
             for step in steps:
                 text(step, "implementation step", 1000)
         if "validation_plan" in value:
-            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"), ("evaluation_protocol",))
+            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"),
+                       ("evaluation_protocol", "condition_controls", "guardrail_metrics"))
             for key in ("metric", "baseline", "method", "success_criterion", "business_value"):
                 text(plan[key], key, 1000)
             if plan["status"] != "planned_not_measured":
@@ -213,6 +214,33 @@ def claim(value, concept=False):
                 protocol = obj(plan["evaluation_protocol"], ("unit", "failed_or_stopped", "unknown"))
                 for key in ("unit", "failed_or_stopped", "unknown"):
                     text(protocol[key], key, 1000)
+            if "condition_controls" in plan:
+                controls = items(plan["condition_controls"], "condition_controls", 10)
+                if not controls:
+                    fail("invalid_input", "Declared condition controls cannot be empty")
+                for control in controls:
+                    text(control, "condition control", 1000)
+            if "guardrail_metrics" in plan:
+                metrics = items(plan["guardrail_metrics"], "guardrail_metrics", 8)
+                if not metrics:
+                    fail("invalid_input", "Declared guardrail metrics cannot be empty")
+                for metric in metrics:
+                    obj(metric, ("metric", "method", "non_regression_criterion"))
+                    for key in ("metric", "method", "non_regression_criterion"):
+                        text(metric[key], key, 1000)
+
+
+def planning_quality_diagnostics(result):
+    """Optional field presence only; never infer adequacy or change finalization."""
+    missing = []
+    for concept in result["concepts"]:
+        plan = concept.get("validation_plan")
+        fields = (["validation_plan"] if plan is None else
+                  [key for key in ("evaluation_protocol", "condition_controls", "guardrail_metrics") if key not in plan])
+        if fields:
+            missing.append({"concept_id": concept["id"], "missing_optional_fields": fields})
+    return {"scope": "structural_only", "blocking": False, "concepts": missing,
+            "note": "Optional planning details to consider; presence does not certify meaning, measurement or quality."}
 
 def product_result(value, planning):
     obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"), optional=("decision_notes",))

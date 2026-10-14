@@ -10,6 +10,8 @@ web_error는 같은 현재 session/turn/result_version의 prepare_web_result로 
 
 사용자에게는 save_and_export의 completion_summary.text를 그대로 전달한다. 누락 시 get_completion_summary({session_id,turn_id,expected_result_version})로 현재 버전에서 얻으며 새 사실·조건·출처를 보태지 않는다. 버전 충돌은 실제 상태를 확인하고 재작성으로 우회하지 않는다. status/receipt는 내부에 보존한다. 부족·모델 귀속·미검증 효과는 요약의 한계를 유지하고, 단순 후속 설명에 새 조사·저장·보고서를 만들지 않는다.
 
+completion은 저장된 decision_notes의 text/basis/source_ids와 해당 URL/위치를 유지한다. source_fact도 AI가 신고한 분류이며 의미나 공식 인용 인증이 아니다. note만 있는 held도 판단 근거를 전달한다. JSON sidecar는 실제 저장한 전체 notes/refs를 유지하고, 조회한 전체 catalog를 사용한 출처로 세지 않는다. 원문 전체·receipt를 최종 문맥에 다시 생성하지 않는다.
+
 파일 생성·구조 검사·내용 대조·PDF/HTML 실제 화면 검수는 서로 다르다. 렌더링하거나 contact sheet를 만들기만 한 것은 이미지 검수가 아니다. 실제 이미지/페이지를 보는 도구를 호출하고 그 결과를 확인한 범위만 검수했다고 말한다. 호출자가 신고한 layout_review.status=passed도 코드가 실제 독해를 인증한 것은 아니다. 실제 화면을 보지 못했으면 그 검수는 미실행이며 완료했다고 쓰지 않는다. 마지막 답변이 현재 저장 결과·산출물·실제 검토 기록과 일치하는지 대조한다.
 
 명시 파일 출력의 보고서 작성에만 기존 코드 렌더링을 먼저 사용한다. 별도 구성이 필요할 때만 title/summary/sections를 작성하고 sources는 빈 배열로 둔다. 실제 원문·URL·버전·구매/협찬 메타데이터는 검증된 catalog에서 코드가 채운다. block의 정확한 source_ids는 유지하며, 이미 제공한 원문이나 긴 source metadata를 다시 생성하지 않는다. 작성한 source metadata가 충돌하면 원문 확인 없이 검사값을 바꿔 통과시키지 않는다. 기본 코드 보고서도 원문 의미·화면 가독성 검수는 별도다.
@@ -111,6 +113,10 @@ delivery_ready=true와 현재 handle·candidate_result_version=current_result_ve
 ## 주장 범위와 최종 표현 대조
 
 중립 관측을 확인된 불편으로 바꾸지 않고, source별 판단·집계 ID/분모와 검증 과제를 관련 Skill에서 먼저 정한다. 단문과 최종 요약도 같은 사실/AI 해석/미확인·직접 source 범위를 유지한다. 최종 표현을 압축할 때 불편 여부·조건·반례·기능 유무의 미확인을 지우지 않는다. 코드/schema·7축 평가 통과는 원문 의미나 모든 질문/실물 효과의 완전 보장이 아니다.
+
+각 절의 대상·주어·속성·조건·시점·매체·장소·인과를 그 절에 연결한 같은 source 원문과 대조한다. 원문이 명시하지 않은 속성·장소·인과는 AI 해석이나 미확인으로 남긴다. 서로 다른 source의 관측을 합쳐 한 source의 직접 사실로 만들지 않는다. 이 대조는 구조·지문 검사와 별도의 AI 판단이다.
+
+검증 계획은 사전 배정한 전체 시도를 분모로 삼고 실패·중단·미응답과 미확인 처리를 남긴다. 같은 과업·모델/버전·초기 상태·환경·완료 품질의 조건통제와 오안내·품질 저하·실패 미검출의 비퇴행 기준을 함께 검토한다. validation_plan의 선택 condition_controls/guardrail_metrics로 보완할 수 있으며 status는 planned_not_measured다. planning_quality_diagnostics는 작은 structural_only 필드 누락 안내로, 누락은 전체 기획 실패가 아니고 필드 존재도 의미·측정·품질 인증이 아니다.
 
 한 문장·decision_note·보고서 block에서 여러 관측을 묶어 요약할 때는 각각의 절이 실제 연결 source_ids의 원문으로 지지되는지 대조한다. 같은 제품의 전체 catalog에서 읽었다는 사실만으로 그 문장에 붙은 출처가 모든 내용을 지지하지는 않는다. 긍정 특성·과거 제품 경험·미래 기대를 묶으면 해당 원문들을 모두 정확히 연결하거나 문장을 근거별로 나눈다. 읽었지만 연결하지 않은 다른 후기의 내용을 기존 refs가 지지하는 것처럼 설명하지 않는다. 저장 전 claim/decision_notes와 보고서·최종 요약을 같은 범위로 확인한다. ID·quote·SHA 검사 통과는 이 의미 대조를 대체하지 않는다.
 

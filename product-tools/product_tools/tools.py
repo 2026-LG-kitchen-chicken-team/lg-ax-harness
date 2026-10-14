@@ -1,5 +1,5 @@
 """Deterministic lookup and structural validation, never semantic certification."""
-from .contracts import canonical, evidence_ref, fail, items, obj, planning_input, product_result
+from .contracts import canonical, evidence_ref, fail, items, obj, planning_input, planning_quality_diagnostics, product_result
 
 class ProductTools:
     def __init__(self, dataset):
@@ -140,5 +140,6 @@ class ProductTools:
                 "planning_detail_complete": bool(result["concepts"]) and all(
                     c.get("implementation_steps") and c.get("validation_plan") for c in result["concepts"]),
                 "planning_detail_scope": "field presence only; no evaluation score or effect certification",
+                "planning_quality_diagnostics": planning_quality_diagnostics(result),
                 "decision_basis_scope": "model-reported labels only; not official quote or semantic certification",
                 "semantic_checks_required": ["claim support", "decision note support and attribution", "existing-feature duplication", "excluded-pain meaning", "synthetic vs market interpretation", "manufacturing assumptions"]}

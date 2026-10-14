@@ -78,7 +78,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "af565e5546dcccab7fde3af41eebfa85f2d3df9ecaf971b12ae7c2729725ad15"
+          "sha256": "afa275b1e00a840a19143f253f9e830abe8895c8c497cc8934ca08e1065fdb52"
         }
       ]
     },
@@ -117,7 +117,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "cdb52f3de857e3727b8b46bf7c3a9e9a962baf27d98e05c6da2596aa14784cdc"
+          "sha256": "33859ec4f9d5b5a50ad9320bf59b3ba02f13730c072df7ac4f7bb47792595586"
         }
       ]
     },
@@ -148,7 +148,7 @@
       "files": [
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "ddf3f060e2e1fcdee1aab1bb871fdf5c650ee773b123e6120744bb110b6f7ee0"
+          "sha256": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -156,11 +156,11 @@
         },
         {
           "path": "skills/review-and-revise/scripts/run.py",
-          "sha256": "964c8b4d58b3d9b2302f5198efcfdc85d7a3f3a202cf93ce22c6b0e7bff34bf3"
+          "sha256": "77b31c88a8050d9a5738197721c12cf6ac01365d769456aae05d7df3b12549c5"
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "6428b7c7c9d6e96568aa03d055322dc0d3472ada628caee57174bdea7015c685"
+          "sha256": "9f467fe3338a08161dbcc1146c829f66f6f300e3da028f08e10e0f4b85e7e03e"
         }
       ]
     }
@@ -168,19 +168,19 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "8987fb75bddfb2a2210ff6637a875a39202d5d515a3b25616c206b639c4187a4"
+      "sha256": "9fe379afab16d24c87538070d10d152e9fa832094560bbbff92d91acff11cd2c"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
-      "sha256": "3e7c8d2d4e05e874c17b934a52e4ca6d373695af92aa01f7e3116c0881d2a042"
+      "sha256": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6"
     },
     {
       "path": "agents/product-official-researcher.md",
-      "sha256": "d149de3fa7f63ce6d5c5ae6e793f7d9d23ab73db3e74f4a198fc79cafcce1240"
+      "sha256": "06bb7f1d353f63f1f9021f8b75ec35e836d311d18b4d660fd604ef4609b013fc"
     },
     {
       "path": "agents/product-review-researcher.md",
-      "sha256": "6ca744af64d872a32d767be773196ee7a89e6c08b6e71128d0c7f8df581153ca"
+      "sha256": "99ff0efe7ebd522b319c095d8e37a75d1ba5aeecd1b41d94653895c2b07afb2a"
     },
     {
       "path": "product-tools/cli.py",
@@ -196,11 +196,11 @@
     },
     {
       "path": "product-tools/product_tools/completion.py",
-      "sha256": "fdb759172679257cbddba05e094f5ee84a7b43ef5d3e36dd5208697f29b92f2a"
+      "sha256": "66df6882371620b5455959a53779a4dfe3aa68fc51877e961841cd87ca90cfa9"
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "23aa347c409c40ab7923395acd719e58f3a40d8a571c23e05e8914c183d715e5"
+      "sha256": "463d9ea5e3c04b601727d596e92a0711cbc1d8fbd29142b122e7c433e0b595a2"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
@@ -228,7 +228,7 @@
     },
     {
       "path": "product-tools/product_tools/planning.py",
-      "sha256": "15f524d164115f23ffe528656fd3c278fdb20fd7a28803eac81d184ac5db67fd"
+      "sha256": "5a1588057f61f7ffa2ac4e592fff7257ed8ed931ee022025bc57c3d67ae68547"
     },
     {
       "path": "product-tools/product_tools/reporting.py",
@@ -252,7 +252,7 @@
     },
     {
       "path": "product-tools/product_tools/tools.py",
-      "sha256": "1cae4712bf3cfdc8f3d41b222f7d335da0ae4d3c6495a6039d9fb503c99f0fa2"
+      "sha256": "2bdd0377b893b9b8e5e16d0d6a7fccb78bc42720b42904afd3c511dc9c026e32"
     },
     {
       "path": "product-tools/product_tools/web_delivery.py",
@@ -304,7 +304,7 @@
     },
     {
       "path": "docs/contracts/product-research-agents.md",
-      "sha256": "5658f305e53f448c4f69cdbe64406ee6ebccb895ce413e795c594a5487b075da"
+      "sha256": "1c92100e9c95e60553b2a6505e35eee321ff1342109b0a983005306d51baaef0"
     },
     {
       "path": "docs/contracts/web-result.md",
