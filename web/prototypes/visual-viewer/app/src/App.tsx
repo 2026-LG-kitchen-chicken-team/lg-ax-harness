@@ -20,6 +20,7 @@ import { useView } from './lib/useView'
 import { MERGED_EVIDENCE_SKINS, mergedTarget, mergeEvidencePages } from './lib/merge'
 import { reportVoice, voiceView } from './lib/voice'
 import { prunedTarget, pruneForPlanning } from './lib/prune'
+import { plainView } from './lib/plain'
 import type { Page, View } from './types'
 
 const LG_RED = 'text-[#d0111b]'
@@ -68,12 +69,12 @@ export default function App() {
   const [mode, setMode] = useMode()
   // J, K and M draw the evidence dashboard and the evidence text as one page (lib/merge.ts); the data keeps both.
   const merged = MERGED_EVIDENCE_SKINS.has(mode)
-  // K also reads in report style (lib/voice.ts): the harness's own sentences only.
-  // K also keeps only what the planning work needs (lib/prune.ts), then reads in report style (lib/voice.ts).
+  // K also keeps only what the planning work needs (lib/prune.ts), reads in report style (lib/voice.ts) and leaves
+  // field names out of the visible text (lib/plain.ts).
   const ops = mode === 'ops'
   const shownView = useMemo(() => {
     const v = merged ? mergeEvidencePages(view) : view
-    return ops ? voiceView(pruneForPlanning(v)) : v
+    return ops ? plainView(voiceView(pruneForPlanning(v))) : v
   }, [merged, ops, view])
   const target = (id: string | null) => {
     const m = merged ? mergedTarget(id) : id

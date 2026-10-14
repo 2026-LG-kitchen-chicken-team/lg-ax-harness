@@ -816,7 +816,7 @@ class WebResultTests(TempCase):
             self.assertIn(text, history)
         self.assertIn(json.dumps(UNTRUSTED, ensure_ascii=False)[1:-1], history)  # kept as text; the app renders it as text
         export = blob(page(view, "export"))
-        for text in ("웹 전달 파일", f"runtime-data/web-deliveries/{path.name}", path.name[4:-5], "의미 검토 unverified", "세션 export"):
+        for text in ("웹 전달 파일", f"runtime-data/web-deliveries/{path.name}", path.name[4:-5], "의미 검토 전 · 인수 전", "세션 export"):
             self.assertIn(text, export)
 
     def test_web_result_for_another_result_is_not_used(self):

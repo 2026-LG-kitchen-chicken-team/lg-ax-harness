@@ -3,9 +3,10 @@
 // and M, which puts K's compact layout and page information into J's black-and-white look.
 // Only build_view.py's data is shown: nothing from the references' sample content (names, deltas, offers) is copied.
 import { useEffect, useState, type ReactNode } from 'react'
-import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Menu, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Info, Menu, RefreshCw, Search, X } from 'lucide-react'
 import { Badge } from '../components/ui'
 import { BlockView } from '../components/blocks'
+import { HoverNote } from '../components/hovernote'
 import { SearchDialog, type Hit } from '../components/search'
 import { ModeSwitch, type Mode } from '../components/mode'
 import { BackToTop, Empty, ICONS, introOf, LiveDot, noEmoji, scrollToBlock, SearchHotkey, STORY_IDS, TextScale } from '../components/shell'
@@ -315,7 +316,19 @@ function Sidebar({ skin, view, page, go, open, close, reload, openFile, inline, 
         {/* L shows the saved status in its right column from xl; below that it stays here. */}
         <SaveCard skin={skin} view={view} reload={reload} openFile={openFile} inline={inline} className={cn(S.card, 'mt-auto', skin === 'analytics' && 'xl:hidden')} />
         </div>
-        <div className={cn(S.foot, skin === 'mono' && 'text-center')}>{(ctx.footer || []).map((f, k) => <div key={k} className="truncate"><Md text={noEmoji(f)} /></div>)}</div>
+        {skin === 'ops' ? (
+          (ctx.footer || []).length > 0 && (
+            <div className={S.foot}>
+              {/* K: the session ID and usage note are reference lines; they open on hover instead of sitting in the menu. */}
+              <HoverNote note={<ul className="flex flex-col gap-1">{(ctx.footer || []).map((f, k) => <li key={k} className="break-all"><Md text={noEmoji(f)} /></li>)}</ul>}
+                className="inline-flex items-center gap-1 rounded text-zinc-500 hover:text-zinc-800">
+                <Info className="size-3.5" aria-hidden />세션 정보
+              </HoverNote>
+            </div>
+          )
+        ) : (
+          <div className={cn(S.foot, skin === 'mono' && 'text-center')}>{(ctx.footer || []).map((f, k) => <div key={k} className="truncate"><Md text={noEmoji(f)} /></div>)}</div>
+        )}
       </aside>
     </>
   )
@@ -334,7 +347,13 @@ function SaveCard({ skin, view, reload, openFile, inline, className, plain }: {
       {ctx.file && (
         <div className="mt-3 flex items-start gap-2 text-xs">
           <FileJson className="mt-0.5 size-3.5 shrink-0 opacity-60" aria-hidden />
-          <div className="min-w-0"><div className="break-all font-medium">{ctx.file.name}</div><div className="opacity-70">{ctx.file.size}{ctx.loaded ? ' · ' + ctx.loaded : ''}</div></div>
+          <div className="min-w-0">
+            {/* K names what the file is; its name (a long hash) opens on hover. */}
+            {skin === 'ops'
+              ? <HoverNote note={ctx.file.name} className="text-left font-medium underline decoration-zinc-300 decoration-dotted underline-offset-[3px]">저장된 결과 파일</HoverNote>
+              : <div className="break-all font-medium">{ctx.file.name}</div>}
+            <div className="opacity-70">{ctx.file.size}{ctx.loaded ? ' · ' + ctx.loaded : ''}</div>
+          </div>
         </div>
       )}
       <button type="button" onClick={reload} className={cn('inline-flex items-center justify-center gap-1.5', S.button)}><RefreshCw className="size-3.5" aria-hidden />다시 불러오기</button>
@@ -370,7 +389,8 @@ type Intro = ReturnType<typeof introOf>
 // "이름 : 값" lines about the saved result (K's head card; J and M too): scope, file, what was loaded, status chips.
 function InfoStrip({ skin, view, className }: { skin: SkinId; view: View; className?: string }) {
   const ctx = view.context || {}
-  const pairs: [string, string][] = [['범위', ctx.meta || ''], ['파일', ctx.file ? `${ctx.file.name}${ctx.file.size ? ' · ' + ctx.file.size : ''}` : ''], ['불러온 자료', ctx.loaded || '']]
+  const file = skin === 'ops' ? '' : ctx.file ? `${ctx.file.name}${ctx.file.size ? ' · ' + ctx.file.size : ''}` : ''
+  const pairs: [string, string][] = [['범위', ctx.meta || ''], ['파일', file], ['불러온 자료', ctx.loaded || '']]
   const dt = cn('shrink-0 text-zinc-500', skin === 'mono' ? 'w-20' : 'w-16')
   return (
     <dl className={cn('grid min-w-0 gap-x-6 gap-y-1 @2xl:grid-cols-2', skin === 'mono' ? 'text-[13.5px]' : skin === 'monoops' ? 'text-[12.5px]' : 'text-[12px]', className)}>

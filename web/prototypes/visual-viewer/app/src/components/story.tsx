@@ -1,10 +1,13 @@
 // "한눈에 보기" story blocks (Magic UI-style landing sections). build_view.py decides every item, count and link;
 // this file only lays them out. Connector lines in the flow are drawn only for links the builder passes.
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ArrowRight, ExternalLink, Quote } from 'lucide-react'
+import { ArrowRight, ExternalLink, FileText, Quote } from 'lucide-react'
 import { Badge, Badges, Card } from './ui'
 import { StatValue } from './magic'
 import { Blocks } from './blocks'
+import { HoverNote, SourceNote } from './hovernote'
+import { useIdTip } from './idtip'
+import { useSkin } from '../lib/skin'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX, TONE_SOFT, TONE_TEXT } from '../lib/utils'
 import type { Block } from '../types'
 
@@ -55,6 +58,8 @@ function StorySection({ b, copy }: P) {
 
 export function QuoteLine({ q }: { q: Block }) {
   const h = safeHref(q.href)
+  // K: the source ID is a reference code; it shows on the 원문 link's hover (or its own mark when there is no link).
+  const ops = useSkin()?.id === 'ops'
   return (
     <figure className="rounded-lg bg-muted/60 px-3 py-2.5">
       <blockquote className="flex gap-2 text-[13px] leading-relaxed">
@@ -64,8 +69,8 @@ export function QuoteLine({ q }: { q: Block }) {
       <figcaption className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-5 text-[11px] text-muted-foreground">
         {q.type && <Badge chip={{ text: q.type, tone: q.type_tone || 'gray' }} />}
         {q.site && <span>{q.site}</span>}
-        {h && <a href={h} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-blue-700 hover:underline">원문<ExternalLink className="size-3" /></a>}
-        {q.source_id && <span className="font-mono">{q.source_id}</span>}
+        {h && <a href={h} target="_blank" rel="noopener noreferrer" title={ops && q.source_id ? q.source_id : undefined} className="inline-flex items-center gap-0.5 text-blue-700 hover:underline">원문<ExternalLink className="size-3" /></a>}
+        {q.source_id && (ops ? !h && <HoverNote note={q.source_id} className="text-zinc-400 hover:text-zinc-700">ID</HoverNote> : <span className="font-mono">{q.source_id}</span>)}
       </figcaption>
     </figure>
   )
@@ -91,6 +96,7 @@ function Claims({ b }: P) {
 }
 
 function Matches({ b }: P) {
+  const ops = useSkin()?.id === 'ops'
   return (
     <Card className="divide-y">
       {(b.items || []).map((m: Block, i: number) => (
@@ -104,7 +110,8 @@ function Matches({ b }: P) {
           {m.text && <p className="text-sm leading-relaxed text-muted-foreground"><Md text={m.text} /></p>}
         </div>
       ))}
-      {b.source && <p className="px-4 py-2 text-[11px] text-muted-foreground">출처: {b.source}</p>}
+      {b.source && (ops ? <div className="flex justify-end px-3 py-1.5"><SourceNote text={b.source} /></div>
+        : <p className="px-4 py-2 text-[11px] text-muted-foreground">출처: {b.source}</p>)}
     </Card>
   )
 }
@@ -173,7 +180,20 @@ export function Flow({ b, large }: P & { large?: boolean }) {
   )
 }
 
+// K: a proposal's evidence is shown as "근거 원문 N건"; the IDs and their quotes open on hover.
+function SourcesNote({ items }: { items: Block[] }) {
+  const tip = useIdTip()
+  const ids = items.map((c) => (typeof c === 'string' ? c : c.text))
+  return (
+    <HoverNote className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
+      note={<ul className="flex flex-col gap-1.5">{ids.map((id) => <li key={id}><span className="font-mono text-[11px] text-zinc-400">{id}</span>{tip?.lookup(id) && <div className="line-clamp-3">{tip.lookup(id)!.text}</div>}</li>)}</ul>}>
+      <FileText className="size-3.5" aria-hidden />근거 원문 {ids.length}건
+    </HoverNote>
+  )
+}
+
 function Solutions({ b }: P) {
+  const ops = useSkin()?.id === 'ops'
   return (
     <div className="flex flex-col gap-4">
       {(b.items || []).map((s: Block, i: number) => (
@@ -213,7 +233,7 @@ function Solutions({ b }: P) {
               ) : <p className="text-xs text-muted-foreground">검증 계획: <b>미작성</b></p>}
             </div>
           </div>
-          {s.sources?.length > 0 && <div className="border-t bg-muted/30 px-6 py-2.5"><Badges items={s.sources} /></div>}
+          {s.sources?.length > 0 && <div className="border-t bg-muted/30 px-6 py-2.5">{ops ? <SourcesNote items={s.sources} /> : <Badges items={s.sources} />}</div>}
         </Card>
       ))}
     </div>

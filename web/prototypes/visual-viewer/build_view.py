@@ -1710,7 +1710,7 @@ def web_file_blocks(c: Ctx) -> list[dict]:
         {"type": "chips", "items": [
             {"text": "✓ 파일 이름(SHA-256)과 내용 일치", "tone": "green"},
             {"text": "✓ 지금 보여 주는 결과와 같은 세션·질문·결과", "tone": "green"},
-            {"text": f"의미 검토 {c.web.get('semantic_status') or '미기록'} · 인수 준비 {str(c.web.get('acceptance_ready')).lower()}", "tone": "orange"},
+            semantic_chip(c.web),
             {"text": "화면 연결·HTML 검수는 하네스가 하지 않음", "tone": "gray"}]},
     ]
 

@@ -263,11 +263,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "b291c3b2d90a884344dd210d86c00761d2a7b8764c8cb118e91cb07aa82825a1"
+      "sha256": "20a817b9d74f41856ab53ec25c3ea19ea894be7abac3d77e0430860af8974839"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "2e8f89bae1f547c47996fb3d06efa7f438fa0e1d750238187bb6d64e04c89284"
+      "sha256": "2e2ee605c36fad336f1b6c9e2c80ae61a413c3828cff3bb8256175fc8856ee52"
     }
   ],
   "native_installation_verified": false,

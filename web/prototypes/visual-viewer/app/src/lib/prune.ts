@@ -38,6 +38,13 @@ function dashboard(blocks: Block[], moved: Block[]): Block[] {
   // The claim-by-claim review table (from the 기능 대조 page) goes right under the review judgement charts.
   const at = out.findIndex((b) => b.type === 'callout' && startsWith(b, 'text', '위 판단은'))
   if (moved.length) out.splice(at >= 0 ? at + 1 : out.length, 0, ...moved)
+  // Every registered source (web result): the counts stay in view; the list, mostly sources the result does not cite,
+  // folds under "원문 N건 보기".
+  const all = out.findIndex((b) => b.type === 'section' && startsWith(b, 'text', '등록 원문 전체'))
+  const table = all >= 0 ? out.findIndex((b, i) => i > all && b.type === 'table') : -1
+  if (table >= 0 && !out.slice(all + 1, table).some(isHeading)) {
+    out[table] = { type: 'expander', title: `원문 ${(out[table].rows || []).length}건 보기`, blocks: [out[table]] }
+  }
   return out
 }
 
