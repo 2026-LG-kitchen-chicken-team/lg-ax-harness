@@ -1,0 +1,5 @@
+# Third-party notices
+
+revfactory/codex-harness commit `80f8217b5b6d3f220a31f05f9c0adaf09dac40f4` is imported under Apache-2.0.
+
+Original source and its upstream attribution are preserved in [LICENSE](vendor/codex-harness/LICENSE) and [NOTICE](vendor/codex-harness/NOTICE). The pinned development repository [import manifest](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/blob/14dfa1a2d8b732258105e6725edeee7cfb94ff57/vendor/codex-harness/import-manifest.json) records Git blob bytes and SHA256. Its [adaptation record](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/blob/14dfa1a2d8b732258105e6725edeee7cfb94ff57/vendor/codex-harness/patches.json) records modifications in the active development copy. These two development metadata files are referenced at that fixed revision and are not bundled with the product. Repository access may be required; the license and upstream NOTICE remain bundled. Vendor originals are not modified. Windows copies are regular files; the upstream global installer was not run.
