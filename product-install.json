@@ -1,0 +1,647 @@
+{
+  "format": "codex-product-install-v1",
+  "source_manifest_sha256": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+  "files": [
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "ab5bbc93126f66260e07a8d34417ec5ece9cf2297778f01de30a97e9352a303f",
+      "source": "THIRD_PARTY_NOTICES.md",
+      "source_sha256": "ab5bbc93126f66260e07a8d34417ec5ece9cf2297778f01de30a97e9352a303f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "agents/product-evidence-reviewer.md",
+      "sha256": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6",
+      "source": "agents/product-evidence-reviewer.md",
+      "source_sha256": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "agents/product-official-researcher.md",
+      "sha256": "06bb7f1d353f63f1f9021f8b75ec35e836d311d18b4d660fd604ef4609b013fc",
+      "source": "agents/product-official-researcher.md",
+      "source_sha256": "06bb7f1d353f63f1f9021f8b75ec35e836d311d18b4d660fd604ef4609b013fc",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "agents/product-planning.md",
+      "sha256": "d5bfa889fb8598b0f22bf6ce0364ed0eacdaaedc31699b86b9e4d31eb4a388d3",
+      "source": "agents/product-planning.md",
+      "source_sha256": "d5bfa889fb8598b0f22bf6ce0364ed0eacdaaedc31699b86b9e4d31eb4a388d3",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "agents/product-review-researcher.md",
+      "sha256": "99ff0efe7ebd522b319c095d8e37a75d1ba5aeecd1b41d94653895c2b07afb2a",
+      "source": "agents/product-review-researcher.md",
+      "source_sha256": "99ff0efe7ebd522b319c095d8e37a75d1ba5aeecd1b41d94653895c2b07afb2a",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "data/business/empty/manifest.json",
+      "sha256": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a",
+      "source": "data/business/empty/manifest.json",
+      "source_sha256": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "data/business/empty/models.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "source": "data/business/empty/models.json",
+      "source_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "data/business/empty/sources.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "data/business/empty/sources.jsonl",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/codex-product.md",
+      "sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54",
+      "source": "docs/contracts/codex-product.md",
+      "source_sha256": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/common-tools.md",
+      "sha256": "b195f914827d36d9fc5d124a27a6034e2f5e10928d6f148daa1841449e8c6998",
+      "source": "docs/contracts/common-tools.md",
+      "source_sha256": "b195f914827d36d9fc5d124a27a6034e2f5e10928d6f148daa1841449e8c6998",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/product-planning.md",
+      "sha256": "374ec19cbe28a8eadba49196ad4c217bfb785bc02f34bed8a011d72219c0f25c",
+      "source": "docs/contracts/product-planning.md",
+      "source_sha256": "374ec19cbe28a8eadba49196ad4c217bfb785bc02f34bed8a011d72219c0f25c",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/product-research-agents.md",
+      "sha256": "1c92100e9c95e60553b2a6505e35eee321ff1342109b0a983005306d51baaef0",
+      "source": "docs/contracts/product-research-agents.md",
+      "source_sha256": "1c92100e9c95e60553b2a6505e35eee321ff1342109b0a983005306d51baaef0",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/product-reviewer-packet.md",
+      "sha256": "d633ecd8a63a7aa5acef11513909f564f1b7247af6453f9102a1793899b63c61",
+      "source": "docs/contracts/product-reviewer-packet.md",
+      "source_sha256": "d633ecd8a63a7aa5acef11513909f564f1b7247af6453f9102a1793899b63c61",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/product-workflow.md",
+      "sha256": "ce4d3c54ed0d505ae093f596eee3d273b8d43e44b05225047104f596a99d7765",
+      "source": "docs/contracts/product-workflow.md",
+      "source_sha256": "ce4d3c54ed0d505ae093f596eee3d273b8d43e44b05225047104f596a99d7765",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/reader-deliverables.md",
+      "sha256": "60221de6f5632eacfd67d73102c1bb45f89e0f55a1d640fc99c9dce1162993b2",
+      "source": "docs/contracts/reader-deliverables.md",
+      "source_sha256": "60221de6f5632eacfd67d73102c1bb45f89e0f55a1d640fc99c9dce1162993b2",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/web-evidence.md",
+      "sha256": "d855939acfa1b2039738ee954224da3d8c12721a7e3894d7f4d2cc7d5263c407",
+      "source": "docs/contracts/web-evidence.md",
+      "source_sha256": "d855939acfa1b2039738ee954224da3d8c12721a7e3894d7f4d2cc7d5263c407",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "docs/contracts/web-result.md",
+      "sha256": "f66593c12fe78ec554e3a9ca8ab38681d5a5a70798a8699f96979461d8bf453e",
+      "source": "docs/contracts/web-result.md",
+      "source_sha256": "f66593c12fe78ec554e3a9ca8ab38681d5a5a70798a8699f96979461d8bf453e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/cli.py",
+      "sha256": "4744c617db153711e27451f4a029433f1c9ee56914b1801f9e2b7f75cf39a05f",
+      "source": "product-tools/cli.py",
+      "source_sha256": "4744c617db153711e27451f4a029433f1c9ee56914b1801f9e2b7f75cf39a05f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/__init__.py",
+      "sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68",
+      "source": "product-tools/product_tools/__init__.py",
+      "source_sha256": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/bulk_import.py",
+      "sha256": "3b1a11a9a2eaf34df3d67243df3260730646246e452e481a09b6e9090356f55a",
+      "source": "product-tools/product_tools/bulk_import.py",
+      "source_sha256": "3b1a11a9a2eaf34df3d67243df3260730646246e452e481a09b6e9090356f55a",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/completion.py",
+      "sha256": "66df6882371620b5455959a53779a4dfe3aa68fc51877e961841cd87ca90cfa9",
+      "source": "product-tools/product_tools/completion.py",
+      "source_sha256": "66df6882371620b5455959a53779a4dfe3aa68fc51877e961841cd87ca90cfa9",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/contracts.py",
+      "sha256": "463d9ea5e3c04b601727d596e92a0711cbc1d8fbd29142b122e7c433e0b595a2",
+      "source": "product-tools/product_tools/contracts.py",
+      "source_sha256": "463d9ea5e3c04b601727d596e92a0711cbc1d8fbd29142b122e7c433e0b595a2",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/conversation.py",
+      "sha256": "03a2bbd7627c801b392cb3b1f6446993041ca4c04aa32b207943cf170305082a",
+      "source": "product-tools/product_tools/conversation.py",
+      "source_sha256": "03a2bbd7627c801b392cb3b1f6446993041ca4c04aa32b207943cf170305082a",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/dataset.py",
+      "sha256": "d4340d466ffc249cc3716f9ffcb1083919dee3e21e37a0ef0e22b3efcb49157f",
+      "source": "product-tools/product_tools/dataset.py",
+      "source_sha256": "d4340d466ffc249cc3716f9ffcb1083919dee3e21e37a0ef0e22b3efcb49157f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/delivery.py",
+      "sha256": "6a0f091082f734f6bd26ac3defe08e391d0d56f1588246e5fde9f1941ac47f79",
+      "source": "product-tools/product_tools/delivery.py",
+      "source_sha256": "6a0f091082f734f6bd26ac3defe08e391d0d56f1588246e5fde9f1941ac47f79",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/error_receipts.py",
+      "sha256": "79ba9adeb2ced36cea90066701b98a6cc88c90c809d738d10f0b1f0156853d66",
+      "source": "product-tools/product_tools/error_receipts.py",
+      "source_sha256": "79ba9adeb2ced36cea90066701b98a6cc88c90c809d738d10f0b1f0156853d66",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/evidence_coverage.py",
+      "sha256": "fbbedf0cf207e3dc3d312912bcce8f7d33300079d97c1aa0744e67def8eaf5fe",
+      "source": "product-tools/product_tools/evidence_coverage.py",
+      "source_sha256": "fbbedf0cf207e3dc3d312912bcce8f7d33300079d97c1aa0744e67def8eaf5fe",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/payload.py",
+      "sha256": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e",
+      "source": "product-tools/product_tools/payload.py",
+      "source_sha256": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/planning.py",
+      "sha256": "5a1588057f61f7ffa2ac4e592fff7257ed8ed931ee022025bc57c3d67ae68547",
+      "source": "product-tools/product_tools/planning.py",
+      "source_sha256": "5a1588057f61f7ffa2ac4e592fff7257ed8ed931ee022025bc57c3d67ae68547",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/reporting.py",
+      "sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6",
+      "source": "product-tools/product_tools/reporting.py",
+      "source_sha256": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/research_scope.py",
+      "sha256": "aa6e3e2be7c78670fdb296cbafe265721833d5aec6a1bdc137d3067e5c327a94",
+      "source": "product-tools/product_tools/research_scope.py",
+      "source_sha256": "aa6e3e2be7c78670fdb296cbafe265721833d5aec6a1bdc137d3067e5c327a94",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/reviewer_packet.py",
+      "sha256": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4",
+      "source": "product-tools/product_tools/reviewer_packet.py",
+      "source_sha256": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/selection.py",
+      "sha256": "4e79dec309d736b3413cb8489830b08f2f40b46553d4ad408323acf3d697086f",
+      "source": "product-tools/product_tools/selection.py",
+      "source_sha256": "4e79dec309d736b3413cb8489830b08f2f40b46553d4ad408323acf3d697086f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/state.py",
+      "sha256": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf",
+      "source": "product-tools/product_tools/state.py",
+      "source_sha256": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/tools.py",
+      "sha256": "2bdd0377b893b9b8e5e16d0d6a7fccb78bc42720b42904afd3c511dc9c026e32",
+      "source": "product-tools/product_tools/tools.py",
+      "source_sha256": "2bdd0377b893b9b8e5e16d0d6a7fccb78bc42720b42904afd3c511dc9c026e32",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/web_delivery.py",
+      "sha256": "bac5cc397edea8684caeff2511c1c6a6cf6b75cdb98e9ee41a66d44ff35269a2",
+      "source": "product-tools/product_tools/web_delivery.py",
+      "source_sha256": "bac5cc397edea8684caeff2511c1c6a6cf6b75cdb98e9ee41a66d44ff35269a2",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/web_evidence.py",
+      "sha256": "b460afd2853d444a9cc8f5db7ea98000e8d78fd05a2334c5ee13c08af0355ff4",
+      "source": "product-tools/product_tools/web_evidence.py",
+      "source_sha256": "b460afd2853d444a9cc8f5db7ea98000e8d78fd05a2334c5ee13c08af0355ff4",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/product_tools/workflow.py",
+      "sha256": "cf677cc53ef43807127115d727fd7354af61f0f9e11a5e5895fca44b2805ca53",
+      "source": "product-tools/product_tools/workflow.py",
+      "source_sha256": "cf677cc53ef43807127115d727fd7354af61f0f9e11a5e5895fca44b2805ca53",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/requirements.in",
+      "sha256": "a77cc1377529b98d8584987066d3da415c894a506e74079706653316e593ff98",
+      "source": "product-tools/requirements.in",
+      "source_sha256": "a77cc1377529b98d8584987066d3da415c894a506e74079706653316e593ff98",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "product-tools/requirements.lock",
+      "sha256": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033",
+      "source": "product-tools/requirements.lock",
+      "source_sha256": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/concept-writing/SKILL.md",
+      "sha256": "33859ec4f9d5b5a50ad9320bf59b3ba02f13730c072df7ac4f7bb47792595586",
+      "source": "skills/concept-writing/SKILL.md",
+      "source_sha256": "33859ec4f9d5b5a50ad9320bf59b3ba02f13730c072df7ac4f7bb47792595586",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/concept-writing/scripts/run.py",
+      "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "source": "skills/concept-writing/scripts/run.py",
+      "source_sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/evidence-retrieval/SKILL.md",
+      "sha256": "900d0609dbb2613db1395cc87715885b3fbf6696558a9b7bd480358fed43d7bb",
+      "source": "skills/evidence-retrieval/SKILL.md",
+      "source_sha256": "900d0609dbb2613db1395cc87715885b3fbf6696558a9b7bd480358fed43d7bb",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/evidence-retrieval/scripts/run.py",
+      "sha256": "65b1bffd0d83934404ca3a0022b6f2485e578ec90cab34a51d1bde46df73da88",
+      "source": "skills/evidence-retrieval/scripts/run.py",
+      "source_sha256": "65b1bffd0d83934404ca3a0022b6f2485e578ec90cab34a51d1bde46df73da88",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/feature-comparison/SKILL.md",
+      "sha256": "a8e1d1c2551001eb16638950cdb8dc53be36e8fb3cceb7e93cd078a63759bc66",
+      "source": "skills/feature-comparison/SKILL.md",
+      "source_sha256": "a8e1d1c2551001eb16638950cdb8dc53be36e8fb3cceb7e93cd078a63759bc66",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/feature-comparison/scripts/run.py",
+      "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "source": "skills/feature-comparison/scripts/run.py",
+      "source_sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/manifest.json",
+      "sha256": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+      "source": "skills/manifest.json",
+      "source_sha256": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/needs-structuring/SKILL.md",
+      "sha256": "afa275b1e00a840a19143f253f9e830abe8895c8c497cc8934ca08e1065fdb52",
+      "source": "skills/needs-structuring/SKILL.md",
+      "source_sha256": "afa275b1e00a840a19143f253f9e830abe8895c8c497cc8934ca08e1065fdb52",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/needs-structuring/scripts/run.py",
+      "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "source": "skills/needs-structuring/scripts/run.py",
+      "source_sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/SKILL.md",
+      "sha256": "7134f1325d851d8d3a7e14b9b9ad191eb153dabe89db2f0508e2f8f68424321e",
+      "source": "skills/review-and-revise/SKILL.md",
+      "source_sha256": "7134f1325d851d8d3a7e14b9b9ad191eb153dabe89db2f0508e2f8f68424321e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/references/payload.md",
+      "sha256": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059",
+      "source": "skills/review-and-revise/references/payload.md",
+      "source_sha256": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/references/report-writing.md",
+      "sha256": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f",
+      "source": "skills/review-and-revise/references/report-writing.md",
+      "source_sha256": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/review-and-revise/scripts/run.py",
+      "sha256": "77b31c88a8050d9a5738197721c12cf6ac01365d769456aae05d7df3b12549c5",
+      "source": "skills/review-and-revise/scripts/run.py",
+      "source_sha256": "77b31c88a8050d9a5738197721c12cf6ac01365d769456aae05d7df3b12549c5",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/web-evidence-collection/SKILL.md",
+      "sha256": "2c8d070164bc5a3bf050430095d00f6040963d190fac3b6947ddd9df6ee43015",
+      "source": "skills/web-evidence-collection/SKILL.md",
+      "source_sha256": "2c8d070164bc5a3bf050430095d00f6040963d190fac3b6947ddd9df6ee43015",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "skills/web-evidence-collection/scripts/run.py",
+      "sha256": "1f24f4fa520d3081432bcf27c0308dd3aa796d47e38f2307c10ce13f2091e591",
+      "source": "skills/web-evidence-collection/scripts/run.py",
+      "source_sha256": "1f24f4fa520d3081432bcf27c0308dd3aa796d47e38f2307c10ce13f2091e591",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "vendor/codex-harness/LICENSE",
+      "sha256": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b",
+      "source": "vendor/codex-harness/LICENSE",
+      "source_sha256": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "vendor/codex-harness/NOTICE",
+      "sha256": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37",
+      "source": "vendor/codex-harness/NOTICE",
+      "source_sha256": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/README.md",
+      "sha256": "21adf029be7af736b08cd401c3cf930aa3bf2888683a9a0efb900a2b81450c9d",
+      "source": "web/prototypes/visual-viewer/README.md",
+      "source_sha256": "21adf029be7af736b08cd401c3cf930aa3bf2888683a9a0efb900a2b81450c9d",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/build_view.py",
+      "sha256": "1c302c2eac9a46390d07acfa4deddb118ca2bbddb69044d30b4aa1a46499d9d1",
+      "source": "web/prototypes/visual-viewer/build_view.py",
+      "source_sha256": "1c302c2eac9a46390d07acfa4deddb118ca2bbddb69044d30b4aa1a46499d9d1",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/hook.py",
+      "sha256": "7711a336a6672f552c4b4d8092036e27453e1bdf8780165fc2f21a58df496e80",
+      "source": "web/prototypes/visual-viewer/hook.py",
+      "source_sha256": "7711a336a6672f552c4b4d8092036e27453e1bdf8780165fc2f21a58df496e80",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/index.html",
+      "sha256": "9828bc4176cf09b64da45cb6ca7efe3835a58498209e103f6dfc0a1b76d081d0",
+      "source": "web/prototypes/visual-viewer/index.html",
+      "source_sha256": "9828bc4176cf09b64da45cb6ca7efe3835a58498209e103f6dfc0a1b76d081d0",
+      "transformation": "unchanged"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/viewer.py",
+      "sha256": "a81f6dfe9a4474b857d53ed2a304b7c1e1749bf6bea1f93e5f4ae7340b491541",
+      "source": "web/prototypes/visual-viewer/viewer.py",
+      "source_sha256": "a81f6dfe9a4474b857d53ed2a304b7c1e1749bf6bea1f93e5f4ae7340b491541",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/evidence-retrieval/scripts/run.py",
+      "sha256": "65b1bffd0d83934404ca3a0022b6f2485e578ec90cab34a51d1bde46df73da88",
+      "source": "skills/evidence-retrieval/scripts/run.py",
+      "source_sha256": "65b1bffd0d83934404ca3a0022b6f2485e578ec90cab34a51d1bde46df73da88",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/evidence-retrieval/SKILL.md",
+      "sha256": "451aa8628e65ae7a8400eca4f08a21ae95f729517b4a4c6a5346961703c0cf48",
+      "source": "skills/evidence-retrieval/SKILL.md",
+      "source_sha256": "900d0609dbb2613db1395cc87715885b3fbf6696558a9b7bd480358fed43d7bb",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/web-evidence-collection/scripts/run.py",
+      "sha256": "1f24f4fa520d3081432bcf27c0308dd3aa796d47e38f2307c10ce13f2091e591",
+      "source": "skills/web-evidence-collection/scripts/run.py",
+      "source_sha256": "1f24f4fa520d3081432bcf27c0308dd3aa796d47e38f2307c10ce13f2091e591",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/web-evidence-collection/SKILL.md",
+      "sha256": "ff172bbbb81ef8c787fc44ba0a47e02befa910d20e416368ba8b9b2b7b89ee22",
+      "source": "skills/web-evidence-collection/SKILL.md",
+      "source_sha256": "2c8d070164bc5a3bf050430095d00f6040963d190fac3b6947ddd9df6ee43015",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/needs-structuring/scripts/run.py",
+      "sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "source": "skills/needs-structuring/scripts/run.py",
+      "source_sha256": "0583bdb9abb0bce2788a92c002fec07b9bebe825f3e03eca031390fecb18582d",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/needs-structuring/SKILL.md",
+      "sha256": "979f473fa09b3c201f5d0f059c96a69fd4263a77bedfce15f2484471ae69a1b0",
+      "source": "skills/needs-structuring/SKILL.md",
+      "source_sha256": "afa275b1e00a840a19143f253f9e830abe8895c8c497cc8934ca08e1065fdb52",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/feature-comparison/scripts/run.py",
+      "sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "source": "skills/feature-comparison/scripts/run.py",
+      "source_sha256": "cb521d07d928e79313a45c684cd23897218b7d50ae66155cd2b1c4fc927ed44e",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/feature-comparison/SKILL.md",
+      "sha256": "b43265e8ebcaba704798f11f8424b973433b840088fc0c8fa097a30aaccf9932",
+      "source": "skills/feature-comparison/SKILL.md",
+      "source_sha256": "a8e1d1c2551001eb16638950cdb8dc53be36e8fb3cceb7e93cd078a63759bc66",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/concept-writing/scripts/run.py",
+      "sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "source": "skills/concept-writing/scripts/run.py",
+      "source_sha256": "d3daa8bb61cc9422807c28a8fde398c9494b66d7b3389ccadd38f6db42ce5ccd",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/concept-writing/SKILL.md",
+      "sha256": "820682fbcfe3979c88eb7b5ecd310ac9ba819dcf15eb07765592854fe523617b",
+      "source": "skills/concept-writing/SKILL.md",
+      "source_sha256": "33859ec4f9d5b5a50ad9320bf59b3ba02f13730c072df7ac4f7bb47792595586",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/references/payload.md",
+      "sha256": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059",
+      "source": "skills/review-and-revise/references/payload.md",
+      "source_sha256": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/references/report-writing.md",
+      "sha256": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f",
+      "source": "skills/review-and-revise/references/report-writing.md",
+      "source_sha256": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/scripts/run.py",
+      "sha256": "77b31c88a8050d9a5738197721c12cf6ac01365d769456aae05d7df3b12549c5",
+      "source": "skills/review-and-revise/scripts/run.py",
+      "source_sha256": "77b31c88a8050d9a5738197721c12cf6ac01365d769456aae05d7df3b12549c5",
+      "transformation": "unchanged"
+    },
+    {
+      "path": ".agents/skills/review-and-revise/SKILL.md",
+      "sha256": "c65ccfdcc8730549f1cc441948106ef7c2a0a309dc61b0ac871afbb761aab80d",
+      "source": "skills/review-and-revise/SKILL.md",
+      "source_sha256": "7134f1325d851d8d3a7e14b9b9ad191eb153dabe89db2f0508e2f8f68424321e",
+      "transformation": "Rewrite relative contract links and commands for .agents/skills installation"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "19130911d598b54677a4dcc7e84511d2a48eda3af406c414f1badaa869c888af",
+      "source": "adapters/codex/templates/AGENTS.md",
+      "source_sha256": "19130911d598b54677a4dcc7e84511d2a48eda3af406c414f1badaa869c888af",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "README.md",
+      "sha256": "66a0ed27c0a09df19d2a4dbd9483cd34312252ffed0883d2557441e7a73e0d47",
+      "source": "adapters/codex/templates/README.md",
+      "source_sha256": "66a0ed27c0a09df19d2a4dbd9483cd34312252ffed0883d2557441e7a73e0d47",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "ee847fd234005a5a319d8bc714a5bc5a7587846f39a8d255eade27bb8ef1b145",
+      "source": "adapters/codex/templates/pyproject.toml",
+      "source_sha256": "ee847fd234005a5a319d8bc714a5bc5a7587846f39a8d255eade27bb8ef1b145",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "uv.lock",
+      "sha256": "c0108ad2d48ed025138974702ff6611231e6b389ad7015738f281b9fd14ffb44",
+      "source": "adapters/codex/templates/uv.lock",
+      "source_sha256": "c0108ad2d48ed025138974702ff6611231e6b389ad7015738f281b9fd14ffb44",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516",
+      "source": "adapters/codex/templates/.gitignore",
+      "source_sha256": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": "product-doctor.py",
+      "sha256": "801b38f91fed3a88a0e573d836fe30619ad4934c2fe76ac27c2e0b436ea1dab4",
+      "source": "adapters/codex/templates/product-doctor.py",
+      "source_sha256": "801b38f91fed3a88a0e573d836fe30619ad4934c2fe76ac27c2e0b436ea1dab4",
+      "transformation": "Product-only template"
+    },
+    {
+      "path": ".codex/config.toml",
+      "sha256": "122c7e32b9cfbfec9391396efca37967935d04e94548f119c00275d34dbf58e7",
+      "source": "adapters/codex/templates/config.toml",
+      "source_sha256": "122c7e32b9cfbfec9391396efca37967935d04e94548f119c00275d34dbf58e7",
+      "transformation": "Product reviewer only; model/effort inherited; native invocation unverified",
+      "source_inputs": [
+        {
+          "path": "agents/product-evidence-reviewer.md",
+          "sha256": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6"
+        }
+      ]
+    },
+    {
+      "path": ".codex/agents/product-evidence-reviewer.toml",
+      "sha256": "59c919a45753dc9ca83bd1d4d3d23819a95e6ae7fd14d8bd7f97992353e42e9f",
+      "source": "adapters/codex/templates/product-evidence-reviewer.toml",
+      "source_sha256": "93eba8f4d3efd8602de5b6247db553d4b3dbcca9b8a367f8322a75650c9ba68e",
+      "transformation": "Product reviewer only; model/effort inherited; native invocation unverified",
+      "source_inputs": [
+        {
+          "path": "agents/product-evidence-reviewer.md",
+          "sha256": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6"
+        }
+      ]
+    },
+    {
+      "path": ".codex/agents/product-official-researcher.toml",
+      "sha256": "bcd4799c4f66d4f1739749295f7aa5bac682ba9fea8b2add95a16604bd6d9406",
+      "source": "adapters/codex/templates/product-official-researcher.toml",
+      "source_sha256": "af8ec0e6aae1274afbabf9b6ef0380852671ffdd63166feba92811b2344f5a8c",
+      "transformation": "Product reviewer only; model/effort inherited; native invocation unverified",
+      "source_inputs": [
+        {
+          "path": "agents/product-official-researcher.md",
+          "sha256": "06bb7f1d353f63f1f9021f8b75ec35e836d311d18b4d660fd604ef4609b013fc"
+        }
+      ]
+    },
+    {
+      "path": ".codex/agents/product-review-researcher.toml",
+      "sha256": "42364530685eac8c1aa2645aaba1703bd3d3cdd07318efb9f348b05f8046442b",
+      "source": "adapters/codex/templates/product-review-researcher.toml",
+      "source_sha256": "c713c1c13f59e0bccc9f5942dd02a37a31bf96efe30841f1e73acf6c0ca7b7fc",
+      "transformation": "Product reviewer only; model/effort inherited; native invocation unverified",
+      "source_inputs": [
+        {
+          "path": "agents/product-review-researcher.md",
+          "sha256": "99ff0efe7ebd522b319c095d8e37a75d1ba5aeecd1b41d94653895c2b07afb2a"
+        }
+      ]
+    }
+  ],
+  "skills": [
+    "evidence-retrieval",
+    "web-evidence-collection",
+    "needs-structuring",
+    "feature-comparison",
+    "concept-writing",
+    "review-and-revise"
+  ],
+  "native_agents": [
+    "product_evidence_reviewer",
+    "product_official_researcher",
+    "product_review_researcher"
+  ],
+  "native_verified": false,
+  "scope": "regular project files only; auth/global settings not copied; discovery/quality require actual native tests"
+}
