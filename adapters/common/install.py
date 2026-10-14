@@ -97,10 +97,13 @@ CLI를 선택한 실행자만:
 업무 Skill은 {profile["skills"]}의6개이며 개발 역할/Skill은 포함하지 않는다.
 선택적 공식 자료 조사자·후기 조사분석자·근거 검토자 3개를 .claude/agents에 설치한다. 메인이 필요한 역할만 선택하며 대화·단순 수정에는 호출하지 않는다.
 Claude Desktop의 Code 로컬 세션에서도 이 폴더를 열 수 있다. 일반 Chat 세션은 프로젝트 Agent 설치·발견 검증과 별개다.
-역할 파일 준비만으로 GUI에서 Agent가 발견·위임되었거나 90초 제한/품질 이점이 입증된 것은 아니다.
+역할 파일 준비와 실제 위임은 구분한다. 역할별 시간은 실제 spawn 응답부터 최대180초와 전체 마감/최종90초 중 더 짧은 범위로 관리한다.
 uv sync --locked는 같은 공통 문서 의존성(python-docx/openpyxl/reportlab/Pillow/pypdf)을 이 폴더의 로컬 환경에 설치한다.
 pip 환경은 python -m pip install --require-hashes -r product-tools/requirements.lock을 사용할 수 있다.
-공통 Skill은 기본 save_and_export(report:false)의 현재버전 웹결과/전체선택원문을 전달한다. 웹팀이 작업화면·HTML보고서를 구현하며 PDF/DOCX/XLSX생성은 명시report:true 요청만 사용한다.
+공통 Skill은 기본 save_and_export(report:false)의 현재버전 웹결과/전체선택원문을 전달한다. 설치된 뷰어는 같은데이터로작업화면·별도HTML보고서를일반코드로만들며추가모델호출을하지않는다. PDF/DOCX/XLSX생성은명시report:true 요청만사용한다.
+화면연결은설치폴더에서 uv run python web/prototypes/visual-viewer/viewer.py install --claude . 을한번실행한다. 이후 uv run python web/prototypes/visual-viewer/viewer.py open . 으로현재저장결과를열수있다.
+별도보고서는 uv run python web/prototypes/visual-viewer/build_view.py --export <현재세션JSON> --out-dir runtime-data/visual-viewer --standalone runtime-data/visual-viewer/report.html --mode ops 로만든다. AI에게HTML레이아웃을다시작성하게하지않는다.
+이번테스트프로파일은유료Desktop Code의 Opus5.5/노력높음이다. 본인앱에보이는모델·노력설정을확인하고다른설정을같은검증결과로간주하지않는다.
 자료량에 따라 파일·절·페이지 수가 달라지며 내부 JSON·검수 기록은 runtime-data에 보관한다.
 report_plan_path는 runtime-data의 내부 작성 파일이다. open_folder:false로 결과 폴더 열기를 생략할 수 있다.
 제작 실패는 업무 저장을 유지하고 같은 session_id/turn_id/expected_result_version의 deliver_result로 복구한다.

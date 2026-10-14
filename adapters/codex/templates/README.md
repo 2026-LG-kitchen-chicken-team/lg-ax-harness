@@ -9,12 +9,23 @@ Python3.12, uv, Codex CLI와 실행자 자신의 Codex 로그인이 필요하다
 ```powershell
 uv sync --locked
 uv run python product-doctor.py
-codex --search
+codex --search --model gpt-6-astra --config 'model_reasoning_effort="low"'
 ```
 
 `uv sync --locked`는 이 폴더의 잠금 파일로 python-docx·openpyxl·reportlab·Pillow·pypdf와 하위 의존성을 로컬 환경에 설치한다. 설치기는 전역 Python 패키지나 설정을 변경하지 않는다. pip 기반 환경은 `python -m pip install --require-hashes -r product-tools/requirements.lock`으로 같은 잠금 요구사항을 설치할 수 있다. 의존성 가져오기 검사는 파일 제작·레이아웃 검수나 실제 AI 업무 검증을 대신하지 않는다.
 
-기본 결과는 save_and_export(report:false)의 웹 전달 데이터다. delivery_ready/web_ready와 현재web_result 파일SHA/binding을 확인하고 원문·근거·검토/조사 이력을 같은버전으로 전달한다. 웹팀이 작업 화면·HTML보고서를 만들며 이 실행은 PDF/DOCX·UI생성/이미지검수를 요구하지 않는다. 명시 파일요청에만 report:true와 기존옵션을 사용한다. 웹제작오류는 prepare_web_result로 같은session/turn/version복구, 명시파일오류만 deliver_result로복구한다. 포맷생성은 의미승인/HTML연결이 아니다.
+기본 결과는 save_and_export(report:false)의 웹 전달 데이터다. delivery_ready/web_ready와 현재 web_result의 SHA/binding을 확인하고 원문·근거·검토/조사 이력을 같은 버전으로 전달한다. 설치된 뷰어는 이 데이터를 일반 코드로 읽어 기획자 화면과 별도 단일 HTML 보고서를 만든다. AI에게 HTML 레이아웃을 다시 작성하게 하거나 PDF/DOCX·이미지 검수를 요구하지 않는다. 명시 파일 요청에만 report:true와 기존 옵션을 사용한다. 웹 데이터 오류는 prepare_web_result로 같은 session/turn/version을 복구하고, 명시 파일 오류만 deliver_result로 복구한다.
+
+위 Astra/low는 동일 자료 비교에서 채택한 테스트 프로파일이다. 사용 중인 계정의 `/model`에서 지원 여부를 확인한다. 다른 모델의 결과를 같은 검증 결과로 간주하지 않는다. 실행 옵션은 [공식 Codex 설정 안내](https://learn.chatgpt.com/docs/developer-settings#change-settings-for-one-run)를 따른다.
+
+화면 연결(제품 설치 폴더에서):
+
+```powershell
+uv run python web/prototypes/visual-viewer/viewer.py install --codex .
+uv run python web/prototypes/visual-viewer/viewer.py open .
+```
+
+Codex의 `/hooks`에서 본인이 훅을 확인·신뢰한 후 실행하면 저장한 결과 화면을 갱신한다. 별도 보고서는 `uv run python web/prototypes/visual-viewer/build_view.py --export <현재 세션 JSON> --out-dir runtime-data/visual-viewer --standalone runtime-data/visual-viewer/report.html --mode ops`로 만든다. 생성은 추가 모델 호출 없이 수행한다. 선택 원문 전체와 결과에 인용한 근거를 구분하며 수정 전 해석은 현재 결과에 적용하지 않는다.
 
 첫 실행에서는 Codex가 안내하는 계정 로그인과 프로젝트 신뢰/권한 설정을 진행한다. 아직 CLI가 없다면 [공식 Codex 설치 안내](https://learn.chatgpt.com/docs/codex/cli)를 따른다. uv 설치는 [공식 안내](https://docs.astral.sh/uv/getting-started/installation/)를 따른다. 자동 설치 도구가 사용자 전역 설정이나 인증 파일을 변경하지 않는다.
 
