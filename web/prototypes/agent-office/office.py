@@ -4,11 +4,14 @@
     uv run python web/prototypes/agent-office/office.py status --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py uninstall --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py watch --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py open --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py trace C:/my-harness --out trace.json
     uv run python web/prototypes/agent-office/office.py selftest
 
-install copies observe.py, office.py and README.md to `<harness>/web/prototypes/agent-office/` and ADDS async command
-hooks to `<harness>/.claude/settings.local.json`. Other settings and hooks (for example the visual viewer's) are kept
+install copies observe.py, office.py, README.md and the office page (index.html, built from app/) to
+`<harness>/web/prototypes/agent-office/`, puts a copy of the page next to the records in
+`<harness>/runtime-data/agent-office/` (the page reads live.js beside it), and ADDS async command hooks to
+`<harness>/.claude/settings.local.json`. Other settings and hooks (for example the visual viewer's) are kept
 as they are. Settings that are not a UTF-8 JSON object stop the install without changes. The hook runs observe.py only
 when its SHA-256 matches the installed fingerprint, refuses symlinked/junction folders, prints nothing and always ends
 with exit 0, so it cannot block or change a tool call. Standard library only; no model or business tool is called.
@@ -31,6 +34,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 APP_REL = ("web", "prototypes", "agent-office")
 APP_FILES = ("observe.py", "office.py", "README.md")
+PAGE = "index.html"  # the 3D office, one self-contained file built by app/ (npm run build)
 SETTINGS_REL = (".claude", "settings.local.json")
 MARKER = "LG_AX_AGENT_OFFICE_V1"
 TOOL_EVENTS = ("PreToolUse", "PostToolUse", "PostToolUseFailure")
@@ -200,13 +204,47 @@ def install(harness: Path) -> str:
             tmp = app / f"{name}.{os.getpid()}.tmp"
             shutil.copyfile(source, tmp)
             os.replace(tmp, app / name)
+    page = copy_page(harness)
     sha = digest(app / "observe.py")
     write_atomic(settings, json.dumps(merged(data, hook_command(sha)), ensure_ascii=False, indent=2) + "\n")
     events = len(TOOL_EVENTS) + len(OTHER_EVENTS)
-    return (f"관찰 파일: {app}\n기록 위치: {harness / 'runtime-data' / 'agent-office'}\n"
+    page_line = (f"사무실 화면: {page} (office.py open --claude <폴더>로 열기)\n" if page
+                 else "사무실 화면: index.html이 없어 복사하지 않았습니다 (app 폴더에서 npm run build).\n")
+    return (f"관찰 파일: {app}\n기록 위치: {harness / 'runtime-data' / 'agent-office'}\n{page_line}"
             f"[Claude Code] {settings.relative_to(harness)}에 관찰 훅 {events}개(백그라운드)를 추가했습니다. 다른 훅은 그대로 둡니다.\n"
             "  다음: 이 하네스 폴더에서 Claude Code를 새로 열고(처음이면 폴더 신뢰 허용) 질문하세요.\n"
             "  훅은 출력이 없고 항상 정상 종료하므로 도구 호출을 막거나 바꾸지 않습니다. 끄기: office.py uninstall --claude <폴더>")
+
+
+def copy_page(harness: Path) -> Path | None:
+    """The page goes into the app folder and next to live.js (runtime-data/agent-office), where it reads the records."""
+    source = HERE / PAGE
+    if not source.is_file():
+        return None
+    out = harness / "runtime-data" / "agent-office"
+    out.mkdir(parents=True, exist_ok=True)
+    for folder in (harness.joinpath(*APP_REL), out):
+        if source.resolve() != (folder / PAGE).resolve():
+            tmp = folder / f"{PAGE}.{os.getpid()}.tmp"
+            shutil.copyfile(source, tmp)
+            os.replace(tmp, folder / PAGE)
+    return out / PAGE
+
+
+def page_path(harness: Path) -> Path:
+    harness = check_harness(harness)
+    page = harness / "runtime-data" / "agent-office" / PAGE
+    if not page.is_file():
+        raise OfficeError(f"사무실 화면이 없습니다: {page}. 먼저 office.py install --claude <폴더>를 실행하세요.")
+    return page
+
+
+def open_page(harness: Path, launch=True) -> str:
+    page = page_path(harness)
+    if launch:
+        import webbrowser
+        webbrowser.open(page.as_uri())
+    return f"사무실 화면: {page.as_uri()}"
 
 
 def uninstall(harness: Path) -> str:
@@ -243,6 +281,7 @@ def status(harness: Path) -> dict:
             "files_match_command": bool(installed) and shas == {installed}, "events_recorded": len(lines),
             "last_event": {k: last.get(k) for k in ("ts", "hook", "kind", "node", "op")} if last else None,
             "last_errors": errors, "start_error": start[:500] or None, "claude_version": claude_version(),
+            "page": str(out / PAGE) if (out / PAGE).is_file() else None,
             "tested_claude_versions": list(TESTED_CLAUDE)}
 
 
@@ -450,6 +489,9 @@ def main(argv=None) -> int:
     for name in ("install", "uninstall", "status"):
         p = sub.add_parser(name)
         p.add_argument("--claude", type=Path, required=True, metavar="HARNESS", help="설치된 하네스 폴더 (Claude Code)")
+    p = sub.add_parser("open", help="사무실 화면(3D)을 기본 브라우저로 열기")
+    p.add_argument("--claude", type=Path, required=True, metavar="HARNESS")
+    p.add_argument("--print", action="store_true", help="열지 않고 주소만 출력")
     p = sub.add_parser("watch")
     p.add_argument("--claude", type=Path, required=True, metavar="HARNESS")
     p.add_argument("--once", action="store_true", help="지금까지의 기록만 출력하고 끝내기")
@@ -468,6 +510,8 @@ def main(argv=None) -> int:
             print(uninstall(args.claude))
         elif args.command == "status":
             print(json.dumps(status(args.claude), ensure_ascii=False, indent=1))
+        elif args.command == "open":
+            print(open_page(args.claude, launch=not args.print))
         elif args.command == "watch":
             watch(args.claude, once=args.once)
         elif args.command == "trace":

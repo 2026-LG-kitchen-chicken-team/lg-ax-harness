@@ -330,6 +330,21 @@ class InstallerTests(unittest.TestCase):
         office.uninstall(self.root)
         self.assertEqual(json.loads(self.settings.read_text(encoding="utf-8")), original)
 
+    def test_install_puts_the_page_next_to_the_records(self):
+        office.install(self.root)
+        page = self.root / "runtime-data" / "agent-office" / "index.html"
+        if not (APP / "index.html").is_file():
+            self.assertFalse(page.exists())
+            return
+        self.assertEqual(page.read_bytes(), (APP / "index.html").read_bytes())
+        self.assertTrue((self.root / "web/prototypes/agent-office/index.html").is_file())
+        self.assertEqual(office.status(self.root)["page"], str(page))
+        self.assertEqual(office.open_page(self.root, launch=False), f"사무실 화면: {page.as_uri()}")
+
+    def test_open_without_install_explains(self):
+        with self.assertRaises(office.OfficeError):
+            office.open_page(self.root, launch=False)
+
     def test_unreadable_settings_stop_without_changes(self):
         for raw in (b"{not json", "{\"a\": 1}".encode("utf-16"), b"[]", b'{"hooks": {"Stop": {}}}'):
             self.settings.write_bytes(raw)
@@ -382,6 +397,20 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual((a["source"], a["target"], a["status"]), ("main", "product_review_researcher", "active"))
         self.assertEqual((b["source"], b["target"], b["at"]), ("product_review_researcher", "main", 30.5))
         self.assertEqual((c["status"], c["basis"], c["label"]), ("error", "command_based_mapping", "콘셉트 작성 · validate_constraints 실패"))
+
+
+class PageTests(unittest.TestCase):
+    @unittest.skipUnless((APP / "index.html").is_file(), "page not built (app: npm run build)")
+    def test_page_is_one_file_that_reads_live_js(self):
+        import re
+        html = (APP / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(html.count('<script src="live.js" charset="utf-8"></script>'), 1)
+        external = re.findall(r'<script[^>]+src="([^"]+)"', html)
+        self.assertEqual(external, ["live.js"])
+        self.assertNotIn('src="./assets/', html)
+        self.assertIn("THIRD-PARTY NOTICES", html)
+        for text in ("데모 화면", "실제 하네스가 한 일이 아닙니다", "명령 경로로 알아냄", "미측정"):
+            self.assertIn(text, html)
 
 
 if __name__ == "__main__":

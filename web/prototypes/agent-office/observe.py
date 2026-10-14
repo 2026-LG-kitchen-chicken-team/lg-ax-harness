@@ -40,7 +40,7 @@ DB = HARNESS / "runtime-data" / "product.sqlite"
 
 MAX_STDIN = 4 * 1024 * 1024        # hook payloads with a large tool_response are read and dropped
 MAX_EVENTS_BYTES = 8 * 1024 * 1024  # events.jsonl rolls over to events-<time>.jsonl past this size
-LIVE_EVENTS = 600                  # events kept in live.js for the page
+LIVE_EVENTS = 1500                 # events kept in live.js for the page (about one long run)
 
 # product v0.10.0 inventory (agents/product-planning.md, docs/contracts/product-research-agents.md, skills/manifest.json).
 # Node ids match the teammate control room (web/prototypes/control-room/src/catalog.ts) so traces can be shared.
