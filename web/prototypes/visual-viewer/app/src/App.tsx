@@ -64,7 +64,7 @@ export default function App() {
   }, [view])
 
   const [mode, setMode] = useMode()
-  // J and M draw the evidence dashboard and the evidence text as one page (lib/merge.ts); the data keeps both.
+  // J, K and M draw the evidence dashboard and the evidence text as one page (lib/merge.ts); the data keeps both.
   const merged = MERGED_EVIDENCE_SKINS.has(mode)
   const shownView = useMemo(() => (merged ? mergeEvidencePages(view) : view), [merged, view])
   const page = view?.pages.find((p) => p.id === current) || null
