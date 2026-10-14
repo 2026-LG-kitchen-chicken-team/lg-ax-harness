@@ -673,6 +673,47 @@ for (const file of ['catalog', 'labels', 'model', 'state']) {
   assert.equal(snapshot(replay, base+2500).active.length, 0);
   events[1].detail.business_binding = db.binding;
   assert.equal(buildSession(events, 'native', db, true, true).dbMatched, true);
+
+  // Synthetic observer records only: no product/role execution or DB writes.
+  const childEvent = (i,kind,phase='point',hook='SubagentStart') => ({...ev(i,kind,phase,hook),
+    actor:'product_review_researcher',agent_id:'observed-child',node:'product_review_researcher',call:'child-call'});
+  for (const stop of ['turn_end','turn_cancelled']) {
+    const childStart = childEvent(2,'tool','start','PreToolUse');
+    const childResult = {...childEvent(5,'tool','end','PostToolUse'),detail:{accepted:true}};
+    const ownStop = {...childEvent(6,'subagent','end','SubagentStop'),detail:{reason:'task_complete'}};
+    const records = [ev(0,'request'),ev(1,'tool','start','PreToolUse'),childStart,ev(3,stop,'point','Stop')];
+    const waiting = buildSession(records,'native',null,true,true);
+    const child = waiting.spans.find(s=>s.agentId==='observed-child');
+    assert.equal(child.status,'running');
+    assert.equal(child.end,null);
+    assert.equal(snapshot(waiting,base+4000).active.length,1);
+    assert.equal(snapshot(waiting,base+4000).main.mode,'idle');
+    const finished = buildSession([...records,childResult,ownStop],'native',null,true,true);
+    const observed = finished.spans.find(s=>s.agentId==='observed-child');
+    assert.equal(observed.status,'done');
+    assert.equal(observed.end,base+5000);
+    assert.equal(observed.detail.accepted,true);
+    assert.equal(finished.saves.length,0); // No claim that a child role wrote a product result.
+    assert.equal(finished.presences[0].outcome,'completed');
+    assert.equal(snapshot(finished,base+6500).active.length,0);
+  }
+  const childCancel = {...childEvent(3,'subagent','end','SubagentStop'),detail:{reason:'turn_aborted',interrupted:true}};
+  const cancelledChild = buildSession([ev(0,'request'),childEvent(1,'tool','start','PreToolUse'),ev(2,'turn_end','point','Stop'),
+    childCancel,{...childEvent(4,'tool','end','PostToolUse'),detail:{accepted:true}}],'native',null,true,true);
+  assert.equal(cancelledChild.spans[0].status,'interrupted');
+  assert.equal(cancelledChild.spans[0].end,base+3000);
+  assert.equal(cancelledChild.spans[0].detail.outcome,'unknown');
+  assert.equal(cancelledChild.spans[0].detail.accepted,undefined);
+  assert.equal(cancelledChild.presences[0].outcome,'cancelled');
+  assert.match(snapshot(cancelledChild,base+4500).nodes.product_review_researcher.activity,/취소/);
+  const childOnlyStop = buildSession([ev(0,'request'),ev(1,'tool','start','PreToolUse'),
+    childEvent(2,'turn_cancelled','point','Stop')],'native',null,true,true);
+  assert.equal(childOnlyStop.spans[0].status,'running');
+  assert.equal(childOnlyStop.turns[0].end,null);
+  const mainNormal = buildSession([ev(0,'request'),ev(1,'tool','start','PreToolUse'),ev(2,'turn_end','point','Stop'),
+    ev(3,'tool','end','PostToolUse')],'native',null,true,true);
+  assert.equal(mainNormal.spans[0].status,'unknown');
+  assert.equal(mainNormal.spans[0].end,base+2000);
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
         with tempfile.TemporaryDirectory(prefix="office-model-check-") as target:

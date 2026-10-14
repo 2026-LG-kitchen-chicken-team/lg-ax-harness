@@ -43,6 +43,7 @@ export interface Presence {
   actor: string
   start: number
   end: number | null
+  outcome?: 'completed' | 'cancelled'
 }
 
 export interface Turn {
@@ -163,13 +164,30 @@ export function buildSession(all: OfficeEvent[], sessionId: string, db: DbSnapsh
   const turns: Turn[] = []
   const hostFirst = new Map<string, { host: string; first: number; source: 'tool' | 'worklog' }>()
 
+  const closeOwnerSpans = (e: OfficeEvent, t: number, cancelled: boolean) => {
+    for (const s of spans) {
+      // A main Stop proves nothing about a background child or its backend.
+      // A child can be closed only by its own observed identity.
+      const sameOwner = e.agent_id ? s.agentId === e.agent_id : e.actor === 'main' && s.actor === 'main' && !s.agentId
+      if (s.end != null || !sameOwner) continue
+      s.end = t
+      s.status = cancelled ? 'interrupted' : 'unknown'
+      s.durationMs = t - s.start
+      s.detail.outcome = 'unknown'
+      s.endLabel = cancelled ? 'turn 취소 관측 · 도구 종료 결과 미확인' : '기록 종료 · 도구 결과 미확인'
+    }
+  }
+
   for (const { e, t } of events) {
     const detail = e.detail ?? {}
     // Research-role presence: SubagentStart/Stop with the role's agent_id; their own tool calls also prove presence.
     if (e.agent_id && ROLE_IDS.includes(e.actor)) {
       const p = presences.get(e.agent_id) ?? { agentId: e.agent_id, actor: e.actor, start: t, end: null }
       p.start = Math.min(p.start, t)
-      if (e.kind === 'subagent' && e.phase === 'end') p.end = t
+      if (e.kind === 'subagent' && e.phase === 'end') {
+        p.end = t
+        p.outcome = detail.reason === 'turn_aborted' || detail.interrupted === true ? 'cancelled' : 'completed'
+      }
       presences.set(e.agent_id, p)
     }
     if (TOOL_HOOKS.has(e.hook)) {
@@ -206,22 +224,21 @@ export function buildSession(all: OfficeEvent[], sessionId: string, db: DbSnapsh
       turns.push({ start: t, end: null, kind: e.kind })
       points.push({ key: e.id, t, kind: e.kind, node: e.kind === 'request' ? 'reception' : 'main', label, basis: e.basis, ev: e })
     } else if (e.kind === 'turn_end' || e.kind === 'turn_cancelled') {
-      const open = [...turns].reverse().find((x) => x.end == null)
-      if (open) open.end = t
-      for (const x of turns) if (x.end == null) x.end = t
-      if (open) open.outcome = e.kind === 'turn_cancelled' ? 'cancelled' : 'completed'
-      for (const s of spans) if (s.end == null) {
-        s.end = t
-        s.status = e.kind === 'turn_cancelled' ? 'interrupted' : 'unknown'
-        s.durationMs = t - s.start
-        s.detail.outcome = 'unknown'
-        s.endLabel = e.kind === 'turn_cancelled' ? 'turn 취소 관측 · 도구 종료 결과 미확인' : '기록 종료 · 도구 결과 미확인'
+      if (e.actor === 'main' && !e.agent_id) {
+        const open = [...turns].reverse().find((x) => x.end == null)
+        if (open) open.end = t
+        for (const x of turns) if (x.end == null) x.end = t
+        if (open) open.outcome = e.kind === 'turn_cancelled' ? 'cancelled' : 'completed'
       }
-      points.push({ key: e.id, t, kind: e.kind, node: 'main', label, basis: e.basis, ev: e })
+      closeOwnerSpans(e, t, e.kind === 'turn_cancelled')
+      points.push({ key: e.id, t, kind: e.kind, node: e.actor === 'main' && !e.agent_id ? 'main' : e.node ?? e.actor, label, basis: e.basis, ev: e })
     } else if (e.kind === 'session') {
       points.push({ key: e.id, t, kind: e.phase === 'start' ? 'session_start' : 'session_end', node: 'main', label, basis: e.basis, ev: e })
     } else if (e.kind === 'subagent') {
-      points.push({ key: e.id, t, kind: e.node === 'other_subagent' ? 'helper' : 'role', node: e.node ?? 'main', label, basis: e.basis, ev: e })
+      const cancelled = detail.reason === 'turn_aborted' || detail.interrupted === true
+      if (e.phase === 'end') closeOwnerSpans(e, t, cancelled)
+      points.push({ key: e.id, t, kind: e.node === 'other_subagent' ? 'helper' : 'role', node: e.node ?? 'main',
+        label: cancelled ? 'child 취소 관측 · 도구 종료 결과 미확인' : label, basis: e.basis, ev: e })
     } else {
       points.push({ key: e.id, t, kind: e.kind, node: e.node ?? 'main', label, basis: e.basis, ev: e })
     }
