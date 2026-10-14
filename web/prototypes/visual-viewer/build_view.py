@@ -103,7 +103,7 @@ HARNESS_STEPS = [
 
 DEFAULT_CAPTIONS = {
     "story": ("한눈에: 질문에서 제안까지", "저장된 결과만 보여주며 모델이나 업무를 다시 실행하지 않습니다."),
-    "overview": ("입력: 모델과 질문, 조건을 확인합니다", "질문 원문과 조건은 저장된 그대로 보여줍니다."),
+    "overview": ("입력: 모델과 질문, 저장 제약을 확인합니다", "질문 원문과 저장된 실행 제약을 구분해 보여줍니다."),
     "dashboard": ("근거: 결과에 쓴 근거 {evidence}건과 검토 판단을 셉니다", "관측 건수이며 발생률이나 시장 수요가 아닙니다."),
     "screening": ("선별: 결과에 쓴 원문 근거", "인용은 저장된 원문 그대로이며 화면이 고치지 않습니다."),
     "compare": ("대조: 불편을 같은 모델의 기존 기능과 맞춰 봅니다", "기능이 있다고 불편이 해소된 것은 아닙니다."),
@@ -187,6 +187,20 @@ def type_order(types) -> list[str]:
 def claim_prefix(claim_id: str) -> str:
     m = re.match(r"[A-Z]+", claim_id)
     return m.group(0) if m else claim_id
+
+
+def duplicate_chip(link: dict) -> dict:
+    value = link.get("duplicates_existing")
+    if value is True:
+        return {"text": "기존 기능 중복: 확정 중복", "tone": "red"}
+    if value is False:
+        return {"text": "기존 기능 중복: 확정 비중복", "tone": "green"}
+    return {"text": "기존 기능 중복: 미확인", "tone": "orange"}
+
+
+def stored_hardware_label(constraints: dict) -> str:
+    value = constraints.get("hardware_allowed")
+    return "허용" if value is True else "제외" if value is False else "미기록"
 
 
 def compress_ids(ids: list[str]) -> str:
@@ -936,8 +950,7 @@ def page_story(c: Ctx) -> list[dict]:
         link = by_concept.get(cl.get("id")) or {}
         chips_ = [{"text": "새 부품 없음" if not cl.get("requires_hardware") else "하드웨어 필요", "tone": "green" if not cl.get("requires_hardware") else "red"}]
         if link:
-            chips_.append({"text": "기존 기능과 겹침" if link.get("duplicates_existing") else "기존 기능과 겹치지 않음",
-                           "tone": "red" if link.get("duplicates_existing") else "green"})
+            chips_.append(duplicate_chip(link))
             if link.get("geometry_required"):
                 chips_.append({"text": "내부 치수 필요", "tone": "orange"})
         plan = cl.get("validation_plan")
@@ -948,7 +961,8 @@ def page_story(c: Ctx) -> list[dict]:
                     "links": [{"text": rp, "tone": "orange"} for rp in link.get("remaining_pain_ids") or []],
                     "sources": [{"text": s, "mono": True} for s in cl.get("source_ids") or []]})
     blocks.append({"type": "story", "key": "solution", "label": "Solution · 제안", "tone": "purple", "title": f"남은 불편에 연결한 제안 {len(concepts)}가지",
-                   "text": f"조건: 하드웨어 추가 {'허용' if cons.get('hardware_allowed') else '제외'} · 제안 최대 {cons.get('max_concepts', '미기록')}개. "
+                   "text": f"저장된 실행 제약: 하드웨어 추가 {stored_hardware_label(cons)} · 제안 최대 {cons.get('max_concepts', '미기록')}개. "
+                           "저장 입력의 기본값·후속 설정을 포함하며 요청 원문에 명시된 조건으로 추정하지 않습니다. "
                            "효과·비용은 측정 전 미확정입니다.",
                    "blocks": [{"type": "solutions", "items": sol}] if sol else [{"type": "callout", "tone": "warning", "text": "결과에 제안이 없습니다."}]})
 
@@ -996,12 +1010,13 @@ def page_overview(c: Ctx) -> list[dict]:
         {"type": "lead", "text": c.ins.get("lead") or "하네스가 저장한 결과 파일(export)을 읽어 근거·불편·기존 기능·제안 연결을 그린 화면입니다. 화면은 **저장된 실행 결과**만 보여주고 모델이나 업무를 다시 실행하지 않습니다."},
         *status_blocks(c),
         {"type": "divider"},
-        {"type": "heading", "icon": "🗂️", "text": "요청과 조건"},
+        {"type": "heading", "icon": "🗂️", "text": "요청과 저장된 실행 제약"},
         {"type": "metrics", "items": [
             model_metric,
             {"label": "범위", "value": SCOPE_SHORT.get(cur["scope_mode"], cur["scope_mode"] or "미기록"), "note": scope_note},
-            {"label": "제안 상한", "value": cons.get("max_concepts", "미기록"), "unit": "개" if "max_concepts" in cons else ""},
-            {"label": "하드웨어 추가", "value": "허용" if cons.get("hardware_allowed") else "제외"},
+            {"label": "제안 상한", "value": cons.get("max_concepts", "미기록"), "unit": "개" if "max_concepts" in cons else "",
+             "note": "저장된 실행 제약 · 기본값·후속 설정 포함"},
+            {"label": "하드웨어 추가", "value": stored_hardware_label(cons), "note": "저장된 실행 제약 · 기본값·후속 설정 포함"},
             {"label": "자료 버전", "value": version_label(cur["data_version"]), "note": cur["data_version"] or ""},
             {"label": "질문(turn)", "value": len(c.rows), "unit": "개", "note": statuses},
         ]},
@@ -1010,7 +1025,7 @@ def page_overview(c: Ctx) -> list[dict]:
              "tone": "blue" if s.get("model_id") in cited else "gray",
              "tip": f"model_version {s.get('model_version')} · document_version {s.get('document_version')}"} for s in cur["scope"]]
          or [{"text": "기록 없음", "tone": "gray"}]},
-        {"type": "chips", "title": "제외한 불편 (사용자 조건)",
+        {"type": "chips", "title": "제외한 불편 (저장된 실행 제약)",
          "items": [{"text": p, "tone": "orange"} for p in excluded] or [{"text": "없음", "tone": "gray"}]},
         {"type": "quotes", "items": [{
             "quote": first["question"],
@@ -1118,9 +1133,13 @@ def judgment_blocks(c: Ctx) -> list[dict]:
     remaining = [r.get("id") for r in c.result.get("remaining_pains") or []]
     if links:
         linked = {rp for link in links for rp in link.get("remaining_pain_ids") or []}
+        duplicates = sum(1 for link in links if link.get("duplicates_existing") is True)
+        nonduplicates = sum(1 for link in links if link.get("duplicates_existing") is False)
+        unknown = len(links) - duplicates - nonduplicates
         chips = [{"text": f"남은 불편 {len(remaining)}개 중 제안과 연결 {sum(1 for r in remaining if r in linked)}개", "tone": "blue"},
-                 {"text": f"기존 기능과 겹치는 제안 {sum(1 for link in links if link.get('duplicates_existing'))}개",
-                  "tone": "red" if any(link.get("duplicates_existing") for link in links) else "green"},
+                 {"text": f"확정 중복 제안 {duplicates}개", "tone": "red" if duplicates else "gray"},
+                 {"text": f"확정 비중복 제안 {nonduplicates}개", "tone": "green" if nonduplicates else "gray"},
+                 {"text": f"중복 여부 미확인 제안 {unknown}개", "tone": "orange" if unknown else "gray"},
                  {"text": f"내부 치수가 필요한 제안 {sum(1 for link in links if link.get('geometry_required'))}개", "tone": "gray"}]
         blocks.append({"type": "chips", "items": chips, "source": "검토 기록 concept_links"})
     if checks and any(ch.get("scope_relation") not in (None, "current_model") for ch in checks):
@@ -1378,7 +1397,7 @@ def page_concepts(c: Ctx) -> list[dict]:
         chips = [{"text": "새 부품 없음" if not cl.get("requires_hardware") else "하드웨어 필요",
                   "tone": "green" if not cl.get("requires_hardware") else "red"}]
         chips += [{"text": ch, "tone": "blue"} for ch in (ins.get("concept_channels") or {}).get(cid, [])]
-        chips.append({"text": f"제안 {i} / 최대 {cons.get('max_concepts', '?')}"})
+        chips.append({"text": f"저장 제약: 제안 {i} / 최대 {cons.get('max_concepts', '?')}"})
         blocks += [{"type": "heading", "icon": "💡", "text": f"{cid} · {(ins.get('concept_titles') or {}).get(cid, '제안')}"},
                    {"type": "chips", "items": chips}]
         steps = (ins.get("concept_steps") or {}).get(cid)
@@ -1409,7 +1428,7 @@ def page_concepts(c: Ctx) -> list[dict]:
         link = links.get(cid)
         if link:
             blocks.append({"type": "chips", "title": "검토 기록", "items": [
-                {"text": "기존 기능 중복 " + ("있음" if link.get("duplicates_existing") else "없음"), "tone": "red" if link.get("duplicates_existing") else "green"},
+                duplicate_chip(link),
                 {"text": "내부 치수 필요 " + ("예" if link.get("geometry_required") else "아니오"), "tone": "orange" if link.get("geometry_required") else "green"},
                 {"text": "연결된 남은 불편 " + ", ".join(link.get("remaining_pain_ids") or []), "tone": "orange"},
             ]})

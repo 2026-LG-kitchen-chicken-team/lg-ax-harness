@@ -379,8 +379,11 @@ class TempCase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="lgax-viewer-test-")
         self.h = Harness(Path(self.tmp.name) / "harness")
+        self.generators = []
 
     def tearDown(self):
+        for generator in self.generators:
+            generator.close()
         self.tmp.cleanup()
 
     def build(self, key=None, path=None, insights_path=None):
@@ -393,6 +396,85 @@ class TempCase(unittest.TestCase):
 # ---------------------------------------------------------------- builder
 
 class BuildViewTests(TempCase):
+
+    def test_duplicate_null_false_true_transitions_use_real_reviewed_web_snapshots(self):
+        g = Gen(Path(self.tmp.name) / "duplicate-states", "data/business/lg-kitchen-v4")
+        self.generators.append(g)
+        bundle = g.bundle("중복 판단 상태 코드 시험", model_id=M)
+        value = g.author(bundle["candidate_template"], bundle["turn"]["input"]["model_scope"][0], RID, FID)
+        value["result"].update(status="held", validation_findings=[f"{SYNTH} 판단 상태 보류 시험"])
+        for version, (state, label, tone) in enumerate(((None, "미확인", "orange"), (False, "확정 비중복", "green"), (True, "확정 중복", "red"))):
+            with self.subTest(state=state):
+                value["expected_result_version"] = version
+                value["result_key"] = f"duplicate-state-{version}"
+                value["result"]["revisions"] = version
+                value["assessment"]["concept_links"][0]["duplicates_existing"] = state
+                saved = g.conv.save_and_export(value)
+                self.assertTrue(saved["save"]["accepted"], saved)
+                self.assertTrue(saved["web_ready"], saved)
+                summary = build_view.generate(g.work / saved["export"]["path"], out_dir=self.h.out)
+                self.assertEqual(summary["web_delivery"], "verified_binding")
+                view = read_view(self.h.out)
+                chip = {"text": "기존 기능 중복: " + label, "tone": tone}
+                solutions = next(b for b in blob_blocks(page(view, "story")) if b["type"] == "solutions")
+                self.assertIn(chip, solutions["items"][0]["chips"])
+                concept_review = next(b for b in page(view, "concepts")["blocks"] if b.get("title") == "검토 기록")
+                self.assertEqual(concept_review["items"][0], chip)
+                aggregate = next(b for b in blob_blocks(page(view, "dashboard")) if b.get("source") == "검토 기록 concept_links")
+                text = blob(aggregate)
+                self.assertIn(f"확정 중복 제안 {int(state is True)}개", text)
+                self.assertIn(f"확정 비중복 제안 {int(state is False)}개", text)
+                self.assertIn(f"중복 여부 미확인 제안 {int(state is None)}개", text)
+                stored = json.loads((g.work / saved["export"]["path"]).read_bytes())
+                self.assertIs(stored["turns"][-1]["candidates"][-1]["validation"]["assessment"]["concept_links"][0]["duplicates_existing"], state)
+                if state is None:
+                    self.assertNotIn("겹치지 않음", blob(page(view, "story")))
+                    self.assertNotIn("확정 비중복", blob(solutions))
+
+    def test_two_unknown_concepts_are_not_reported_as_confirmed_nonduplicates(self):
+        g = Gen(Path(self.tmp.name) / "two-unknown", "data/business/lg-kitchen-v4")
+        self.generators.append(g)
+        bundle = g.bundle("두 제안 중복 미확인 코드 시험", model_id=M)
+        value = g.author(bundle["candidate_template"], bundle["turn"]["input"]["model_scope"][0], RID, FID)
+        value["result"].update(status="held", validation_findings=[f"{SYNTH} 중복 미확인 보류"])
+        concept = json.loads(json.dumps(value["result"]["concepts"][0]))
+        concept["id"] = "c2"
+        value["result"]["concepts"].append(concept)
+        check = json.loads(json.dumps(value["assessment"]["claim_checks"][-1]))
+        check["claim_id"] = "c2"
+        value["assessment"]["claim_checks"].append(check)
+        link = json.loads(json.dumps(value["assessment"]["concept_links"][0]))
+        link["concept_id"] = "c2"
+        value["assessment"]["concept_links"].append(link)
+        for link in value["assessment"]["concept_links"]:
+            link["duplicates_existing"] = None
+        saved = g.conv.save_and_export(value)
+        self.assertTrue(saved["web_ready"], saved)
+        build_view.generate(g.work / saved["export"]["path"], out_dir=self.h.out)
+        view = read_view(self.h.out)
+        aggregate = next(b for b in blob_blocks(page(view, "dashboard")) if b.get("source") == "검토 기록 concept_links")
+        self.assertIn({"text": "확정 중복 제안 0개", "tone": "gray"}, aggregate["items"])
+        self.assertIn({"text": "확정 비중복 제안 0개", "tone": "gray"}, aggregate["items"])
+        self.assertIn({"text": "중복 여부 미확인 제안 2개", "tone": "orange"}, aggregate["items"])
+        solutions = next(b for b in blob_blocks(page(view, "story")) if b["type"] == "solutions")
+        self.assertEqual(sum({"text": "기존 기능 중복: 미확인", "tone": "orange"} in c["chips"] for c in solutions["items"]), 2)
+
+    def test_default_constraints_are_attributed_to_saved_execution_input(self):
+        _, view = self.build("microwave")
+        original = export_of("microwave")["turns"][-1]["state"]["input"]
+        self.assertEqual(original["constraints"]["hardware_allowed"], False)
+        self.assertEqual(original["constraints"]["max_concepts"], 3)
+        self.assertNotIn("하드웨어", original["question"])
+        overview = page(view, "overview")
+        metrics = next(b for b in overview["blocks"] if b["type"] == "metrics")["items"]
+        for item in metrics:
+            if item["label"] in ("제안 상한", "하드웨어 추가"):
+                self.assertEqual(item["note"], "저장된 실행 제약 · 기본값·후속 설정 포함")
+        self.assertIn("요청과 저장된 실행 제약", blob(overview))
+        self.assertNotIn("사용자 조건", blob(overview))
+        solution = next(b for b in page(view, "story")["blocks"] if b.get("key") == "solution")
+        self.assertTrue(solution["text"].startswith("저장된 실행 제약:"))
+        self.assertIn("요청 원문에 명시된 조건으로 추정하지 않습니다", solution["text"])
     def test_three_families_with_steps_plan_and_decision_notes(self):
         for family, label, model, rid, _ in FAMILIES:
             with self.subTest(family=family):
@@ -589,7 +671,7 @@ class BuildViewTests(TempCase):
         sites = titled["출처 사이트별 근거"]["items"]
         self.assertEqual(sum(i["value"] for i in sites), len(export_of("microwave")["turns"][-1]["state"]["latest_result"]["evidence_refs"]))
         text = blob(dashboard)
-        for expected in ("남은 불편 1개 중 제안과 연결 1개", "기존 기능과 겹치는 제안 0개", "의미가 맞는지는 사람이 원문으로 확인해야 합니다"):
+        for expected in ("남은 불편 1개 중 제안과 연결 1개", "확정 중복 제안 0개", "확정 비중복 제안 1개", "중복 여부 미확인 제안 0개", "의미가 맞는지는 사람이 원문으로 확인해야 합니다"):
             self.assertIn(expected, text)
         for invented in ('"donut"', "의견 묶음 (모델 해석)", "발생률", "%"):  # 의견 묶음·비율을 만들지 않는다(자막은 제외)
             self.assertNotIn(invented, blob(dashboard["blocks"]))

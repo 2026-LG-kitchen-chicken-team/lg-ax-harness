@@ -324,7 +324,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "5c1939cf99ecb97e526a14948dd797e70a013d5ee7ec6da51c98557f549743f7"
+      "sha256": "1c302c2eac9a46390d07acfa4deddb118ca2bbddb69044d30b4aa1a46499d9d1"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
