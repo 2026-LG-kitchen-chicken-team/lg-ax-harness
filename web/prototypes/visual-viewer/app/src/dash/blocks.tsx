@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Badge, Badges } from '../components/ui'
 import { Blocks, useTableRows } from '../components/blocks'
+import { QuoteLine } from '../components/story'
 import { useIdTip } from '../components/idtip'
 import { barWidth, NoData, SegmentBar, SkinBars, SkinDonut, SkinLine, useToneHex } from './charts'
 import { useSkin, type BlockRenderer, type Skin, type SkinId } from '../lib/skin'
@@ -656,6 +657,47 @@ function Hero({ b }: P) {
   )
 }
 
+// Story claims (현재 불편 · 기존 기능): A puts them in two columns, so a single item left half the row empty. Here one
+// item takes the whole row with its quotes beside the text, and several items share the row (two, or three when wide).
+// Same items, text, quotes and chips as A; only the arrangement differs.
+function Claims({ b }: P) {
+  const id = useId()
+  const L = LOOK[id]
+  const items: Block[] = b.items || []
+  const t = tone(b.tone)
+  const one = items.length === 1
+  const size = id === 'mono' ? 'text-[17px]' : id === 'ops' ? 'text-[14.5px]' : 'text-[15px]'
+  return (
+    <div className="@container">
+      <div className={cn('grid', L.gap, !one && '@3xl:grid-cols-2', items.length >= 3 && '@7xl:grid-cols-3')}>
+        {items.map((it, i) => {
+          const quotes = (it.quotes || []).length > 0
+          const head = (
+            <>
+              <div className="flex items-center gap-2">
+                <Badge chip={{ text: it.id, tone: t }} />
+                {b.kind_label && <span className="text-xs text-muted-foreground">{b.kind_label}</span>}
+              </div>
+              <p className={cn('font-medium leading-relaxed', size)}><Md text={it.text} /></p>
+            </>
+          )
+          const quoteList = quotes && <div className="flex min-w-0 flex-col gap-2">{it.quotes.map((q: Block, k: number) => <QuoteLine key={k} q={q} />)}</div>
+          return one && quotes ? (
+            <article key={i} className={cn(L.card, L.pad, 'grid min-w-0 gap-4 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] @3xl:items-start @3xl:gap-8')}>
+              <div className="flex min-w-0 flex-col gap-3">{head}<Badges items={it.chips} /></div>
+              {quoteList}
+            </article>
+          ) : (
+            <article key={i} className={cn(L.card, L.pad, 'flex min-w-0 flex-col gap-3')}>
+              {head}{quoteList}<Badges items={it.chips} />
+            </article>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const SECTION_NO: Record<string, number> = { problem: 1, check: 2, flow: 3, solution: 4, trust: 5 }
 function StorySection({ b, copy }: P) {
   const id = useId()
@@ -682,7 +724,7 @@ const KpiBlock = ({ b }: P) => <Kpis items={b.items || []} source={b.source} />
 const COMMON: Record<string, BlockRenderer> = {
   kpis: KpiBlock, metrics: Metrics, hbars: HBars, donut: Donut, bars: Bars, line: Line, table: TableBlock, callout: Callout,
   heading: Heading, section: Section, row: Row, quotes: Quotes, chain: Chain, steps: Steps, cards: Cards, features: Cards,
-  expander: Expander, files: Files, hero: Hero, story: StorySection, tiles: Tiles,
+  expander: Expander, files: Files, hero: Hero, story: StorySection, tiles: Tiles, claims: Claims,
 }
 
 // Chart colours per view. Tones keep their meaning (red = pain, green = supported, orange = uncertain …).

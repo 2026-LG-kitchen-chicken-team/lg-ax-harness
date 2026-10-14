@@ -53,7 +53,7 @@ function StorySection({ b, copy }: P) {
   )
 }
 
-function QuoteLine({ q }: { q: Block }) {
+export function QuoteLine({ q }: { q: Block }) {
   const h = safeHref(q.href)
   return (
     <figure className="rounded-lg bg-muted/60 px-3 py-2.5">
