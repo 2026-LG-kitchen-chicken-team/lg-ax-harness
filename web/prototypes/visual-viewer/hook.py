@@ -12,6 +12,7 @@
   오류는 `runtime-data/visual-viewer/hook-error.log`에만 남긴다.
 - 업무·모델·Tool을 실행하지 않는다. `runtime-data/exports`에 아직 그리지 않은 export가 있을 때만
   build_view.generate를 부른다. insights는 출력 폴더의 `insights-*.json`에서 session_id·turn_id로 고른다.
+  같은 세션·질문·결과의 웹 전달 파일(`runtime-data/web-deliveries/web-*.json`)이 있으면 build_view가 함께 읽는다.
 - CLI 세션(claude·codex + session_id)마다 처음 화면을 만들 때만 기본 브라우저를 연다. 세션 기록을 먼저 저장하고
   연다. 열린 화면은 그 뒤로 2초 안에 새 데이터로 바뀐다. `LGAX_VIEWER_NO_OPEN=1`이면 열지 않는다(시험용).
 """
@@ -65,6 +66,8 @@ class Paths:
         harness = str(Path(harness).resolve())
         self.harness = harness
         self.exports = os.path.join(harness, "runtime-data", "exports")
+        # build_view reads the matching web result (product-web-result-v1) from here when it exists.
+        self.web = os.path.join(harness, "runtime-data", "web-deliveries")
         self.out = os.path.join(harness, "runtime-data", "visual-viewer")
         self.state = os.path.join(self.out, ".hook-state.json")
         self.lock = os.path.join(self.out, ".hook.lock")
@@ -75,7 +78,7 @@ class Paths:
     def validate(self) -> None:
         relatives = ("web/prototypes/visual-viewer/hook.py", "web/prototypes/visual-viewer/build_view.py",
                      "web/prototypes/visual-viewer/index.html", ".codex", ".claude",
-                     "runtime-data/exports", "runtime-data/visual-viewer/index.html",
+                     "runtime-data/exports", "runtime-data/web-deliveries", "runtime-data/visual-viewer/index.html",
                      "runtime-data/visual-viewer/view-data.js", "runtime-data/visual-viewer/.hook-state.json",
                      "runtime-data/visual-viewer/.hook.lock", "runtime-data/visual-viewer/.hook-last-export",
                      "runtime-data/visual-viewer/hook-error.log", "runtime-data/visual-viewer/hook-start-error.log")

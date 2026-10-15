@@ -17,10 +17,13 @@ export function useColor() {
   const s = useSkin()
   return (t: string | undefined, i: number) => (s?.series ? s.series[i % s.series.length] : (s?.hex || HEX)[tone(t || 'blue')])
 }
-const HEX = { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a1a1aa' }
+const HEX = { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a1a1aa', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' }
 export function useToneHex() {
   return useSkin()?.hex || HEX
 }
+
+// K draws charts at once (no grow-in): its motion is limited to five kinds (index.css "K motion").
+const useStill = () => useSkin()?.id === 'ops'
 
 export function NoData() {
   const voice = useVoice()
@@ -29,6 +32,7 @@ export function NoData() {
 
 // Total in the middle, each part's label and stored value beside the ring.
 export function SkinDonut({ b, arc = 28 }: { b: Block; arc?: number }) {
+  const still = useStill()
   const color = useColor()
   const items: Item[] = (b.items || []).filter((i: Item) => i.value > 0)
   const total = items.reduce((a, i) => a + i.value, 0)
@@ -36,7 +40,7 @@ export function SkinDonut({ b, arc = 28 }: { b: Block; arc?: number }) {
   return (
     <div className="flex flex-col items-center gap-6 @md:flex-row">
       <div className="w-full max-w-[13rem] shrink-0">
-        <VisSingleContainer data={items} height={208}>
+        <VisSingleContainer data={items} height={208} duration={still ? 0 : undefined}>
           <VisDonut<Item> value={(d) => d.value} color={(d: Item, i: number) => color(d.tone, i)} arcWidth={arc} padAngle={0.015} cornerRadius={3}
             centralLabel={fmt(total)} centralSubLabel={b.center_label || '합계'} />
           <VisTooltip triggers={{ [VisDonutSelectors.segment]: (d: { data: Item }) => `${esc(d.data.label)}: ${fmt(d.data.value)}${esc(b.unit)}${d.data.note ? '<br>' + esc(d.data.note) : ''}` }} />
@@ -92,6 +96,7 @@ function Legend({ series }: { series: Series[] }) {
 }
 
 export function SkinBars({ b, round = 4, thin }: { b: Block; round?: number; thin?: boolean }) {
+  const still = useStill()
   const color = useColor()
   const cats: string[] = b.categories || []
   const series: Series[] = b.series || []
@@ -101,7 +106,7 @@ export function SkinBars({ b, round = 4, thin }: { b: Block; round?: number; thi
   return (
     <div className="flex flex-col gap-3">
       <Legend series={series} />
-      <VisXYContainer<D> data={data} height={260} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]}>
+      <VisXYContainer<D> data={data} height={260} duration={still ? 0 : undefined} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]}>
         <VisGroupedBar<D> x={(d) => d.i} y={series.map((_, k) => (d: D) => d.v[k])} color={(_: D, k: number) => color(series[k]?.tone, k)}
           roundedCorners={round} groupPadding={thin ? 0.45 : 0.25} barPadding={thin ? 0.3 : 0.1} />
         <VisAxis type="x" tickFormat={(i: number | Date) => cats[Number(i)] ?? ''} numTicks={cats.length} gridLine={false} />
@@ -114,6 +119,7 @@ export function SkinBars({ b, round = 4, thin }: { b: Block; round?: number; thi
 
 // Lines with a soft area under a single series; points keep the builder's status colours (point_tones).
 export function SkinLine({ b, area }: { b: Block; area?: boolean }) {
+  const still = useStill()
   const color = useColor()
   const hex = useToneHex()
   const xs: string[] = b.x || []
@@ -127,7 +133,7 @@ export function SkinLine({ b, area }: { b: Block; area?: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       {series.length > 1 && <Legend series={series} />}
-      <VisXYContainer<D> data={data} height={b.height || 260} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]} xDomain={xs.length === 1 ? [-1, 1] : undefined}>
+      <VisXYContainer<D> data={data} height={b.height || 260} duration={still ? 0 : undefined} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]} xDomain={xs.length === 1 ? [-1, 1] : undefined}>
         {series.map((s, k) => (s.area || (area && series.length === 1)) && (
           <VisArea<D> key={'a' + k} x={(d) => d.i} y={(d) => d.v[k]} color={color(s.tone, k)} opacity={0.12} />
         ))}

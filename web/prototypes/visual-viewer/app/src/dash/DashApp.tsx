@@ -2,10 +2,11 @@
 // dashboard references (I navy sidebar, J monochrome rounded, K compact operations, L analytics with a right column)
 // and M, which puts K's compact layout and page information into J's black-and-white look.
 // Only build_view.py's data is shown: nothing from the references' sample content (names, deltas, offers) is copied.
-import { useEffect, useState, type ReactNode } from 'react'
-import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Menu, RefreshCw, Search, X } from 'lucide-react'
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
+import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Info, Menu, RefreshCw, Search, X } from 'lucide-react'
 import { Badge } from '../components/ui'
 import { BlockView } from '../components/blocks'
+import { HoverNote } from '../components/hovernote'
 import { SearchDialog, type Hit } from '../components/search'
 import { ModeSwitch, type Mode } from '../components/mode'
 import { BackToTop, Empty, ICONS, introOf, LiveDot, noEmoji, scrollToBlock, SearchHotkey, STORY_IDS, TextScale } from '../components/shell'
@@ -49,9 +50,9 @@ const SIDE: Record<SkinId, { aside: string; offset: string; group: string; list:
     aside: 'w-60 border-r border-[#e6e6e6] bg-[#f5f5f5] text-zinc-800', offset: 'lg:pl-60',
     group: 'px-2.5 pb-1 text-[11px] font-medium text-zinc-400', list: 'flex flex-col gap-0.5',
     item: 'flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[13px]',
-    on: 'bg-[#e2ece0] font-medium text-[#1f3a24]', off: 'text-zinc-700 hover:bg-black/[0.04]',
+    on: 'bg-[#e2ece0] font-medium text-[#1f3a24]', off: 'text-zinc-700 hover:bg-black/[0.06] hover:text-zinc-950',
     num: 'ml-auto font-mono text-[10px] text-zinc-400',
-    card: 'mx-3 rounded-lg border border-[#e3e3e3] bg-white p-3 text-zinc-700', button: 'mt-2.5 h-8 w-full rounded-md border border-[#e3e3e3] text-xs font-medium hover:bg-zinc-50',
+    card: 'mx-3 rounded-lg border border-[#e3e3e3] bg-white p-3 text-zinc-700', button: 'mt-2.5 h-8 w-full rounded-md border border-[#e3e3e3] text-xs font-medium hover:border-[#2f8f57]/40 hover:bg-[#f3f8f4] hover:text-[#2f7d4f]',
     foot: 'border-t border-[#e6e6e6] px-4 py-3 text-[11px] leading-relaxed text-zinc-500',
   },
   analytics: {
@@ -130,7 +131,7 @@ function Tools({ skin, view, openSearch, mode, setMode, big, toggleBig, live, in
       className="grid size-9 place-items-center rounded-full bg-white text-zinc-600 lg:hidden"><Search className="size-4" aria-hidden /></button>,
   }[skin]
   const bigCls = {
-    navy: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e3e6ee]', mono: 'h-11 rounded-full bg-white px-4', ops: 'h-8 rounded-md border border-[#e3e3e3] bg-white px-2.5',
+    navy: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e3e6ee]', mono: 'h-11 rounded-full bg-white px-4', ops: 'h-8 rounded-md border border-[#e3e3e3] bg-white px-2.5 hover:bg-zinc-100',
     analytics: 'h-9 rounded-lg px-2.5 ring-1 ring-inset ring-[#e4e4e7]', monoops: 'h-9 rounded-full bg-white px-3',
   }[skin]
   return (
@@ -315,7 +316,19 @@ function Sidebar({ skin, view, page, go, open, close, reload, openFile, inline, 
         {/* L shows the saved status in its right column from xl; below that it stays here. */}
         <SaveCard skin={skin} view={view} reload={reload} openFile={openFile} inline={inline} className={cn(S.card, 'mt-auto', skin === 'analytics' && 'xl:hidden')} />
         </div>
-        <div className={cn(S.foot, skin === 'mono' && 'text-center')}>{(ctx.footer || []).map((f, k) => <div key={k} className="truncate"><Md text={noEmoji(f)} /></div>)}</div>
+        {skin === 'ops' ? (
+          (ctx.footer || []).length > 0 && (
+            <div className={S.foot}>
+              {/* K: the session ID and usage note are reference lines; they open on hover instead of sitting in the menu. */}
+              <HoverNote note={<ul className="flex flex-col gap-1">{(ctx.footer || []).map((f, k) => <li key={k} className="break-all"><Md text={noEmoji(f)} /></li>)}</ul>}
+                className="inline-flex items-center gap-1 rounded text-zinc-500 hover:text-zinc-800">
+                <Info className="size-3.5" aria-hidden />세션 정보
+              </HoverNote>
+            </div>
+          )
+        ) : (
+          <div className={cn(S.foot, skin === 'mono' && 'text-center')}>{(ctx.footer || []).map((f, k) => <div key={k} className="truncate"><Md text={noEmoji(f)} /></div>)}</div>
+        )}
       </aside>
     </>
   )
@@ -334,7 +347,13 @@ function SaveCard({ skin, view, reload, openFile, inline, className, plain }: {
       {ctx.file && (
         <div className="mt-3 flex items-start gap-2 text-xs">
           <FileJson className="mt-0.5 size-3.5 shrink-0 opacity-60" aria-hidden />
-          <div className="min-w-0"><div className="break-all font-medium">{ctx.file.name}</div><div className="opacity-70">{ctx.file.size}{ctx.loaded ? ' · ' + ctx.loaded : ''}</div></div>
+          <div className="min-w-0">
+            {/* K names what the file is; its name (a long hash) opens on hover. */}
+            {skin === 'ops'
+              ? <HoverNote note={ctx.file.name} className="text-left font-medium underline decoration-zinc-300 decoration-dotted underline-offset-[3px]">저장된 결과 파일</HoverNote>
+              : <div className="break-all font-medium">{ctx.file.name}</div>}
+            <div className="opacity-70">{ctx.file.size}{ctx.loaded ? ' · ' + ctx.loaded : ''}</div>
+          </div>
         </div>
       )}
       <button type="button" onClick={reload} className={cn('inline-flex items-center justify-center gap-1.5', S.button)}><RefreshCw className="size-3.5" aria-hidden />다시 불러오기</button>
@@ -348,7 +367,35 @@ function SaveCard({ skin, view, reload, openFile, inline, className, plain }: {
   )
 }
 
+// K motion 1 (index.css "K motion"): blocks below the first screen wait lowered and transparent, then rise in once
+// when they come into view. Marked before the first paint, and only when the motion will run: readers who prefer
+// reduced motion, browsers without IntersectionObserver and blocks already on the first screen are never hidden.
+function useReveal(on: boolean, pageId: string | undefined) {
+  useLayoutEffect(() => {
+    if (!on || !pageId || typeof IntersectionObserver === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // A new page opens at the top (App scrolls there), so "below the first screen" is measured from the page's top.
+    const els = [...document.querySelectorAll<HTMLElement>('main [data-block]')]
+      .filter((el) => el.getBoundingClientRect().top + window.scrollY > window.innerHeight * 0.92)
+    if (!els.length) return
+    const pending = new Set(els)
+    const show = (el: HTMLElement) => { el.dataset.reveal = 'in'; pending.delete(el); io.unobserve(el) }
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) show(e.target as HTMLElement)
+    }, { rootMargin: '0px 0px -6% 0px' })
+    // Blocks jumped past (End key, scrollbar drag, a search result further down) never intersect: show them as well.
+    const passed = () => { for (const el of pending) if (el.getBoundingClientRect().bottom < 0) show(el) }
+    els.forEach((el) => { el.dataset.reveal = 'wait'; io.observe(el) })
+    window.addEventListener('scroll', passed, { passive: true })
+    return () => {
+      io.disconnect()
+      window.removeEventListener('scroll', passed)
+      els.forEach((el) => { delete el.dataset.reveal })
+    }
+  }, [on, pageId])
+}
+
 function Body({ skin, view, page, copy, go }: Props) {
+  useReveal(skin === 'ops', page?.id)
   if (!view || !page) return null
   const pages = view.pages
   const i = pages.findIndex((x) => x.id === page.id)
@@ -370,7 +417,8 @@ type Intro = ReturnType<typeof introOf>
 // "이름 : 값" lines about the saved result (K's head card; J and M too): scope, file, what was loaded, status chips.
 function InfoStrip({ skin, view, className }: { skin: SkinId; view: View; className?: string }) {
   const ctx = view.context || {}
-  const pairs: [string, string][] = [['범위', ctx.meta || ''], ['파일', ctx.file ? `${ctx.file.name}${ctx.file.size ? ' · ' + ctx.file.size : ''}` : ''], ['불러온 자료', ctx.loaded || '']]
+  const file = skin === 'ops' ? '' : ctx.file ? `${ctx.file.name}${ctx.file.size ? ' · ' + ctx.file.size : ''}` : ''
+  const pairs: [string, string][] = [['범위', ctx.meta || ''], ['파일', file], ['불러온 자료', ctx.loaded || '']]
   const dt = cn('shrink-0 text-zinc-500', skin === 'mono' ? 'w-20' : 'w-16')
   return (
     <dl className={cn('grid min-w-0 gap-x-6 gap-y-1 @2xl:grid-cols-2', skin === 'mono' ? 'text-[13.5px]' : skin === 'monoops' ? 'text-[12.5px]' : 'text-[12px]', className)}>
@@ -486,7 +534,7 @@ function PageBlocks({ skin, blocks, copy }: { skin: SkinId; blocks: Block[]; cop
 function PrevNext({ skin, prev, next, go }: { skin: SkinId; prev?: Page; next?: Page; go: (id: string) => void }) {
   const box = {
     navy: 'rounded-[10px] bg-white p-5 ring-1 ring-[#eceef3] hover:ring-[#cfd3e6]', mono: 'rounded-full bg-white py-3 pl-3 pr-6 hover:bg-zinc-50',
-    ops: 'rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 hover:border-zinc-300', analytics: 'rounded-xl border border-[#ececee] bg-white p-4 hover:border-zinc-300',
+    ops: 'lg-lift rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 hover:border-[#2f8f57]/45 hover:bg-[#fbfdfb]', analytics: 'rounded-xl border border-[#ececee] bg-white p-4 hover:border-zinc-300',
     monoops: 'rounded-full bg-white py-2.5 pl-2.5 pr-5 hover:bg-zinc-50',
   }[skin]
   const icon = skin === 'mono' ? 'grid size-11 shrink-0 place-items-center rounded-full bg-zinc-950 text-white'
@@ -496,14 +544,14 @@ function PrevNext({ skin, prev, next, go }: { skin: SkinId; prev?: Page; next?: 
     <nav className={cn('no-print grid gap-3 sm:grid-cols-2', skin === 'ops' || skin === 'monoops' ? 'mt-6' : 'mt-10')} aria-label="화면 이동">
       {prev ? (
         <button type="button" onClick={() => go(prev.id)} className={cn('flex items-center gap-4 text-left', box)}>
-          <span className={icon}><ChevronLeft className="size-5" aria-hidden /></span>
+          <span className={icon}><ChevronLeft className="lg-nudge lg-nudge-prev size-5" aria-hidden /></span>
           <span className="min-w-0"><span className="block text-xs text-muted-foreground">이전 화면</span><span className={name}>{prev.nav || prev.title}</span></span>
         </button>
       ) : <span className="hidden sm:block" />}
       {next && (
         <button type="button" onClick={() => go(next.id)} className={cn('flex items-center justify-end gap-4 text-right', box, skin === 'mono' && 'pl-6 pr-3', skin === 'monoops' && 'pl-5 pr-2.5')}>
           <span className="min-w-0"><span className="block text-xs text-muted-foreground">다음 화면</span><span className={name}>{next.nav || next.title}</span></span>
-          <span className={icon}><ChevronRight className="size-5" aria-hidden /></span>
+          <span className={icon}><ChevronRight className="lg-nudge lg-nudge-next size-5" aria-hidden /></span>
         </button>
       )}
     </nav>

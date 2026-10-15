@@ -11,6 +11,8 @@ import { Badge, Badges } from '../components/ui'
 import { Blocks, useTableRows } from '../components/blocks'
 import { QuoteLine } from '../components/story'
 import { useIdTip } from '../components/idtip'
+import { HoverNote, SourceNote as SourceTip } from '../components/hovernote'
+import { Lead } from '../components/lead'
 import { barWidth, NoData, SegmentBar, SkinBars, SkinDonut, SkinLine, useToneHex } from './charts'
 import { useSkin, type BlockRenderer, type Skin, type SkinId } from '../lib/skin'
 import { cn, fmt, Md, safeHref, tone } from '../lib/utils'
@@ -87,7 +89,13 @@ export const lookOf = (id: SkinId) => LOOK[id]
 const useId = (): SkinId => useSkin()?.id || 'navy'
 const useLook = () => LOOK[useId()]
 
-export const Source = ({ text }: { text?: string }) => (text ? <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">출처: {text}</p> : null)
+// K keeps where a number comes from one step away: a small "출처" mark that shows it on hover, focus or tap.
+export const Source = ({ text }: { text?: string }) => {
+  const id = useSkin()?.id
+  if (!text) return null
+  if (id === 'ops') return <div className="mt-1.5 flex justify-end"><SourceTip text={text} /></div>
+  return <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">출처: {text}</p>
+}
 
 function Panel({ b, title, children, className }: { b: Block; title?: ReactNode; children: ReactNode; className?: string }) {
   const L = useLook()
@@ -186,7 +194,9 @@ function OpsKpis({ items }: { items: Kpi[] }) {
       {items.map((k, i) => (
         <div key={i} className={cn(LOOK.ops.card, 'min-w-0 p-4')} title={k.source ? '출처: ' + k.source : undefined}>
           <div className="flex items-center gap-2 text-[13px] text-zinc-600"><span aria-hidden className="size-2 rounded-[2px]" style={{ background: hex[tone(k.tone)] }} />{k.label}</div>
-          <div className={cn('mt-3 font-medium leading-tight tracking-tight tabular-nums', vsize(k.value, k.unit, ['text-[30px]', 'text-xl', 'text-sm break-all']), tone(k.tone) === 'gray' ? 'text-zinc-500' : 'text-zinc-950')}>
+          {/* lg-num: K motion 2, the stored number settles into place (no counting; index.css). */}
+          <div className={cn('lg-num mt-3 font-medium leading-tight tracking-tight tabular-nums', vsize(k.value, k.unit, ['text-[30px]', 'text-xl', 'text-sm break-all']), tone(k.tone) === 'gray' ? 'text-zinc-500' : 'text-zinc-950')}
+            style={{ ['--i' as string]: Math.min(i, 4) }}>
             {fmt(k.value)}{k.unit && <span className="ml-1 text-[13px] font-normal text-zinc-500">{k.unit}</span>}
           </div>
           {k.note && <div className="mt-1.5 text-[12px] leading-snug text-zinc-500">{k.note}</div>}
@@ -361,26 +371,42 @@ const Bars = ({ b }: P) => { const id = useId(); return <Panel b={b}><SkinBars b
 const Line = ({ b }: P) => { const id = useId(); return <Panel b={b}><SkinLine b={b} area={id === 'navy' || id === 'analytics'} /></Panel> }
 
 // --- table --------------------------------------------------------------------------------------------------------
-function Cell({ kind, v, cls }: { kind?: string; v: unknown; cls: string }) {
-  if (v == null || v === '') return <td className={cn(cls, 'text-muted-foreground')}>–</td>
-  if (kind === 'chips') return <td className={cls}><Badges items={(Array.isArray(v) ? v : [v]) as Chip[]} /></td>
-  if (kind === 'pill') return <td className={cls}><Badge chip={typeof v === 'string' ? { text: v } : (v as Chip)} /></td>
+// What a cell shows, and its width/wrapping class. K draws short codes in the table in the body font (no mono).
+function cellBody(kind: string | undefined, v: unknown): ReactNode {
+  if (v == null || v === '') return '–'
+  if (kind === 'chips') return <Badges items={(Array.isArray(v) ? v : [v]) as Chip[]} />
+  if (kind === 'pill') return <Badge chip={typeof v === 'string' ? { text: v } : (v as Chip)} />
   if (kind === 'link') {
     const o = v as { href?: string; text?: string } | string
     const h = safeHref(typeof o === 'string' ? o : o.href)
     const label = typeof o === 'string' ? '열기' : o.text || '열기'
-    return <td className={cn(cls, 'whitespace-nowrap')}>{h ? <a className="inline-flex items-center gap-1 text-blue-700 hover:underline" href={h} target="_blank" rel="noopener noreferrer">{label}<ExternalLink className="size-3" /></a> : '–'}</td>
+    return h ? <a className="inline-flex items-center gap-1 text-blue-700 hover:underline" href={h} target="_blank" rel="noopener noreferrer">{label}<ExternalLink className="size-3" /></a> : '–'
   }
-  const k = kind === 'mono' ? 'whitespace-nowrap font-mono text-xs' : kind === 'wide' ? 'min-w-64 max-w-md whitespace-pre-line' :
+  return typeof v === 'number' ? fmt(v) : <Md text={String(v)} />
+}
+function cellClass(kind: string | undefined, v: unknown, id: SkinId): string {
+  if (v == null || v === '') return 'text-muted-foreground'
+  if (kind === 'chips' || kind === 'pill') return ''
+  if (kind === 'link') return 'whitespace-nowrap'
+  return kind === 'mono' ? (id === 'ops' ? 'whitespace-nowrap tabular-nums' : 'whitespace-nowrap font-mono text-xs') : kind === 'wide' ? 'min-w-64 max-w-md whitespace-pre-line' :
     kind === 'mid' ? 'min-w-40 max-w-64' : kind === 'num' ? 'whitespace-nowrap text-right tabular-nums' :
     String(v).length <= 12 ? 'whitespace-nowrap' : 'min-w-28'
-  return <td className={cn(cls, k)}>{typeof v === 'number' ? fmt(v) : <Md text={String(v)} />}</td>
 }
+function Cell({ kind, v, cls }: { kind?: string; v: unknown; cls: string }) {
+  return <td className={cn(cls, cellClass(kind, v, useId()))}>{cellBody(kind, v)}</td>
+}
+
+// K: columns a planner rarely reads first (long IDs, SHA-256, dates, disclosure and version codes) fold into each row's
+// "상세". Short codes that name a row (T1, p1) and times stay. Nothing is removed: every value is one click away, and
+// "모든 열" brings the full table back.
+const SECONDARY_LABELS = new Set(['SHA-256', '게시·관측일', '구매·협찬·고지', '표현', '모델 범위', '기록 호출', '자료', '버전', 'result_key', '모델'])
+const isSecondary = (c: Block, rows: Block[]) => SECONDARY_LABELS.has(c.label)
+  || (c.kind === 'mono' && !/시각/.test(c.label) && rows.some((r) => String(r[c.key] ?? '').length > 4))
 
 const FILTER: Record<SkinId, { wrap: string; on: string; off: string }> = {
   navy: { wrap: 'flex flex-wrap gap-1.5', on: 'h-8 rounded-full bg-[#4f5bd5] px-3 text-[12.5px] font-medium text-white', off: 'h-8 rounded-full px-3 text-[12.5px] text-[#5d6378] ring-1 ring-inset ring-[#e3e6ee] hover:bg-[#f5f6fa]' },
   mono: { wrap: 'flex flex-wrap gap-2', on: 'h-10 rounded-full bg-zinc-950 px-4 text-[13px] font-medium text-white', off: 'h-10 rounded-full border border-zinc-300 px-4 text-[13px] text-zinc-700 hover:bg-zinc-50' },
-  ops: { wrap: 'inline-flex flex-wrap rounded-md bg-[#efefef] p-0.5', on: 'h-7 rounded bg-white px-2.5 text-[12px] font-medium text-zinc-900 shadow-xs', off: 'h-7 rounded px-2.5 text-[12px] text-zinc-600 hover:text-zinc-900' },
+  ops: { wrap: 'inline-flex flex-wrap rounded-md bg-[#efefef] p-0.5', on: 'h-7 rounded bg-white px-2.5 text-[12px] font-medium text-zinc-900 shadow-xs', off: 'h-7 rounded px-2.5 text-[12px] text-zinc-600 hover:bg-white/70 hover:text-zinc-900' },
   monoops: { wrap: 'flex flex-wrap gap-1.5', on: 'h-8 rounded-full bg-zinc-950 px-3 text-[12.5px] font-medium text-white', off: 'h-8 rounded-full border border-zinc-300 px-3 text-[12.5px] text-zinc-700 hover:bg-zinc-50' },
   analytics: { wrap: 'inline-flex flex-wrap rounded-lg bg-[#f4f4f5] p-1', on: 'h-7 rounded-md bg-white px-2.5 text-[13px] font-medium text-zinc-900 shadow-xs ring-1 ring-black/5', off: 'h-7 rounded-md px-2.5 text-[13px] text-zinc-600 hover:text-zinc-900' },
 }
@@ -406,6 +432,7 @@ function TableBlock({ b }: P) {
       )}
     </div>
   )
+  if (id === 'ops') return <OpsTable b={b} tools={tools} cols={cols} shown={shown} />
   return (
     <Panel b={b}>
       {tools}
@@ -418,6 +445,72 @@ function TableBlock({ b }: P) {
         </table>
       </div>
       {b.count !== false && <p className="mt-2 text-xs text-muted-foreground">{fmt(shown.length)}건</p>}
+    </Panel>
+  )
+}
+
+// The search box and filter belong to TableBlock, so the rows they leave are passed in.
+function OpsTable({ b, tools, cols, shown }: { b: Block; tools: ReactNode; cols: Block[]; shown: Block[] }) {
+  const L = LOOK.ops
+  const rows: Block[] = b.rows || []
+  const [all, setAll] = useState(false)
+  const [open, setOpen] = useState<Set<number>>(() => new Set())
+  const folded = cols.filter((c) => isSecondary(c, rows))
+  const fold = !all && folded.length > 0 && cols.length - folded.length >= 2
+  const visible = fold ? cols.filter((c) => !folded.includes(c)) : cols
+  const toggle = (k: number) => setOpen((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n })
+  return (
+    <Panel b={b}>
+      {tools}
+      <div className="overflow-x-auto">
+        <table className={L.table}>
+          <thead><tr>
+            {visible.map((c) => <th key={c.key} className={cn(L.th, c.kind === 'num' && 'text-right')}>{c.label}</th>)}
+            {/* relative: the screen-reader label must stay inside the scroll box (an unanchored sr-only span widens the page). */}
+            {fold && <th className={cn(L.th, 'relative w-14')}><span className="sr-only">상세</span></th>}
+          </tr></thead>
+          <tbody className="[&>tr:hover>td]:bg-[#f7faf7]">
+            {shown.map((r) => {
+              const k = rows.indexOf(r)
+              const on = fold && open.has(k)
+              return [
+                <tr key={k} className={on ? '[&>td]:border-b-0' : undefined}>
+                  {visible.map((c) => <Cell key={c.key} kind={c.kind} v={r[c.key]} cls={L.td} />)}
+                  {fold && (
+                    <td className={cn(L.td, 'whitespace-nowrap text-right')}>
+                      <button type="button" onClick={() => toggle(k)} aria-expanded={on} className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[12px] text-zinc-500 hover:bg-[#e6f1e8] hover:text-[#2f7d4f]">
+                        상세<ChevronDown className={cn('size-3.5 transition-transform', on && 'rotate-180')} aria-hidden />
+                      </button>
+                    </td>
+                  )}
+                </tr>,
+                on && (
+                  <tr key={k + '-more'}>
+                    <td colSpan={visible.length + 1} className="border-b border-[#efefef] bg-[#fafafa] px-3 py-2.5">
+                      <dl className="lg-open grid gap-x-6 gap-y-1.5 text-[12.5px] sm:grid-cols-2">
+                        {folded.map((c) => (
+                          <div key={c.key} className="flex min-w-0 items-baseline gap-2">
+                            <dt className="w-24 shrink-0 text-zinc-500">{c.label}</dt>
+                            <dd className={cn('min-w-0 whitespace-pre-line text-zinc-800', c.kind === 'mono' && 'break-all font-mono text-[11.5px]')}>{cellBody(c.kind, r[c.key])}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </td>
+                  </tr>
+                ),
+              ]
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+        {b.count !== false && <span>{fmt(shown.length)}건</span>}
+        {folded.length > 0 && cols.length - folded.length >= 2 && (
+          <button type="button" onClick={() => setAll(!all)} aria-pressed={all} className="rounded px-1 text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline">
+            {all ? '주요 열만 보기' : `접힌 열 ${folded.length}개 모두 보기`}
+          </button>
+        )}
+      </div>
     </Panel>
   )
 }
@@ -458,9 +551,11 @@ function Callout({ b }: P) {
     )
   }
   if (id === 'ops') {
+    // K's one hue: notes and successes take its green; warnings and errors keep amber and rose.
+    const calm = n === NOTE.info || n === NOTE.success
     return (
-      <div role="note" className={cn('flex gap-2.5 rounded-md border border-l-[3px] border-[#e6e6e6] bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-800', n.bar)}>
-        <Icon className={cn('mt-0.5 size-4 shrink-0', n.ic)} aria-hidden /><div className="min-w-0"><Md text={b.text} /></div>
+      <div role="note" className={cn('flex gap-2.5 rounded-md border border-l-[3px] border-[#e6e6e6] bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-800', calm ? 'border-l-[#5fae80]' : n.bar)}>
+        <Icon className={cn('mt-0.5 size-4 shrink-0', calm ? 'text-[#2f8f57]' : n.ic)} aria-hidden /><div className="min-w-0"><Md text={b.text} /></div>
       </div>
     )
   }
@@ -604,7 +699,7 @@ function Expander({ b, copy }: P) {
   return (
     <details className={cn('group', L.card)} open={!!b.open}>
       <summary className={cn('flex cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden',
-        id === 'ops' ? 'px-4 py-3 text-[14px]' : id === 'mono' ? 'px-7 py-5 text-[17px]' : id === 'monoops' ? 'px-5 py-3.5 text-[15px]' : 'px-5 py-4 text-[15px]')}>
+        id === 'ops' ? 'rounded-lg px-4 py-3 text-[14px] hover:bg-[#f3f8f4] hover:text-[#2f7d4f] group-open:rounded-b-none' : id === 'mono' ? 'px-7 py-5 text-[17px]' : id === 'monoops' ? 'px-5 py-3.5 text-[15px]' : 'px-5 py-4 text-[15px]')}>
         <span>{b.title}</span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
@@ -619,22 +714,71 @@ function Files({ b, copy }: P) {
   const L = LOOK[id]
   const h = safeHref(b.href)
   const field = isMono(id) ? 'rounded-full bg-[#f4f4f4] pl-5 pr-1.5' : id === 'ops' ? 'rounded-md border border-[#e6e6e6] bg-[#fafafa] pl-3 pr-1' : 'rounded-lg border bg-muted/50 pl-3 pr-1.5'
+  const items: Block[] = b.items || []
+  const row = (f: Block, i: number, short = false) => (
+    <div key={i} className="min-w-0">
+      <div className="mb-1.5 text-[13px] text-muted-foreground">{f.label}</div>
+      <div className={cn('flex min-h-10 items-center gap-2 py-1', field)}>
+        <span className="min-w-0 flex-1 break-all font-mono text-xs" title={short ? String(f.value) : undefined}>{short ? shortHex(String(f.value)) : f.value}</span>
+        {f.copy !== false && (
+          <button type="button" onClick={() => copy(String(f.value))} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 border bg-white px-2.5 text-xs font-medium', id === 'ops' ? 'hover:border-[#2f8f57]/40 hover:bg-[#f3f8f4] hover:text-[#2f7d4f]' : 'hover:bg-accent', isMono(id) ? 'rounded-full' : 'rounded-md')}>
+            <Copy className="size-3.5" aria-hidden />복사
+          </button>
+        )}
+      </div>
+    </div>
+  )
+  // K: the path (where the file is) stays, its long hash shortened (복사 still copies all of it); file name, size,
+  // SHA-256 and versions fold under "파일 상세".
+  const main = id === 'ops' ? items.filter((f) => f.label === '경로') : items
+  const rest = id === 'ops' && main.length ? items.filter((f) => !main.includes(f)) : []
   return (
     <div className={cn(L.card, L.pad, 'flex flex-col', isDense(id) ? 'gap-3' : 'gap-4')}>
-      {(b.items || []).map((f: Block, i: number) => (
-        <div key={i} className="min-w-0">
-          <div className="mb-1.5 text-[13px] text-muted-foreground">{f.label}</div>
-          <div className={cn('flex min-h-10 items-center gap-2 py-1', field)}>
-            <span className="min-w-0 flex-1 break-all font-mono text-xs">{f.value}</span>
-            {f.copy !== false && (
-              <button type="button" onClick={() => copy(String(f.value))} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 border bg-white px-2.5 text-xs font-medium hover:bg-accent', isMono(id) ? 'rounded-full' : 'rounded-md')}>
-                <Copy className="size-3.5" aria-hidden />복사
-              </button>
-            )}
-          </div>
-        </div>
-      ))}
+      {(rest.length ? main : items).map((f, i) => row(f, i, rest.length > 0))}
+      {rest.length > 0 && (
+        <details className="group/f">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-[12px] text-zinc-500 hover:text-zinc-900 [&::-webkit-details-marker]:hidden">
+            파일 상세<span className="text-zinc-400">({rest.map((f) => f.label).join(' · ')})</span>
+            <ChevronDown className="size-3.5 transition-transform group-open/f:rotate-180" aria-hidden />
+          </summary>
+          <div className="mt-3 flex flex-col gap-3">{rest.map((f, i) => row(f, i))}</div>
+        </details>
+      )}
       {h && <a className="inline-flex items-center gap-1 text-sm text-blue-700 hover:underline" href={h} target="_blank" rel="noopener noreferrer">{b.href_label || '파일 열기'}<ExternalLink className="size-3.5" aria-hidden /></a>}
+    </div>
+  )
+}
+// "export-ce4bac11b8886e56…b281d6ca.json": a long hex run keeps its ends.
+const shortHex = (s: string) => s.replace(/[0-9a-f]{20,}/g, (h) => `${h.slice(0, 8)}…${h.slice(-6)}`)
+
+// K: chips that are codes or times (versions, start time) fold into a "세부 N" mark that lists them on hover; a
+// row of chips that are all codes (the model) stays as it is. Three or more passed checks ("✓ …") become one
+// "✓ 통과 N개" chip that lists them on hover, so failures and scope stand out. The source note sits at the end.
+function OpsChips({ b }: P) {
+  const items: Chip[] = (b.items || []).map((c: Chip | string) => (typeof c === 'string' ? { text: c } : c))
+  const main = items.filter((c) => !c.mono)
+  const extra = main.length ? items.filter((c) => c.mono) : []
+  const passed = main.filter((c) => c.text.startsWith('✓'))
+  const fold = passed.length >= 3
+  return (
+    <div className="flex flex-col gap-1.5">
+      {b.title && <div className="text-xs font-medium text-muted-foreground">{b.title}</div>}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {fold && (
+          <HoverNote note={<ul className="flex flex-col gap-0.5">{passed.map((c, i) => <li key={i}>{c.text}</li>)}</ul>}
+            className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+            ✓ 통과 {passed.length}개<Info className="size-3 opacity-70" aria-hidden />
+          </HoverNote>
+        )}
+        {(main.length ? main : items).filter((c) => !(fold && passed.includes(c))).map((c, i) => <Badge key={i} chip={{ ...c, mono: false }} />)}
+        {extra.length > 0 && (
+          <HoverNote note={<ul className="flex flex-col gap-0.5">{extra.map((c, i) => <li key={i}>{c.text}</li>)}</ul>}
+            className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs text-zinc-500 ring-1 ring-inset ring-zinc-200 hover:text-zinc-900">
+            <Info className="size-3" aria-hidden />세부 {extra.length}
+          </HoverNote>
+        )}
+        {b.source && <SourceTip text={b.source} />}
+      </div>
     </div>
   )
 }
@@ -678,7 +822,8 @@ function Claims({ b }: P) {
                 <Badge chip={{ text: it.id, tone: t }} />
                 {b.kind_label && <span className="text-xs text-muted-foreground">{b.kind_label}</span>}
               </div>
-              <p className={cn('font-medium leading-relaxed', size)}><Md text={it.text} /></p>
+              {/* K: the model's summary (or the first sentence) here; the ID chip above opens the whole text. */}
+              <p className={cn('font-medium leading-relaxed', size)}>{id === 'ops' ? <Lead text={it.text} summary={it.summary} /> : <Md text={it.text} />}</p>
             </>
           )
           const quoteList = quotes && <div className="flex min-w-0 flex-col gap-2">{it.quotes.map((q: Block, k: number) => <QuoteLine key={k} q={q} />)}</div>
@@ -705,7 +850,7 @@ const SECTION_NO: Record<string, number> = { problem: 1, check: 2, flow: 3, solu
 const REPORT_TITLES: Record<string, (n: string | null) => string | null> = {
   problem: (n) => (n ? `현재 불편 ${n}건 확인` : null),
   check: (n) => (n ? `기존 기능 ${n}건과 대조` : null),
-  flow: () => '불편 → 남은 불편 → 제안',
+  flow: () => '불편 → 기존 기능 → 남은 불편 → 제안',
   solution: (n) => (n ? `남은 불편 대응 제안 ${n}건` : null),
   trust: () => '근거 신뢰도와 한계',
 }
@@ -744,18 +889,19 @@ const COMMON: Record<string, BlockRenderer> = {
 
 // Chart colours per view. Tones keep their meaning (red = pain, green = supported, orange = uncertain …).
 const HEXES: Record<SkinId, Skin['hex']> = {
-  navy: { blue: '#4f5bd5', green: '#1f9d6b', red: '#e5484d', orange: '#f5a524', purple: '#7c5cff', gray: '#b4b9c6' },
-  mono: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3' },
-  ops: { blue: '#2f80ed', green: '#2f9e5b', red: '#e5484d', orange: '#f2994a', purple: '#8b5cf6', gray: '#a3a3a3' },
-  analytics: { blue: '#7170f5', green: '#3ccf6e', red: '#ef5350', orange: '#f7931e', purple: '#a78bfa', gray: '#b8b8c0' },
-  monoops: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3' },
+  navy: { blue: '#4f5bd5', green: '#1f9d6b', red: '#e5484d', orange: '#f5a524', purple: '#7c5cff', gray: '#b4b9c6', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  mono: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  // K: the ramp carries the colour; warnings and failures keep a muted amber and rose.
+  ops: { blue: '#5fae80', green: '#2f8f57', red: '#c4615b', orange: '#cf9442', purple: '#1d5c39', gray: '#a3a3a3', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  analytics: { blue: '#7170f5', green: '#3ccf6e', red: '#ef5350', orange: '#f7931e', purple: '#a78bfa', gray: '#b8b8c0', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
+  monoops: { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a3a3a3', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' },
 }
 const GREYS = ['#111111', '#c9c9c9', '#6b6b6b', '#e4e4e4', '#3f3f46', '#a3a3a3']
 
 export const SKINS: Record<SkinId, Skin> = {
   navy: { id: 'navy', blocks: COMMON, hex: HEXES.navy },
   mono: { id: 'mono', blocks: COMMON, hex: HEXES.mono, series: GREYS },
-  ops: { id: 'ops', blocks: COMMON, hex: HEXES.ops },
+  ops: { id: 'ops', blocks: { ...COMMON, chips: OpsChips }, hex: HEXES.ops },
   analytics: { id: 'analytics', blocks: COMMON, hex: HEXES.analytics },
   monoops: { id: 'monoops', blocks: COMMON, hex: HEXES.monoops, series: GREYS },
 }

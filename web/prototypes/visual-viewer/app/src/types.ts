@@ -1,6 +1,7 @@
 // Shape of window.LGAX_VIEW written by build_view.py. The viewer only renders; every count and label comes from there.
 
-export type Tone = 'blue' | 'green' | 'red' | 'orange' | 'purple' | 'gray'
+// k1–k4: K's one-hue ramp (lib/ktone.ts), light to dark along 현재 불편 → 기존 기능 → 남은 불편 → 제안.
+export type Tone = 'blue' | 'green' | 'red' | 'orange' | 'purple' | 'gray' | 'k1' | 'k2' | 'k3' | 'k4'
 
 export interface Chip {
   text: string

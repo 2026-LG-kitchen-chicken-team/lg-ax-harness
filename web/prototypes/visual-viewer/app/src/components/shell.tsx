@@ -18,11 +18,15 @@ export const STORY_IDS = new Set(['story'])
 export const noEmoji = (s: string) => s.replace(/[\p{Extended_Pictographic}️‍]/gu, '').trim()
 
 // Scroll to a top-level block of the current page (search results, page contents) and let it glow once.
+// K follows prefers-reduced-motion for scrolling as well (index.css "K motion"); the other views keep smooth scrolling.
+const scrollBehavior = (el: Element | null): ScrollBehavior =>
+  el?.closest('.skin-ops') && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+
 export function scrollToBlock(i: number, openDetails = false) {
   const el = document.querySelector<HTMLElement>(`[data-block="${i}"]`)
   if (!el) return
   if (openDetails) el.querySelectorAll('details').forEach((d) => { d.open = true })
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  el.scrollIntoView({ behavior: scrollBehavior(el), block: 'start' })
   el.classList.remove('lg-flash')
   void el.offsetWidth
   el.classList.add('lg-flash')
@@ -70,7 +74,7 @@ export function BackToTop({ raised, className }: { raised?: boolean; className?:
   }, [])
   if (!on) return null
   return (
-    <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="맨 위로"
+    <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior(document.querySelector('.skin-ops')) })} aria-label="맨 위로"
       className={cn('no-print fixed right-6 z-30 grid size-11 place-items-center rounded-full bg-white shadow-lg ring-1 ring-zinc-200 hover:bg-zinc-50', raised ? 'bottom-32 lg:bottom-6' : 'bottom-6', className)}>
       <ArrowUp className="size-5" />
     </button>
