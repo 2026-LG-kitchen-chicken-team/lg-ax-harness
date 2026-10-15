@@ -1,0 +1,98 @@
+{
+  "status": "passed",
+  "source_commit": "e69a46c5a00e0abe49a53fc851c796a39e39daef",
+  "source_worktree_dirty": true,
+  "source_manifest_sha256": "ec224fcfa37c73c65d2448a8c8f013ddd6dcde445ed38b056d38c4c6446223a8",
+  "report_sha256": "a85a62154f5a166d2d801db518db2be34cc38b9122aa6526bd75843e5e743987",
+  "local_report": ".harness/O-local-ci-04/report.json",
+  "platform": "Windows 11 x86_64",
+  "python_version": [
+    3,
+    12,
+    10
+  ],
+  "uv": "uv 0.12.2 (46ead6098 2026-08-05 x86_64-pc-windows-msvc)",
+  "node": "v22.23.2",
+  "npm": "10.9.8",
+  "profile": "extended",
+  "stages": 21,
+  "tests": 820,
+  "skips": 0,
+  "suites": [
+    {
+      "suite": "dev-harness",
+      "tests": 35,
+      "skips": 0,
+      "status": "passed",
+      "receipt": ".harness/checks/13c98b7687a7431aa80747c24018faf8/receipt.json",
+      "receipt_sha256": "9d1dbeee826e02b5a8c233dd3298a92962eaa4b64423c4f6345a44ab7f94bb4d"
+    },
+    {
+      "suite": "product-tools",
+      "tests": 458,
+      "skips": 0,
+      "status": "passed",
+      "receipt": ".harness/checks/af53cf6f970447769d5133c98e9842f7/receipt.json",
+      "receipt_sha256": "a52123c8c4fa5f72a0958aa0441216ad2dd5684012dc78e3b3f5438edf10ee5a"
+    },
+    {
+      "suite": "evaluation",
+      "tests": 144,
+      "skips": 0,
+      "status": "passed",
+      "receipt": ".harness/checks/8305b9fc2f3f4f6186f3dee041cc6484/receipt.json",
+      "receipt_sha256": "140cd89c07d1f91fac6898b4399b9535545a9d9198b6a5a109d7deda1617b11a"
+    },
+    {
+      "suite": "web",
+      "tests": 117,
+      "skips": 0,
+      "status": "passed",
+      "receipt": ".harness/checks/0abe5642ac51411aaa8ee3b796981704/receipt.json",
+      "receipt_sha256": "cf3fe16dfff52b5948bb5a73d554408292f374e6086f8bd04711379d22fb6c92"
+    },
+    {
+      "suite": "observer",
+      "tests": 38,
+      "skips": 0,
+      "status": "passed",
+      "receipt": ".harness/checks/18b0e880353044be950df9bc210fbb9b/receipt.json",
+      "receipt_sha256": "d2ebc9ce72268ff9b6399c95555241d95c6a107ac8cbd278506ad834efd4a69c"
+    },
+    {
+      "suite": "evals",
+      "tests": 28,
+      "skips": 0,
+      "status": "passed",
+      "receipt": ".harness/checks/c363c704ca974f99a051494cb2c8761a/receipt.json",
+      "receipt_sha256": "a3f92c32f08413d778d6b21f25b05bd4223234a51f4be2289ee3f238f37602d9"
+    }
+  ],
+  "started_utc": "2026-10-15T03:34:04.357459+00:00",
+  "finished_utc": "2026-10-15T03:38:12.075663+00:00",
+  "elapsed_seconds": 247.718,
+  "source_changes": [],
+  "tracked_asset_changes": [],
+  "history": [
+    {
+      "attempt": "01",
+      "status": "failed",
+      "reason": "observer operation registration missing; Windows build newline drift"
+    },
+    {
+      "attempt": "02",
+      "status": "failed",
+      "reason": "temporary Windows lock during test-fixture cleanup; other required stages passed; no source drift"
+    },
+    {
+      "attempt": "03",
+      "status": "interrupted_without_final_report",
+      "reason": "previous turn ended after physical Esc; no completion inferred"
+    },
+    {
+      "attempt": "04",
+      "status": "passed"
+    }
+  ],
+  "scope": "Actual local code/build/locked install/package checks; Ubuntu, native LLM quality and browser rendering are separate."
+}
