@@ -68,6 +68,8 @@ SKILL_OPS = {
 }
 # Every operation product-tools/cli.py accepts (v0.10.0). A skill's wrapper forwards any of them, so a call through one
 # skill's run.py may carry another skill's operation (seen in a real run); the node stays the wrapper's skill.
+for operations in SKILL_OPS.values():
+    operations.add("get_work_instructions")
 CLI_OPS = frozenset(op for ops in SKILL_OPS.values() for op in ops) | {"validate_result_contract", "review_product_result"}
 SAVE_OPS = {"save_and_export", "save_reviewed_result", "save_result"}
 RUN_PY = re.compile(r"skills[\\/]+([a-z0-9-]{1,60})[\\/]+scripts[\\/]+run\.py[\"']?\s+([A-Za-z_]{1,60})")

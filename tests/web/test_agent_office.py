@@ -126,6 +126,17 @@ class ObserverTests(unittest.TestCase):
         event = observer.classify({"hook_event_name": "Stop", "session_id": "S1", "is_interrupt": True})
         self.assertEqual(event["kind"], "turn_cancelled")
 
+    def test_selected_instruction_wrapper_stays_command_mapping(self):
+        spec = importlib.util.spec_from_file_location("office_instruction_mapping", APP / "observe.py")
+        observer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(observer)
+        for skill in observer.SKILL_OPS:
+            event = observer.classify(pre("Bash", {"command": "python .claude/skills/" + skill + "/scripts/run.py get_work_instructions --input runtime-data/instructions.json"}))
+            self.assertEqual(event["node"], skill)
+            self.assertEqual(event["op"], "get_work_instructions")
+            self.assertEqual(event["basis"], "command_based_mapping")
+            self.assertNotIn("other_skill_operation", event["detail"])
+
     def test_other_latest_request_and_workflow_are_not_joined_to_this_turn(self):
         db = self.h.make_db()
         con = sqlite3.connect(db)

@@ -17,3 +17,4 @@ adapters/claude/templates/product-evidence-reviewer.md -text
 adapters/claude/templates/product-official-researcher.md -text
 adapters/claude/templates/product-review-researcher.md -text
 web/prototypes/visual-viewer/** -text
+web/prototypes/agent-office/index.html -text

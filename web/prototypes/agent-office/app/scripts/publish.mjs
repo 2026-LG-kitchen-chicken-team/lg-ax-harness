@@ -29,7 +29,7 @@ html = html.replace('</body>', () => `<script type="module">\n${code}\n</script>
 if (html.split(DATA_TAG).length !== 2) throw new Error('live.js tag missing or duplicated')
 
 const banner = '<!-- Built from web/prototypes/agent-office/app (npm run build). Edit the app sources, not this file. -->\n'
-html = html.replace(/\r\n/g, '\n').replace(/^<!doctype html>\n?/i, () => '<!doctype html>\n' + banner)
+html = html.replace(/\r+\n/g, '\n').replace(/^<!doctype html>\n?/i, () => '<!doctype html>\n' + banner)
 
 // Licence text of every bundled production package (deduplicated), kept as a comment at the end of the file.
 function notices() {
