@@ -36,7 +36,7 @@ uv run python product-doctor.py --check-sandbox
 codex --search --sandbox workspace-write --ask-for-approval on-request --config 'windows.sandbox="mxc"' --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
 ```
 
-마지막 두 Windows sandbox 명령은 호환 Windows11용입니다. Linux/macOS는 Windows 진단과 `windows.sandbox` 옵션을 제외합니다. 조직 정책이나 MXC 호환 문제는 `docs/contracts/runtime-access.md`의 정상 진단 절차를 따릅니다. 전체 접근으로 자동 전환하지 않습니다.
+마지막 두 Windows sandbox 명령은 호환 Windows11용입니다. Linux/macOS는 Windows 진단과 `windows.sandbox` 옵션을 제외합니다. 조직 정책이나 MXC 호환 문제는 `docs/contracts/runtime-access.md`의 정상 진단 절차를 따릅니다. 전체 접근으로 자동 전환하지 않습니다. `--check-sandbox` 결과에서 `sandbox.uv_run`이 `Failed to query Python interpreter ... (os error 5)`로 기록돼도 `sandbox.status`가 `passed`이면 정상입니다. 일부 PC의 MXC는 Windows 볼륨 이름 조회를 막아 sandbox 안에서 uv가 동작하지 않으므로, Windows Codex는 업무 Tool을 제품 `.venv` Python으로 실행합니다. `sandbox.status`가 `failed`이면 보안 설정·폴더 권한·전체 접근으로 우회하지 말고 `sandbox.error`를 기록해 주세요.
 
 첫 세션의 `/permissions`에서 작업 폴더 쓰기와 필요한 공개 웹 조회를 확인하고, `/hooks`에서 설치된 프로젝트 훅을 정상 신뢰 처리합니다. 승인 대기 또는 차단은 원인을 읽고 실행자가 처리합니다. **훅 등록만으로 신뢰 승인이 완료되지는 않습니다.** 로그인/doctor만 통과한 것과 실제 업무 완료도 구분합니다.
 
