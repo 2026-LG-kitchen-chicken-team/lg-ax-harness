@@ -1,0 +1,157 @@
+{
+  "phase": "judge-setup-Q",
+  "date": "2026-10-15",
+  "scope": "first-run setup only; no frontend integration or native business run",
+  "source_parent_commit": "4b49745b45dc2cd93c6544b17d74277beca58221",
+  "source_files": {
+    "adapters/codex/templates/README.md": "c1cbec109716a8895131f8b2956fc507f09e3883646f72beae4989651e44c272",
+    "adapters/codex/templates/product-doctor.py": "a5ded2141c18e6d74b52649d3eb3b9737e5b30935ed46b5ab3ee901379b5970b",
+    "adapters/common/install.py": "9f79602ff53953e10f3febeb8eaddea4dabc43f275cbadb41918c2bf19aa641b",
+    "adapters/common/product-doctor.py": "5824fd49873d5565d7082ab6d8e660e3aedb256359a98b621af96db9fd614f53",
+    "docs/contracts/portable-product.md": "c83dadfdfb52c8bb9858cff46ae9fea6377aa0d93184f2da392d34b845af8c4f",
+    "docs/contracts/runtime-access.md": "acc611573d3340464149960e3eaa100be30ee57d080585d924f7d174224d908f",
+    "skills/manifest.json": "e86847eba7135eef2ef6d255911cd8c155ccbe9784025cc5fbacd8c17df584bf",
+    "tests/product-tools/test_runtime_readiness.py": "4b9c5dbe65228aab098dfee12eb20f3ba84df3496669076adc315b35d7040640"
+  },
+  "manifest_sha256": "e86847eba7135eef2ef6d255911cd8c155ccbe9784025cc5fbacd8c17df584bf",
+  "fresh_setup": {
+    "checks": [
+      {
+        "name": "codex-install",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "codex-sync",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "codex-doctor-local",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "codex-doctor-signed-in",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "codex-wrong-system-python",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "passed": true
+      },
+      {
+        "name": "claude-install",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "claude-sync",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "claude-doctor-local",
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "claude-wrong-system-python",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "passed": true
+      }
+    ],
+    "total": 9,
+    "passed": 9,
+    "expected_negative_cases": 2,
+    "product_python": "3.12.10",
+    "system_python": "3.14.7",
+    "skills_per_engine": 6,
+    "optional_roles_per_engine": 3,
+    "codex_auth_status": "signed_in_using_ChatGPT",
+    "claude_readiness": "local_only",
+    "cli_required_for_claude_gui": false,
+    "native_permissions_verified": false,
+    "model_access_verified": false
+  },
+  "checks": [
+    {
+      "name": "readiness",
+      "receipt": ".harness/checks/9a7f4578081c4c1bb30e5c68f7dbd3f8/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "locked-install",
+      "receipt": ".harness/checks/0d29fe74d3134894b6d43948f0e1280f/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "portable-install",
+      "receipt": ".harness/checks/4e623d67ab3a43438172e759e0e634df/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "codex-install",
+      "receipt": ".harness/checks/1285db9b06ec420f85dcb8815eb49303/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "assets",
+      "receipt": ".harness/checks/57c25ff8bbcb4ad4992a88331d3e0af4/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "unit_tests": {
+    "readiness": 5,
+    "other_install": 9,
+    "total": 14,
+    "skipped": 0
+  },
+  "environment": {
+    "codex_cli_version": "0.162.0",
+    "uv_version": "0.12.2",
+    "windows_sandbox": {
+      "exit_code": 1,
+      "passed": false,
+      "elapsed_seconds": 0.266,
+      "error": "windows sandbox failed: helper_unknown_error: setup refresh had errors",
+      "scope": "native Windows sandbox process startup; no model input, escalation or filesystem mutation command"
+    },
+    "network": {
+      "url": "https://www.lge.co.kr/",
+      "context": "ordinary local Python; not Codex/Claude native permissions",
+      "http_status": 200,
+      "final_url": "https://www.lge.co.kr/home",
+      "first_byte_received": true,
+      "passed": true,
+      "elapsed_seconds": 0.218
+    }
+  },
+  "native_model_inputs": 0,
+  "claude_gui_new_session": "not_run_native_app_control_unavailable",
+  "global_settings_changed": false,
+  "auth_changed": false,
+  "frontend_changed": false,
+  "release_published": false,
+  "initial_doctor_argument_collision": "fixed; original failed folder/logs retained, new fresh install rerun",
+  "remaining": [
+    "native Windows sandbox setup error",
+    "Claude Desktop new Local folder/session confirmation",
+    "new frontend integration and browser QA outside scope"
+  ]
+}

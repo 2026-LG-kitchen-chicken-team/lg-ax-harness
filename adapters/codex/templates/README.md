@@ -2,17 +2,20 @@
 
 질문의 제품군·정확 모델·불편에 맞춰 실제 리뷰와 제품 근거를 조사하고 개선 기획을 작성한다. 기본 자료는 빈 catalog이며 기존 예제 제품/답변은 설치하지 않는다. native 검색·웹 도구 사용이 가능한 실행 환경이 필요하다. 조사한 원문·관측일·모델/문서 버전은 runtime-data에 보존하며 재사용 범위를 밝힌다. 자료가 없거나 접근이 막히면 보류하고 원질문·실패 이력을 저장한다. 일부 사례를 제품군 전체 불편이나 발생률로 일반화하지 않는다. Codex가 주 실행기, Claude Desktop Code의 제한 회귀 범위는 릴리스 검증 기록을 확인, Gemini는 지원 철회다.
 
-Python3.12, uv, Codex CLI와 실행자 자신의 Codex 로그인이 필요하다. 별도 LLM API key·환경변수·필수 MCP/플러그인은 요구하지 않는다. 모델 통신과 이용 한도는 Codex 계정에서 발생한다.
+Python3.12, uv, Codex CLI와 실행자 자신의 Codex 로그인이 필요하다. 별도 LLM API key·환경변수·필수 MCP/플러그인은 요구하지 않는다. 모델 통신과 이용 한도는 Codex 계정에서 발생한다. 전체 준비 순서와 오류별 조치는 [심사 실행자 첫 설정](docs/contracts/runtime-access.md)을 따른다.
 
 이 폴더에서 PowerShell/터미널을 열고:
 
 ```powershell
-uv sync --locked
+uv sync --locked --python 3.12
+uv run python product-doctor.py --local-only
+codex login
+codex login status
 uv run python product-doctor.py
-codex --search --sandbox workspace-write --config 'approval_policy="on-request"' --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
+codex --search --sandbox workspace-write --ask-for-approval on-request --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
 ```
 
-`uv sync --locked`는 이 폴더의 잠금 파일로 python-docx·openpyxl·reportlab·Pillow·pypdf와 하위 의존성을 로컬 환경에 설치한다. 설치기는 전역 Python 패키지나 설정을 변경하지 않는다. pip 기반 환경은 `python -m pip install --require-hashes -r product-tools/requirements.lock`으로 같은 잠금 요구사항을 설치할 수 있다. 의존성 가져오기 검사는 파일 제작·레이아웃 검수나 실제 AI 업무 검증을 대신하지 않는다.
+처음에는 공식 안내에 따라 uv와 Codex CLI를 설치한다. `uv sync --locked --python 3.12`는 Python3.12와 잠금 의존성을 로컬 환경에 준비한다. 이미 로그인돼 있으면 `codex login`은 생략하고 `codex login status`를 확인한다. 설치기는 전역 Python 패키지나 설정을 변경하지 않는다. pip 대체 경로는 Python3.12 가상환경에서만 사용하며 실행 권한 안내의 명령을 따른다. 의존성 가져오기 검사는 파일 제작·레이아웃 검수나 실제 AI 업무 검증을 대신하지 않는다.
 
 기본 결과는 save_and_export(report:false)의 웹 전달 데이터다. delivery_ready/web_ready와 현재 web_result의 SHA/binding을 확인하고 원문·근거·검토/조사 이력을 같은 버전으로 전달한다. 설치된 뷰어는 이 데이터를 일반 코드로 읽어 기획자 화면과 별도 단일 HTML 보고서를 만든다. AI에게 HTML 레이아웃을 다시 작성하게 하거나 PDF/DOCX·이미지 검수를 요구하지 않는다. 명시 파일 요청에만 report:true와 기존 옵션을 사용한다. 웹 데이터 오류는 prepare_web_result로 같은 session/turn/version을 복구하고, 명시 파일 오류만 deliver_result로 복구한다.
 
@@ -50,7 +53,7 @@ Codex의 `/hooks`에서 본인이 훅을 확인·신뢰한 후 실행하면 저�
 
 대화를 다시 열 때 Codex의 `codex resume`에서 해당 대화를 선택한다. 기록을 재개했다는 이유로 새 업무 turn을 시작하지 않는다. 모델/자료/조건이 바뀌면 과거 결과를 새 결과처럼 재사용하지 않는다. user/global Skill은 사용자의 설정에 따라 추가로 보일 수 있다.
 
-doctor는 버전·로그인 상태·설치 파일 지문·실제 자료 조회를 확인한다. 자동 Skill 선택·AI 결과 품질·모든 Tool 권한을 보증하지 않는다. 지원/검증 범위는 원본 레포의 docs/validation/codex-product.md를 확인한다. 원문 로그·DB·개인 인증·의존성 환경은 공유하지 않는다.
+doctor의 `--local-only`는 CLI 설치·로그인 전에 로컬 설치를 확인한다. 기본 실행은 CLI 버전·로그인 상태도 확인한다. 두 경우 모두 파일 지문·의존성과 로컬 공통 Tool/SQLite를 검사하며 native 세션 권한·네트워크·모델 접근은 별도다. 자동 Skill 선택·AI 결과 품질·모든 Tool 권한을 보증하지 않는다. 지원/검증 범위는 원본 레포의 docs/validation/codex-product.md를 확인한다. 원문 로그·DB·개인 인증·의존성 환경은 공유하지 않는다.
 
 저장된 결과를 읽는 선택형 시각자료 뷰어는 `web/prototypes/visual-viewer/README.md`를 따른다. 기본 설치에서는 자동 훅을 등록하지 않는다. 필요하면 `python web/prototypes/visual-viewer/viewer.py install --codex` 또는 `--claude`로 해당 폴더의 훅만 등록하고 CLI의 프로젝트 신뢰 설정을 확인한다. `status`, `open`, `uninstall`로 상태·화면·해제를 관리한다. 뷰어는 export를 읽으며 업무 질문이나 모델 실행을 대신하지 않는다. 원 개발 소스는 최길웅의 PR #6이고 이번 통합에서는 경로 검사와 출처 종류 메타데이터 연결을 보강했다.
 

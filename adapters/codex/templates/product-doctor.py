@@ -1,4 +1,5 @@
 """Inspect the installed product and local Codex readiness; no inference."""
+import argparse
 import hashlib
 import importlib
 import importlib.metadata
@@ -25,7 +26,16 @@ def reporting_dependencies():
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--local-only", action="store_true", help="Check local installation before CLI installation/sign-in")
+    args = parser.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    python = {"version": sys.version.split()[0], "supported": sys.version_info[:2] == (3, 12)}
+    if not python["supported"]:
+        print(json.dumps({"errors": ["Python 3.12 is required; run uv sync --locked --python 3.12, then uv run python product-doctor.py"],
+                          "python": python, "readiness": "unsupported_python", "native_permissions": "unverified"}))
+        return 1
     errors = []
     report_dependencies = reporting_dependencies()
     for name, detail in report_dependencies.items():
@@ -38,12 +48,14 @@ def main():
             errors.append("Changed/missing installed file: " + entry["path"])
     codex = shutil.which("codex")
     runtime = {"version": None, "login_status": "unobserved"}
-    if not codex:
+    if args.local_only:
+        runtime["login_status"] = "not_checked_local_only"
+    elif not codex:
         errors.append("Codex CLI is not on PATH")
     else:
-        for args, field in ((["--version"], "version"), (["login", "status"], "login_status")):
+        for cli_args, field in ((["--version"], "version"), (["login", "status"], "login_status")):
             try:
-                p = subprocess.run([codex, *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=10)
+                p = subprocess.run([codex, *cli_args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=10)
                 # Login status emits only status; credentials are never read/copied.
                 runtime[field] = (p.stdout + p.stderr).strip()[:300]
                 if p.returncode:
@@ -53,7 +65,10 @@ def main():
     p = subprocess.run([sys.executable, "product-tools/cli.py", "doctor"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=20)
     if p.returncode:
         errors.append("Common Tool/catalog doctor failed")
-    print(json.dumps({"errors": errors, "runtime": runtime, "installed_skills": manifest["skills"], "common_tool_exit_code": p.returncode,
+    print(json.dumps({"errors": errors, "python": python, "runtime": runtime, "installed_skills": manifest["skills"], "common_tool_exit_code": p.returncode,
+                      "readiness": "local_only" if args.local_only else "cli_status_checked",
+                      "workspace_storage": "local_process_checked" if p.returncode == 0 else "failed",
+                      "native_permissions": "unverified", "network": "not_checked", "model_access": "unverified",
                       "reporting_dependencies": report_dependencies, "report_generation": "unverified",
                       "scope": "files, dependency imports, CLI version/login status and local Tool only; document layout/native discovery/AI quality require actual execution"}, ensure_ascii=False))
     return int(bool(errors))

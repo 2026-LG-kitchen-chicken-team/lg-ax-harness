@@ -31,8 +31,14 @@ def main():
     args=parser.parse_args()
     if hasattr(sys.stdout,"reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    python={"version":sys.version.split()[0],"supported":sys.version_info[:2]==(3,12)}
+    if not python["supported"]:
+        print(json.dumps({"errors":["Python 3.12 is required; run uv sync --locked --python 3.12, then uv run python product-doctor.py"],
+                          "python":python,"readiness":"unsupported_python","native_permissions":"unverified"}))
+        return 1
     record=json.loads((ROOT/"product-install.json").read_text(encoding="utf-8"))
     errors=[]
+    warnings=[]
     report_dependencies = reporting_dependencies()
     for name, detail in report_dependencies.items():
         if not detail["available"]:
@@ -46,18 +52,20 @@ def main():
     if cli:
         try:
             version=subprocess.run([cli,"--version"],cwd=ROOT,capture_output=True,text=True,encoding="utf-8",timeout=10)
-            runtime["version"]=(version.stdout+version.stderr).strip()[:300]
+            runtime["version"]=(version.stdout+version.stderr).strip()[:300] if version.returncode == 0 else None
             if version.returncode:
-                errors.append("CLI version check failed")
+                (errors if args.require_native else warnings).append("Optional CLI version check failed; Desktop Code readiness is separate")
         except (OSError,subprocess.TimeoutExpired):
-            errors.append("CLI version check unavailable")
+            (errors if args.require_native else warnings).append("Optional CLI version check unavailable; Desktop Code readiness is separate")
     elif args.require_native:
         errors.append("Selected native CLI is not on PATH")
     common=subprocess.run([sys.executable,"product-tools/cli.py","doctor"],cwd=ROOT,capture_output=True,text=True,encoding="utf-8",timeout=20)
     if common.returncode:
         errors.append("Common Tool/catalog doctor failed")
-    print(json.dumps({"errors":errors,"engine":record["engine"],"readiness":"local_only" if not cli else "native_version_only",
+    print(json.dumps({"errors":errors,"warnings":warnings,"python":python,"engine":record["engine"],"readiness":"local_only" if not runtime["version"] or warnings else "native_version_only",
                       "runtime":runtime,"common_tool_exit_code":common.returncode,"installed_skills":record["skills"],
+                      "workspace_storage":"local_process_checked" if common.returncode==0 else "failed",
+                      "native_permissions":"unverified","network":"not_checked","model_access":"unverified",
                       "reporting_dependencies":report_dependencies,"report_generation":"unverified",
                       "scope":"files/dependency imports/version/common Tool only; document layout/auth/AI/native discovery/permissions not verified"},ensure_ascii=False))
     return int(bool(errors))

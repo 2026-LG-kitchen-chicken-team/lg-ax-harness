@@ -82,11 +82,13 @@ CLI를 선택하는 경우에만 공식 CLI 설치·로그인 후 아래 선택 
 별도 LLM API 프로그램·필수 MCP·플러그인을 추가하지 않는다. 웹·브라우저·PDF는 실제 제공될 때만 사용한다.
 
 ```powershell
-uv sync --locked
+uv sync --locked --python 3.12
 uv run python product-doctor.py
 ```
 
-CLI를 선택한 실행자만:
+Desktop Code 사용자는 Claude CLI 설치나 별도 CLI 인증이 필요 없다. 앱에 본인 Code 사용 가능 계정으로 로그인하고 Code → Local → 이 설치 폴더를 기본 작업 폴더로 선택한다. 모델 Opus5.5·추론 중간의 접근 가능 여부를 앱에서 확인하고 폴더 신뢰·권한 요청을 정상 처리한다. CLI 버전 검사가 실패해도 기본 doctor는 경고와 로컬 설치 결과를 구분한다. 상세 준비·오류 조치는 [심사 실행자 첫 설정](docs/contracts/runtime-access.md)을 따른다.
+
+CLI를 선택한 실행자만 자신의 CLI를 설치·인증한 뒤:
 
 ```powershell
 {profile["cli"]}
@@ -102,7 +104,7 @@ CLI를 선택한 실행자만:
 Claude Desktop의 Code 로컬 세션에서도 이 폴더를 열 수 있다. 일반 Chat 세션은 프로젝트 Agent 설치·발견 검증과 별개다.
 역할 파일 준비와 실제 위임은 구분한다. 역할별 시간은 실제 spawn 응답부터 최대180초와 전체 마감/최종90초 중 더 짧은 범위로 관리한다.
 uv sync --locked는 같은 공통 문서 의존성(python-docx/openpyxl/reportlab/Pillow/pypdf)을 이 폴더의 로컬 환경에 설치한다.
-pip 환경은 python -m pip install --require-hashes -r product-tools/requirements.lock을 사용할 수 있다.
+pip 대체 경로는 Python3.12 가상환경에서만 사용하고 docs/contracts/runtime-access.md의 명령을 따른다. 시스템 Python3.14 등에서 직접 실행하지 않는다.
 공통 Skill은 기본 save_and_export(report:false)의 현재버전 웹결과/전체선택원문을 전달한다. 설치된 뷰어는 같은데이터로작업화면·별도HTML보고서를일반코드로만들며추가모델호출을하지않는다. PDF/DOCX/XLSX생성은명시report:true 요청만사용한다.
 화면연결은설치폴더에서 uv run python web/prototypes/visual-viewer/viewer.py install --claude . 을한번실행한다. 이후 uv run python web/prototypes/visual-viewer/viewer.py open . 으로현재저장결과를열수있다.
 별도보고서는 uv run python web/prototypes/visual-viewer/build_view.py --export <현재세션JSON> --out-dir runtime-data/visual-viewer --standalone runtime-data/visual-viewer/report.html --mode ops 로만든다. AI에게HTML레이아웃을다시작성하게하지않는다.
@@ -113,7 +115,7 @@ report_plan_path는 runtime-data의 내부 작성 파일이다. open_folder:fals
 제작 실패는 업무 저장을 유지하고 같은 session_id/turn_id/expected_result_version의 deliver_result로 복구한다.
 Claude의 실제 AI 인수 범위는 배포 검증 기록을 따른다. 설치/로컬 검사를 native 업무 통과로 바꾸지 않는다.
 세션·요청 키는 공통 Tool이 만든다. 결과의 출처·held/needs_input·runtime-data/exports를 확인한다.
-doctor는 파일·문서 의존성 import/버전·CLI 버전·공통 Tool만 확인하며 파일 제작/레이아웃·인증·Skill 발견·AI 품질·Tool 권한을 보증하지 않는다.
+doctor는 Python3.12·파일·문서 의존성 import/버전·선택 CLI 버전·로컬 공통 Tool/SQLite만 확인한다. native 세션 권한·네트워크·모델 접근을 검사하지 않으며 파일 제작/레이아웃·인증·Skill 발견·AI 품질을 보증하지 않는다.
 native CLI가 없으면 doctor는 local_only로 표시한다. `--require-native`는 CLI 진단 선택이며 CLI 부재를 실패로 처리한다. GUI Code 세션 인증·발견·위임은 doctor의 CLI 진단과 별도로 확인한다.
 대화 재개는 실행기의 해당 대화 기능을 사용하며 기존 session/turn과 이력을 유지한다.
 원문 로그·DB·인증·개인 설정·의존성 환경은 공유하지 않는다.
