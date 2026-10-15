@@ -11,18 +11,27 @@ import sys
 import time
 
 
+def tool_python():
+    """The product venv interpreter that the installed instructions name for Windows business Tools."""
+    return ROOT / ".venv" / "Scripts" / "python.exe"
+
+
 def check_windows_sandbox(codex, backend):
-    """Run the local doctor under a real sandbox; no model or global config writes."""
-    result = {"requested_backend": backend, "status": "failed", "exit_code": None,
-              "scope": "Windows sandbox process startup, uv run launcher and product-local SQLite; no AI, browser, approval escalation or network test"}
+    """Run the local doctor under a real sandbox with the Tool interpreter; no model or global config writes."""
+    result = {"requested_backend": backend, "status": "failed", "exit_code": None, "tool_python": ".venv/Scripts/python.exe",
+              "scope": "Windows sandbox process startup with the product venv Python used by business Tools and product-local SQLite; uv run launcher reported only; no AI, browser, approval escalation or network test"}
     if sys.platform != "win32":
         result["error"] = "This optional sandbox diagnostic is Windows-only"
+        return result
+    python = tool_python()
+    if not python.is_file():
+        result["error"] = "Product venv Python is missing (.venv/Scripts/python.exe); run uv sync --locked --python 3.12"
         return result
     command = [codex]
     if backend == "mxc":
         command += ["-c", "windows.sandbox=mxc"]
     command += ["sandbox", "--include-managed-config", "--permission-profile", ":workspace", "--",
-                sys.executable, str(ROOT / "product-doctor.py"), "--local-only"]
+                str(python), str(ROOT / "product-doctor.py"), "--local-only"]
     started = time.monotonic()
     try:
         process = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=45)
@@ -35,12 +44,9 @@ def check_windows_sandbox(codex, backend):
                 result["error"] = "Sandbox started but the product-local doctor did not pass"
             else:
                 result["workspace_storage"] = local["workspace_storage"]
-                # Business commands start with `uv run python`; uv must also start in this sandbox.
+                result["status"] = "passed"
+                # Windows business Tools start with the venv Python, so uv run is reported but not required.
                 result["uv_run"] = check_sandboxed_uv(command[:command.index("--") + 1])
-                if result["uv_run"]["status"] == "passed":
-                    result["status"] = "passed"
-                else:
-                    result["error"] = "Python ran in the sandbox but `uv run` did not; see sandbox.uv_run and docs/contracts/runtime-access.md"
     except (OSError, subprocess.TimeoutExpired, ValueError) as exc:
         result["error"] = type(exc).__name__
     result["elapsed_seconds"] = round(time.monotonic() - started, 3)
@@ -48,15 +54,18 @@ def check_windows_sandbox(codex, backend):
 
 
 def check_sandboxed_uv(sandbox):
-    """The same local doctor through `uv run`, as the installed instructions start Tools."""
+    """The same local doctor through `uv run`; some MXC tokens cannot let uv query the interpreter."""
     uv = shutil.which("uv")
     if not uv:
-        return {"status": "failed", "exit_code": None, "error": "uv is not on PATH"}
-    process = subprocess.run([*sandbox, uv, "run", "python", "product-doctor.py", "--local-only"],
-                             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=45)
+        return {"status": "failed", "required": False, "exit_code": None, "error": "uv is not on PATH"}
+    try:
+        process = subprocess.run([*sandbox, uv, "run", "python", "product-doctor.py", "--local-only"],
+                                 cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=45)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"status": "failed", "required": False, "exit_code": None, "error": type(exc).__name__}
     if process.returncode:
-        return {"status": "failed", "exit_code": process.returncode, "error": (process.stderr or process.stdout).strip()[-1500:]}
-    return {"status": "passed", "exit_code": 0}
+        return {"status": "failed", "required": False, "exit_code": process.returncode, "error": (process.stderr or process.stdout).strip()[-1500:]}
+    return {"status": "passed", "required": False, "exit_code": 0}
 
 ROOT = Path(__file__).resolve().parent
 

@@ -23,7 +23,7 @@ uv run --python 3.12 --no-project python adapters/claude/install.py --target "$e
 ```text
 상품기획은 아직 시작하지 말고 이 프로젝트의 실행 준비만 확인해 줘.
 프로젝트 지침과 설치된 업무 Skill을 확인하고,
-현재 세션의 터미널 도구로 uv run python product-doctor.py를 실행해 줘.
+현재 세션의 터미널 도구로 product-doctor.py를 실행해 줘(Windows Codex는 .venv\Scripts\python.exe, 그 외는 uv run python).
 공개 공식 제품 페이지 한 곳에 실제 접근 가능한지도 확인해 줘.
 파일/SQLite, 웹 도구, 터미널 HTTP의 성공과 실패를 구분해 알려줘.
 권한이 필요하면 정상 승인 절차를 요청하고 설정을 자동으로 넓히지는 마.
