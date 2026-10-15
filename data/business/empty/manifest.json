@@ -1,0 +1,21 @@
+{
+  "data_version": "business-empty-v1",
+  "synthetic": false,
+  "purpose": "business",
+  "created_date": "2026-10-11",
+  "provenance": "Empty bootstrap catalog. No product identity, customer source, or business claim has been collected. Native research must register observed evidence before planning.",
+  "model_count": 0,
+  "scope_count": 0,
+  "review_count": 0,
+  "fact_count": 0,
+  "files": [
+    {
+      "path": "models.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "sources.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

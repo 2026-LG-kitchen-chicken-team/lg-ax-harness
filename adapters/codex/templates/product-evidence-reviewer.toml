@@ -1,0 +1,12 @@
+name = "product_evidence_reviewer"
+description = "상품기획 후보와 정확 원문의 근거 귀속·기능 중복·조건·반례를 독립 검토"
+# Permissions inherit from the parent session. Read-only work is an instruction,
+# not a separate OS sandbox; custom-agent sandbox_mode cannot override the parent.
+web_search = "disabled"
+developer_instructions = """
+{{instructions}}
+"""
+
+# Disallow recursive subagents in clients that apply this role config.
+[agents]
+enabled = false

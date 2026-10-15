@@ -1,0 +1,9 @@
+name = "product_review_researcher"
+description = "실사용 후기의 긍정·불편·조건·반례 조사/분석"
+# Permissions inherit from the parent session; no independent read-only sandbox.
+web_search = "live"
+developer_instructions = """
+{{instructions}}
+"""
+[agents]
+enabled = false
