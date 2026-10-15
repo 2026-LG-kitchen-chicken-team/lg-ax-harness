@@ -721,6 +721,18 @@ class BuildViewTests(TempCase):
         _, view = self.build("microwave")
         self.assertEqual(view["report"]["export"], export_of("microwave"))
         self.assertEqual(view["report"]["turn_id"], current_turn("microwave"))
+        # 덧붙이는 그래프 두 개(근거 구성·제안과 근거 연결)는 근거 대시보드와 같은 기준으로 센다
+        plan = view["report"]["plan"]
+        self.assertEqual((plan["title"], plan["summary"], plan["sources"]), ("", [], []))
+        self.assertEqual([s["title"] for s in plan["sections"]], ["근거 구성", "제안과 근거 연결"])
+        donut, bars = (s["blocks"][0] for s in plan["sections"])
+        result = build_view.current_row(build_view.read_turns(export_of("microwave")))["result"]
+        self.assertEqual((donut["chart_type"], sum(donut["series"][0]["values"])), ("donut", len(result["evidence_refs"])))
+        self.assertEqual(bars["series"][0]["values"], [len(c["source_ids"]) for c in result["concepts"]])
+        self.assertIn("우선순위를 뜻하지 않습니다", bars["caption"])
+        _, view = self.build("cancel_after_reject")  # 취소된 turn: 보고서는 열지만 그래프는 만들지 않는다
+        self.assertIn("report", view)
+        self.assertNotIn("plan", view["report"])
         _, view = self.build("needs_input")  # turn 없이 멈춘 요청 기록만 있으면 보고서를 두지 않는다
         self.assertNotIn("report", view)
 

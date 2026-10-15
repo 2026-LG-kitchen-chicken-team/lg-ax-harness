@@ -13,7 +13,9 @@ const safeJSON = (v: unknown) => JSON.stringify(v).replace(/[<>&\u2028\u2029]/g,
 const attr = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
 
 export function reportHtml(r: ReportSource): string {
-  const data = `<script id="embedded-report" type="application/json" data-turn-id="${attr(r.turn_id || '')}">${safeJSON(r.export)}</script>`
+  // With build_view.py's charts the report gets its combined input {export, report_plan}; the plan is tied to the same turn.
+  const payload = r.plan ? { export: r.export, report_plan: r.plan, report_plan_turn_id: r.turn_id || undefined } : r.export
+  const data = `<script id="embedded-report" type="application/json" data-turn-id="${attr(r.turn_id || '')}">${safeJSON(payload)}</script>`
   return template.replace(SLOT, () => data)
 }
 

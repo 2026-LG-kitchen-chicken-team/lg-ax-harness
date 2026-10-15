@@ -2015,6 +2015,41 @@ def auto_focus(export: dict | None) -> str | None:
     return "story" if ok else "overview"
 
 
+def report_charts(c: "Ctx") -> dict | None:
+    """보고서로 보기(신진하 보고서 양식)에 덧붙이는 그래프 두 개. 양식이 받는 report_plan 형식으로 쓴다(2026-10-15 사용자 선택).
+
+    - 근거 구성: 결과에 연결한 근거를 종류별로 센다. 근거 대시보드의 '유형별 등록 근거'와 같은 기준(ev_type)이다.
+    - 제안과 근거 연결: 제안마다 source_ids 수를 센다. 근거 대시보드의 항목별 연결 근거와 같은 기준이다.
+    보고서가 그리는 결과(그 turn의 latest_result)와 같은 결과일 때만 만든다. 무효·취소 turn이나 결과가 없으면 만들지 않는다.
+    양식은 title·summary가 비어 있으면 결과로 표지를 만들고, sections만 본문 뒤에 붙인다.
+    """
+    if c.invalid or c.cur["status"] == "cancelled" or not c.result:
+        return None
+    sections = []
+    by_type: dict[str, int] = {}
+    for e in c.evidence:
+        by_type[ev_type(e)] = by_type.get(ev_type(e), 0) + 1
+    if by_type:
+        order = type_order(by_type)
+        sections.append({"title": "근거 구성", "blocks": [{
+            "type": "chart", "chart_type": "donut", "title": "결과에 연결한 근거의 종류", "labels": order,
+            "series": [{"name": "근거 수", "values": [by_type[t] for t in order]}], "unit": "건",
+            "source_ids": list(dict.fromkeys(e.get("source_id") for e in c.evidence if e.get("source_id"))),
+            "caption": f"결과에 연결한 근거 {len(c.evidence)}건을 종류별로 나눴습니다(화면의 근거 대시보드와 같은 기준). "
+                       "고객 수나 시장 비율이 아닙니다.",
+        }]})
+    concepts = [cl for cl in c.result.get("concepts") or [] if isinstance(cl, dict)]
+    if concepts:
+        sections.append({"title": "제안과 근거 연결", "blocks": [{
+            "type": "chart", "chart_type": "bar", "title": "제안별 연결 근거",
+            "labels": [f"제안 {i} ({cl.get('id') or '?'})" for i, cl in enumerate(concepts, 1)],
+            "series": [{"name": "연결 근거 수", "values": [len(cl.get("source_ids") or []) for cl in concepts]}], "unit": "건",
+            "source_ids": list(dict.fromkeys(s for cl in concepts for s in cl.get("source_ids") or [])),
+            "caption": "제안마다 결과에 연결한 근거 수입니다. 같은 근거가 여러 제안에 연결될 수 있고, 연결 수는 효과나 우선순위를 뜻하지 않습니다.",
+        }]})
+    return {"title": "", "summary": [], "sources": [], "sections": sections} if sections else None
+
+
 def generate(export_path: Path | None, insights_path: Path | None = None, focus: str | None = None,
              standalone: Path | None = None, out_dir: Path | None = None, insights_dir: Path | None = None,
              index_sha256: str | None = None, web_result_path: Path | None = None) -> dict:
@@ -2074,6 +2109,9 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
         if ctx:
             # 보고서로 보기(K): 신진하 보고서 양식이 export를 직접 읽는다. 화면과 같은 결과를 보이도록 지금 화면의 turn을 함께 준다.
             view["report"] = {"export": export, "turn_id": ctx.cur.get("turn_id")}
+            plan = report_charts(ctx)
+            if plan:
+                view["report"]["plan"] = plan
     payload = json.dumps(view, ensure_ascii=False, indent=1)
 
     html = (HERE / "index.html").read_bytes()

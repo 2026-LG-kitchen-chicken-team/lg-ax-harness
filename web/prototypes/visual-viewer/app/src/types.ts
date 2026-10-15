@@ -31,10 +31,12 @@ export interface Page {
 }
 
 // The saved export and the turn the screen shows, for "보고서로 보기" (components/report.tsx). The report page reads
-// the export itself; nothing in the viewer reads or changes it.
+// the export itself; nothing in the viewer reads or changes it. plan: chart sections build_view.py counted, in the
+// report's report_plan form (근거 구성, 제안과 근거 연결).
 export interface ReportSource {
   export: unknown
   turn_id?: string | null
+  plan?: unknown
 }
 
 export interface View {
