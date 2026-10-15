@@ -792,5 +792,28 @@
     "outgoing_email": true,
     "final_submission": true
   },
-  "private_proofs": "LG-AX-web-neutral-N-20261015 outside Git; originals, runtime, DB and credential settings are excluded"
+  "private_proofs": "LG-AX-web-neutral-N-20261015 outside Git; originals, runtime, DB and credential settings are excluded",
+  "post_push_remote_check": {
+    "observed_utc": "2026-10-15T01:23:24.367762+00:00",
+    "branch": "codex/evidence-complete",
+    "remote_head": "d53312fe5c5e889e01890614d8fcdf1ecf12831b",
+    "runs": [
+      38665289379,
+      38665295025
+    ],
+    "check_ids": [
+      116195731754,
+      116195731910,
+      116195749083,
+      116195749409
+    ],
+    "workflow_conclusion": "failure",
+    "jobs_started": 0,
+    "steps_in_all_four_jobs": 0,
+    "annotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased.",
+    "cause_scope": "GitHub reports account payment/spending condition; which alternative applies is unverified; not a product test failure",
+    "canonical_git_blobs_checked": 55,
+    "canonical_git_blob_mismatches": 0,
+    "post_push_source_manifest": "e30912be7ef3f87bd79f775e33bf34b0833bc133b731640c74c2bd95d039a34f"
+  }
 }
