@@ -350,19 +350,19 @@
     },
     {
       "path": "web/prototypes/agent-office/README.md",
-      "sha256": "a89fd00d4ec6056d579ebd0ab4a5f0089b3e91ffb9bac6b57f5e8567bca54c29"
+      "sha256": "6b993c8b7a7e27fd3175b5a8e60af96f22bcd6259577731b0644520349f3709b"
     },
     {
       "path": "web/prototypes/agent-office/office.py",
-      "sha256": "8f9a21264a1096dbf9fdc4803c8883ea914a069dd44abbd33013b4cb2bab204b"
+      "sha256": "cfd8f8c2b812354ef17b328b4437b95c780c9d2c0f68be1d8b765bb3e5794284"
     },
     {
       "path": "web/prototypes/agent-office/observe.py",
-      "sha256": "3ce61424eadbc2aadcdcee69a461b3476c6cd50978935b0cd861f303ad56349a"
+      "sha256": "08f49fdbdfebc7a68dffd8abd5b82cd2731e60f7083ea443c74a09f8606dfb4b"
     },
     {
       "path": "web/prototypes/agent-office/codex_follow.py",
-      "sha256": "d8b832716d42daf8b0fc3c36f174f3fe5eee099d38879a3c654c222611e05d9e"
+      "sha256": "d316a16ca45c1866d6e05f7489083b4a246fb73652a4e30fba3b9ca80a90af63"
     },
     {
       "path": "web/prototypes/agent-office/index.html",
@@ -370,7 +370,7 @@
     },
     {
       "path": "docs/contracts/judge-test.md",
-      "sha256": "5910f7c6db24138f78be7f5be8b9f717210b9c3c20781b1838a82c4542d34b9e"
+      "sha256": "147b20394664fd0bb684e2d3052355eae89b6bd2502b3e11955ba2c1c0c1e44c"
     }
   ],
   "optional_agents": [

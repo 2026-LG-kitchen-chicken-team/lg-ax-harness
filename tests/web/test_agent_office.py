@@ -323,6 +323,46 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual((a["kind"], a["prompt_id"], b["kind"], c["detail"]["reason"]), ("request", "p1", "turn_end", "prompt_input_exit"))
         self.assertNotIn(SECRET, self.h.all_text())
 
+    def test_first_question_opens_the_page_once_per_session_only_when_enabled(self):
+        import contextlib
+        import io
+        from unittest import mock
+        spec = importlib.util.spec_from_file_location("observe_copy", self.h.root / "web/prototypes/agent-office/observe.py")
+        observe = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(observe)
+        opened = []
+        observe.open_page = lambda: opened.append(1)
+
+        def send(payload):
+            data = io.TextIOWrapper(io.BytesIO(json.dumps(payload).encode("utf-8")), encoding="utf-8")
+            out = io.StringIO()
+            with mock.patch.object(sys, "stdin", data), contextlib.redirect_stdout(out):
+                self.assertEqual(observe.main(), 0)
+            self.assertEqual(out.getvalue(), "")
+
+        ask = {"hook_event_name": "UserPromptSubmit", "session_id": "S1", "prompt": SECRET}
+        send(ask)  # not enabled: no auto-open.json
+        self.assertEqual(opened, [])
+        setting = self.h.out / "auto-open.json"
+        setting.write_text(json.dumps({"open_on_prompt": True, "opened": []}), encoding="utf-8")
+        send(ask)  # enabled, but no page to open yet
+        self.assertEqual(opened, [])
+        (self.h.out / "index.html").write_text("<!doctype html>", encoding="utf-8")
+        send({"hook_event_name": "SessionStart", "session_id": "S1", "source": "startup"})
+        send({**ask, "prompt": "<task-notification>" + SECRET})
+        send({**ask, "agent_id": "a1", "agent_type": "product-review-researcher"})
+        self.assertEqual(opened, [])
+        send(ask)
+        send(ask)
+        self.assertEqual(len(opened), 1)
+        send({**ask, "session_id": "S2"})
+        self.assertEqual(len(opened), 2)
+        self.assertEqual(json.loads(setting.read_text(encoding="utf-8"))["opened"], ["S1", "S2"])
+        self.assertNotIn(SECRET, self.h.all_text())
+        setting.write_text(json.dumps({"open_on_prompt": False, "opened": []}), encoding="utf-8")
+        send({**ask, "session_id": "S3"})
+        self.assertEqual(len(opened), 2)
+
     def test_bad_input_never_disturbs_the_session(self):
         for raw in (b"", b"not json", b"[1,2]", b"\xff\xfe\x00", json.dumps({"hook_event_name": 5, "tool_input": "x"}).encode()):
             r = self.h.run(None, raw=raw)
@@ -417,6 +457,23 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue((self.root / "web/prototypes/agent-office/index.html").is_file())
         self.assertEqual(office.status(self.root)["page"], str(page))
         self.assertEqual(office.open_page(self.root, launch=False), f"사무실 화면: {page.as_uri()}")
+
+    def test_open_on_prompt_is_opt_in_and_cleared_by_reinstall_or_uninstall(self):
+        setting = self.root / "runtime-data" / "agent-office" / "auto-open.json"
+        office.install(self.root)
+        self.assertFalse(setting.exists())
+        self.assertFalse(office.status(self.root)["open_on_prompt"])
+        office.install(self.root, open_on_prompt=True)
+        if not (APP / "index.html").is_file():
+            self.assertFalse(setting.exists())  # nothing to open without the built page
+            return
+        self.assertEqual(json.loads(setting.read_text(encoding="utf-8")), {"open_on_prompt": True, "opened": []})
+        self.assertTrue(office.status(self.root)["open_on_prompt"])
+        office.install(self.root)
+        self.assertFalse(setting.exists())
+        office.install(self.root, open_on_prompt=True)
+        office.uninstall(self.root)
+        self.assertFalse(setting.exists())
 
     def test_open_without_install_explains(self):
         with self.assertRaises(office.OfficeError):
@@ -631,6 +688,29 @@ class CodexFollowTests(unittest.TestCase):
             self.assertNotIn(SECRET, (self.out / name).read_text(encoding="utf-8"), name)
         self.assertIn("근거 조회 · open_request_bundle", buf.getvalue())
         self.assertEqual(office.codex(self.root, latest=True, once=True, out=io.StringIO()), 0)  # nothing twice
+
+    def test_open_flag_opens_the_page_once_at_the_first_record(self):
+        self.write_logs(*codex_records(self.root))
+        opened = []
+        buf = io.StringIO()
+        written = office.codex(self.root, latest=True, once=True, out=buf, open_page_once=True, opener=opened.append)
+        self.assertGreater(written, 1)
+        if not (APP / "index.html").is_file():
+            return
+        page = self.root / "runtime-data" / "agent-office" / "index.html"
+        self.assertEqual(opened, [page.as_uri()])
+        self.assertIn("사무실 화면: " + page.as_uri(), buf.getvalue())
+
+    def test_a_second_follower_on_the_same_harness_stops(self):
+        self.write_logs(*codex_records(self.root))
+        sys.path.insert(0, str(APP))
+        import observe
+        self.out.mkdir(parents=True, exist_ok=True)
+        with observe.Lock(self.out / ".codex-follow.lock", wait=0.0):
+            with self.assertRaisesRegex(office.OfficeError, "이미 다른 Codex 관찰"):
+                office.codex(self.root, latest=True, once=True, out=io.StringIO())
+            self.assertFalse((self.out / "events.jsonl").exists())
+        self.assertGreater(office.codex(self.root, latest=True, once=True, out=io.StringIO()), 0)
 
     def test_start_times_come_from_the_log(self):
         self.write_logs(*codex_records(self.root))

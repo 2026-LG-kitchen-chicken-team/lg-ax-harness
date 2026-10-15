@@ -33,6 +33,10 @@ uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py i
   SubagentStart, SubagentStop, SessionStart, SessionEnd. 다른 훅(시각자료 뷰어 등)과 설정은 그대로 둔다.
 - 설정이 UTF-8 JSON 객체가 아니면 아무것도 바꾸지 않고 멈춘다. 개발 레포(`dev-harness` 폴더가 있는 곳)에는 설치하지 않는다.
 - 다시 설치하면 이 장치의 훅만 새것으로 바뀐다. 끄기: `office.py uninstall --claude <폴더>` (기록 파일은 남긴다).
+- `--open-on-prompt`(심사위원 ZIP의 `judge.py setup --engine claude`가 사용): 세션의 **첫 질문**이 들어오면 훅이 사무실 화면을
+  기본 브라우저로 한 번 연다(세션마다 한 번, `runtime-data/agent-office/auto-open.json`에 연 세션 ID만 남김). 화면을 여는
+  프로그램의 출력은 버려 모델 문맥에 들어가지 않는다. 하위 에이전트 결과 전달·작업 알림은 질문으로 세지 않는다.
+  끄기: 이 옵션 없이 다시 `install`(파일을 지움).
 - 확인: `office.py status --claude <폴더>` · 화면 열기: `office.py open --claude <폴더>` · 글로 보기: `office.py watch --claude <폴더>`(새 기록을 한 줄씩 한글로 출력, 읽기만 함) · 자체 시험: `office.py selftest`(임시 사본에서 실제 훅 명령을 합성 입력으로 실행).
 
 ## 사무실 화면 (2단계)
@@ -78,6 +82,8 @@ Codex에는 이 장치의 훅을 넣지 않는다(설정·`/hooks` 신뢰를 바
 ```powershell
 # 먼저 켜 두기: 새 Codex 세션이 생기면 따라간다 (그다음 하네스 폴더에서 codex를 열고 질문)
 uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex --harness C:/내-하네스-폴더 --wait
+# --open: 새 세션의 첫 기록이 들어오면 사무실 화면을 브라우저로 한 번 연다 (심사위원 ZIP 원클릭 시작이 사용)
+uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex --harness C:/내-하네스-폴더 --wait --open
 # 이미 연 세션: 이 폴더의 가장 최근 세션을 따라간다
 uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py codex --harness C:/내-하네스-폴더 --latest
 # 지난 세션: 목록을 보고 파일을 골라 한 번에 옮긴다

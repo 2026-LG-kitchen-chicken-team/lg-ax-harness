@@ -8,6 +8,8 @@ What it does, per hook call:
 - reads the hook JSON from stdin and appends ONE small JSON line to `runtime-data/agent-office/events.jsonl`;
 - refreshes `runtime-data/agent-office/live.js` (recent events + a short read-only snapshot of product.sqlite) that the
   office page reloads.
+- only when `office.py install --open-on-prompt` turned it on (`runtime-data/agent-office/auto-open.json`): opens the
+  office page in the default browser at the first question of each session, once per session.
 
 What it never does: print to stdout or stderr, exit non-zero, block or change a tool call, call a model or a business
 tool, write to product.sqlite, or keep prompt text, command text, tool output, file contents or search queries.
@@ -42,6 +44,7 @@ DB = HARNESS / "runtime-data" / "product.sqlite"
 MAX_STDIN = 4 * 1024 * 1024        # hook payloads with a large tool_response are read and dropped
 MAX_EVENTS_BYTES = 8 * 1024 * 1024  # events.jsonl rolls over to events-<time>.jsonl past this size
 LIVE_EVENTS = 1500                 # events kept in live.js for the page (about one long run)
+OPENED_KEEP = 50                   # sessions remembered in auto-open.json (the page opens once per session)
 
 # product v0.10.0 inventory (agents/product-planning.md, docs/contracts/product-research-agents.md, skills/manifest.json).
 # Node ids match the teammate control room (web/prototypes/control-room/src/catalog.ts) so traces can be shared.
@@ -639,6 +642,39 @@ def harness_version():
         return None
 
 
+def should_open(event: dict) -> bool:
+    """True once per session, at its first real question, when `office.py install --open-on-prompt` enabled it.
+    Called under the lock; it records the session before the page is opened."""
+    if event.get("kind") != "request" or event.get("actor") != "main" or event.get("agent_id") or not event.get("session"):
+        return False
+    setting_file = OUT / "auto-open.json"
+    try:
+        setting = json.loads(setting_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    if not isinstance(setting, dict) or setting.get("open_on_prompt") is not True or not (OUT / "index.html").is_file():
+        return False
+    opened = [s for s in setting.get("opened", []) if isinstance(s, str)] if isinstance(setting.get("opened"), list) else []
+    if event["session"] in opened:
+        return False
+    setting["opened"] = (opened + [event["session"]])[-OPENED_KEEP:]
+    write_text(setting_file, json.dumps(setting, ensure_ascii=False))
+    return True
+
+
+def open_page():
+    """The office page in the default browser. The opener gets no stdout: a UserPromptSubmit hook's output would reach
+    the model's context."""
+    uri = (OUT / "index.html").as_uri()
+    if os.name == "nt":
+        os.startfile(uri)
+        return
+    import subprocess
+    opener = ["open", uri] if sys.platform == "darwin" else ["xdg-open", uri]
+    subprocess.Popen(opener, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     start_new_session=True)
+
+
 def note_error(message: str):
     try:
         with open(ERRORS, "a", encoding="utf-8") as fh:
@@ -675,6 +711,9 @@ def main(argv=None) -> int:
         with Lock(LOCK):
             append_event(event)
             refresh_live(event)
+            launch = should_open(event)
+        if launch:
+            open_page()
     except Exception as exc:  # the hook must never disturb the session
         try:
             if safe_dirs():
