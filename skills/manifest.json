@@ -78,7 +78,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "4e541205bedb8def69e59c86a5146a63fce8d4e382fd75f42dadc85bcad30666"
+          "sha256": "440954bf93c85dc06c51283b399f6b6c5950f249541df256c709644dd93e96bc"
         }
       ]
     },
@@ -160,7 +160,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "9123bb56a677d3f9f3cd796db193261f6f6cfb6accbb8e61417a5706abec1380"
+          "sha256": "fd297360cbf4c6482f672218017bb0618733499fff82171f343a292f3efeb670"
         }
       ]
     }
