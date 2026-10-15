@@ -12,6 +12,7 @@ import sys
 import uuid
 
 from .contracts import ToolError, canonical, evidence_ref, fail, identifier, origin, text
+from .paths import real_path
 
 
 SOURCE_FIELDS = {"id", "kind", "title", "text", "url", "location", "model", "synthetic"}
@@ -262,7 +263,7 @@ def create_deliverables(workspace, planning, result, sources, authored_plan=None
     destination = None
     try:
         plan = build_report_plan(planning, result, sources, authored_plan)
-        root = Path(workspace).resolve(strict=True)
+        root = real_path(workspace)
         if not root.is_dir():
             fail("invalid_path", "Report workspace must be a directory")
         base = (root / "runtime-data" / "deliverables").resolve()

@@ -1,11 +1,12 @@
 """Return selected, verified instruction bytes; never certify model understanding."""
 import hashlib
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 import re
 import stat
 
 from .contracts import MAX_BYTES, MAX_INPUT_BYTES, canonical, fail, items, obj, strict_json, text
+from .paths import real_path
 
 SKILLS = ("evidence-retrieval", "web-evidence-collection", "needs-structuring",
           "feature-comparison", "concept-writing", "review-and-revise")
@@ -26,7 +27,7 @@ def _digest(value, name):
 
 class InstructionLoader:
     def __init__(self, workspace):
-        self.root = Path(workspace).resolve(strict=True)
+        self.root = real_path(workspace)
 
     def _path(self, relative):
         if (not isinstance(relative, str) or "\\" in relative or ":" in relative

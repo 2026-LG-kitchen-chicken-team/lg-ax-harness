@@ -14,7 +14,7 @@ import time
 def check_windows_sandbox(codex, backend):
     """Run the local doctor under a real sandbox; no model or global config writes."""
     result = {"requested_backend": backend, "status": "failed", "exit_code": None,
-              "scope": "Windows sandbox process startup and product-local SQLite; no AI, browser, approval escalation or network test"}
+              "scope": "Windows sandbox process startup, uv run launcher and product-local SQLite; no AI, browser, approval escalation or network test"}
     if sys.platform != "win32":
         result["error"] = "This optional sandbox diagnostic is Windows-only"
         return result
@@ -34,12 +34,29 @@ def check_windows_sandbox(codex, backend):
             if local.get("errors") or local.get("workspace_storage") != "local_process_checked" or local.get("readiness") != "local_only":
                 result["error"] = "Sandbox started but the product-local doctor did not pass"
             else:
-                result["status"] = "passed"
                 result["workspace_storage"] = local["workspace_storage"]
+                # Business commands start with `uv run python`; uv must also start in this sandbox.
+                result["uv_run"] = check_sandboxed_uv(command[:command.index("--") + 1])
+                if result["uv_run"]["status"] == "passed":
+                    result["status"] = "passed"
+                else:
+                    result["error"] = "Python ran in the sandbox but `uv run` did not; see sandbox.uv_run and docs/contracts/runtime-access.md"
     except (OSError, subprocess.TimeoutExpired, ValueError) as exc:
         result["error"] = type(exc).__name__
     result["elapsed_seconds"] = round(time.monotonic() - started, 3)
     return result
+
+
+def check_sandboxed_uv(sandbox):
+    """The same local doctor through `uv run`, as the installed instructions start Tools."""
+    uv = shutil.which("uv")
+    if not uv:
+        return {"status": "failed", "exit_code": None, "error": "uv is not on PATH"}
+    process = subprocess.run([*sandbox, uv, "run", "python", "product-doctor.py", "--local-only"],
+                             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=45)
+    if process.returncode:
+        return {"status": "failed", "exit_code": process.returncode, "error": (process.stderr or process.stdout).strip()[-1500:]}
+    return {"status": "passed", "exit_code": 0}
 
 ROOT = Path(__file__).resolve().parent
 

@@ -116,16 +116,34 @@ class SandboxReadinessTests(unittest.TestCase):
         doctor = load("adapters/codex/templates/product-doctor.py", "setup_mxc_probe")
         local = {"errors": [], "readiness": "local_only", "workspace_storage": "local_process_checked"}
         response = subprocess.CompletedProcess([], 0, json.dumps(local), "")
-        with mock.patch.object(sys, "platform", "win32"), mock.patch.object(doctor.subprocess, "run", return_value=response) as run:
+        with mock.patch.object(sys, "platform", "win32"), mock.patch.object(doctor.shutil, "which", return_value="uv"), \
+                mock.patch.object(doctor.subprocess, "run", return_value=response) as run:
             result = doctor.check_windows_sandbox("codex", "mxc")
         self.assertEqual(result["status"], "passed")
-        self.assertEqual(run.call_count, 1)
-        command = run.call_args.args[0]
-        self.assertIn("windows.sandbox=mxc", command)
-        self.assertIn("--include-managed-config", command)
-        self.assertIn(":workspace", command)
-        self.assertEqual(command[-1], "--local-only")
-        self.assertNotIn("danger-full-access", command)
+        self.assertEqual(result["uv_run"]["status"], "passed")
+        self.assertEqual(run.call_count, 2)
+        python, uv = (call.args[0] for call in run.call_args_list)
+        for command in (python, uv):
+            self.assertIn("windows.sandbox=mxc", command)
+            self.assertIn("--include-managed-config", command)
+            self.assertIn(":workspace", command)
+            self.assertEqual(command[-1], "--local-only")
+            self.assertNotIn("danger-full-access", command)
+        self.assertEqual(uv[uv.index("--") + 1:], ["uv", "run", "python", "product-doctor.py", "--local-only"])
+
+    def test_uv_launcher_failure_is_reported_without_fallback(self):
+        doctor = load("adapters/codex/templates/product-doctor.py", "setup_uv_probe")
+        local = {"errors": [], "readiness": "local_only", "workspace_storage": "local_process_checked"}
+        responses = [subprocess.CompletedProcess([], 0, json.dumps(local), ""),
+                     subprocess.CompletedProcess([], 2, "", "error: Failed to query Python interpreter\n  Caused by: (os error 5)")]
+        with mock.patch.object(sys, "platform", "win32"), mock.patch.object(doctor.shutil, "which", return_value="uv"), \
+                mock.patch.object(doctor.subprocess, "run", side_effect=responses) as run:
+            result = doctor.check_windows_sandbox("codex", "mxc")
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["workspace_storage"], "local_process_checked")
+        self.assertIn("os error 5", result["uv_run"]["error"])
+        self.assertIn("uv run", result["error"])
+        self.assertEqual(run.call_count, 2)
 
     def test_failed_probe_does_not_retry_or_fall_back_to_full_access(self):
         doctor = load("adapters/codex/templates/product-doctor.py", "setup_failed_probe")

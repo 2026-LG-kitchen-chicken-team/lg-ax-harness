@@ -41,6 +41,7 @@ uv run --python 3.12 --no-project python adapters/claude/install.py --target "$e
 | Python 버전/문서 의존성 오류 | 제품 폴더에서 `uv sync --locked --python 3.12` 후 `uv run python product-doctor.py`를 실행한다. |
 | 기존 폴더/상위 Git 저장소 때문에 설치 거절 | 새 외부 폴더를 지정한다. 기존 DB·프로젝트 지침을 지우거나 덮어쓰지 않는다. |
 | Codex `helper_unknown_error: setup refresh had errors` | 이 PC의 실제 로그에서는 기존 backend가 실행 중 Computer Use runtime의 ACL 갱신 대상을 열다가 Win32 공유 위반32로 실패했다. 호환 Windows에서는 아래 MXC 명령과 `--check-sandbox`로 준비한다. 다른 PC도 같은 원인이라고 단정하지 않는다. [공식 Windows 진단](https://learn.chatgpt.com/docs/windows/windows-sandbox)의 로그/정책을 대조하며 프로세스 강제 종료나 ACL 완화는 하지 않는다. |
+| `--check-sandbox`의 `[WinError 5] ...data\business\empty` 또는 `sandbox.uv_run`의 `Failed to query Python interpreter ... (os error 5)` | 폴더 ACL 문제가 아니다. 2026-10-16 한 Windows PC(표시 빌드26300.9457, Codex CLI0.162.1과 0.162.0-alpha.17.2)의 MXC는 AppContainer·Low 토큰으로 실행됐다. 목록·읽기·작업 폴더 쓰기는 됐지만 볼륨 이름 조회(`\\.\MountPointManager`, `QueryDosDevice`)가 거부되어 `GetFinalPathNameByHandle`의 DOS/GUID 이름이 모든 경로에서 Win32 5였다. 공통 Tool은 링크가 없는 경로에서만 같은 경로를 쓰도록 보완했다. `uv run`은 인터프리터 확인에서 같은 거부로 멈추므로 이 상태에서는 MXC로 업무를 시작하지 않는다. 같은 검사가 통과한 다른 환경의 차이는 확인하지 못했다. IT가 준비한 기존 backend가 있으면 `--check-sandbox --sandbox-backend configured`로 확인한 뒤 그 backend로 실행한다. ACL 완화·전체 접근·전역 설정 변경으로 우회하지 않는다. |
 | 명령이 `blocked by policy` 또는 승인 대기 | `/permissions`와 실제 거절/승인 출처를 확인한다. 읽기 전용·approval never를 정상 요청별 승인과 혼동하지 않는다. 전체 접근으로 자동 재실행하지 않는다. |
 | Claude의 기존 로컬 환경 항목 사용 불가 | 입력을 보내기 전에 새 Code 세션의 환경 목록에서 Local과 제품 폴더를 다시 선택한다. 같은 항목 선택으로 실패하면 앱의 정상 재시작/공식 지원 경로로 확인한다. 인증 성공이나 제품 업무 실패로 단정하지 않는다. |
 | 공개 사이트에서 HTTP 오류/차단 | 관측한 URL·상태/오류·시각을 기록한다. 웹 검색 가능 여부와 터미널 HTTP 가능 여부를 구분하고, 원문을 얻지 못한 것을 조사 완료로 표시하지 않는다. |
@@ -65,7 +66,7 @@ codex --search --sandbox workspace-write --ask-for-approval on-request --config 
 
 MXC는 [공식 Windows sandbox 안내](https://learn.chatgpt.com/docs/windows/windows-sandbox)의 호환 Windows11 기능과 조직 정책이 필요하다. 최소 도입 빌드26100.9278/26200.9278만으로 개별 장치의 기능을 보증하지 않으므로 실제 진단 결과를 사용한다. 설치된 프로젝트 설정의 `features.prefer_mxc=true`는 호환 시 선호 설정이며 부모 approval·작업 폴더 경계·조직 정책을 해제하지 않는다. 위 명령은 Windows 전용이며 Linux/macOS에서는 Windows 진단과 `windows.sandbox` 옵션을 제외한다.
 
-`--check-sandbox`는 같은 제품의 현재 Python·로컬 doctor·SQLite를 실제 sandbox 프로세스 안에서 검사한다. 모델·웹·브라우저를 호출하지 않으며 성공하면 `native_permissions=sandbox_process_checked`로 표시한다. MXC 오류 시 원래 오류를 반환하고 전체 접근/다른 backend로 자동 재시도하지 않는다. 호환되지 않는 장치에서는 실행자/IT가 허용된 기존 sandbox를 정상 준비한 뒤 `--check-sandbox --sandbox-backend configured`로 명시해 검사한다. 이는 기존 설정을 사용하며 전역 설정을 변경하지 않는다.
+`--check-sandbox`는 같은 제품의 현재 Python·로컬 doctor·SQLite를 실제 sandbox 프로세스 안에서 검사하고, 업무 명령과 같은 `uv run python`으로 같은 doctor를 한 번 더 실행해 `sandbox.uv_run`에 기록한다. 두 단계가 모두 통과해야 성공이다. 모델·웹·브라우저를 호출하지 않으며 성공하면 `native_permissions=sandbox_process_checked`로 표시한다. MXC 오류 시 원래 오류를 반환하고 전체 접근/다른 backend로 자동 재시도하지 않는다. 호환되지 않는 장치에서는 실행자/IT가 허용된 기존 sandbox를 정상 준비한 뒤 `--check-sandbox --sandbox-backend configured`로 명시해 검사한다. 이는 기존 설정을 사용하며 전역 설정을 변경하지 않는다.
 
 `/permissions`에서 현재 부모 권한을 확인한다. 업무에는 제품 폴더의 `runtime-data`·DB·입출력 쓰기와 실제 웹 검색/조회가 필요하므로 부모 전체를 읽기 전용으로 실행하면 저장이 막힌다. 웹 검색 허용과 Python HTTP 명령의 네트워크 허용은 구별한다. 필요한 공개 URL 접근은 실행기의 실제 승인 안내에 따라 처리한다. Windows sandbox 초기화 오류는 Tool 실패로 남기며 전체 접근·훅 신뢰 우회로 자동 재실행하지 않는다.
 

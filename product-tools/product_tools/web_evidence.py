@@ -15,6 +15,7 @@ from urllib.parse import parse_qsl, urljoin, urlparse
 from urllib.request import build_opener, HTTPRedirectHandler, HTTPSHandler, ProxyHandler, Request
 from .contracts import SCOPE_FIELDS, canonical, fail, fingerprint, identifier, integer, items, obj, product_family, scope, strict_json, text
 from .dataset import Dataset
+from .paths import real_path
 
 MAX_PAGE_BYTES = 2097152
 
@@ -227,7 +228,7 @@ class WebEvidence:
     def _read(self, snapshot_id):
         identifier(snapshot_id, "snapshot_id")
         try:
-            path = (self.base / (snapshot_id + ".json")).resolve(strict=True)
+            path = real_path(self.base / (snapshot_id + ".json"))
         except FileNotFoundError:
             fail("snapshot_not_found", "No retained observation exists for the requested snapshot")
         if path.parent != self.base or path.stat().st_size > 262144:
