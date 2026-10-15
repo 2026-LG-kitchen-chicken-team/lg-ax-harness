@@ -78,7 +78,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "afa275b1e00a840a19143f253f9e830abe8895c8c497cc8934ca08e1065fdb52"
+          "sha256": "4e541205bedb8def69e59c86a5146a63fce8d4e382fd75f42dadc85bcad30666"
         }
       ]
     },
@@ -160,7 +160,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "7134f1325d851d8d3a7e14b9b9ad191eb153dabe89db2f0508e2f8f68424321e"
+          "sha256": "9123bb56a677d3f9f3cd796db193261f6f6cfb6accbb8e61417a5706abec1380"
         }
       ]
     }
@@ -168,7 +168,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "d5bfa889fb8598b0f22bf6ce0364ed0eacdaaedc31699b86b9e4d31eb4a388d3"
+      "sha256": "2356e83c580decad6a57d7e4b0af7bd84554a41d0f1b8ab2e149aeba6c1194bd"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
@@ -312,7 +312,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "21adf029be7af736b08cd401c3cf930aa3bf2888683a9a0efb900a2b81450c9d"
+      "sha256": "1417026481dd1c8616e524599ed8433bf5be8e018df99ae59a74e44d2208100e"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -320,15 +320,15 @@
     },
     {
       "path": "web/prototypes/visual-viewer/hook.py",
-      "sha256": "7711a336a6672f552c4b4d8092036e27453e1bdf8780165fc2f21a58df496e80"
+      "sha256": "31ce4c9996ba444b9c7b9a7b967532486ff384a75c95bf6a26bee7d8d672593a"
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "1c302c2eac9a46390d07acfa4deddb118ca2bbddb69044d30b4aa1a46499d9d1"
+      "sha256": "3b208aeb4b9492664dd8f31abde15d9f22ae692ca44a1dc8731db1f915d8654b"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "9828bc4176cf09b64da45cb6ca7efe3835a58498209e103f6dfc0a1b76d081d0"
+      "sha256": "6f5bf8b2169c3303aae7a16c15bb18f50d60f1128b0ba87556e0c116af4eacf6"
     }
   ],
   "optional_agents": [
