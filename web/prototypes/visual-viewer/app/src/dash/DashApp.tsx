@@ -53,7 +53,7 @@ export default function DashApp(p: Props) {
         <div className={S.offset}>
           <TopBar {...p} tools={tools} openNav={() => setNavOpen(true)} />
           <main className="@container flex min-w-0 flex-col gap-3 px-4 py-4 print-full sm:px-6">
-            {view && page ? <Body {...p} go={go} /> : <Empty />}
+            {view && page ? <Body {...p} go={go} /> : <Empty copy={p.copy} />}
           </main>
         </div>
         <BackToTop />

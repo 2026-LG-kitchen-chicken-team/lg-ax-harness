@@ -2,9 +2,9 @@
 // Ctrl+K hotkey, larger text, back-to-top, the live dot and the empty state.
 import { useEffect, useState } from 'react'
 import {
-  ArrowUp, BarChart3, FileText, Filter, GitCompareArrows, History, Home, Lightbulb, Package, Presentation,
+  ArrowUp, BarChart3, Copy, FileText, Filter, GitCompareArrows, History, Home, Lightbulb, Package, Presentation,
 } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { cn, Md } from '../lib/utils'
 import { useVoice } from '../lib/voice'
 import type { LiveState } from '../lib/useView'
 import type { Caption } from '../types'
@@ -93,15 +93,37 @@ export function LiveDot({ live, inline, wide = '2xl' }: { live: LiveState; inlin
   )
 }
 
-export function Empty() {
+// The hook that draws the view is read only from the folder a Claude Code/Codex session was started in (claude/ or
+// codex/ of the judge ZIP), so the help names that folder and the by-hand refresh run from it.
+const REFRESH = 'uv run python web/prototypes/visual-viewer/viewer.py open .'
+
+export function Empty({ copy }: { copy?: (s: string) => void }) {
   const voice = useVoice()
   return (
-    <div className="mx-auto mt-16 max-w-xl text-center">
-      <h1 className="text-2xl font-bold tracking-tight">시각자료를 기다리는 중</h1>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        {voice('CLI가 이 폴더에 view-data.js를 만들면 화면이 자동으로 그려집니다. 이미 만든 view JSON이 있으면 왼쪽에서 여세요.')}
-      </p>
-      <pre className="mt-6 overflow-x-auto rounded-xl bg-zinc-950 p-4 text-left font-mono text-xs text-zinc-100">python build_view.py --export &lt;export 파일&gt; --open</pre>
+    <div className="mx-auto mt-16 w-full max-w-xl">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold tracking-tight">시각자료를 기다리는 중</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {voice('결과를 저장하면 훅이 이 폴더에 view-data.js를 만들고 화면이 자동으로 그려집니다. 이미 만든 view JSON이 있으면 왼쪽에서 여세요.')}
+        </p>
+      </div>
+      <section className="mt-6 rounded-lg border border-[#e6e6e6] bg-white p-4 text-sm leading-relaxed text-zinc-700">
+        <h2 className="text-[13px] font-semibold text-zinc-900">{voice('결과를 저장했는데 계속 비어 있으면')}</h2>
+        <ol className="mt-2 list-decimal space-y-2 pl-5 marker:font-mono marker:text-xs marker:text-zinc-400">
+          <li><Md text={voice('Claude Code·Codex 세션을 제품 폴더에서 시작했는지 확인하세요. 심사용 ZIP이면 최상위 폴더가 아니라 `claude/` 또는 `codex/` 폴더입니다. 화면을 그리는 훅은 세션을 시작한 폴더에서만 읽히고, 세션 중간에 cd로 옮겨도 읽히지 않습니다. 그 폴더에서 새 세션을 여세요.')} /></li>
+          <li>{voice('바로 보려면 그 폴더에서 터미널을 열고 아래 명령을 실행하세요. 저장된 최신 결과로 화면을 다시 만듭니다.')}</li>
+        </ol>
+        <div className="mt-3 flex min-h-10 items-center gap-2 rounded-xl bg-zinc-950 py-1 pl-4 pr-1">
+          {/* Wraps instead of scrolling on narrow screens: the trailing "." (this folder) must stay visible. */}
+          <code className="min-w-0 flex-1 py-2 font-mono text-xs leading-relaxed text-zinc-100 [overflow-wrap:anywhere]">{REFRESH}</code>
+          {copy && (
+            <button type="button" onClick={() => copy(REFRESH)} title="명령 복사"
+              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-zinc-300 hover:bg-white/10 hover:text-white">
+              <Copy className="size-3.5" aria-hidden />복사
+            </button>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
