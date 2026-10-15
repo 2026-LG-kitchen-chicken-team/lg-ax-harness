@@ -36,67 +36,14 @@
   --vis-donut-central-label-font-weight: 700;
 }
 
-/* A in LG's web style (lge.co.kr): near-black text, cool light-grey canvas with white cards, 16–20px corners,
-   LG red only for the current page and small markers. Scoped to A's root so the other views keep their own look. */
-.theme-lg {
-  --background: #f4f5f7;
-  --foreground: #111111;
-  --card: #ffffff;
-  --card-foreground: #111111;
-  --muted: #f3f4f6;
-  --muted-foreground: #5f6571;
-  --accent: #f1f2f4;
-  --border: #e5e7eb;
-  --ring: #ea1917;
-  --primary: #111111;
-  --primary-foreground: #ffffff;
-  --sidebar: #ffffff;
-  --radius: 1rem;
-}
-
-/* Tags in A: small squared labels rather than candy pills. */
-.theme-lg [data-badge] { border-radius: 6px; }
-
-/* A search result's block glows once so the eye finds it; nothing is hidden or moved. */
+/* A search result's block is outlined so the eye finds it (K: .skin-ops .lg-flash below); nothing is hidden or moved. */
 .lg-flash { animation: lg-flash 1.8s ease-out; border-radius: 1rem; }
 @keyframes lg-flash {
   0%, 55% { box-shadow: 0 0 0 4px rgb(var(--flash, 234 25 23) / 0.35); }
   100% { box-shadow: 0 0 0 4px rgb(var(--flash, 234 25 23) / 0); }
 }
 
-/* Dashboard views I–M (dash/): A's pages in four looks. Tokens are scoped to each view's root, like .theme-lg.
-   I navy: dark navy menu, cool grey canvas, white cards, indigo accent. */
-.skin-navy {
-  --background: #f5f6fa; --foreground: #1d2131; --card: #ffffff; --card-foreground: #1d2131; --muted: #f3f4f8;
-  --muted-foreground: #6b7186; --accent: #f1f2f7; --border: #e9ebf1; --ring: #4f5bd5; --primary: #4f5bd5;
-  --primary-foreground: #ffffff; --sidebar: #1d2131; --radius: 0.625rem; --flash: 79 91 213;
-}
-.skin-navy [data-card] { border-color: transparent; box-shadow: 0 1px 2px rgb(29 33 49 / 0.04), 0 0 0 1px #eceef3; }
-.skin-navy [data-badge] { border-radius: 999px; padding-inline: 0.6rem; }
-
-/* J mono: black, white and greys; very round cards on a grey canvas. Tags are grey pills that keep a small dot in
-   their tone colour, so held/uncertain/warning states still stand out. */
-.skin-mono {
-  --background: #ececec; --foreground: #111111; --card: #ffffff; --card-foreground: #111111; --muted: #f4f4f4;
-  --muted-foreground: #6f6f6f; --accent: #f2f2f2; --border: #e4e4e4; --ring: #111111; --primary: #111111;
-  --primary-foreground: #ffffff; --sidebar: #ffffff; --radius: 1.5rem; --flash: 17 17 17;
-}
-/* M: J's colours and tags with K's compact layout (dash/: isMono, isDense). */
-.skin-monoops {
-  --background: #ececec; --foreground: #111111; --card: #ffffff; --card-foreground: #111111; --muted: #f4f4f4;
-  --muted-foreground: #6f6f6f; --accent: #f2f2f2; --border: #e4e4e4; --ring: #111111; --primary: #111111;
-  --primary-foreground: #ffffff; --sidebar: #ffffff; --radius: 1.25rem; --flash: 17 17 17;
-}
-:is(.skin-mono, .skin-monoops) [data-card] { border-color: transparent; box-shadow: none; }
-:is(.skin-mono, .skin-monoops) [data-badge] { border-radius: 999px; background: #f1f1f1; color: #1f1f1f; box-shadow: inset 0 0 0 1px #dcdcdc; padding-inline: 0.6rem; gap: 0.35rem; }
-:is(.skin-mono, .skin-monoops) [data-badge]::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 999px; background: var(--dot, #a3a3a3); }
-:is(.skin-mono, .skin-monoops) [data-badge][data-tone="blue"] { --dot: #2563eb; }
-:is(.skin-mono, .skin-monoops) [data-badge][data-tone="green"] { --dot: #16a34a; }
-:is(.skin-mono, .skin-monoops) [data-badge][data-tone="red"] { --dot: #e11d48; }
-:is(.skin-mono, .skin-monoops) [data-badge][data-tone="orange"] { --dot: #f59e0b; }
-:is(.skin-mono, .skin-monoops) [data-badge][data-tone="purple"] { --dot: #7c3aed; }
-
-/* K operations: compact type, light grey menu with a soft green current item, bordered cards. */
+/* K 업무형 (the one view): compact type, light grey menu with a soft green current item, bordered cards. */
 .skin-ops {
   --background: #fafafa; --foreground: #161616; --card: #ffffff; --card-foreground: #161616; --muted: #f4f4f4;
   --muted-foreground: #666666; --accent: #f2f2f2; --border: #e6e6e6; --ring: #2f8f57; --primary: #1f2a22;
@@ -177,18 +124,10 @@
 @keyframes lg-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @media print { .skin-ops [data-reveal] { opacity: 1 !important; transform: none !important; } }
 
-/* L analytics: white, orange accent, light borders. */
-.skin-analytics {
-  --background: #ffffff; --foreground: #18181b; --card: #ffffff; --card-foreground: #18181b; --muted: #f6f6f7;
-  --muted-foreground: #71717a; --accent: #f4f4f5; --border: #ececee; --ring: #f97316; --primary: #18181b;
-  --primary-foreground: #ffffff; --sidebar: #ffffff; --radius: 0.75rem; --flash: 249 115 22;
-}
-.skin-analytics [data-card] { box-shadow: 0 1px 2px rgb(0 0 0 / 0.03); }
-
-/* I–M: a long status tag ("결과 없이 멈춘 요청 2건 · 순서 미확인 …") wraps inside narrow cards and menus instead of
+/* A long status tag ("결과 없이 멈춘 요청 2건 · 순서 미확인 …") wraps inside narrow cards and menus instead of
    running past them; in tables tags stay on one line (the table scrolls sideways). */
-:is(.skin-navy, .skin-mono, .skin-ops, .skin-analytics, .skin-monoops) [data-badge] { white-space: normal; }
-:is(.skin-navy, .skin-mono, .skin-ops, .skin-analytics, .skin-monoops) td [data-badge] { white-space: nowrap; }
+.skin-ops [data-badge] { white-space: normal; }
+.skin-ops td [data-badge] { white-space: nowrap; }
 
 @theme inline {
   --font-sans: "Pretendard Variable", Pretendard, "Malgun Gothic", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
@@ -226,20 +165,6 @@
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 }
 
-/* C poster: a light pulse travelling along recorded links (decorative; the solid line underneath stays). */
-.lgax-beam { stroke-dasharray: 36 420; animation: lgax-beam 2.6s linear infinite; }
-@keyframes lgax-beam { from { stroke-dashoffset: 456; } to { stroke-dashoffset: 0; } }
-
-/* B slides: reveal.js needs a full-viewport box. */
-.lgax-slides { position: fixed !important; inset: 0; }
-.lgax-print-page { position: relative; width: 1920px; height: 1080px; overflow: hidden; break-after: page; }
-.lgax-print-page > section { display: block; height: 100%; }
-.lgax-print-page:last-child { break-after: auto; }
-.lgax-slides .slides { text-align: left; }
-.lgax-slides .controls { color: #18181b; }
-.lgax-slides .progress { color: #7c3aed; height: 4px; }
-.lgax-slides .slide-number { background: rgba(24, 24, 27, 0.75); font-family: var(--font-sans); font-size: 14px; padding: 4px 8px; border-radius: 6px; right: 16px; bottom: 16px; }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -248,6 +173,4 @@
   .no-print { display: none !important; }
   *, *::before, *::after { animation: none !important; }
   .print-full { margin: 0 !important; max-width: none !important; }
-  /* gradient text does not print reliably: print it as solid text */
-  .bg-clip-text { background: none !important; color: #18181b !important; -webkit-text-fill-color: #18181b; }
 }

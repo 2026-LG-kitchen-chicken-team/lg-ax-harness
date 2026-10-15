@@ -1,5 +1,6 @@
-// Charts for the dashboard views I–L: a donut with its total in the middle and the values beside it, grouped bars and
-// lines in each view's colours. Every value is the builder's; nothing is counted or smoothed into new numbers here.
+// K's charts: a donut with its total in the middle and the values beside it, grouped bars and lines in K's colours.
+// Every value is the builder's; nothing is counted or smoothed into new numbers here. Charts are drawn at once (no
+// grow-in): K's motion is limited to five kinds (index.css "K motion").
 import {
   VisArea, VisAxis, VisDonut, VisDonutSelectors, VisGroupedBar, VisGroupedBarSelectors, VisLine, VisScatter,
   VisScatterSelectors, VisSingleContainer, VisTooltip, VisXYContainer,
@@ -12,18 +13,15 @@ import type { Block } from '../types'
 type Item = { label: string; value: number; tone?: string; note?: string }
 type Series = { name: string; tone?: string; values: number[]; area?: boolean; point_tones?: string[]; point_notes?: string[] }
 
-// Tone colour in this view; J (mono) colours by order in greys because its look has no hues.
-export function useColor() {
-  const s = useSkin()
-  return (t: string | undefined, i: number) => (s?.series ? s.series[i % s.series.length] : (s?.hex || HEX)[tone(t || 'blue')])
+// Tone colour in K's palette.
+function useColor() {
+  const hex = useToneHex()
+  return (t: string | undefined) => hex[tone(t || 'blue')]
 }
 const HEX = { blue: '#2563eb', green: '#16a34a', red: '#e11d48', orange: '#f59e0b', purple: '#7c3aed', gray: '#a1a1aa', k1: '#9ccfb0', k2: '#5fae80', k3: '#2f8f57', k4: '#1d5c39' }
 export function useToneHex() {
   return useSkin()?.hex || HEX
 }
-
-// K draws charts at once (no grow-in): its motion is limited to five kinds (index.css "K motion").
-const useStill = () => useSkin()?.id === 'ops'
 
 export function NoData() {
   const voice = useVoice()
@@ -32,7 +30,6 @@ export function NoData() {
 
 // Total in the middle, each part's label and stored value beside the ring.
 export function SkinDonut({ b, arc = 28 }: { b: Block; arc?: number }) {
-  const still = useStill()
   const color = useColor()
   const items: Item[] = (b.items || []).filter((i: Item) => i.value > 0)
   const total = items.reduce((a, i) => a + i.value, 0)
@@ -40,8 +37,8 @@ export function SkinDonut({ b, arc = 28 }: { b: Block; arc?: number }) {
   return (
     <div className="flex flex-col items-center gap-6 @md:flex-row">
       <div className="w-full max-w-[13rem] shrink-0">
-        <VisSingleContainer data={items} height={208} duration={still ? 0 : undefined}>
-          <VisDonut<Item> value={(d) => d.value} color={(d: Item, i: number) => color(d.tone, i)} arcWidth={arc} padAngle={0.015} cornerRadius={3}
+        <VisSingleContainer data={items} height={208} duration={0}>
+          <VisDonut<Item> value={(d) => d.value} color={(d: Item) => color(d.tone)} arcWidth={arc} padAngle={0.015} cornerRadius={3}
             centralLabel={fmt(total)} centralSubLabel={b.center_label || '합계'} />
           <VisTooltip triggers={{ [VisDonutSelectors.segment]: (d: { data: Item }) => `${esc(d.data.label)}: ${fmt(d.data.value)}${esc(b.unit)}${d.data.note ? '<br>' + esc(d.data.note) : ''}` }} />
         </VisSingleContainer>
@@ -51,7 +48,7 @@ export function SkinDonut({ b, arc = 28 }: { b: Block; arc?: number }) {
           <li key={i} title={it.note || undefined}>
             <div className="text-[13px] leading-snug text-muted-foreground">{it.label}</div>
             <div className="mt-1 flex items-center gap-2 text-xl font-semibold tabular-nums">
-              <span className="size-2.5 shrink-0 rounded-full" style={{ background: color(it.tone, i) }} aria-hidden />{fmt(it.value)}<span className="text-sm font-medium text-muted-foreground">{b.unit || ''}</span>
+              <span className="size-2.5 shrink-0 rounded-full" style={{ background: color(it.tone) }} aria-hidden />{fmt(it.value)}<span className="text-sm font-medium text-muted-foreground">{b.unit || ''}</span>
             </div>
           </li>
         ))}
@@ -60,43 +57,16 @@ export function SkinDonut({ b, arc = 28 }: { b: Block; arc?: number }) {
   )
 }
 
-// L (analytics): the same parts as one segmented bar under their values, like a share of a whole.
-export function SegmentBar({ b }: { b: Block }) {
-  const color = useColor()
-  const items: Item[] = (b.items || []).filter((i: Item) => i.value > 0)
-  const total = items.reduce((a, i) => a + i.value, 0)
-  if (!total) return <NoData />
-  return (
-    <div>
-      <ul className="grid grid-cols-2 gap-x-6 gap-y-4 @2xl:grid-flow-col @2xl:auto-cols-fr @2xl:grid-cols-none">
-        {items.map((it, i) => (
-          <li key={i} className="min-w-0" title={it.note || undefined}>
-            <div className="flex items-center gap-2 text-[13px] text-zinc-500"><span className="size-2.5 shrink-0 rounded-[3px]" style={{ background: color(it.tone, i) }} aria-hidden /><span className="truncate">{it.label}</span></div>
-            <div className="mt-1 text-[26px] font-semibold leading-tight tabular-nums text-zinc-900">{fmt(it.value)}<span className="ml-1 text-sm font-medium text-zinc-500">{b.unit || ''}</span></div>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-5 flex h-11 gap-1.5" role="img" aria-label={items.map((it) => `${it.label} ${fmt(it.value)}${b.unit || ''}`).join(', ')}>
-        {items.map((it, i) => (
-          <span key={i} className="min-w-2 rounded-lg" style={{ flexGrow: it.value, flexBasis: 0, background: color(it.tone, i) }} title={`${it.label}: ${fmt(it.value)}${b.unit || ''}`} />
-        ))}
-      </div>
-      <div className="mt-2 text-right text-xs text-zinc-500">{b.center_label || '합계'} <b className="tabular-nums text-zinc-800">{fmt(total)}{b.unit || ''}</b></div>
-    </div>
-  )
-}
-
 function Legend({ series }: { series: Series[] }) {
   const color = useColor()
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-      {series.map((s, k) => <li key={k} className="flex items-center gap-1.5"><span className="size-2.5 rounded-full" style={{ background: color(s.tone, k) }} aria-hidden />{s.name}</li>)}
+      {series.map((s, k) => <li key={k} className="flex items-center gap-1.5"><span className="size-2.5 rounded-full" style={{ background: color(s.tone) }} aria-hidden />{s.name}</li>)}
     </ul>
   )
 }
 
 export function SkinBars({ b, round = 4, thin }: { b: Block; round?: number; thin?: boolean }) {
-  const still = useStill()
   const color = useColor()
   const cats: string[] = b.categories || []
   const series: Series[] = b.series || []
@@ -106,8 +76,8 @@ export function SkinBars({ b, round = 4, thin }: { b: Block; round?: number; thi
   return (
     <div className="flex flex-col gap-3">
       <Legend series={series} />
-      <VisXYContainer<D> data={data} height={260} duration={still ? 0 : undefined} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]}>
-        <VisGroupedBar<D> x={(d) => d.i} y={series.map((_, k) => (d: D) => d.v[k])} color={(_: D, k: number) => color(series[k]?.tone, k)}
+      <VisXYContainer<D> data={data} height={260} duration={0} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]}>
+        <VisGroupedBar<D> x={(d) => d.i} y={series.map((_, k) => (d: D) => d.v[k])} color={(_: D, k: number) => color(series[k]?.tone)}
           roundedCorners={round} groupPadding={thin ? 0.45 : 0.25} barPadding={thin ? 0.3 : 0.1} />
         <VisAxis type="x" tickFormat={(i: number | Date) => cats[Number(i)] ?? ''} numTicks={cats.length} gridLine={false} />
         <VisAxis type="y" tickFormat={(v: number | Date) => (Number.isInteger(Number(v)) ? fmt(Number(v)) : '')} />
@@ -119,7 +89,6 @@ export function SkinBars({ b, round = 4, thin }: { b: Block; round?: number; thi
 
 // Lines with a soft area under a single series; points keep the builder's status colours (point_tones).
 export function SkinLine({ b, area }: { b: Block; area?: boolean }) {
-  const still = useStill()
   const color = useColor()
   const hex = useToneHex()
   const xs: string[] = b.x || []
@@ -133,13 +102,13 @@ export function SkinLine({ b, area }: { b: Block; area?: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       {series.length > 1 && <Legend series={series} />}
-      <VisXYContainer<D> data={data} height={b.height || 260} duration={still ? 0 : undefined} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]} xDomain={xs.length === 1 ? [-1, 1] : undefined}>
+      <VisXYContainer<D> data={data} height={b.height || 260} duration={0} yDomain={[0, Math.max(1, ...data.flatMap((d) => d.v))]} xDomain={xs.length === 1 ? [-1, 1] : undefined}>
         {series.map((s, k) => (s.area || (area && series.length === 1)) && (
-          <VisArea<D> key={'a' + k} x={(d) => d.i} y={(d) => d.v[k]} color={color(s.tone, k)} opacity={0.12} />
+          <VisArea<D> key={'a' + k} x={(d) => d.i} y={(d) => d.v[k]} color={color(s.tone)} opacity={0.12} />
         ))}
-        {series.map((s, k) => <VisLine<D> key={'l' + k} x={(d) => d.i} y={(d) => d.v[k]} color={color(s.tone, k)} lineWidth={2.5} />)}
+        {series.map((s, k) => <VisLine<D> key={'l' + k} x={(d) => d.i} y={(d) => d.v[k]} color={color(s.tone)} lineWidth={2.5} />)}
         <VisScatter<D> x={(d) => d.i} y={(d) => d.v[0]} size={11}
-          color={(d) => (first.point_tones?.[d.i] ? hex[tone(first.point_tones[d.i])] : color(first.tone, 0))} strokeColor="#fff" strokeWidth={2} />
+          color={(d) => (first.point_tones?.[d.i] ? hex[tone(first.point_tones[d.i])] : color(first.tone))} strokeColor="#fff" strokeWidth={2} />
         <VisAxis type="x" tickFormat={(i: number | Date) => data[Number(i)]?.x ?? ''} numTicks={Math.min(xs.length, 8)} gridLine={false} />
         <VisAxis type="y" tickFormat={(v: number | Date) => (Number.isInteger(Number(v)) ? fmt(Number(v)) : '')} />
         <VisTooltip triggers={{ [VisScatterSelectors.point]: tip }} />

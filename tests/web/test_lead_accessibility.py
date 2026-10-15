@@ -40,7 +40,7 @@ export const useState = () => [globalThis.__leadSlot, next => {
   globalThis.__leadSlot = typeof next === 'function' ? next(globalThis.__leadSlot) : next;
 }];`);
 (async () => {
-const {Lead} = await import(pathToFileURL(leadFile));
+const {Lead, firstSentence} = await import(pathToFileURL(leadFile));
 const tail = '마지막 조건: 청소 시 전원을 분리한다.';
 const text = '[합성 시험 자료] ' + '긴 원문 조건 '.repeat(300).slice(0, 2000 - 11 - tail.length) + tail;
 assert.equal(text.length, 2000);
@@ -70,7 +70,9 @@ buttonOf(tree).props.onClick();
 tree = Lead(props);
 assert.equal(buttonOf(tree).props['aria-expanded'], false);
 assert.equal(bodyOf(tree).props.style.display, 'none');
-assert.ok(buttonOf(Lead({text})), 'A clipped first sentence also needs the disclosure');
+assert.equal(firstSentence(text), text, 'An entire long sentence must not be clipped');
+assert.equal(firstSentence('첫 문장. 이어지는 조건.'), '첫 문장.');
+assert.ok(buttonOf(Lead({text: '첫 문장. ' + text})), 'Following sentences need the explicit disclosure');
 assert.equal(Lead({text: '짧은 전문'}).type.name, 'Md');
 const escaped = renderToStaticMarkup(Lead({text: text + '<img onerror="bad">', summary: '요약'}));
 assert.ok(escaped.includes('&lt;img'));

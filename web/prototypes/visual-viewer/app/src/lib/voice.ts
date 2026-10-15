@@ -1,4 +1,4 @@
-// K (ops) reads in report style (보고서체): sentences the harness writes in 합니다체 end in short forms
+// The viewer (K 업무형) reads in report style (보고서체): sentences the harness writes in 합니다체 end in short forms
 // ("저장했습니다" → "저장함", "없습니다" → "없음", "불편입니다" → "불편"). Only 합니다체/하세요 endings change, so the
 // question, quotes and model-written result text (한다체) keep their wording; quotes are also skipped by key.
 import { useSkin } from './skin'
@@ -35,7 +35,7 @@ export function reportVoice(text: string): string {
   return s
 }
 
-// UI sentences (search, empty states): report style in K only.
+// UI sentences (search, empty states): report style inside the view.
 export function useVoice(): (text: string) => string {
   return useSkin()?.id === 'ops' ? reportVoice : (text) => text
 }

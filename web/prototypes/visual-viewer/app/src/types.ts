@@ -30,6 +30,15 @@ export interface Page {
   blocks: Block[]
 }
 
+// The saved export and the turn the screen shows, for "보고서로 보기" (components/report.tsx). The report page reads
+// the export itself; nothing in the viewer reads or changes it. plan: chart sections build_view.py counted, in the
+// report's report_plan form (근거 구성, 제안과 근거 연결).
+export interface ReportSource {
+  export: unknown
+  turn_id?: string | null
+  plan?: unknown
+}
+
 export interface View {
   kind: 'lgax-view'
   schema: number
@@ -45,12 +54,12 @@ export interface View {
   }
   pages: Page[]
   warnings?: string[]
+  report?: ReportSource
 }
 
 declare global {
   interface Window {
     LGAX_VIEW?: View
     LGAX_VIEW_INLINE?: boolean
-    LGAX_DEFAULT_MODE?: string
   }
 }

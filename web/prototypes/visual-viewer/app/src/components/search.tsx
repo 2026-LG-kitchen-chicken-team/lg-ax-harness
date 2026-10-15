@@ -41,6 +41,7 @@ function Snippet({ text, q }: { text: string; q: string }) {
   return <>{from > 0 && '…'}{text.slice(from, at)}<mark className="rounded bg-[#ffe1e0] px-0.5 text-inherit">{text.slice(at, at + q.length)}</mark>{text.slice(at + q.length, at + q.length + 90)}{at + q.length + 90 < text.length && '…'}</>
 }
 
+// No help text while the box is empty (user request 2026-10-15): the result area stays closed until something is typed.
 export function SearchDialog({ view, open, close, pick }: { view: View | null; open: boolean; close: () => void; pick: (h: Hit) => void }) {
   const index = useMemo(() => buildIndex(view), [view])
   const [q, setQ] = useState('')
@@ -75,9 +76,8 @@ export function SearchDialog({ view, open, close, pick }: { view: View | null; o
             }} />
           <kbd className="hidden shrink-0 whitespace-nowrap rounded-md border px-1.5 py-0.5 font-sans text-[11px] text-zinc-500 sm:block">Esc</kbd>
         </label>
-        <ul className="max-h-[60vh] overflow-y-auto p-2" role="listbox" aria-label="검색 결과">
-          {q.trim() && !hits.length && <li className="px-4 py-8 text-center text-sm text-zinc-500">{voice('찾는 내용이 없습니다.')}</li>}
-          {!q.trim() && <li className="px-4 py-8 text-center text-sm text-zinc-500">{voice('모든 화면의 글·인용·표에서 찾습니다. 결과를 누르면 그 화면의 해당 위치로 갑니다.')}</li>}
+        {q.trim() && <ul className="max-h-[60vh] overflow-y-auto p-2" role="listbox" aria-label="검색 결과">
+          {!hits.length && <li className="px-4 py-8 text-center text-sm text-zinc-500">{voice('찾는 내용이 없습니다.')}</li>}
           {hits.map((h, i) => (
             <li key={i} role="option" aria-selected={i === sel}>
               <button type="button" onClick={() => choose(h)} onMouseEnter={() => setSel(i)}
@@ -90,7 +90,7 @@ export function SearchDialog({ view, open, close, pick }: { view: View | null; o
               </button>
             </li>
           ))}
-        </ul>
+        </ul>}
         <div className="flex gap-4 border-t px-5 py-2.5 text-[11px] text-zinc-500"><span>↑↓ 이동</span><span>Enter 열기</span><span>Esc 닫기</span>{hits.length > 0 && <span className="ml-auto">{hits.length === 60 ? '앞의 60곳만 표시' : `${hits.length}곳`}</span>}</div>
       </div>
     </div>

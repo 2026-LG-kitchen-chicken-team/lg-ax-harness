@@ -1,11 +1,11 @@
-// Hover or focus an ID chip (P1, R1, C1, a source ID …) in A to see what it stands for. The index is read from the
+// Hover or focus an ID chip (P1, R1, C1, a source ID …) to see what it stands for. The index is read from the
 // story page and the evidence table that build_view.py wrote; nothing else is looked up or inferred.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Block, View } from '../types'
 
 type Entry = { kind: string; text: string }
-// light: the chip sits in K, which shows a light card that eases in (index.css "lg-tip"); the other views keep the dark one.
-type Tip = { id: string; entry: Entry; left: number; top?: number; bottom?: number; light: boolean }
+// The card is light and eases in (index.css "lg-tip").
+type Tip = { id: string; entry: Entry; left: number; top?: number; bottom?: number }
 type Api = { lookup: (id: string) => Entry | undefined; show: (id: string, el: HTMLElement) => void; hide: () => void }
 const Ctx = createContext<Api | null>(null)
 export const useIdTip = () => useContext(Ctx)
@@ -40,10 +40,9 @@ export function IdTipProvider({ view, children }: { view: View | null; children:
     const entry = index.get(id)
     if (!entry) return
     const r = el.getBoundingClientRect()
-    const left = Math.max(8, Math.min(r.left, window.innerWidth - (el.closest('.skin-ops') ? 424 : 368)))
-    const light = !!el.closest('.skin-ops')
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - 424))
     // Open below the chip, or above it near the bottom of the window.
-    setTip(r.bottom > window.innerHeight - 200 ? { id, entry, left, light, bottom: window.innerHeight - r.top + 8 } : { id, entry, left, light, top: r.bottom + 8 })
+    setTip(r.bottom > window.innerHeight - 200 ? { id, entry, left, bottom: window.innerHeight - r.top + 8 } : { id, entry, left, top: r.bottom + 8 })
   }, [index])
   const hide = useCallback(() => setTip(null), [])
   useEffect(() => {
@@ -55,20 +54,13 @@ export function IdTipProvider({ view, children }: { view: View | null; children:
   return (
     <Ctx.Provider value={api}>
       {children}
-      {tip?.light && (
+      {tip && (
         <div key={tip.id} role="tooltip" data-side={tip.top != null ? 'below' : 'above'}
           className="lg-tip no-print pointer-events-none fixed z-[80] w-max max-w-[min(26rem,calc(100vw-1rem))] rounded-xl border border-[#e3e8e3] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-zinc-800 shadow-[0_14px_36px_-14px_rgb(0_0_0/0.3)]"
           style={{ left: tip.left, top: tip.top, bottom: tip.bottom }}>
           <div className="text-xs text-zinc-500"><span className="font-semibold text-[#2f7d4f]">{tip.id}</span> · {tip.entry.kind}</div>
-          {/* K's cards show only the first sentence, so the card here gives the whole text. */}
+          {/* Cards show only a summary or the first sentence, so the card here gives the whole text. */}
           <p className="mt-1 whitespace-pre-line">{tip.entry.text}</p>
-        </div>
-      )}
-      {tip && !tip.light && (
-        <div role="tooltip" className="no-print pointer-events-none fixed z-[80] w-[22rem] max-w-[calc(100vw-1rem)] rounded-2xl bg-zinc-900 px-4 py-3 text-sm leading-relaxed text-white shadow-xl"
-          style={{ left: tip.left, top: tip.top, bottom: tip.bottom }}>
-          <div className="text-xs text-zinc-400"><span className="font-mono font-semibold text-white">{tip.id}</span> · {tip.entry.kind}</div>
-          <p className="mt-1 line-clamp-6">{tip.entry.text}</p>
         </div>
       )}
     </Ctx.Provider>

@@ -1,8 +1,7 @@
-// J (mono), K (ops) and M (mono+ops) show the evidence dashboard and the registered evidence text as one page. The
-// data from build_view.py is unchanged (other views still have both pages); only what these views draw is re-arranged.
+// The viewer shows the evidence dashboard and the registered evidence text as one page. The data from build_view.py is
+// unchanged (it still has both pages); only what the screen draws is re-arranged.
 import type { Page, View } from '../types'
 
-export const MERGED_EVIDENCE_SKINS = new Set(['mono', 'ops', 'monoops'])
 export const MERGED_INTO = 'dashboard'
 const MERGED_FROM = 'evidence'
 

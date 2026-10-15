@@ -803,6 +803,84 @@ class BuildViewTests(TempCase):
         for private in (str(self.h.root), self.h.root.as_posix(), str(Path.home())):
             self.assertNotIn(private, text)
 
+    def test_report_view_gets_the_export_and_the_shown_turn(self):
+        """보고서로 보기(신진하 양식)는 export를 직접 읽는다. 화면과 같은 결과가 나오도록 지금 화면의 turn을 함께 준다."""
+        _, view = self.build("microwave")
+        self.assertEqual(view["report"]["export"], export_of("microwave"))
+        self.assertEqual(view["report"]["turn_id"], current_turn("microwave"))
+        # 덧붙이는 그래프 두 개(근거 구성·제안과 근거 연결)는 근거 대시보드와 같은 기준으로 센다
+        plan = view["report"]["plan"]
+        self.assertEqual((plan["title"], plan["summary"], plan["sources"]), ("", [], []))
+        self.assertEqual([s["title"] for s in plan["sections"][:2]], ["근거 구성", "제안과 근거 연결"])
+        donut, bars = (s["blocks"][0] for s in plan["sections"][:2])
+        result = build_view.current_row(build_view.read_turns(export_of("microwave")))["result"]
+        self.assertEqual((donut["chart_type"], sum(donut["series"][0]["values"])), ("donut", len(result["evidence_refs"])))
+        self.assertEqual(bars["series"][0]["values"], [len(c["source_ids"]) for c in result["concepts"]])
+        self.assertIn("우선순위를 뜻하지 않습니다", bars["caption"])
+        _, view = self.build("cancel_after_reject")  # 취소된 turn은 보고서의 원시 export 우회 경로도 막는다
+        self.assertNotIn("report", view)
+        _, view = self.build("needs_input")  # turn 없이 멈춘 요청 기록만 있으면 보고서를 두지 않는다
+        self.assertNotIn("report", view)
+
+    def test_report_limits_turn_selection_and_retains_selected_full_bodies_and_review_history(self):
+        _, view = self.build("two_turns")
+        report = view["report"]
+        self.assertEqual([h["state"]["turn_id"] for h in report["export"]["turns"]], [report["turn_id"]])
+        body = web_body("two_turns")
+        turn = report["export"]["turns"][0]
+        self.assertEqual(turn["state"]["latest_result"], body["result"])
+        self.assertEqual(turn["state"]["latest_result"]["evidence_refs"], body["result"]["evidence_refs"])
+        sections = report["plan"]["sections"]
+        bodies = [b["text"] for section in sections for b in section["blocks"] if b["type"] == "paragraph"]
+        for source in body["sources"]:
+            self.assertIn(source["text"], bodies)
+        records = {label: json.loads(value) for label, value in sections[-1]["blocks"][0]["rows"]}
+        for label, key in (("binding", "binding"), ("근거 검토·전달 이력", "evidence_history"),
+                           ("조사 상태", "investigation"), ("조사 사건", "investigation_events")):
+            self.assertEqual(records[label], body[key])
+        self.assertIn("의미 인증이 아닙니다", blob(report))
+
+    def test_report_preserves_uncited_long_body_and_every_validation_condition_without_changing_refs(self):
+        _, view = self.build("microwave")
+        # Exercise only the display projection with explicit marked contract text, not a fabricated saved binding.
+        export = export_of("microwave")
+        body = web_body("microwave")
+        context = build_view.Ctx(export, EXPORTS["microwave"], {}, web_result=body, delivery_state="verified_binding")
+        context.web = json.loads(json.dumps(body))
+        tail = "[합성 시험 자료] 미인용 원문 말미 조건"
+        long_text = "[합성 시험 자료] " + "조건 보존 " * 500 + tail
+        context.web["sources"].append({"source_id": "UNUSED-CONTRACT-ONLY", "text": long_text, "kind": "review"})
+        original_refs = json.loads(json.dumps(context.result["evidence_refs"]))
+        context.result = json.loads(json.dumps(context.result))
+        context.result["concepts"][0]["validation_plan"].update(
+            condition_controls=["[합성 시험 자료] 조건 동등"], guardrail_metrics=["[합성 시험 자료] 미확인율 제한"],
+            evaluation_protocol={"denominator": "[합성 시험 자료] 전체 배정건"})
+        projected = build_view.report_source(context)
+        self.assertIn(long_text, [block.get("text") for section in projected["plan"]["sections"] for block in section["blocks"]])
+        validation = next(section for section in projected["plan"]["sections"] if section["title"] == "보고서 범위와 검증 조건")
+        self.assertEqual(json.loads(validation["blocks"][1]["rows"][0][1]), context.result["concepts"][0]["validation_plan"])
+        self.assertEqual(context.result["evidence_refs"], original_refs)
+        for key in ("cancel_after_reject", "reject3", "third_cancelled"):
+            _, refused = self.build(key)
+            self.assertNotIn("report", refused)
+
+    def test_legacy_mode_ops_standalone_option_is_accepted_with_only_k_view(self):
+        export = self.h.add("microwave")
+        report = self.h.out / "compat-ops.html"
+        summary = build_view.generate(export, standalone=report, out_dir=self.h.out, mode="ops")
+        self.assertTrue(summary["ok"])
+        self.assertNotIn("LGAX_DEFAULT_MODE", report.read_text(encoding="utf-8"))
+        with self.assertRaises(ValueError):
+            build_view.generate(export, standalone=report, out_dir=self.h.out, mode="slides")
+
+    def test_report_vendor_files_are_kept_byte_for_byte(self):
+        """app/vendor/jinha-report는 받은 그대로 둔다. 바꿀 것은 빌드(scripts/jinha-report.mjs)에서만 바꾼다."""
+        vendor = VIEWER / "app" / "vendor" / "jinha-report"
+        rows = re.findall(r"\| `([^`]+)` \| `([0-9a-f]{64})` \|", (vendor / "SOURCE.md").read_text(encoding="utf-8"))
+        self.assertEqual(sorted(n for n, _ in rows), ["index.html", "report-app.js", "report-data-adapter.js", "result-report.css", "styles.css"])
+        for name, sha in rows:
+            self.assertEqual(hashlib.sha256((vendor / name).read_bytes()).hexdigest(), sha, name)
+
     def test_index_html_pin_and_restore(self):  # tests-docs-new-3
         export = self.h.add("microwave")
         with self.assertRaises(ValueError):
@@ -824,10 +902,15 @@ class BuildViewTests(TempCase):
         self.assertEqual(re.findall(r'<link[^>]*href="(https?://[^"]+)"', html),
                          ["https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"])
         self.assertNotIn("/assets/", html)
-        # 묶어 넣은 라이브러리와 고쳐 쓴 컴포넌트의 라이선스 고지가 파일 끝에 남는다
+        # 묶어 넣은 라이브러리의 라이선스 고지가 파일 끝에 남는다. 지운 보기만 쓰던 라이브러리·컴포넌트는 묶지 않는다.
         notices = html[html.index("THIRD-PARTY NOTICES"):]
-        for needle in ("react@", "Cult UI", "Copyright (c) 2023 Jordan-Gilliam", "Skiper UI", "reveal.js@"):
+        for needle in ("react@", "@unovis/ts@", "lucide-react@"):
             self.assertIn(needle, notices)
+        for gone in ("reveal.js@", "motion@", "Cult UI", "Skiper UI"):
+            self.assertNotIn(gone, notices)
+        # 보고서로 보기: 신진하 보고서 양식이 한 파일 안에 들어 있고 밖에서 불러오는 것은 없다(위의 script·link 검사)
+        for needle in ("HarnessReportAdapter", "embedded-report", "보고서로 보기"):
+            self.assertIn(needle, html)
         export = self.h.add("microwave")
         report = self.h.out / "report-test.html"
         build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report)
@@ -835,12 +918,9 @@ class BuildViewTests(TempCase):
         self.assertNotIn(tag, text)
         self.assertIn("window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = ", text)
         self.assertIn('"id": "story"', text)
-        # 공유용 B·C 파일은 처음 열 때의 보기를 담는다(받은 사람 브라우저의 기억과 상관없이)
-        for mode in ("slides", "poster", "editorial", "board", "exhibit", "corporate", "landing", "navy", "mono", "ops", "analytics", "monoops"):
-            build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode=mode)
-            self.assertIn(f'window.LGAX_DEFAULT_MODE = "{mode}"; window.LGAX_VIEW = ', report.read_text(encoding="utf-8"))
-        with self.assertRaises(SystemExit):
-            build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode="deck")
+        # 보기는 K 업무형 하나라 공유 파일에 처음 열 보기를 적지 않는다
+        self.assertNotIn("LGAX_DEFAULT_MODE", text)
+        self.assertNotIn("LGAX_DEFAULT_MODE", html)
 
 
 # ---------------------------------------------------------------- web result (product-web-result-v1)
@@ -912,6 +992,7 @@ class WebResultTests(TempCase):
                 self.assertIsNone(summary["web_result"])
                 self.assertNotIn("선택 등록본문 전체", blob(page(view, "evidence")))
                 self.assertIn("현재 웹 전달 미검증", blob(view))
+                self.assertNotIn("report", view)
 
     def test_web_result_for_another_result_or_incomplete_binding_is_not_used(self):
         for changed in ("result", "binding"):
@@ -945,6 +1026,7 @@ class WebResultTests(TempCase):
         self.assertEqual(summary["web_delivery"], "not_reviewed_current")
         self.assertIsNone(summary["web_result"])
         self.assertNotIn("선택 등록본문 전체", blob(read_view(self.h.out)))
+        self.assertNotIn("report", read_view(self.h.out))
 
     def test_web_result_alone_requires_the_current_stored_export(self):
         path = self.put(web_body("microwave"))

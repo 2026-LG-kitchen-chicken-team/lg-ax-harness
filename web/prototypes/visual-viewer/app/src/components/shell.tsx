@@ -1,5 +1,5 @@
-// Pieces of A's page shell that the dashboard views (I–L, dash/DashApp.tsx) reuse: page icons, the page intro read
-// from the caption, scroll-to-block, the Ctrl+K hotkey, larger text, back-to-top, the live dot and the empty state.
+// Pieces of the page shell (dash/DashApp.tsx): page icons, the page intro read from the caption, scroll-to-block, the
+// Ctrl+K hotkey, larger text, back-to-top, the live dot and the empty state.
 import { useEffect, useState } from 'react'
 import {
   ArrowUp, BarChart3, FileText, Filter, GitCompareArrows, History, Home, Lightbulb, Package, Presentation,
@@ -18,15 +18,14 @@ export const STORY_IDS = new Set(['story'])
 export const noEmoji = (s: string) => s.replace(/[\p{Extended_Pictographic}️‍]/gu, '').trim()
 
 // Scroll to a top-level block of the current page (search results, page contents) and let it glow once.
-// K follows prefers-reduced-motion for scrolling as well (index.css "K motion"); the other views keep smooth scrolling.
-const scrollBehavior = (el: Element | null): ScrollBehavior =>
-  el?.closest('.skin-ops') && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+// Scrolling follows prefers-reduced-motion as well (index.css "K motion").
+const scrollBehavior = (): ScrollBehavior => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth')
 
 export function scrollToBlock(i: number, openDetails = false) {
   const el = document.querySelector<HTMLElement>(`[data-block="${i}"]`)
   if (!el) return
   if (openDetails) el.querySelectorAll('details').forEach((d) => { d.open = true })
-  el.scrollIntoView({ behavior: scrollBehavior(el), block: 'start' })
+  el.scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
   el.classList.remove('lg-flash')
   void el.offsetWidth
   el.classList.add('lg-flash')
@@ -49,7 +48,7 @@ export function TextScale({ big }: { big: boolean }) {
   return null
 }
 
-// Ctrl+K (and "/" where a view shows that hint) opens the search; "/" is ignored while typing in a field.
+// Ctrl+K (and "/" when `slash` is set) opens the search; "/" is ignored while typing in a field.
 export function SearchHotkey({ open, slash }: { open: () => void; slash?: boolean }) {
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
@@ -74,7 +73,7 @@ export function BackToTop({ raised, className }: { raised?: boolean; className?:
   }, [])
   if (!on) return null
   return (
-    <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior(document.querySelector('.skin-ops')) })} aria-label="맨 위로"
+    <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior() })} aria-label="맨 위로"
       className={cn('no-print fixed right-6 z-30 grid size-11 place-items-center rounded-full bg-white shadow-lg ring-1 ring-zinc-200 hover:bg-zinc-50', raised ? 'bottom-32 lg:bottom-6' : 'bottom-6', className)}>
       <ArrowUp className="size-5" />
     </button>
