@@ -17,7 +17,7 @@ uv run --python 3.12 --no-project python adapters/claude/install.py --target "$e
 ```
 
 3. 선택한 제품 폴더에서 `uv sync --locked --python 3.12`를 실행한다. uv가 해당 Python을 준비할 수 있으며 회사 정책으로 다운로드가 막히면 실행자가 허용된 Python3.12 설치 경로를 지정한다. 기본 `python`이 3.14여도 이 단계 뒤에는 **`uv run python`**으로 실행한다.
-4. Codex는 `uv run python product-doctor.py --local-only` → `codex login`(이미 로그인했다면 생략) → `codex login status` → `uv run python product-doctor.py` 순서다. 로그인 결과만 확인하고 인증 파일은 제출하지 않는다. Claude GUI는 `uv run python product-doctor.py` 후 앱의 **Code → Local → 이 제품 폴더**를 기본 작업 폴더로 선택한다. Claude CLI의 부재/미인증과 Desktop Code 인증은 별개다.
+4. Codex는 `uv run python product-doctor.py --local-only` → `codex login`(이미 로그인했다면 생략) → `codex login status` → `uv run python product-doctor.py` 순서다. Windows에서는 CLI0.162.0 이상으로 `uv run python product-doctor.py --check-sandbox`도 실행한다. 로그인 결과만 확인하고 인증 파일은 제출하지 않는다. Claude GUI는 `uv run python product-doctor.py` 후 앱의 **Code → Local → 이 제품 폴더**를 기본 작업 폴더로 선택한다. Claude CLI의 부재/미인증과 Desktop Code 인증은 별개다.
 5. 아래 실행기별 권한·모델을 확인하고 첫 세션에서 짧은 준비 진단을 요청한다. 로컬 doctor 성공만으로 실행기의 승인·네트워크·모델 접근 성공이라고 표시하지 않는다.
 
 ```text
@@ -33,12 +33,14 @@ uv run --python 3.12 --no-project python adapters/claude/install.py --target "$e
 
 ### 막힐 때 확인할 순서
 
+제품의 uv 캐시는 `pyproject.toml`의 `tool.uv.cache-dir = "runtime-data/.uv-cache"`로 작업 폴더 안에 둔다. 실제 MXC 검사에서 기본 AppData 캐시의 임시 파일 저장이 거절된 사례를 보완했다. [uv 공식 캐시 우선순위](https://docs.astral.sh/uv/concepts/cache/#cache-directory)에 따라 사용자가 `UV_CACHE_DIR`/`--cache-dir`를 별도로 지정하면 그 경로가 우선하므로 동일 작업 폴더의 쓰기 허용 범위를 확인한다. 전역 환경변수를 자동 변경하지 않는다.
+
 | 증상 | 확인 및 조치 |
 | --- | --- |
 | `uv`/Codex 명령을 찾지 못함 | 공식 설치 후 새 터미널을 열고 PATH를 확인한다. Claude GUI 사용에는 `claude` 명령이 없어도 된다. |
 | Python 버전/문서 의존성 오류 | 제품 폴더에서 `uv sync --locked --python 3.12` 후 `uv run python product-doctor.py`를 실행한다. |
 | 기존 폴더/상위 Git 저장소 때문에 설치 거절 | 새 외부 폴더를 지정한다. 기존 DB·프로젝트 지침을 지우거나 덮어쓰지 않는다. |
-| Codex `helper_unknown_error: setup refresh had errors` | 모델 응답 오류와 구분한다. [Windows sandbox 진단](https://learn.chatgpt.com/docs/windows/windows-sandbox)을 따라 실행자가 초기화/관리 정책을 확인한다. 설치기는 Windows 보안/ACL을 변경하지 않는다. |
+| Codex `helper_unknown_error: setup refresh had errors` | 이 PC의 실제 로그에서는 기존 backend가 실행 중 Computer Use runtime의 ACL 갱신 대상을 열다가 Win32 공유 위반32로 실패했다. 호환 Windows에서는 아래 MXC 명령과 `--check-sandbox`로 준비한다. 다른 PC도 같은 원인이라고 단정하지 않는다. [공식 Windows 진단](https://learn.chatgpt.com/docs/windows/windows-sandbox)의 로그/정책을 대조하며 프로세스 강제 종료나 ACL 완화는 하지 않는다. |
 | 명령이 `blocked by policy` 또는 승인 대기 | `/permissions`와 실제 거절/승인 출처를 확인한다. 읽기 전용·approval never를 정상 요청별 승인과 혼동하지 않는다. 전체 접근으로 자동 재실행하지 않는다. |
 | Claude의 기존 로컬 환경 항목 사용 불가 | 입력을 보내기 전에 새 Code 세션의 환경 목록에서 Local과 제품 폴더를 다시 선택한다. 같은 항목 선택으로 실패하면 앱의 정상 재시작/공식 지원 경로로 확인한다. 인증 성공이나 제품 업무 실패로 단정하지 않는다. |
 | 공개 사이트에서 HTTP 오류/차단 | 관측한 URL·상태/오류·시각을 기록한다. 웹 검색 가능 여부와 터미널 HTTP 가능 여부를 구분하고, 원문을 얻지 못한 것을 조사 완료로 표시하지 않는다. |
@@ -56,8 +58,14 @@ py -3.12 -m venv .venv
 제품 설치 폴더를 기본 작업 폴더로 연다. 먼저 `uv sync --locked`와 `uv run python product-doctor.py`를 실행한다. 권장은 `gpt-6.1-sol`/`medium`이며 모델 접근 가능성은 본인 계정에서 확인한다.
 
 ```powershell
-codex --search --sandbox workspace-write --ask-for-approval on-request --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
+# Windows: 아래 진단이 성공한 같은 제품 폴더에서
+uv run python product-doctor.py --check-sandbox
+codex --search --sandbox workspace-write --ask-for-approval on-request --config 'windows.sandbox="mxc"' --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
 ```
+
+MXC는 [공식 Windows sandbox 안내](https://learn.chatgpt.com/docs/windows/windows-sandbox)의 호환 Windows11 기능과 조직 정책이 필요하다. 최소 도입 빌드26100.9278/26200.9278만으로 개별 장치의 기능을 보증하지 않으므로 실제 진단 결과를 사용한다. 설치된 프로젝트 설정의 `features.prefer_mxc=true`는 호환 시 선호 설정이며 부모 approval·작업 폴더 경계·조직 정책을 해제하지 않는다. 위 명령은 Windows 전용이며 Linux/macOS에서는 Windows 진단과 `windows.sandbox` 옵션을 제외한다.
+
+`--check-sandbox`는 같은 제품의 현재 Python·로컬 doctor·SQLite를 실제 sandbox 프로세스 안에서 검사한다. 모델·웹·브라우저를 호출하지 않으며 성공하면 `native_permissions=sandbox_process_checked`로 표시한다. MXC 오류 시 원래 오류를 반환하고 전체 접근/다른 backend로 자동 재시도하지 않는다. 호환되지 않는 장치에서는 실행자/IT가 허용된 기존 sandbox를 정상 준비한 뒤 `--check-sandbox --sandbox-backend configured`로 명시해 검사한다. 이는 기존 설정을 사용하며 전역 설정을 변경하지 않는다.
 
 `/permissions`에서 현재 부모 권한을 확인한다. 업무에는 제품 폴더의 `runtime-data`·DB·입출력 쓰기와 실제 웹 검색/조회가 필요하므로 부모 전체를 읽기 전용으로 실행하면 저장이 막힌다. 웹 검색 허용과 Python HTTP 명령의 네트워크 허용은 구별한다. 필요한 공개 URL 접근은 실행기의 실제 승인 안내에 따라 처리한다. Windows sandbox 초기화 오류는 Tool 실패로 남기며 전체 접근·훅 신뢰 우회로 자동 재실행하지 않는다.
 

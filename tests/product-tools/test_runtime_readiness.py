@@ -111,5 +111,56 @@ class RuntimeReadinessTests(unittest.TestCase):
             self.assertTrue(result["errors"])
 
 
+class SandboxReadinessTests(unittest.TestCase):
+    def test_mxc_probe_uses_managed_workspace_profile_and_local_doctor(self):
+        doctor = load("adapters/codex/templates/product-doctor.py", "setup_mxc_probe")
+        local = {"errors": [], "readiness": "local_only", "workspace_storage": "local_process_checked"}
+        response = subprocess.CompletedProcess([], 0, json.dumps(local), "")
+        with mock.patch.object(sys, "platform", "win32"), mock.patch.object(doctor.subprocess, "run", return_value=response) as run:
+            result = doctor.check_windows_sandbox("codex", "mxc")
+        self.assertEqual(result["status"], "passed")
+        self.assertEqual(run.call_count, 1)
+        command = run.call_args.args[0]
+        self.assertIn("windows.sandbox=mxc", command)
+        self.assertIn("--include-managed-config", command)
+        self.assertIn(":workspace", command)
+        self.assertEqual(command[-1], "--local-only")
+        self.assertNotIn("danger-full-access", command)
+
+    def test_failed_probe_does_not_retry_or_fall_back_to_full_access(self):
+        doctor = load("adapters/codex/templates/product-doctor.py", "setup_failed_probe")
+        response = subprocess.CompletedProcess([], 1, "", "windows sandbox failed: setup refresh had errors")
+        with mock.patch.object(sys, "platform", "win32"), mock.patch.object(doctor.subprocess, "run", return_value=response) as run:
+            result = doctor.check_windows_sandbox("codex", "mxc")
+        self.assertEqual(result["status"], "failed")
+        self.assertIn("setup refresh had errors", result["error"])
+        self.assertEqual(run.call_count, 1)
+
+    def test_successful_process_does_not_hide_local_storage_failure(self):
+        doctor = load("adapters/codex/templates/product-doctor.py", "setup_incomplete_probe")
+        response = subprocess.CompletedProcess([], 0, json.dumps({"errors": ["storage failed"], "readiness": "local_only"}), "")
+        with mock.patch.object(sys, "platform", "win32"), mock.patch.object(doctor.subprocess, "run", return_value=response):
+            result = doctor.check_windows_sandbox("codex", "mxc")
+        self.assertEqual(result["status"], "failed")
+
+    def test_old_cli_is_stopped_before_unsupported_sandbox_flags(self):
+        installer = load("adapters/codex/install.py", "setup_old_cli_installer")
+        doctor = load("adapters/codex/templates/product-doctor.py", "setup_old_cli_doctor")
+        with tempfile.TemporaryDirectory(prefix="lg-setup-old-cli-") as temporary:
+            target = Path(temporary) / "codex"
+            installer.install(target)
+            responses = [subprocess.CompletedProcess([], 0, "codex-cli 0.161.0", ""),
+                         subprocess.CompletedProcess([], 0, "Logged in using ChatGPT", ""),
+                         subprocess.CompletedProcess([], 0, "", "")]
+            with mock.patch.object(doctor, "ROOT", target), mock.patch.object(doctor.shutil, "which", return_value="codex"), \
+                    mock.patch.object(doctor, "reporting_dependencies", return_value={}), \
+                    mock.patch.object(doctor.subprocess, "run", side_effect=responses), \
+                    mock.patch.object(doctor, "check_windows_sandbox") as sandbox:
+                code, result = RuntimeReadinessTests().invoke(doctor, ["--check-sandbox"])
+            self.assertEqual(code, 1)
+            self.assertIn("0.162.0", result["errors"][0])
+            sandbox.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()

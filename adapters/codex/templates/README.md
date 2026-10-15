@@ -12,7 +12,9 @@ uv run python product-doctor.py --local-only
 codex login
 codex login status
 uv run python product-doctor.py
-codex --search --sandbox workspace-write --ask-for-approval on-request --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
+# Windows: CLI 0.162.0 이상과 MXC 호환 환경을 실제 확인
+uv run python product-doctor.py --check-sandbox
+codex --search --sandbox workspace-write --ask-for-approval on-request --config 'windows.sandbox="mxc"' --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
 ```
 
 처음에는 공식 안내에 따라 uv와 Codex CLI를 설치한다. `uv sync --locked --python 3.12`는 Python3.12와 잠금 의존성을 로컬 환경에 준비한다. 이미 로그인돼 있으면 `codex login`은 생략하고 `codex login status`를 확인한다. 설치기는 전역 Python 패키지나 설정을 변경하지 않는다. pip 대체 경로는 Python3.12 가상환경에서만 사용하며 실행 권한 안내의 명령을 따른다. 의존성 가져오기 검사는 파일 제작·레이아웃 검수나 실제 AI 업무 검증을 대신하지 않는다.
@@ -57,7 +59,11 @@ doctor의 `--local-only`는 CLI 설치·로그인 전에 로컬 설치를 확인
 
 저장된 결과를 읽는 선택형 시각자료 뷰어는 `web/prototypes/visual-viewer/README.md`를 따른다. 기본 설치에서는 자동 훅을 등록하지 않는다. 필요하면 `python web/prototypes/visual-viewer/viewer.py install --codex` 또는 `--claude`로 해당 폴더의 훅만 등록하고 CLI의 프로젝트 신뢰 설정을 확인한다. `status`, `open`, `uninstall`로 상태·화면·해제를 관리한다. 뷰어는 export를 읽으며 업무 질문이나 모델 실행을 대신하지 않는다. 원 개발 소스는 최길웅의 PR #6이고 이번 통합에서는 경로 검사와 출처 종류 메타데이터 연결을 보강했다.
 
-과거 Windows 인수검사에서는 workspace-write 명령 실행기 준비 오류가 있었고, 이후 비대화식 승인 없음 조건의 제한 권한 시험에서도 첫 명령이 정책으로 거절됐다. 전체 접근의 기존 실제 업무 성공과 제한 권한 지원은 구분한다. 실행자는 `/permissions`와 실제 승인 요청을 확인하며 전체 접근으로 자동 전환하지 않는다. 설치 도구는 권한이나 전역 설정을 바꾸지 않는다.
+Windows 제품 설정은 호환 장치에서 공식 권장 MXC를 선호한다. 위 Windows 명령은 MXC를 해당 실행에 명시하며 저장된 전역 설정을 바꾸지 않는다. Linux/macOS에서는 Windows 전용 진단과 `windows.sandbox` 옵션을 제외한다. `--check-sandbox`는 실제 sandbox 안에서 로컬 doctor/SQLite까지 실행하며 모델 호출은 없다. MXC 호환 실패는 자동으로 전체 접근이나 다른 backend로 전환하지 않고 원인과 공식 준비 절차를 안내한다. 이미 관리자가 준비한 기존 backend를 명시해 확인하려면 `--check-sandbox --sandbox-backend configured`를 사용하고 해당 조직 설정을 따른다.
+
+이 PC의 과거 setup refresh 오류는 기존 sandbox의 실행 중 runtime 파일 ACL 갱신에서 Win32 공유 위반32가 발생한 사례다. 현재 MXC 경로의 실제 확인 범위와 별개로 과거 실패는 보존한다. 실행자는 `/permissions`와 실제 승인 요청을 확인하며 설치 도구는 권한·전역 설정·인증을 바꾸지 않는다.
+
+uv의 캐시는 프로젝트 설정으로 `runtime-data/.uv-cache`에 둔다. Windows sandbox가 바꾸는 기본 AppData 캐시 경로에서 쓰기가 막히는 문제를 줄이며, 이 캐시와 의존성 환경은 제출 ZIP에 넣지 않는다. 사용자가 `UV_CACHE_DIR`를 따로 지정했다면 그 값이 우선하므로 작업 폴더 안의 허용 경로인지 확인한다.
 
 ## Claude Desktop Code에서 사용
 

@@ -1,4 +1,7 @@
 # Product-local settings only; account/model/effort remain inherited.
+[features]
+prefer_mxc = true
+
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 2
