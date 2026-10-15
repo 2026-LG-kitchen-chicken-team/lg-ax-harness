@@ -107,7 +107,7 @@ export default function DashApp(p: Props) {
           </div>
         </div>
         <BackToTop />
-        <SearchDialog view={view} open={p.searchOpen} close={p.closeSearch} pick={pick} />
+        <SearchDialog view={view} open={p.searchOpen} close={p.closeSearch} pick={pick} quiet={skin === 'ops'} />
       </div>
     </SkinContext.Provider>
   )
