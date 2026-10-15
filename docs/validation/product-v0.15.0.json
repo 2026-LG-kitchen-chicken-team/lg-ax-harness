@@ -1,0 +1,64 @@
+{
+  "release": "product-v0.15.0",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.15.0",
+  "published_at": "2026-10-15T10:04:22Z",
+  "prerelease": true,
+  "draft": false,
+  "source_commit": "3cf62939689aa21564b162ab8d2f855c30d32a66",
+  "main_product_paths_equal": 89,
+  "main_commit": "d462bb924f55edc0629c4b0feaa5e5b85d761b9c",
+  "snapshot_commit": "c85153b46ce08fda3b4aaa30e73647b6a9ae754e",
+  "snapshot_parents": 0,
+  "source_manifest_sha256": "ba98e0e2c36cbe9d7f7b30ebe73b19103412be6ce957db1538f98caea8b3c37d",
+  "assets": [
+    {
+      "name": "lg-ax-judge-product-v0.15.0.zip",
+      "size": 2372175
+    },
+    {
+      "name": "lg-ax-product-product-v0.15.0.zip",
+      "size": 1229978
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 198
+    }
+  ],
+  "source_zip": {
+    "files": 119,
+    "sha256": "e95163257d6297164c4ebd42da37184932399df9baa232bf9aeed61c0986e82a"
+  },
+  "judge_zip": {
+    "files": 195,
+    "sha256": "ccf2386fb70f6f73692eb3b9f1cffd2ac7bba9e50c9276b9729513b30b16deb8",
+    "new_folder_setup_commands": 9,
+    "exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "original_repo_required": false
+  },
+  "remote_ZIP_bytes_equal": true,
+  "remote_checksum_bytes_equal": true,
+  "automatic_source_raw_files_equal": 119,
+  "actual_native_inputs": 5,
+  "business_source_count": 81,
+  "refs": 28,
+  "actual_live_business_bindings": 2,
+  "local_CI": {
+    "stages": 21,
+    "status": "passed",
+    "skip": 0
+  },
+  "Claude_latest": "not_run: physical Escape",
+  "browser_render_click": "not_run",
+  "Codex_normal_hook_trust": "user step/not_run",
+  "competition_final_receipt": "not_completed"
+}
