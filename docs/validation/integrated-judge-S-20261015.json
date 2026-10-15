@@ -1,0 +1,240 @@
+{
+  "phase": "integrated-judge-S",
+  "date": "2026-10-15",
+  "web_head": "93783b757389f438c9c15b1a926bc41e8a6f0b69",
+  "source_manifest_sha256": "ba98e0e2c36cbe9d7f7b30ebe73b19103412be6ce957db1538f98caea8b3c37d",
+  "canonical_sources": {
+    "THIRD_PARTY_NOTICES.md": "ab5bbc93126f66260e07a8d34417ec5ece9cf2297778f01de30a97e9352a303f",
+    "agents/product-evidence-reviewer.md": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6",
+    "agents/product-official-researcher.md": "06bb7f1d353f63f1f9021f8b75ec35e836d311d18b4d660fd604ef4609b013fc",
+    "agents/product-planning.md": "5a071f5f47a2e98e584cee91a283030001a9099531b145b8d0f6755b6d605ac7",
+    "agents/product-review-researcher.md": "99ff0efe7ebd522b319c095d8e37a75d1ba5aeecd1b41d94653895c2b07afb2a",
+    "data/business/empty/manifest.json": "ebde6cc6e5dc07e6d9f28613d7cf2a6e487939ba3af7dfaad6f90b091dec5b3a",
+    "data/business/empty/models.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "data/business/empty/sources.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/contracts/codex-product.md": "a4a109a0e078f4e6485886613436363ebb7d0507fbafabcc645853f213df2f54",
+    "docs/contracts/common-tools.md": "b195f914827d36d9fc5d124a27a6034e2f5e10928d6f148daa1841449e8c6998",
+    "docs/contracts/instruction-loading.md": "c33d77702e5c27f00271a070bffd50eb1898e0f8a9badd953713c3561b18a843",
+    "docs/contracts/judge-test.md": "5910f7c6db24138f78be7f5be8b9f717210b9c3c20781b1838a82c4542d34b9e",
+    "docs/contracts/product-planning.md": "374ec19cbe28a8eadba49196ad4c217bfb785bc02f34bed8a011d72219c0f25c",
+    "docs/contracts/product-research-agents.md": "1c92100e9c95e60553b2a6505e35eee321ff1342109b0a983005306d51baaef0",
+    "docs/contracts/product-reviewer-packet.md": "d633ecd8a63a7aa5acef11513909f564f1b7247af6453f9102a1793899b63c61",
+    "docs/contracts/product-workflow.md": "ce4d3c54ed0d505ae093f596eee3d273b8d43e44b05225047104f596a99d7765",
+    "docs/contracts/reader-deliverables.md": "60221de6f5632eacfd67d73102c1bb45f89e0f55a1d640fc99c9dce1162993b2",
+    "docs/contracts/runtime-access.md": "8508bebdd349be2c76e99a89e0edc85d447af9dc7b0d264872348c56822ced68",
+    "docs/contracts/web-evidence.md": "d855939acfa1b2039738ee954224da3d8c12721a7e3894d7f4d2cc7d5263c407",
+    "docs/contracts/web-result.md": "f66593c12fe78ec554e3a9ca8ab38681d5a5a70798a8699f96979461d8bf453e",
+    "product-tools/cli.py": "09426f2b346c6ff3a733821440a48922a85aa2b717e8573085a8174eed982012",
+    "product-tools/product_tools/__init__.py": "c98c6028594987f21a6e7a4b581dbcc8cdf2f1891861b1907b8850e411e54b68",
+    "product-tools/product_tools/bulk_import.py": "3b1a11a9a2eaf34df3d67243df3260730646246e452e481a09b6e9090356f55a",
+    "product-tools/product_tools/completion.py": "66df6882371620b5455959a53779a4dfe3aa68fc51877e961841cd87ca90cfa9",
+    "product-tools/product_tools/contracts.py": "463d9ea5e3c04b601727d596e92a0711cbc1d8fbd29142b122e7c433e0b595a2",
+    "product-tools/product_tools/conversation.py": "03a2bbd7627c801b392cb3b1f6446993041ca4c04aa32b207943cf170305082a",
+    "product-tools/product_tools/dataset.py": "d4340d466ffc249cc3716f9ffcb1083919dee3e21e37a0ef0e22b3efcb49157f",
+    "product-tools/product_tools/delivery.py": "6a0f091082f734f6bd26ac3defe08e391d0d56f1588246e5fde9f1941ac47f79",
+    "product-tools/product_tools/error_receipts.py": "79ba9adeb2ced36cea90066701b98a6cc88c90c809d738d10f0b1f0156853d66",
+    "product-tools/product_tools/evidence_coverage.py": "fbbedf0cf207e3dc3d312912bcce8f7d33300079d97c1aa0744e67def8eaf5fe",
+    "product-tools/product_tools/instructions.py": "c4ca97e3e9c29b606a5b86b63109bdf9f1ae23cbdb2780de5faab2953951758b",
+    "product-tools/product_tools/payload.py": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e",
+    "product-tools/product_tools/planning.py": "5a1588057f61f7ffa2ac4e592fff7257ed8ed931ee022025bc57c3d67ae68547",
+    "product-tools/product_tools/reporting.py": "9ef8d6d549034d580d18ec707374442b3c91a449d2f24f640d1de8124a05e8e6",
+    "product-tools/product_tools/research_scope.py": "aa6e3e2be7c78670fdb296cbafe265721833d5aec6a1bdc137d3067e5c327a94",
+    "product-tools/product_tools/reviewer_packet.py": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4",
+    "product-tools/product_tools/selection.py": "4e79dec309d736b3413cb8489830b08f2f40b46553d4ad408323acf3d697086f",
+    "product-tools/product_tools/state.py": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf",
+    "product-tools/product_tools/tools.py": "2bdd0377b893b9b8e5e16d0d6a7fccb78bc42720b42904afd3c511dc9c026e32",
+    "product-tools/product_tools/web_delivery.py": "bac5cc397edea8684caeff2511c1c6a6cf6b75cdb98e9ee41a66d44ff35269a2",
+    "product-tools/product_tools/web_evidence.py": "b460afd2853d444a9cc8f5db7ea98000e8d78fd05a2334c5ee13c08af0355ff4",
+    "product-tools/product_tools/workflow.py": "cf677cc53ef43807127115d727fd7354af61f0f9e11a5e5895fca44b2805ca53",
+    "product-tools/requirements.in": "a77cc1377529b98d8584987066d3da415c894a506e74079706653316e593ff98",
+    "product-tools/requirements.lock": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033",
+    "skills/concept-writing/SKILL.md": "49cc6d3ac7637d5f74450e1dc5186e36249a0587adf41014be04b437385b9bd6",
+    "skills/concept-writing/scripts/run.py": "a739f9e53c35c400cc9d27ab647488bd078d91ce3e062f942cb1646d2f9d498c",
+    "skills/evidence-retrieval/SKILL.md": "c5e03b92d957a5be65f57997a3005f6486a7edc1d4e67186a71ec82dc8f04134",
+    "skills/evidence-retrieval/scripts/run.py": "b84f03475d7d79f83efb06050d9a15d4c3782cbdd7ab3ff04fdc318f3e6ed53f",
+    "skills/feature-comparison/SKILL.md": "ccf1674a4e525561b7be4c99e674a87cfc9734e46642159602ccb933a65b35d5",
+    "skills/feature-comparison/scripts/run.py": "08b7da58b1e892bb3f7d21408a18ccad1cef8d6424f21b8e8856fd488e1de86f",
+    "skills/manifest.json": "ba98e0e2c36cbe9d7f7b30ebe73b19103412be6ce957db1538f98caea8b3c37d",
+    "skills/needs-structuring/SKILL.md": "8085763a33d39a5a01e236f56e984a5a188c4538f84379513047c4c96d841535",
+    "skills/needs-structuring/scripts/run.py": "8abb7a690b1b6225459a307800c8e693aaa06b69e104e3c4ecafe4da647cd8a4",
+    "skills/review-and-revise/SKILL.md": "dcb927cac07234c5f9060b4076ab96c992380b85fb409442fbf1cdb8f633c572",
+    "skills/review-and-revise/references/payload.md": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059",
+    "skills/review-and-revise/references/report-writing.md": "7941e356f26d238143605ad57481e3b695fdd5f9eee28accdb5e9ffdba51277f",
+    "skills/review-and-revise/scripts/run.py": "5c86e56227c03f8db6347cee84c24700eb5a20c203b05e3872cdc1d379993d08",
+    "skills/web-evidence-collection/SKILL.md": "d706eaef3ef60778bcb3f0143ca0fe2e2526054f7e55e06da5b9ac7811d37765",
+    "skills/web-evidence-collection/scripts/run.py": "1170ba51b2399a2f31f3c99142c44b56c3f4da3e446cc0e9f9cdb4b892abae09",
+    "vendor/codex-harness/LICENSE": "bae1caa988a742c5a756faa45e33b6c72f21f9873b8e7f1e0ce87fcf0a4c747b",
+    "vendor/codex-harness/NOTICE": "2c7681de700d56d4f263c4cbd75ff9de7bd0c0a460345308facde04e50abac37",
+    "web/prototypes/agent-office/README.md": "a89fd00d4ec6056d579ebd0ab4a5f0089b3e91ffb9bac6b57f5e8567bca54c29",
+    "web/prototypes/agent-office/codex_follow.py": "d8b832716d42daf8b0fc3c36f174f3fe5eee099d38879a3c654c222611e05d9e",
+    "web/prototypes/agent-office/index.html": "c35c3049d160d929b65fdbe8f56a38a65b4a7eeedc3709eae821a93e94f06389",
+    "web/prototypes/agent-office/observe.py": "3ce61424eadbc2aadcdcee69a461b3476c6cd50978935b0cd861f303ad56349a",
+    "web/prototypes/agent-office/office.py": "8f9a21264a1096dbf9fdc4803c8883ea914a069dd44abbd33013b4cb2bab204b",
+    "web/prototypes/visual-viewer/README.md": "88329f0ee9c68fb60a78cf85eed4a769c9b23fcb50db72e4d4d6e860acdd375d",
+    "web/prototypes/visual-viewer/build_view.py": "c2c4b07de003d6587cf8ac3f1913de7de9dee0c45e0f3c4261b656629866ff8e",
+    "web/prototypes/visual-viewer/hook.py": "e1893067c4cef070cf10382eb2ebb62676a42a43a8fa5ef1bdc2236a76497fb1",
+    "web/prototypes/visual-viewer/index.html": "661fbf4f9abf8305f633510d46f8cd831f86b279120ead224ad17d3b1146dc66",
+    "web/prototypes/visual-viewer/viewer.py": "e36ed44da6ee2972dd69b8c5922cb86b6737e8866268d11d6697dee8e5ba129a",
+    "adapters/codex/templates/AGENTS.md": "4be234b0fee5805118afdf5ee5663d408baeaff0cdaf2122d2fd3fda46726441",
+    "adapters/codex/templates/README.md": "dec5b73f1e071e90763f9738d7fbd1f57d6c14489d0812efaeb3ccaa5ee3d3f0",
+    "adapters/codex/templates/pyproject.toml": "637e23b1c98515ea2b9c08a62cda2158062be9c3f0a408a7bde9ae62438773c1",
+    "adapters/codex/templates/uv.lock": "c0108ad2d48ed025138974702ff6611231e6b389ad7015738f281b9fd14ffb44",
+    "adapters/codex/templates/.gitignore": "0e5c69e91d0b47ba6e72d044ff08169915d6ed472dbc48c1be0ea4b7029f9516",
+    "adapters/codex/templates/product-doctor.py": "1d249b4ac17228ae6594c65e79de622867272470a79fa768c5a99842b07ed218",
+    "adapters/codex/templates/config.toml": "261de565095725388537064d07e4b4d13d6a7856190e3585a60dc647a28597f1",
+    "adapters/codex/templates/product-evidence-reviewer.toml": "8a73411d0d68ed3cc478b94b5e58abd247255db1df7c5ed7c263189f3ac9df05",
+    "adapters/codex/templates/product-official-researcher.toml": "a6e110bedf660b5d1ba2b00a12346e5d4772f91f015a1a039869673674b63d95",
+    "adapters/codex/templates/product-review-researcher.toml": "c880a1c1fb6252f34d784718a07552cc3b6dd9a2252d28e4f7b26c2c1c80d82c",
+    "adapters/claude/templates/CLAUDE.md": "2a73aee6c56f417c4a2ff78992c1db070477eff4ae998c43afd9095d7dd05156",
+    "adapters/common/product-doctor.py": "5824fd49873d5565d7082ab6d8e660e3aedb256359a98b621af96db9fd614f53",
+    "adapters/claude/templates/product-evidence-reviewer.md": "9471d88cb6af161eb77bbf28e1afd5f0606fb22254d8612570a9eacbd314579c",
+    "adapters/claude/templates/product-official-researcher.md": "662a291884ca95e297cb3130ebf39b8932e8440d1245db3a9526f7cbff203608",
+    "adapters/claude/templates/product-review-researcher.md": "a38ac93297b8563f81a4c13ff32c01403fe02666b48d32fc40d81300e46424c0",
+    "adapters/common/install.py": "9f79602ff53953e10f3febeb8eaddea4dabc43f275cbadb41918c2bf19aa641b"
+  },
+  "architecture": {
+    "main": 1,
+    "business_skills": 6,
+    "optional_product_roles": 3,
+    "default_catalog": "empty"
+  },
+  "CI": {
+    "status": "passed",
+    "stages": 21,
+    "report_sha256": "c8ef2766834ca44f6b76182e65388151894e931bf2efeca78807a77fca79a137",
+    "suites": {
+      "dev-harness": {
+        "tests": 35,
+        "skips": 0
+      },
+      "product-tools": {
+        "tests": 470,
+        "skips": 0
+      },
+      "evaluation": {
+        "tests": 146,
+        "skips": 0
+      },
+      "web": {
+        "tests": 129,
+        "skips": 0
+      },
+      "observer": {
+        "tests": 38,
+        "skips": 0
+      },
+      "evals": {
+        "tests": 28,
+        "skips": 0
+      }
+    }
+  },
+  "native_cases": {
+    "S_CODEX_SETUP": {
+      "native_id": "01a13ecb-1be5-7a70-952c-1166d93fdf6a",
+      "native_turn_id": "01a13ecb-1eb2-7432-a6c4-95c675f5ad70",
+      "elapsed_seconds": 28.328,
+      "requested_model": "gpt-6.1-sol",
+      "requested_effort": "medium",
+      "requested_approval": "on-request",
+      "requested_sandbox": "workspaceWrite",
+      "status": "completed"
+    },
+    "S_CODEX_DW": {
+      "native_id": "01a13ecc-f883-7162-9f23-db5de63f49c3",
+      "native_turn_id": "01a13ecc-facd-7cb0-959e-43c2905db21b",
+      "elapsed_seconds": 490.156,
+      "requested_model": "gpt-6.1-sol",
+      "requested_effort": "medium",
+      "requested_approval": "on-request",
+      "requested_sandbox": "workspaceWrite",
+      "status": "completed"
+    },
+    "S_CODEX_FOLLOWUP": {
+      "native_id": "01a13ecc-f883-7162-9f23-db5de63f49c3",
+      "native_turn_id": "01a13ed9-88f3-7293-afc9-a2f7c741bbd6",
+      "elapsed_seconds": 417.89,
+      "requested_model": "gpt-6.1-sol",
+      "requested_effort": "medium",
+      "requested_approval": "on-request",
+      "requested_sandbox": "workspaceWrite",
+      "status": "completed"
+    },
+    "S_CODEX_READBACK": {
+      "native_id": "01a13ecc-f883-7162-9f23-db5de63f49c3",
+      "native_turn_id": "01a13ee4-ce92-7af1-923a-de9b7d872960",
+      "elapsed_seconds": 110.157,
+      "requested_model": "gpt-6.1-sol",
+      "requested_effort": "medium",
+      "requested_approval": "on-request",
+      "requested_sandbox": "workspaceWrite",
+      "status": "completed"
+    },
+    "S_CODEX_MISSING": {
+      "native_id": "01a13ee8-c88a-7963-9e88-ba52f8f9aaf1",
+      "native_turn_id": "01a13ee8-cc17-7020-9487-f29da1729218",
+      "elapsed_seconds": 119.594,
+      "requested_model": "gpt-6.1-sol",
+      "requested_effort": "medium",
+      "requested_approval": "on-request",
+      "requested_sandbox": "workspaceWrite",
+      "status": "completed"
+    }
+  },
+  "actual_native_parent_inputs": 5,
+  "reserved_inputs": 6,
+  "automatic_redispatch": 0,
+  "full_evidence": {
+    "private_corpus_sources": 219,
+    "selected_DW": 81,
+    "review_excerpts": 38,
+    "facts": 43,
+    "model_scopes": 3,
+    "refs": 28,
+    "unique_customers": "unknown",
+    "market_representativeness": "not_certified"
+  },
+  "observer": {
+    "live_readback_events": 34,
+    "live_matching_binding_events": 2,
+    "native_input_start_before_follower": false,
+    "model_for_visualization_calls": 0,
+    "generic_helper_is_skill": "false"
+  },
+  "viewer": {
+    "current_payload_binding_verified": true,
+    "whole_selected_sources": 81,
+    "current_result_version": 1,
+    "data_sha256": "0602685537b7ebafc19cb5b78db71428db29d020521bbe81245a3ee7b04f6ce4",
+    "web_sha256": "8b1b12f74cd45e3f8cd7e5ca87991a1627802793bd9a3ff74f48d332aa674816",
+    "mode": "native manual open --no-browser",
+    "automatic_Codex_Stop_hook": "not_run: normal hook trust requires execution user",
+    "browser_visual_acceptance": "not_run: no workaround for rejected browser surface"
+  },
+  "business_semantic_review": {
+    "case": "S_CODEX_DW",
+    "sources_sha_matches": 81,
+    "ref_quote_model_hash_matches": 28,
+    "concept_final_matches": 3,
+    "decision_note_final_matches": 9,
+    "material_P1_P2": 0,
+    "scope": "registered source corpus and saved/final result only; no physical effect certificate"
+  },
+  "native_reviewer": {
+    "ids": [
+      "01a13ed1-c2c5-7da1-8493-393e6408c1b4"
+    ],
+    "observed_assigned_refs": 28,
+    "specific_corrections": 2,
+    "benefit": "source cause vs inference separated; installation cohort and initial-loading learning-residue controls added",
+    "general_quality_gain": "not_measured"
+  },
+  "missing_data": {
+    "original_question_preserved": true,
+    "turns": 0,
+    "result": "held/needs_input; no invented dimensions"
+  },
+  "Claude_latest_native": "not_run: physical Escape; no business prompt submitted",
+  "source_delta": "same business Python/Skills/roles and whole corpus; display EOL/guide/passive observer fixes sealed separately",
+  "scope": "whole business data/core identical across S business runs; passive observer fixes and final installed metadata sealed separately; actual source CSV/logs not published"
+}

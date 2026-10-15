@@ -113,6 +113,17 @@ class ObserverTests(unittest.TestCase):
     def tearDown(self):
         self.h.close()
 
+    def test_helper_business_metadata_does_not_claim_a_skill_or_leak_body(self):
+        binding={"session_id":"S1","turn_id":"T1","request_key":"K1"}
+        value=pre('Bash',{'command':'python runtime-data/helper.py'},
+            hook_event_name='PostToolUse',tool_response={'stdout':json.dumps({'ok':True,'result':binding,'body':SECRET})})
+        self.assertEqual(self.h.run(value).returncode,0)
+        event=self.h.events()[0]
+        self.assertEqual('shell',event['kind'])
+        self.assertIsNone(event['op'])
+        self.assertEqual(binding,event['detail']['business_binding'])
+        self.assertNotIn(SECRET,self.h.all_text())
+
     def test_business_binding_accepts_tool_json_followed_by_progress(self):
         spec = importlib.util.spec_from_file_location("office_stdout_frames", APP / "observe.py")
         observer = importlib.util.module_from_spec(spec)
@@ -518,6 +529,30 @@ import io  # noqa: E402
 
 
 class CodexFollowTests(unittest.TestCase):
+    def test_follower_after_task_started_retains_actual_wrapped_turn_id(self):
+        lines,child=codex_records(self.root)
+        lines=[row for row in lines if row.get('payload',{}).get('type')!='task_started']
+        self.write_logs(lines,child)
+        office.codex(self.root,latest=True,once=True)
+        event=next(e for e in self.events() if e.get('call')=='c2' and e['phase']=='end')
+        self.assertEqual('turn-1',event['prompt_id'])
+
+    def test_sdk_helper_binding_is_observed_without_promoting_it_to_skill(self):
+        lines,child=codex_records(self.root)
+        binding={"session_id":"S1","turn_id":"T1","request_key":"K1"}
+        for row in lines:
+            item=row.get('payload',{}).get('item',{})
+            if item.get('id')=='c2':
+                item['command']=['pwsh','-Command','python runtime-data/helper.py']
+                item['stdout']=json.dumps({'ok':True,'data':binding,'body':SECRET})
+        self.write_logs(lines,child)
+        office.codex(self.root,latest=True,once=True)
+        event=next(e for e in self.events() if e.get('call')=='c2' and e['phase']=='end')
+        self.assertEqual('shell',event['kind'])
+        self.assertIsNone(event['op'])
+        self.assertEqual(binding,event['detail']['business_binding'])
+        self.assertNotIn(SECRET,(self.out/'events.jsonl').read_text(encoding='utf-8'))
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="agent-office-codex-")
         base = Path(self.tmp.name)

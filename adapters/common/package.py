@@ -9,6 +9,7 @@ import zipfile
 ROOT=Path(__file__).resolve().parents[2]
 ADAPTER_FILES=(
     "common/install.py","common/package.py","common/product-doctor.py",
+    "common/package_judge.py","common/judge.py",
     "codex/install.py","codex/templates/AGENTS.md","codex/templates/README.md",
     "codex/templates/pyproject.toml","codex/templates/uv.lock",
     "codex/templates/config.toml","codex/templates/product-evidence-reviewer.toml",

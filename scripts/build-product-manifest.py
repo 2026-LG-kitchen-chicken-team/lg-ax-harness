@@ -31,7 +31,9 @@ def build():
               ROOT / "docs/contracts/common-tools.md", ROOT / "docs/contracts/product-planning.md", ROOT / "docs/contracts/web-evidence.md", ROOT / "docs/contracts/codex-product.md",
               ROOT / "docs/contracts/reader-deliverables.md", ROOT / "docs/contracts/product-workflow.md", ROOT / "docs/contracts/instruction-loading.md", ROOT / "product-tools/requirements.in", ROOT / "product-tools/requirements.lock",
               ROOT / "docs/contracts/product-reviewer-packet.md", ROOT / "docs/contracts/product-research-agents.md", ROOT / "docs/contracts/web-result.md", ROOT / "docs/contracts/runtime-access.md",
-              *[ROOT / "web/prototypes/visual-viewer" / name for name in ("README.md", "viewer.py", "hook.py", "build_view.py", "index.html")]]
+              *[ROOT / "web/prototypes/visual-viewer" / name for name in ("README.md", "viewer.py", "hook.py", "build_view.py", "index.html")],
+              *[ROOT / "web/prototypes/agent-office" / name for name in ("README.md", "office.py", "observe.py", "codex_follow.py", "index.html")],
+              ROOT / "docs/contracts/judge-test.md"]
     return {"version": "product-skills-v1", "agent": "agents/product-planning.md", "data_path": "data/business/empty", "skills": skills,
             "shared_files": [{"path": p.relative_to(ROOT).as_posix(), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in common],
             "optional_agents": roles, "native_installation_verified": False, "native_discovery_verified": False}

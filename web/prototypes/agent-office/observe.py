@@ -242,6 +242,8 @@ def classify(payload: dict) -> dict:
             else:
                 event["kind"] = "shell"
                 event["detail"]["programs"] = programs_of(command)
+                if hook == "PostToolUse":
+                    event["detail"].update(business_binding(payload.get("tool_response")))
         elif tool in FILE_TOOLS:
             path = tin.get(FILE_TOOLS[tool]) if isinstance(tin.get(FILE_TOOLS[tool]), str) else ""
             match = SKILL_MD.search(path.replace("\\", "/"))

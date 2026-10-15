@@ -311,6 +311,10 @@ class Thread:
         payload = record.get("payload") if isinstance(record.get("payload"), dict) else {}
         ptype = payload.get("type")
         ts = iso(record.get("timestamp"))
+        # A resumed follower may begin after task_started. Each public wrapped
+        # item still carries its real native turn, so retain that identity.
+        if kind == "event_msg" and isinstance(payload.get("turn_id"), str):
+            self.turn = ob.short(payload["turn_id"], 80)
         if kind == "event_msg" and ptype == "task_started":
             self.turn = ob.short(payload.get("turn_id"), 80)
             self.finished = False
@@ -377,8 +381,10 @@ class Thread:
                     failed, detail["error"] = True, code
                 elif not failed and fields["op"] in ob.SAVE_OPS:
                     detail.update(ob.save_outcome(stdout))
-                if not failed:
-                    detail.update(ob.business_binding(stdout))
+            # SDK/helper calls also return real public business metadata. Keep
+            # their shell classification; identifiers do not certify a Skill.
+            if not failed:
+                detail.update(ob.business_binding(stdout))
             if failed and isinstance(item.get("exit_code"), int) and "error" not in detail:
                 detail["exit_code"] = item["exit_code"]
             finish = self.event(key, "PostToolUseFailure" if failed else "PostToolUse", found["kind"], t1,

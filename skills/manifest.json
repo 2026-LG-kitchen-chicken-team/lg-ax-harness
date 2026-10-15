@@ -326,11 +326,11 @@
     },
     {
       "path": "docs/contracts/runtime-access.md",
-      "sha256": "95fd8091a31df8178003bc03e77f14bab40a51b73d9a897b90b98a3fa2ec7158"
+      "sha256": "8508bebdd349be2c76e99a89e0edc85d447af9dc7b0d264872348c56822ced68"
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "1417026481dd1c8616e524599ed8433bf5be8e018df99ae59a74e44d2208100e"
+      "sha256": "88329f0ee9c68fb60a78cf85eed4a769c9b23fcb50db72e4d4d6e860acdd375d"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -342,11 +342,35 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "3b208aeb4b9492664dd8f31abde15d9f22ae692ca44a1dc8731db1f915d8654b"
+      "sha256": "c2c4b07de003d6587cf8ac3f1913de7de9dee0c45e0f3c4261b656629866ff8e"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "6f5bf8b2169c3303aae7a16c15bb18f50d60f1128b0ba87556e0c116af4eacf6"
+      "sha256": "661fbf4f9abf8305f633510d46f8cd831f86b279120ead224ad17d3b1146dc66"
+    },
+    {
+      "path": "web/prototypes/agent-office/README.md",
+      "sha256": "a89fd00d4ec6056d579ebd0ab4a5f0089b3e91ffb9bac6b57f5e8567bca54c29"
+    },
+    {
+      "path": "web/prototypes/agent-office/office.py",
+      "sha256": "8f9a21264a1096dbf9fdc4803c8883ea914a069dd44abbd33013b4cb2bab204b"
+    },
+    {
+      "path": "web/prototypes/agent-office/observe.py",
+      "sha256": "3ce61424eadbc2aadcdcee69a461b3476c6cd50978935b0cd861f303ad56349a"
+    },
+    {
+      "path": "web/prototypes/agent-office/codex_follow.py",
+      "sha256": "d8b832716d42daf8b0fc3c36f174f3fe5eee099d38879a3c654c222611e05d9e"
+    },
+    {
+      "path": "web/prototypes/agent-office/index.html",
+      "sha256": "c35c3049d160d929b65fdbe8f56a38a65b4a7eeedc3709eae821a93e94f06389"
+    },
+    {
+      "path": "docs/contracts/judge-test.md",
+      "sha256": "5910f7c6db24138f78be7f5be8b9f717210b9c3c20781b1838a82c4542d34b9e"
     }
   ],
   "optional_agents": [
