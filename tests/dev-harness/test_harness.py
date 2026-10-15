@@ -6,8 +6,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import DEFAULT, Mock, patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "dev-harness"))
@@ -19,6 +20,29 @@ from run_state import init_run, start_task, record_result, update_agent, resume_
 from run_checks import validate_completion
 
 
+def cleanup_test_temp(temporary, expected_root):
+    """Retry only observed Windows sharing/lock violations in our exact fixture."""
+    deadline = time.monotonic() + 2.0
+    system_temp = Path(tempfile.gettempdir()).resolve(strict=True)
+    expected_root = Path(expected_root)
+    while True:
+        target = Path(temporary.name)
+        # Check before every recursive cleanup, including retries after partial deletion.
+        if (not target.is_absolute() or not expected_root.is_absolute()
+                or target.resolve() != expected_root
+                or expected_root.parent != system_temp
+                or not expected_root.name.startswith("lg-dev-check-")):
+            raise ValueError("Cleanup must target the exact lg-dev-check- fixture below system temp")
+        try:
+            temporary.cleanup()
+            return
+        except OSError as error:
+            remaining = deadline - time.monotonic()
+            if sys.platform != "win32" or getattr(error, "winerror", None) not in (32, 33) or remaining <= 0:
+                raise
+            time.sleep(min(0.05, remaining))
+
+
 class TempCase(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="lg-dev-check-")
@@ -26,10 +50,71 @@ class TempCase(unittest.TestCase):
         (self.root / "input.txt").write_text("version one", encoding="utf-8")
 
     def tearDown(self):
-        self.temp.cleanup()
+        cleanup_test_temp(self.temp, self.root)
 
     def execute(self, code, **kwargs):
         return run_check(self.root, [sys.executable, "-c", code], inputs=["input.txt"], **kwargs)
+
+
+class TempCleanupChecks(unittest.TestCase):
+    def lock_error(self, code):
+        error = PermissionError("synthetic temporary fixture lock")
+        if code is not None:
+            error.winerror = code
+        return error
+
+    def test_one_transient_windows_lock_retries_then_really_cleans(self):
+        for code in (32, 33):
+            with self.subTest(winerror=code):
+                temporary = tempfile.TemporaryDirectory(prefix="lg-dev-check-")
+                expected_root = Path(temporary.name).resolve()
+                try:
+                    with patch.object(temporary, "cleanup", side_effect=[self.lock_error(code), DEFAULT],
+                                      wraps=temporary.cleanup) as cleanup, patch.object(sys, "platform", "win32"), \
+                         patch.object(time, "sleep") as sleep:
+                        cleanup_test_temp(temporary, expected_root)
+                    self.assertEqual(cleanup.call_count, 2)
+                    sleep.assert_called_once()
+                    self.assertFalse(expected_root.exists())
+                finally:
+                    cleanup_test_temp(temporary, expected_root)
+
+    def test_permanent_lock_is_raised_at_two_second_deadline(self):
+        with tempfile.TemporaryDirectory(prefix="lg-dev-check-") as directory:
+            temporary = Mock(name="fixture", cleanup=Mock(side_effect=self.lock_error(32)))
+            temporary.name = directory
+            with patch.object(sys, "platform", "win32"), patch.object(time, "monotonic", side_effect=[0.0, 0.0, 2.0]), \
+                 patch.object(time, "sleep") as sleep, self.assertRaises(PermissionError) as raised:
+                cleanup_test_temp(temporary, Path(directory).resolve())
+            self.assertEqual(raised.exception.winerror, 32)
+            self.assertEqual(temporary.cleanup.call_count, 2)
+            sleep.assert_called_once_with(0.05)
+            self.assertTrue(Path(directory).exists())
+
+    def test_other_errors_and_non_windows_lock_fail_without_retry(self):
+        with tempfile.TemporaryDirectory(prefix="lg-dev-check-") as directory:
+            for platform_name, code in (("win32", 5), ("win32", None), ("linux", 32)):
+                with self.subTest(platform=platform_name, winerror=code):
+                    temporary = Mock(cleanup=Mock(side_effect=self.lock_error(code)))
+                    temporary.name = directory
+                    with patch.object(sys, "platform", platform_name), patch.object(time, "sleep") as sleep, \
+                         self.assertRaises(PermissionError):
+                        cleanup_test_temp(temporary, Path(directory).resolve())
+                    temporary.cleanup.assert_called_once()
+                    sleep.assert_not_called()
+
+    def test_unsafe_or_mismatched_cleanup_target_is_never_called(self):
+        system_temp = Path(tempfile.gettempdir()).resolve()
+        for target, expected in ((Path("lg-dev-check-relative"), system_temp / "lg-dev-check-relative"),
+                                 (system_temp / "wrong-prefix", system_temp / "wrong-prefix"),
+                                 (system_temp.parent / "lg-dev-check-outside", system_temp.parent / "lg-dev-check-outside"),
+                                 (system_temp / "lg-dev-check-one", system_temp / "lg-dev-check-two")):
+            with self.subTest(target=target):
+                temporary = Mock()
+                temporary.name = str(target)
+                with self.assertRaises(ValueError):
+                    cleanup_test_temp(temporary, expected)
+                temporary.cleanup.assert_not_called()
 
 
 class ExecutionChecks(TempCase):
