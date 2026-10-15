@@ -17,6 +17,10 @@ description: "상품기획 후보의 원문 의미·모델·기존 기능 중복
 
 메인 Agent의 공통 안전 규칙으로 원문을 대조해 result/assessment를 작성한다. 저장 필드는 프로젝트 루트의 skills/review-and-revise/references/payload.md를 읽는다. Skill이 .agents/skills 아래 발견돼도 docs는 프로젝트 루트 docs/contracts/다. 같은 본문/상세계약 재독해는 진단 때만 한다.
 
+최초 후보를 저장하기 전 메인이 기존 자체 검토에서 각 pain의 연결 원문이 현재 대상의 어떤 부정 평가·실패·지장·부담을 직접 보고하는지 확인한다. 상태 관측·정상화 경과·조언·미래 기대만 있고 직접 보고된 영향이 없으면 확인된 불편에서 빼고 필요한 관측/가설을 decision_notes/assumptions로 옮긴다. "직접 불편 표현은 없지만" 같은 단서를 붙여도 pains에 남기면 불편으로 분류한 것이다. 원문이 지지하지 않는 원인·대상·시점·범위를 덧붙이지 않고, 조건부 제안의 한계가 근거 없는 pain을 정당화하지 않게 한다. 이 점검은 별도 필드·의무 서브에이전트·추가 모델 호출을 요구하지 않는다.
+
+같은 점검에서 긍정 평가·조언·정상이라는 설명이 섞였다는 이유만으로 실제 부정 경험을 지우지 않는다. 직접 지지되는 불편과 그 조건·완화 맥락을 남기고, 제외는 해당 주장에만 적용한다. 나머지 근거가 기획을 지지하면 계속 검토하며, 핵심 전제가 사라진 안만 수정/보류한다. 저장·집계·최종 요약에도 같은 구분을 유지한다.
+
 bundle의 candidate_template을 실제 판단으로 채운다. result_limits를 확인하고 Python json으로 파일 작성 뒤 save_and_export를 실행한다. 기본 report:false의 delivery_ready/web_ready와 현재 web_result 파일/SHA/binding을 확인한다. 양식·파일 생성은 의미 승인이나 HTML 연결을 인증하지 않는다.
 
 미확인을 `supported`/`false`로 바꾸어 저장 검사를 통과시키지 않는다. 남은 불편·콘셉트가 근거에서 출발한 조건부 가설이면 payload.md의 `claim_checks.qualification`을 **최초 후보에서** 실제 한계와 함께 작성한다. `basis:"conditional_draft"`, `limitations`, `original_statement_supported`는 주장별 AI 판단이며 자동 기본값이 아니다. 원문에 없는 제안은 마지막 값을 false로 유지하고 support_status=uncertain·scope_relation=unclear·resolution=uncertain·duplicates_existing=null을 보존할 수 있다. 지지 근거가 없거나 이미 해결·중복·치수 부족이면 qualification으로 우회하지 않고 valid held를 작성한다. 조건부/페이지 연결 귀속이 있는 후보는 최초 저장 전에 review_product_result로 한 번 진단하고, 같은 거절 이유를 읽지 않은 채 수정 한도를 소진하지 않는다.
