@@ -13,6 +13,8 @@ TOOLS = {
     "concept-writing": ["validate_constraints", "validate_source_refs"],
     "review-and-revise": ["validate_result_contract", "review_product_result", "start_turn", "get_turn", "save_result", "save_reviewed_result", "save_and_export", "prepare_web_result", "get_completion_summary", "deliver_result", "export_session", "current_request", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation", "prepare_review_packet", "verify_review_packet"],
 }
+for operations in TOOLS.values():
+    operations.insert(0, "get_work_instructions")
 
 
 def build():
@@ -27,7 +29,7 @@ def build():
     roles = ["agents/product-evidence-reviewer.md", "agents/product-official-researcher.md", "agents/product-review-researcher.md"]
     common = [ROOT / "agents/product-planning.md", *[ROOT / p for p in roles], ROOT / "product-tools/cli.py", *sorted((ROOT / "product-tools/product_tools").glob("*.py")),
               ROOT / "docs/contracts/common-tools.md", ROOT / "docs/contracts/product-planning.md", ROOT / "docs/contracts/web-evidence.md", ROOT / "docs/contracts/codex-product.md",
-              ROOT / "docs/contracts/reader-deliverables.md", ROOT / "docs/contracts/product-workflow.md", ROOT / "product-tools/requirements.in", ROOT / "product-tools/requirements.lock",
+              ROOT / "docs/contracts/reader-deliverables.md", ROOT / "docs/contracts/product-workflow.md", ROOT / "docs/contracts/instruction-loading.md", ROOT / "product-tools/requirements.in", ROOT / "product-tools/requirements.lock",
               ROOT / "docs/contracts/product-reviewer-packet.md", ROOT / "docs/contracts/product-research-agents.md", ROOT / "docs/contracts/web-result.md",
               *[ROOT / "web/prototypes/visual-viewer" / name for name in ("README.md", "viewer.py", "hook.py", "build_view.py", "index.html")]]
     return {"version": "product-skills-v1", "agent": "agents/product-planning.md", "data_path": "data/business/empty", "skills": skills,
