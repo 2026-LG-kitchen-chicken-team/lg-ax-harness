@@ -1,0 +1,961 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-13",
+  "status": "bounded_implementation_and_validation_complete",
+  "scope": "출품 하네스 코드·정형 웹 전달·제한된 native 평가. 웹/UI·최종 접수는 별도",
+  "sources": {
+    "I": "2bb9ccd4e25097a52573ea480ab4f3276a8f25a8dca8b44c375d868f75f1877f",
+    "H": "b8e78f55ecbe76ef2b797500ac7a6e9fe8c75e5cdefc2716fd49c4ecc28bb12d"
+  },
+  "structure": {
+    "main_agents": 1,
+    "business_skills": 6,
+    "optional_roles": 3,
+    "native_role_benefit": "not_demonstrated"
+  },
+  "role_observations": {
+    "source_stage": "H",
+    "research_case": "H_codex_MW_research",
+    "researchers_completed_seconds": [
+      88.896,
+      148.124
+    ],
+    "extra_reviewer_completed_verdict": false,
+    "extra_reviewer_deadline_overrun_seconds": 35.484,
+    "reviewer_only_case": "H_codex_MW_reviewer",
+    "reviewer_only_completed_verdict": false,
+    "reviewer_only_deadline_overrun_seconds": 11.516,
+    "all_fork_turns": "none",
+    "observed_child_native_usage": [
+      {
+        "role": "official_researcher",
+        "input_tokens": 180558
+      },
+      {
+        "role": "review_researcher",
+        "input_tokens": 188421
+      },
+      {
+        "role": "extra_reviewer",
+        "input_tokens": 171934
+      },
+      {
+        "role": "reviewer_only",
+        "input_tokens": 234764,
+        "cached_input_tokens": 169600,
+        "output_tokens": 943
+      }
+    ],
+    "parent_inclusion_or_overlap": "unknown; 관측 부모/자식을 인증 총합으로 더하지 않음",
+    "native_strict_deadline_and_os_readonly": "not_certified",
+    "benefit": "not_demonstrated"
+  },
+  "implementation": {
+    "default_delivery": "reviewed_current_web_json",
+    "default_reader_generation": false,
+    "explicit_legacy_generation": true,
+    "html_frontend_changes": 0,
+    "own_llm_api_runtime_added": false,
+    "default_catalog": "data/business/empty",
+    "finite_safety_budget_seconds": 1800,
+    "timing_policy": "natural-completion-v1",
+    "budget_is_performance_target": false,
+    "default_packet_full_breadth": true,
+    "semantic_truth_automatically_certified": false
+  },
+  "code_checks": [
+    {
+      "check_id": "dd0ea9712db34d8a82e3b8899ba76684",
+      "kind": "product",
+      "test_count": 371,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 55.391,
+      "receipt_raw_sha256": "216a2eea066cd113187ee82b87a6e25fa5c4167e59f51e4bf7cd7631d4623105",
+      "input_count": 52,
+      "current_input_mismatches": [],
+      "logs": [
+        {
+          "name": "stdout.log",
+          "sha256_matches": true,
+          "byte_count_matches": true,
+          "truncated": false
+        },
+        {
+          "name": "stderr.log",
+          "sha256_matches": true,
+          "byte_count_matches": true,
+          "truncated": false
+        }
+      ],
+      "binding": {
+        "run_id": "web-ready-20261013",
+        "task_id": "implement",
+        "attempt": 1,
+        "agent_id": "/root",
+        "contract_fingerprint": "sha256:24b7619a0b1561c7231c5f21f0e19dd19e51317e357c7595db793f253a1d4d23"
+      }
+    },
+    {
+      "check_id": "4f112ecbdf7040e2b4c6daefff0d7179",
+      "kind": "evaluation",
+      "test_count": 144,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 11.0,
+      "receipt_raw_sha256": "b446e34b516337f01e803e4c2371a80e00164985942fc17149de1d6ff8f8e744",
+      "input_count": 41,
+      "current_input_mismatches": [],
+      "logs": [
+        {
+          "name": "stdout.log",
+          "sha256_matches": true,
+          "byte_count_matches": true,
+          "truncated": false
+        },
+        {
+          "name": "stderr.log",
+          "sha256_matches": true,
+          "byte_count_matches": true,
+          "truncated": false
+        }
+      ],
+      "binding": {
+        "run_id": "web-ready-20261013",
+        "task_id": "implement",
+        "attempt": 1,
+        "agent_id": "/root",
+        "contract_fingerprint": "sha256:24b7619a0b1561c7231c5f21f0e19dd19e51317e357c7595db793f253a1d4d23"
+      }
+    },
+    {
+      "check_id": "228793c0aa5a4e34a8d3b09c0d72afd1",
+      "kind": "assets",
+      "test_count": null,
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.094,
+      "receipt_raw_sha256": "d556a1e41f6b09455cdfc465ee070148d216147f52d06582fd3a07287abcf28f",
+      "input_count": 56,
+      "current_input_mismatches": [],
+      "logs": [
+        {
+          "name": "stdout.log",
+          "sha256_matches": true,
+          "byte_count_matches": true,
+          "truncated": false
+        },
+        {
+          "name": "stderr.log",
+          "sha256_matches": true,
+          "byte_count_matches": true,
+          "truncated": false
+        }
+      ],
+      "binding": {
+        "run_id": "web-ready-20261013",
+        "task_id": "implement",
+        "attempt": 1,
+        "agent_id": "/root",
+        "contract_fingerprint": "sha256:24b7619a0b1561c7231c5f21f0e19dd19e51317e357c7595db793f253a1d4d23"
+      }
+    }
+  ],
+  "code_proof_sha256": "eb65fe00b0f6221ea865f024e44d9af0981b0eab3cc393f7c091c508f20975fe",
+  "independent_review_sha256": "7a87a3fddc65f894e094ac8b3f14235049e2b0d08eb3aebbae7a91e3a7552e78",
+  "independent_code_review": {
+    "material_p1_p2_remaining": 0,
+    "scope": "코드와 실제 검사 인수"
+  },
+  "native_cases": [
+    {
+      "case": "H_codex_FR_1",
+      "source_stage": "H",
+      "native_id": "01a1345e-a64c-72b0-80a8-40f73211fa97",
+      "natural_final_seconds": 316.859,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 14,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "f92edeadec924730576e6809e5713186cccf200ee16382665fcf3ee215ddba00",
+      "native_observation_sha256": "d44124ba71a9c024f4824c8bc2b22033c5d0cac7c73911370282b3424beab8e2",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 869116,
+        "cached_input_tokens": 794368,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8968,
+        "reasoning_output_tokens": 403
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "pass_limited_planning_draft_current_contract",
+      "structural_audit_sha256": "ec39c5b7a8c81c90765604c2e3112704c5e500b231116643cf8dce2def027c13",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_FR_2",
+      "source_stage": "H",
+      "native_id": "01a13487-a014-7473-b1e8-8a151c437b4c",
+      "natural_final_seconds": 527.485,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 14,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "2eebf7ede26913a612bdd6660bfb44814a6498668387b5e640788aa50a5eb622",
+      "native_observation_sha256": "bfa062e5960c2520ac77cfd64cb26832c4201f8fe0f4ccf593a0ca1d5938a951",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 1191846,
+        "cached_input_tokens": 1102336,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 13206,
+        "reasoning_output_tokens": 1288
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "71b3fc3b1f79e93ce3574b2ccd1f0fbc44a0fcf22f74a1d36e7b5d83e6dd37f6",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_MW_1",
+      "source_stage": "H",
+      "native_id": "01a13464-eccc-7fd1-9e1e-a53f6e4d2e17",
+      "natural_final_seconds": 648.141,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 14,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "b1df174813f60e9b00da36669b6b39d1076d0ec4e4a7adf39ed0c86f0dccc2c0",
+      "native_observation_sha256": "a19a62c962c0ddeef74e5379507ca7cbbe4ef6eeb8b2bf71b385033ebffce913",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 1136301,
+        "cached_input_tokens": 1035648,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 11633,
+        "reasoning_output_tokens": 680
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "pass_limited_planning_draft_current_contract",
+      "structural_audit_sha256": "ff8ca1fcdfccb81238cd35684123a38ae44c31c6f61b226c16563dfcb0170824",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_MW_2",
+      "source_stage": "H",
+      "native_id": "01a13499-9e16-7973-a491-79fc406e65d4",
+      "natural_final_seconds": 409.797,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 13,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "1a39e5e975a061ebc93e09b1342b436da0d7fb33825ddd4dec3abba17a57e462",
+      "native_observation_sha256": "8db5a8ed3886bc31c3ee7ca3d567e024587146b60952c1e97a16d2fab029defd",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 1167014,
+        "cached_input_tokens": 1058432,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 11730,
+        "reasoning_output_tokens": 441
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "5fd640f0d4723de7095b5e2101c479781c8a88eee6c4f91eb782ebc4a2c1c91e",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_DW_1",
+      "source_stage": "H",
+      "native_id": "01a1347e-b898-7140-836e-6aa0b114ae5e",
+      "natural_final_seconds": 547.172,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 14,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "2483c03647ea5b97e8416cd31790dbfaecdd0b3d49e81b339af2e39117d01b64",
+      "native_observation_sha256": "ceed4912e2b3d844d8e249fa6a1e6894aa30fbe32398e6d3e6c300d762ade04a",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 970524,
+        "cached_input_tokens": 875648,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 13594,
+        "reasoning_output_tokens": 1103
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "pass_limited_planning_draft_current_contract",
+      "structural_audit_sha256": "edf06766b060da73962638bf4e908687d225361c2dcd1d0983c277b728648254",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_DW_2",
+      "source_stage": "H",
+      "native_id": "01a134a1-448f-7c52-9ea8-8139b92b876a",
+      "natural_final_seconds": 533.891,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 13,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "1bdfa9d6f28d9d07f566a8667770370adc0de19a85e4fc9bf8009fc5ef258e1f",
+      "native_observation_sha256": "18b08240ab533edf73daa578030bc5bcafdddd928cabbb38f19e75ac73831e8b",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 1458798,
+        "cached_input_tokens": 1354624,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 15088,
+        "reasoning_output_tokens": 891
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "56dd7e1d2b4847d044a58cdf24d5cb9e71f3faeadd155f805310dcc05b00c6e2",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_claude_FR_1",
+      "source_stage": "H",
+      "native_id": "a8a3d84e-41ba-48f1-aea1-6c6d83fedc78",
+      "natural_final_seconds": 216.721,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 13,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "d677e6f8c6a1b4c480e877a5209a9a873ef91da83e8427c36e7c25cff785f2fa",
+      "native_observation_sha256": "45be11f6a522c1f8a2eed8077a410df6f927d384842475455786ce34675dec4c",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 40,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 122026,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 2548698,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 27068,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "pass_limited_planning_draft_current_contract",
+      "structural_audit_sha256": "d1bd2183d4f55724356aa85d8eab9b573cfdee48913ec91c74f0cfdd280748d5",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_claude_FR_2",
+      "source_stage": "H",
+      "native_id": "9f880900-4ce1-4d3b-b1f3-789bc415e740",
+      "natural_final_seconds": 212.004,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 9,
+      "score_max": 14,
+      "major_errors": 2,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "a47b2e12b488ec6b5c7d995cc41ef57685cf9b7bec3e174a3e27f946989052f7",
+      "native_observation_sha256": "0749143372aad94f45ad06fba990009fe9f5580058e118c7c85de79a159049f6",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 56,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 85883,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3112891,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 23002,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "fail_semantic_absence_inference_and_validation_plan",
+      "structural_audit_sha256": "aee1ce198757d0fa38ecb0b3d6de12de4bed51515bb1ac9dd8d0c5c3ae9c054f",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_claude_MW_1",
+      "source_stage": "H",
+      "native_id": "fa095437-4f93-4921-91f9-107b07ea4973",
+      "natural_final_seconds": 331.961,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 12,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "842efe551a785459e234517e67cbcb09ed319310bc16f52b6d1cf51d82bae5ee",
+      "native_observation_sha256": "b1b6852caf70b5f0cd9ce38c1c72ac7b5f34dd93db2a61a96a6b504bd64c2f53",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 50,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 131554,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3406816,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 42301,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "pass_limited_planning_draft_current_contract",
+      "structural_audit_sha256": "1c07b9fc5f602a0d7ec4e5b734be156136f08cf412e834beb9f6414b45b93c20",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_claude_MW_2",
+      "source_stage": "H",
+      "native_id": "2eeeb8e6-e830-43da-a343-5b3889074a7d",
+      "natural_final_seconds": 361.003,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 12,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "369ef5acbf8f655ac0fc91d59eed2d0eb083ae436b7a18c969d9ad6aa9754b37",
+      "native_observation_sha256": "aa569567f67d8dbcd643c1a04b9458809129da10af863f7661d52b0d93a33a08",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 46,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 142461,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3337621,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 48079,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "2b1e7216b2e1a17b058c07e14a95a358d7cc84c15f2fc5873f4d447f9eada1b9",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_claude_DW_1",
+      "source_stage": "H",
+      "native_id": "c408d212-95ca-401d-9484-29c5b5d0c4ce",
+      "natural_final_seconds": 286.184,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 12,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "ac21a1f2553e83486e20cfd78dc71001034dd9eba7016c3d3f75e5d827d56be8",
+      "native_observation_sha256": "36eaf16a2e3e5e1c42c087f38e041cce148654ead1e46f50b6502e3429debbcc",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 46,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 134035,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3261478,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 39865,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "e59f0f52acf50f3b5e60c7357ea937c8d5e41e52bafd8f3908d5bb996ceb1912",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_claude_DW_2",
+      "source_stage": "H",
+      "native_id": "b6bf0e2f-23da-4f25-a5b0-a3f20f3cdf0a",
+      "natural_final_seconds": 296.386,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 12,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "5ee731d7add45855b9f99ed5d6d901707fc602c815480900fc9a4ea2086c4383",
+      "native_observation_sha256": "0cbe2a076d50fc5ed0af029ce4aada7c9c15bf5db69a4602a0d0e855cbbc1c5f",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 50,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 125410,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3346512,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 39297,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "f19045c4433d974dc2a37d6209784c773b5273c8cd5da75922301b06b771641c",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_MW_research",
+      "source_stage": "H",
+      "native_id": "01a13470-4289-71b2-a774-722b2de7b651",
+      "natural_final_seconds": 725.563,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 13,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "6d90459f9146daccf503977e5df177cb5287fa9ecea16296ac824947df872abb",
+      "native_observation_sha256": "ab356b256414ac12df55680feb7fb381355b5f21ebbf41775854266aaa732b43",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 2800233,
+        "cached_input_tokens": 2677120,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 16024,
+        "reasoning_output_tokens": 1054
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "H_codex_MW_reviewer",
+      "source_stage": "H",
+      "native_id": "01a13490-257a-7a00-88c7-24664fdba01b",
+      "natural_final_seconds": 540.532,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 14,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "f21edf4aee4e98e04f10e5977c064695aec94c618ba92aa873f1f34a86afcdb3",
+      "native_observation_sha256": "35503ba3e014fe48077e5b845608fcd62cf05fc2e477ae8af05f248990da2d5a",
+      "full_semantic_gate_pass": null,
+      "observed_native_usage": {
+        "input_tokens": 2581390,
+        "cached_input_tokens": 2468864,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 15997,
+        "reasoning_output_tokens": 1250
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": true,
+      "structural_audit_sha256": "eb94dc86e953688d0fcf5a0c680f57184a647e0579317f1fec2d8c49d85d927d",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "I_codex_MW_1",
+      "source_stage": "I",
+      "native_id": "01a134aa-bc8b-7d02-a948-3d8c13dd8a14",
+      "natural_final_seconds": 436.688,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 13,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "bec87045287f804b71e13b4845bb9446469533d3dec2a43e1ad2ce3cccf21385",
+      "native_observation_sha256": "b4bf996bc88a5fb0cdcde19bdf61d59f890a9cca8eec60c8bb3106aeed45a735",
+      "full_semantic_gate_pass": false,
+      "observed_native_usage": {
+        "input_tokens": 1143099,
+        "cached_input_tokens": 1052416,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 11888,
+        "reasoning_output_tokens": 684
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "일부 충족: 원문 매체 귀속과 실패 보존 위치 보완 필요",
+      "structural_audit_sha256": "4adbba2d28019124d7cacc0156f2ed7c20688242af96ec50a99fe96325c8b5a2",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "I_claude_MW_1",
+      "source_stage": "I",
+      "native_id": "973b3d48-4738-4f8e-b038-9beada135c99",
+      "natural_final_seconds": 401.185,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 12,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "168689edfd5bcd31bb938c4d7233d7368bba03c7552e4bff565c1ea753c3bc44",
+      "native_observation_sha256": "b68f5bbe4533f50b08baeebe831fa0d1ad91d62297bee3f80bea200f8b49d998",
+      "full_semantic_gate_pass": false,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 62,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 139665,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4262975,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 51093,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 중간 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "일부 충족: 원문 귀속·분류와 검증 계약 보완 필요",
+      "structural_audit_sha256": "3b827aa054579306b058f7d4e72a5e75ccdedda04086fb0b80dbe879f3fd3813",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "I_claude_high_MW_1",
+      "source_stage": "I",
+      "native_id": "ad3eb5ed-291b-4847-b624-668e9f8c649a",
+      "natural_final_seconds": 437.531,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 12,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "522f9c0a5c7eda23958e33fc001539bfc075c49db0058b6deade91d43d537b67",
+      "native_observation_sha256": "ffb4a4acc24712bc062534e7ee7576b66734818894e84a7038a677e2f453f9ac",
+      "full_semantic_gate_pass": false,
+      "observed_native_usage": {
+        "input_tokens": {
+          "known_sum": 64,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 173006,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 5072880,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 61525,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Claude Desktop GUI / Sonnet5.5 / 높음 label",
+      "backend_billing": "unknown",
+      "business_task_completed": null,
+      "semantic_quality_gate": "일부 충족: 원문 귀속·조건·긍정 분류와 검증 계약 보완 필요",
+      "structural_audit_sha256": "f9054189444a7f83ebd8befb25619efaefa229a1043298990f134fa2b375052f",
+      "completion_scope": "조건부 기획 초안 저장·현재 웹 JSON·export·native 최종 전달"
+    },
+    {
+      "case": "I_codex_ambiguous",
+      "source_stage": "I",
+      "native_id": "01a134b3-956d-7d31-a6ab-4b16b12c3d00",
+      "natural_final_seconds": 90.828,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": null,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "0fd0ff182773d9dc87333a0f49d86628d77a43c5135b0f6985841888f3ccd4f5",
+      "native_observation_sha256": "6e84d655e5f771946be48f0e31219582ef390b9df477f58082b71906711e34b4",
+      "full_semantic_gate_pass": false,
+      "observed_native_usage": {
+        "input_tokens": 310804,
+        "cached_input_tokens": 268160,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1701,
+        "reasoning_output_tokens": 98
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": false,
+      "semantic_quality_gate": "확인질문 처리 충족; 상품기획 의미 품질 평가는 not_run",
+      "structural_audit_sha256": "b9aff282c8aa9075deaa537a48569140f186f4d649d1d2cd8656be2be6dfaa34",
+      "completion_scope": "확인 질문 전달; 기획 turn 없음"
+    },
+    {
+      "case": "I_codex_online",
+      "source_stage": "I",
+      "native_id": "01a134b6-bac7-7691-9d17-07fd45e8aed2",
+      "natural_final_seconds": 1754.64,
+      "native_final_observed": true,
+      "protected_files_unchanged": true,
+      "score": 13,
+      "score_max": 14,
+      "major_errors": 0,
+      "score_scope": "내부 평가이며 공식 심사 점수·시장 효과가 아니다",
+      "semantic_audit_sha256": "4061bc2ab0824d889ff37c2789b695ef9188c030d16dea33dc7307665542bac7",
+      "native_observation_sha256": "67aab9d4e9fdb9eee2b2d0b95fc9713bcf39ae25b56a28c88d7b5cef71b76563",
+      "full_semantic_gate_pass": false,
+      "observed_native_usage": {
+        "input_tokens": 18079386,
+        "cached_input_tokens": 17727616,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 45192,
+        "reasoning_output_tokens": 9793
+      },
+      "usage_scope": "provider native 관측치; 전체 backend 청구 아님; cached/reasoning은 부분집합이며 중복 합산하지 않음",
+      "tested_profile": "Codex gpt-6.1-sol / medium",
+      "backend_billing": "unknown",
+      "business_task_completed": false,
+      "semantic_quality_gate": "일부 충족: 조건부 초안·정직한 보류는 확인, 상세 공식 기능의 정형근거 연결은 미완료",
+      "structural_audit_sha256": "2c9daa06c1c4956fe92c8b669b55ff2427dac188aeb5d1308518184975c87979",
+      "completion_scope": "실제 웹 조사 후 보류된 조건부 제안 전달"
+    }
+  ],
+  "online_source_scope": {
+    "registered_sources": 112,
+    "registered_reviews": 110,
+    "registered_product_facts": 2,
+    "directly_read_registered_body_count": 112,
+    "registered_text_total_chars": 8408,
+    "formal_refs": 35,
+    "unregistered_official_excerpts": 3,
+    "directly_read_unregistered_excerpt_count": 3,
+    "caller_reviewed": 109,
+    "caller_excluded": 3,
+    "review_scope": "등록된발췌본문112전량과주장별35근거·미등록발췌3를읽었다. 원페이지전체/영상/독립고객/대표성/실물검증인증이아님. 신규온라인원문authenticity/등록snapshot연결은별도provenance담당감사범위이며이평가가대신인증하지않음"
+  },
+  "online_provenance": {
+    "registered_reviews": 110,
+    "registered_facts": 2,
+    "snapshots": 26,
+    "original_observations": 115,
+    "native_original_review_literals_directly_matched": 107,
+    "remaining_blog_review_literals_full_original_page_confirmation": "unknown (3)",
+    "identity_and_manual_cover_full_original_page_confirmation": "unknown (2)",
+    "three_detailed_official_excerpts": "observed and read; not registered",
+    "web_full_registered_body_count": 112,
+    "closing_export_formal_source_body_count": 35,
+    "closing_export_not_a_full_source_archive": true,
+    "market_representativity": "not_certified",
+    "independent_customer_count": "unknown"
+  },
+  "phase": {
+    "previous": 21,
+    "additional_cap": 24,
+    "G": 5,
+    "H": 14,
+    "I": 5,
+    "used": 24,
+    "cumulative": 45,
+    "remaining": 0,
+    "automatic_redispatch": 0
+  },
+  "current_not_run": [
+    "source I 냉장고·식기세척기 native 재인수",
+    "source I native 취소·후속",
+    "웹팀 화면/HTML 보고서 연결·시각 검수",
+    "발표영상 제작·10분 리허설",
+    "최종 제출 접수"
+  ],
+  "packages": [
+    {
+      "engine": "codex",
+      "files": 105,
+      "archive_sha256": "517ccf55a3f5d0ad279b1a19e8b16f9cd9ab52597b917d6f89af2b0c66525cd3",
+      "locked_sync": 0,
+      "doctor": 0,
+      "reinstall": 0,
+      "reinstalled_files": 83,
+      "default_catalog": "empty",
+      "native_verified": false,
+      "HTML_verified": false
+    },
+    {
+      "engine": "claude",
+      "files": 105,
+      "archive_sha256": "49e2c45ec0430db067e3f9aef152d8a71be6524ec659fb98b6b2662a280a4655",
+      "locked_sync": 0,
+      "doctor": 0,
+      "reinstall": 0,
+      "reinstalled_files": 83,
+      "default_catalog": "empty",
+      "native_verified": false,
+      "HTML_verified": false
+    }
+  ],
+  "known_limits": [
+    "현재 I 정상 시험에도 원문 미명시 매체 귀속·후기 조건 전이·검증 조건 부족이 남음",
+    "I Codex의 존재하지 않는 오류 로그 파일 경로 안내; native 원출력에는 실제 실패 보존",
+    "기능 미기재를 기능 부재로 단정한 H Claude 냉장고 반복의 중대 오류2 보존",
+    "선택 reviewer 반환·부모 반영·지연/품질 이점 미입증; 역할 OS 읽기전용 강제 미인증",
+    "자료 등록/전달/호출자 검토 신고는 전체 원페이지·고객 대표성·의미 정확성 인증과 다름",
+    "전체 backend 청구 및 부모/자식 usage 중복 범위 unknown; cache 비율은 하네스 절감률이 아님"
+  ],
+  "model_recommendation": "pending",
+  "human_comparison": "excluded",
+  "Gemini": "withdrawn",
+  "publication": {
+    "product_tag": "product-v0.10.0",
+    "release_status": "published_prerelease_download_verified",
+    "record": "docs/validation/product-v0.10.0.md",
+    "source_commit": "182ee2e95f9ae4f8e5a21b835b714175b700b266",
+    "product_snapshot": "cdf0e6e1970c6e0b8d1cc728a6838dabf9188e29"
+  },
+  "git_byte_preservation": {
+    "scope": "adapters/** -text와기존4역할규칙",
+    "staged_source_files_raw_sha_match": 57,
+    "initial_staged_mismatches": 4,
+    "renormalize_fixed": true,
+    "source_bytes_changed": false
+  },
+  "independent_aggregation": {
+    "raw_sha256": "d245c8981937a56a5e6718521537321d442ca2ed557806d98c261bc34da63829",
+    "counts": {
+      "H": {
+        "started": 14,
+        "native_completed": 14,
+        "native_pending": 0,
+        "semantic_audit_completed": 14,
+        "semantic_status_counts": {
+          "pass_limited": 13,
+          "fail": 1
+        },
+        "normal_planning_cases": 12,
+        "optional_role_cases": 2,
+        "clarification_cases": 0,
+        "independent_structural_files": 13,
+        "embedded_structural_only": 1
+      },
+      "I": {
+        "started": 5,
+        "native_completed": 5,
+        "native_pending": 0,
+        "semantic_audit_completed": 5,
+        "semantic_status_counts": {
+          "partial": 4,
+          "exception_control_pass": 1
+        },
+        "normal_planning_cases": 4,
+        "optional_role_cases": 0,
+        "clarification_cases": 1,
+        "independent_structural_files": 5,
+        "embedded_structural_only": 0
+      }
+    },
+    "scope": "관측 원본과 감사 기록 집계; 전체 의미/모델권장 통과 아님",
+    "public_document_fingerprints_scope": "독립 검토 당시 snapshot; 이 집계 지문 링크만의 사후 갱신과 구분"
+  },
+  "audit_corrections": [
+    {
+      "case": "H_codex_DW_2-correction",
+      "raw_sha256": "02a09ab8cfb89f96bde02c439a438cf02da5fc54447dac72f7bd044a702a3011",
+      "original_preserved": true
+    },
+    {
+      "case": "H_codex_MW_2-correction",
+      "raw_sha256": "b4a778abb09f53fdc9204ec9452e44c2b4e369dc0f2e8c6702ad1054bcecd109",
+      "original_preserved": true
+    },
+    {
+      "case": "H_codex_MW_reviewer-correction",
+      "raw_sha256": "ff9cf27096a7bb921266ccce2e112a6dfc717bc04d8d2c156b8b1b67ac00114e",
+      "original_preserved": true
+    }
+  ]
+}

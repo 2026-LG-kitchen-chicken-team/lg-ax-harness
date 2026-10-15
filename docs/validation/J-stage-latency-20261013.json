@@ -1,0 +1,24 @@
+{
+ "source_manifest_sha256":"d88262b0381b42b6a6925adee72af7b0d4c098effab56a3be5f02e4e699f811e",
+ "scope":"Eight completed fixed MW48 cases; actual record-event wall times, not pure reading/reasoning. Old H/I not merged.",
+ "columns":["native_start_to_workflow_start","workflow_start_to_research_stop","research_stop_to_full_body_delivery","full_delivery_to_last_disposition","last_disposition_to_current_save","current_save_to_finish","finish_to_native_final"],
+ "rows":[
+  {"profile":"C61M","seconds":[32.903,31.987,30.217,161.877,253.025,69.797,28.396],"reviewed":48,"excluded":0},
+  {"profile":"AM","seconds":[47.581,22.932,30.610,118.238,237.535,88.458,33.723],"reviewed":48,"excluded":0},
+  {"profile":"LH","seconds":[27.672,24.859,18.105,42.364,139.581,8.852,34.816],"reviewed":47,"excluded":1},
+  {"profile":"C61H","seconds":[58.060,58.790,37.255,136.225,258.437,96.591,47.158],"reviewed":47,"excluded":1},
+  {"profile":"C56M","seconds":[45.737,63.340,44.606,109.455,365.479,50.299,56.943],"reviewed":48,"excluded":0},
+  {"profile":"AL","seconds":[36.701,29.262,19.534,144.227,203.182,55.050,33.205],"reviewed":48,"excluded":0},
+  {"profile":"C60M","seconds":[34.643,48.437,11.950,57.910,129.184,25.851,45.510],"reviewed":48,"excluded":0},
+  {"profile":"OPM","seconds":[59.541,12.954,13.053,91.151,180.996,8.648,23.353],"reviewed":47,"excluded":1}
+ ],
+ "native_ids_and_prompt_source_case_bindings_verified":true,
+ "all_original_database_SHA_unchanged_during_read":true,
+ "new_live_web_collection":false,
+ "research_stop_is_caller_code_event_not_collection_certificate":true,
+ "disposition_is_caller_report_not_independent_semantic_certificate":true,
+ "GUI_process_exit":"unknown",
+ "GUI_backend_effort":"unknown",
+ "GUI_prompt_difference":"One terminal LF removed; actual and canonical SHA kept separate",
+ "independent_review":{"actual_native_reviewer_id":"/root/bundle_latency_contract","read_commands":7,"exit0":6,"inspector_field_assumption_failure":1,"source_or_database_writes":0,"new_model_GUI_HTTP_calls":0,"development_usage":"unknown","report_scope":"Parent transcription of actual completed independent reviewer report, not original command logs"}
+}

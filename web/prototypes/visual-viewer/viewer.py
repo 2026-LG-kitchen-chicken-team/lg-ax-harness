@@ -722,11 +722,17 @@ def cmd_open(args) -> int:
     def change(state):
         # 화면에 그린 export를 기록한다. 최신이 아닌 export를 열었으면 훅이 최신을 다시 그리도록 last_key는 두지 않는다.
         state.update({"built_key": key if in_exports else f"{export.name}:manual", "insights": summary["insights"],
-                      "insights_file": summary.get("insights_file"), "warnings": summary["warnings"]})
+                      "insights_file": summary.get("insights_file"), "warnings": summary["warnings"],
+                      "web_delivery": summary.get("web_delivery"), "web_signature": hook.web_signature(paths)})
         latest = hook.newest_export(paths)
         if in_exports and latest is not None and hook.export_key(latest) == key:
             state.update({"last_key": key, "last_export": export.name})
             state.pop("failed_key", None)
+            state.pop("baseline", None)
+        else:
+            # A manually selected historical/external result is not the current
+            # export. Clear the fast-path marker so the next hook restores it.
+            state.pop("last_key", None)
             state.pop("baseline", None)
 
     update_state(paths, change)

@@ -1,0 +1,819 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-15",
+  "scope": "User items1-3; pinned PR10 integration, native automatic file updates/observation, general semantic correction",
+  "branch": "codex/evidence-complete",
+  "pinned_PR10": "0df3d57f4169439585417a4c957260452ef57ef6",
+  "source_versions": {
+    "N1": {
+      "manifest_sha256": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+      "source_record_sha256": "33443d7a295f1c75c4d3d5dd108719941c08b35e1b65975775762aa4c85cfc92",
+      "corpus_seal_sha256": "bf571c0710b780f88b2223abf0187908e547fdc4fa6d32efebfda4f6f4fe7169"
+    },
+    "N2": {
+      "manifest_sha256": "e30912be7ef3f87bd79f775e33bf34b0833bc133b731640c74c2bd95d039a34f",
+      "source_record_sha256": "519046f892e3b4623a623315060764f7be7cf5ea8afff5c10b72e13e27df4523",
+      "corpus_seal_sha256": "42ff2689fcf730e6758cfd9f366a5e3252ce4460dee92510a7a612a6431fae75"
+    }
+  },
+  "frozen_helper_sha256": "6fa30c8a824c09f71712b2867138755548f663bb693dadd1011f7dabf61241f6",
+  "phase": {
+    "used": 6,
+    "cap": 6,
+    "expected_inputs": 4,
+    "conditional_recovery_slots": 2,
+    "previous_used": 105,
+    "cumulative_used": 111,
+    "automatic_redispatch": 0,
+    "business_concurrency": 1
+  },
+  "corpus": {
+    "total_registered_records": 219,
+    "review_excerpts": 87,
+    "fact_records": 132,
+    "models": 9,
+    "selected_FR_records": 56,
+    "selected_review_excerpts": 23,
+    "selected_fact_records": 33,
+    "selected_models": 3,
+    "other_family_records": {
+      "MW": 82,
+      "DW": 81
+    },
+    "new_online_research": false,
+    "unique_customers_or_representativeness_certified": false
+  },
+  "cases": [
+    {
+      "case": "N1_CODEX_A",
+      "source_name": "N1",
+      "source_manifest_sha256": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+      "native_id_sha256": "9795f25c39eeb1a5106cfad4c101199c91265159dacbcec715b4762004bcd5ef",
+      "actual_model": "gpt-6-astra",
+      "actual_effort": "low",
+      "requested_effort": "low",
+      "ui_effort": null,
+      "native_status": "succeeded",
+      "exit_code": 0,
+      "final_delivery_observed": true,
+      "elapsed_seconds": 399.235,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "parent_only": true,
+      "usage": {
+        "input_tokens": 1960278,
+        "cached_input_tokens": 1831296,
+        "output_tokens": 16395,
+        "reasoning_output_tokens": 530
+      },
+      "usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "native_result_sha256": "367427635b757c670668a8634b1fb8da43bb00d8e9d9519a88ff3bb9e0df186e",
+      "snapshot_seal_sha256": "b2c05a0d90de8a1ff5ae612c73e91e88c98e3fd009c64542abeaad1a612e5040",
+      "candidate": "QN17",
+      "packet_sha256": "dee94d1af7246715ae2ed6c1d42429eec218789cea1ba1c3a88853d268b9316c",
+      "verdict_sha256": "428c5efba81f7ea798808bbf7696fd606855b3709253e880c2aa2be25a3805e2",
+      "quality_verdict": "pass",
+      "quality_finding_count": 0,
+      "quality_findings": [],
+      "sources_checked_count": 56,
+      "binding": {
+        "code_sha256": "0c71ce2a24ade46ceb35717d83761627ec2464cd0759a80caf46b6acd7ed8362",
+        "context_sha256": "613c05dd0587ec4c75501f5a32c87944473ed3936d327002a346e8a464003874",
+        "data_sha256": "535f13d937bd1c49254d39397038ac7e240e493f2c8a263a217a9ef98fed9a1a",
+        "data_version": "comparison-L2-20261014",
+        "request_key": "refrigerator-evaluation-M-20261015-parent",
+        "result_sha256": "4da656d4815405330fb4c85bf319c89c66aaa8926f29c2f1e3b6d4778b02bce1",
+        "result_version": 1,
+        "session_id": "session-885a7cc13c314604a88391c291181d58",
+        "turn_id": "turn-f272852f0b9a421b8a261bbb06f63bcb",
+        "workflow_audit_hash": "161f5eb5d5c7b6d4f020f72075cb75b6eedfaf47f9d59a0942cca631e903e2b2"
+      },
+      "selected_full_text_exact_count": 56,
+      "auto_file_audit_sha256": "ae058a078dbc541d4a0e44b19e6bb65c37fd6e6e151b12228a9e1958a47643fa",
+      "auto_file_checks": {
+        "actual_case_question_database_turn_and_result_exact": true,
+        "full_binding_stored_review_and_raw_web_sha": true,
+        "all_selected_source_text_in_view_exact": true,
+        "view_export_file_metadata_exact": true,
+        "last_export_built_key_exact": true,
+        "warnings_empty": true
+      },
+      "browser_opening_and_rendering_verified": false
+    },
+    {
+      "case": "N1_CODEX_F",
+      "source_name": "N1",
+      "source_manifest_sha256": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+      "native_id_sha256": "9795f25c39eeb1a5106cfad4c101199c91265159dacbcec715b4762004bcd5ef",
+      "actual_model": "gpt-6-astra",
+      "actual_effort": "low",
+      "requested_effort": "low",
+      "ui_effort": null,
+      "native_status": "succeeded",
+      "exit_code": 0,
+      "final_delivery_observed": true,
+      "elapsed_seconds": 348.562,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "parent_only": true,
+      "usage": {
+        "input_tokens": 3320821,
+        "cached_input_tokens": 3240960,
+        "output_tokens": 15416,
+        "reasoning_output_tokens": 840
+      },
+      "usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "native_result_sha256": "ca3bb3038ec84f1a15a26331efe5d75660c474440c9cc1644f0bdc5e6953ed95",
+      "snapshot_seal_sha256": "19bd7f1e335b276e4bcbac23cb8a21b3fafeea596f9dcbc887eafcb606a61fe6",
+      "candidate": "QN29",
+      "packet_sha256": "625f28986fdd99a76688659b952ded6db8ae875283964edf8caecbd94ba80ee7",
+      "verdict_sha256": "6a7f8c950378dd7c33ce6f5d2cf7038c1d5494c2ac96b7b703ae0ec752a7881b",
+      "quality_verdict": "pass",
+      "quality_finding_count": 0,
+      "quality_findings": [],
+      "sources_checked_count": 56,
+      "binding": {
+        "code_sha256": "0c71ce2a24ade46ceb35717d83761627ec2464cd0759a80caf46b6acd7ed8362",
+        "context_sha256": "af67a7060f0adc1c9e795de2728507c0f8df9e651c850dc32795c06bef655b51",
+        "data_sha256": "535f13d937bd1c49254d39397038ac7e240e493f2c8a263a217a9ef98fed9a1a",
+        "data_version": "comparison-L2-20261014",
+        "request_key": "refrigerator-evaluation-M-F-20261015-followup",
+        "result_sha256": "87b6f4a1d9fe245455aaee7f97cbf9eb8ee6a01323ac747537f1f95afa9f38d2",
+        "result_version": 1,
+        "session_id": "session-885a7cc13c314604a88391c291181d58",
+        "turn_id": "turn-f8473618c2134ff79593c02dfbba2f5b",
+        "workflow_audit_hash": "5c304baa2ce4a9fe1d8ff1fd80b8ac8fcc8a064b7fb311bb44d80aa3318c030a"
+      },
+      "selected_full_text_exact_count": 56,
+      "auto_file_audit_sha256": "db47901b1b88003d2fc366f36c41a0165af36dea0b863df709ec436b78cd4a53",
+      "auto_file_checks": {
+        "actual_case_question_database_turn_and_result_exact": true,
+        "full_binding_stored_review_and_raw_web_sha": true,
+        "all_selected_source_text_in_view_exact": true,
+        "view_export_file_metadata_exact": true,
+        "last_export_built_key_exact": true,
+        "warnings_empty": true
+      },
+      "browser_opening_and_rendering_verified": false
+    },
+    {
+      "case": "N1_CLAUDE_A",
+      "source_name": "N1",
+      "source_manifest_sha256": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+      "native_id_sha256": "82478bb88b2393df67b31ac45c8f67cd665a3e2312dfb3d20f08cfe010576a3c",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_effort": "high",
+      "ui_effort": "높음",
+      "native_status": "succeeded",
+      "exit_code": null,
+      "final_delivery_observed": true,
+      "elapsed_seconds": 587.05,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "parent_only": true,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 68,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 213354,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 5343074,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 58656,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "native_result_sha256": "79c5ab81eb2608d9f4037eb6c65e1293f767f71ee2a7f34be8ad9b1557980453",
+      "snapshot_seal_sha256": "53104381c4a909075e515c45138af78732e8d068f38a833ea251dc0af0ac25c5",
+      "candidate": "QN41",
+      "packet_sha256": "fc8dcad41226d2c401c077081c72479d08fbd03107897b9e590fb07da04b4a0d",
+      "verdict_sha256": "a23c0506967d860cb49be3e1fd2997e4d8b7196280bb8746b6ef4f794b461e3c",
+      "quality_verdict": "fail",
+      "quality_finding_count": 2,
+      "quality_findings": [
+        {
+          "priority": "P2",
+          "claim_id": "decision_notes[2]",
+          "source_ids": [
+            "src-751d4d79526d5075eeea8eda9e044428",
+            "src-08d232615056d30361269080fa99445e"
+          ],
+          "reason": "작은 용량을 선택했다는 이유로 직접 보고된 아쉬움을 불편 집계에서 제외한다. 선택 경위나 다른 만족은 실제 부정 평가를 무효화하지 않는다. 두 후기는 용량 차이의 아쉬움과 만족·수용 조건이 공존하는 사례로 보존해야 한다. 구조 변경안을 보류하는 판단과 부정 경험의 제외는 구분해야 한다.",
+          "literal_basis": "원문: '용량이 작은거라 좀 아쉽지만 90리터정도라 잘 채워넣으면되겠죠', '조금 아쉽긴 하지만 조용하고 좋습니다.' 현재 판단: '사용자가 고른 용량 차이로 보고 불편 집계에서 제외했다.' 이 판단은 stored/web/completion/final에 유지된다."
+        },
+        {
+          "priority": "P2",
+          "claim_id": "concept-b502-noise-check.validation_plan",
+          "source_ids": [
+            "src-0124e12d85c9c10493aaf6cbd17f792c"
+          ],
+          "reason": "미확인·판정불가를 기록하지만 성공기준에는 그 증가나 실제 해결의 악화를 막는 조건이 없다. 판정불가 상태로 남는 건이 늘어도 열람·근거 제시 비율이 높고 정상 판정 후 이상 확인 건수가 작으면 통과할 수 있다. 정상 판정 건만 추적하는 미검출 지표에 전체 배정건의 최종 확인 범위·미확인율·해결 또는 필요한 조치 이행을 연결해야 품질 저하가 가려지지 않는다.",
+          "literal_basis": "계획은 '최종 정상/이상이 확인되지 않은 건은 미확인으로 별도 집계'한다고 하나 성공기준은 '열람 확인과 근거 제시 비율이 기존 대비 높고, 정상 판정 후 실제 이상 확인 건이 기존보다 늘지 않을 것'이다. 원문의 지속 소음·한 달 대기·반복 연락 부담에 대응하는 해결 상태와 미확인 증가에 대한 통과 제한이 없다."
+        }
+      ],
+      "sources_checked_count": 56,
+      "binding": {
+        "code_sha256": "0c71ce2a24ade46ceb35717d83761627ec2464cd0759a80caf46b6acd7ed8362",
+        "context_sha256": "0f07f94a27afa6836da718be1c486e217778c958b6895a60419e08fc7924cf8a",
+        "data_sha256": "535f13d937bd1c49254d39397038ac7e240e493f2c8a263a217a9ef98fed9a1a",
+        "data_version": "comparison-L2-20261014",
+        "request_key": "fridge-review-planning-20261015T0041Z",
+        "result_sha256": "95179a49fb4d7108dc9ec314a5d9e838e82e8b5941dae2562808e4b99e980f8b",
+        "result_version": 1,
+        "session_id": "session-bebeb67a8d4643fda25deab8a2072759",
+        "turn_id": "turn-858123b66e674a3091c51465e8ea8dc5",
+        "workflow_audit_hash": "563e6f87f3523e89ecdebf3dff6bca5bf0bad2342ba05221c76099c7a322358d"
+      },
+      "selected_full_text_exact_count": 56,
+      "auto_file_audit_sha256": "4a21b2f48368472354f4152a23a5957bd5ebc6f7334515fd005a0c74aef01b0f",
+      "auto_file_checks": {
+        "actual_case_question_database_turn_and_result_exact": true,
+        "full_binding_stored_review_and_raw_web_sha": true,
+        "all_selected_source_text_in_view_exact": true,
+        "view_export_file_metadata_exact": true,
+        "last_export_built_key_exact": true,
+        "warnings_empty": true
+      },
+      "browser_opening_and_rendering_verified": false
+    },
+    {
+      "case": "N1_CLAUDE_F",
+      "source_name": "N1",
+      "source_manifest_sha256": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+      "native_id_sha256": "82478bb88b2393df67b31ac45c8f67cd665a3e2312dfb3d20f08cfe010576a3c",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_effort": "high",
+      "ui_effort": "높음",
+      "native_status": "succeeded",
+      "exit_code": null,
+      "final_delivery_observed": true,
+      "elapsed_seconds": 290.958,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "parent_only": true,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 24,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 43859,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3381092,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 31386,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "native_result_sha256": "da6515104124df769d1a2055b60961f6bc87db7d8225ba69cb780231616609c7",
+      "snapshot_seal_sha256": "08967f643212fc9ac33374e14de90e1cb28bb2ec837f76da5a5a1217009810b2",
+      "candidate": "QN53",
+      "packet_sha256": "3643e270672aaeb8b9ebf9ac4c1cc81fda9b8d32fa3ed8337281915c50372790",
+      "verdict_sha256": "82968150404f6cd8875faf976dc1a84ca49c29ef1eeadb8b33ef9f343c4097c2",
+      "quality_verdict": "fail",
+      "quality_finding_count": 3,
+      "quality_findings": [
+        {
+          "priority": "P2",
+          "claim_id": "decision_notes[2]",
+          "source_ids": [
+            "src-751d4d79526d5075eeea8eda9e044428",
+            "src-08d232615056d30361269080fa99445e"
+          ],
+          "reason": "현재 F에도 작은 용량을 선택했다는 이유로 직접 보고된 아쉬움을 불편 집계에서 제외하는 판단이 남았다. 선택 경위와 만족·수용 조건은 실제 부정 평가와 공존한다. 구조 변경안을 보류할 수는 있지만 혼합 부정 경험 자체를 제외하는 근거는 되지 않는다.",
+          "literal_basis": "원문: '용량이 작은거라 좀 아쉽지만 90리터정도라 잘 채워넣으면되겠죠', '조금 아쉽긴 하지만 조용하고 좋습니다.' 현재 판단: '사용자가 고른 용량 차이로 보고 불편 집계에서 제외했다.' stored/web/completion/final에 유지된다."
+        },
+        {
+          "priority": "P2",
+          "claim_id": "concept-b502-noise-check.validation_plan",
+          "source_ids": [
+            "src-0124e12d85c9c10493aaf6cbd17f792c"
+          ],
+          "reason": "미확인을 기록하고 보수 값을 보고하는 규칙은 추가됐지만, 보수 값에서도 비퇴행 기준을 충족해야 하는지 또는 최종 미확인율이 증가하면 보류하는지가 정해지지 않았다. 초기 정상 판정의 근거 제시는 늘면서 후속 실제 이상 확인은 줄어드는 경우, 확인된 건의 낙관적 지표만으로 통과할 여지가 남는다. 미확인 보고와 실제 품질 악화를 막는 통과조건은 구분해야 한다.",
+          "literal_basis": "unknown: '미확인을 제외한 값과 미확인을 모두 미검출로 본 보수 값을 함께 보고'. 성공기준: '주지표 두 비율이 기존 절차보다 높고, 아래 비퇴행 기준을 모두 충족'. 비퇴행 항목에는 미확인 증가 제한이나 두 추정값 중 무엇으로 통과를 판정하는지에 대한 규칙이 없다."
+        },
+        {
+          "priority": "P2",
+          "claim_id": "concept-b502-color-preview.validation_plan.guardrail_metrics[1]",
+          "source_ids": [
+            "src-8c9c3638ffd60f9791ae173072e6e06a",
+            "src-2f3a48d7ac8e7e29f1aa2a8f45bd21ef"
+          ],
+          "reason": "기존 은색·실버 선호자의 선택 보존을 평가하려면서 분모를 선택 유지자로 잡았다. 이 비중은 다른 색상 집단의 유지·이탈만으로 변하므로 보호하려는 선호자의 악화를 감추거나 정상적인 결과를 악화로 판정할 수 있다. 초기 은색·실버 선호자를 고정 분모로 두고 선택 유지·변경·중단·미확인을 추적해야 목적에 맞는다.",
+          "literal_basis": "metric: '실물 확인 후 처음 고른 옵션을 유지하겠다는 참여자 중 은색/실버 계열 선호자 비율'. 기준: '기존 선호를 낮추지 않아야 함(대조보다 낮지 않음)'. 이는 은색 선호자의 유지율이 아니라 유지자 구성비다."
+        }
+      ],
+      "sources_checked_count": 56,
+      "binding": {
+        "code_sha256": "0c71ce2a24ade46ceb35717d83761627ec2464cd0759a80caf46b6acd7ed8362",
+        "context_sha256": "31a4780383b5737d21ef71b14f8bf39e9dded576a11664f8acc9b08d2bcd097e",
+        "data_sha256": "535f13d937bd1c49254d39397038ac7e240e493f2c8a263a217a9ef98fed9a1a",
+        "data_version": "comparison-L2-20261014",
+        "request_key": "fridge-followup-validation-20261015",
+        "result_sha256": "e29b4a3123f32f4f919ebbfb09943e55528af0d9cba015e8542075bca7b21fbe",
+        "result_version": 1,
+        "session_id": "session-bebeb67a8d4643fda25deab8a2072759",
+        "turn_id": "turn-9bc8c8e543ba4f85a3c2bbef5bbce99b",
+        "workflow_audit_hash": "41f2cc0ad8c5b9cc6d6830be945842dc54597af47e57e2e3a96a4d285dd670bf"
+      },
+      "selected_full_text_exact_count": 56,
+      "auto_file_audit_sha256": "53d2ac9ec4696b5197df7aed432aa3aecbbe0ef1874818af25e7071fc9c8217d",
+      "auto_file_checks": {
+        "actual_case_question_database_turn_and_result_exact": true,
+        "full_binding_stored_review_and_raw_web_sha": true,
+        "all_selected_source_text_in_view_exact": true,
+        "view_export_file_metadata_exact": true,
+        "last_export_built_key_exact": true,
+        "warnings_empty": true
+      },
+      "browser_opening_and_rendering_verified": false
+    },
+    {
+      "case": "N2_CLAUDE_A",
+      "source_name": "N2",
+      "source_manifest_sha256": "e30912be7ef3f87bd79f775e33bf34b0833bc133b731640c74c2bd95d039a34f",
+      "native_id_sha256": "979aa2b236b4898e6cc8d77740d80dfa7bf437d333de5b6f20d2076993ee5895",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_effort": "high",
+      "ui_effort": "높음",
+      "native_status": "succeeded",
+      "exit_code": null,
+      "final_delivery_observed": true,
+      "elapsed_seconds": 479.898,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "parent_only": true,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 64,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 192554,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 5188849,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 52201,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "native_result_sha256": "76b8e2e5b5f69377d3a131d387f9ded74d57b93d1462b47c4fe00cf51b289efc",
+      "snapshot_seal_sha256": "4fecac53395ddca2ab9912a1bbe9f9c98248272df2bd7ff38a8e2e911652e08e",
+      "candidate": "QN65",
+      "packet_sha256": "cc79381b01961f36313ce2c1e3d4e6bc55f16b681a42df8e1b1208ff555292fa",
+      "verdict_sha256": "f4caaaedf382197a09bd8ff6c226e5a68552e0e688d82a67e3be17724cffaf4f",
+      "quality_verdict": "fail",
+      "quality_finding_count": 2,
+      "quality_findings": [
+        {
+          "priority": "P2",
+          "claim_id": "p1 / r1 / validation.assessment.claim_checks",
+          "source_ids": [
+            "src-0124e12d85c9c10493aaf6cbd17f792c"
+          ],
+          "reason": "사전 전송 영상을 미리 보지 않았다는 사실을 판정 전에 영상이 확인되지 않았다는 사실로 바꿨다. 원문에서는 방문 시 고객이 영상을 보여준 뒤 정상음이라는 설명을 들었다. 이 차이는 기획의 출발 문제를 사전 준비·실물 점검·판정 근거의 부족에서 영상 미확인 자체로 옮긴다.",
+          "literal_basis": "원문: '보내준 동영상보셨냐구 했더니 역시나 못보셨다고 하시더군요 동영상보여주니 원래 소리가 나는거라구'. r1: '고객이 보낸 소음 동영상이 판정 전에 확인되지 않았고'. assessment도 '동영상 미확인 정상 판정'을 직접 서술된 사실로 판정한다."
+        },
+        {
+          "priority": "P2",
+          "claim_id": "c1.validation_plan",
+          "source_ids": [
+            "src-0124e12d85c9c10493aaf6cbd17f792c"
+          ],
+          "reason": "전체 상담 분모와 중단·미확인 표시는 있지만, 최종 상태 미확인이나 후속 확인 누락이 증가했을 때 통과를 막는 조건이 없다. 정상 판정 후 수리 기록만으로 미검출을 확인하므로, 포기·연락 두절로 재문의와 후속 발견이 줄어도 개선으로 보일 수 있다. 확인 범위·미확인율·필요 조치 이행을 품질 비퇴행과 성공조건에 연결해야 한다.",
+          "literal_basis": "failed_or_stopped: '고객 연락 두절·상담 중단 건도 분모에 포함하고 별도 표기'. unknown: '자료 미제출·판정 근거 미기록은 미확인으로 분류'. 성공기준은 자료 확인·회신 증가, 결함 발견 비감소와 재문의 감소이며 미확인 증가에 따른 보류·수정 규칙은 없다."
+        }
+      ],
+      "sources_checked_count": 56,
+      "binding": {
+        "code_sha256": "0c71ce2a24ade46ceb35717d83761627ec2464cd0759a80caf46b6acd7ed8362",
+        "context_sha256": "7cdb1795210698257ad74c6866af06445bba4c38f6b1436621beaf372c40a83d",
+        "data_sha256": "535f13d937bd1c49254d39397038ac7e240e493f2c8a263a217a9ef98fed9a1a",
+        "data_version": "comparison-L2-20261014",
+        "request_key": "req-fridge-evalM-8a6b22f42e42",
+        "result_sha256": "5ad56b1d0eb46f38606fa5d1bdccd88cbb6f47b278c2270fee2f6958e2279141",
+        "result_version": 3,
+        "session_id": "session-4ea0debe0a034c8081e4ad52bc1c68d2",
+        "turn_id": "turn-e7e0ddbce0464c1bac566e6f14585fbb",
+        "workflow_audit_hash": "8233a844c8ecc89b019d82ff9a96712c9dd83726d742717ec6db10913713b612"
+      },
+      "selected_full_text_exact_count": 56,
+      "auto_file_audit_sha256": "66cdf17ee839dc65668a71e76d717ca01c749c4733c69edd2fc81a66f8eaaa86",
+      "auto_file_checks": {
+        "actual_case_question_database_turn_and_result_exact": true,
+        "full_binding_stored_review_and_raw_web_sha": true,
+        "all_selected_source_text_in_view_exact": true,
+        "view_export_file_metadata_exact": true,
+        "last_export_built_key_exact": true,
+        "warnings_empty": true
+      },
+      "browser_opening_and_rendering_verified": false
+    },
+    {
+      "case": "N2_CLAUDE_F",
+      "source_name": "N2",
+      "source_manifest_sha256": "e30912be7ef3f87bd79f775e33bf34b0833bc133b731640c74c2bd95d039a34f",
+      "native_id_sha256": "979aa2b236b4898e6cc8d77740d80dfa7bf437d333de5b6f20d2076993ee5895",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_effort": "high",
+      "ui_effort": "높음",
+      "native_status": "succeeded",
+      "exit_code": null,
+      "final_delivery_observed": true,
+      "elapsed_seconds": 226.57,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "parent_only": true,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 20,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 35046,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 2627591,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 24960,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "native_result_sha256": "55588205ecbbd52d1e882c1e06875bc2ab4480b1cd8ffe5564c49a74382c9631",
+      "snapshot_seal_sha256": "08adcdd8b120437b6e9878c38121c5df65d8c97f392865732033dd2f888a78e4",
+      "candidate": "QN77",
+      "packet_sha256": "af17ace4c8273eb2c4ce9c811c9c80336914304170905bf4c2ca7ff93f45cc27",
+      "verdict_sha256": "3177c2c5ea1e9682193d1fa49d84245980fb424be7a6430c89e4a7a6054fc298",
+      "quality_verdict": "fail",
+      "quality_finding_count": 1,
+      "quality_findings": [
+        {
+          "priority": "P2",
+          "claim_id": "p1 / r1 / decision_notes[2] / validation.assessment / final",
+          "source_ids": [
+            "src-0124e12d85c9c10493aaf6cbd17f792c"
+          ],
+          "reason": "사전 전송 영상을 미리 보지 않았다는 사실과 현장에서 영상을 본 뒤 정상음이라고 설명한 순서를 합쳐, 영상을 보지 않은 채 정상 판정한 사건으로 바꿨다. 현재 F에서는 이를 source_fact 노트와 최종 전달에도 반복한다. 이는 기획의 출발 근거를 사전 준비·실물 점검·설명의 부족에서 판정 전 영상 미확인 자체로 옮기는 실질 오류다.",
+          "literal_basis": "원문: '보내준 동영상보셨냐구 했더니 역시나 못보셨다고 하시더군요 동영상보여주니 원래 소리가 나는거라구'. 현재 p1: '동영상을 보지 않은 채 정상이라고 판정'. r1: '동영상이 판정 전에 확인되지 않았고'. source_fact 노트와 final도 '동영상을 보지 못한 상태로 정상'이라고 기록한다."
+        }
+      ],
+      "sources_checked_count": 56,
+      "binding": {
+        "code_sha256": "0c71ce2a24ade46ceb35717d83761627ec2464cd0759a80caf46b6acd7ed8362",
+        "context_sha256": "33e30fbee996043282e291c2f552d0f3ca5e5e28463c6d93b89f985665fe2ea1",
+        "data_sha256": "535f13d937bd1c49254d39397038ac7e240e493f2c8a263a217a9ef98fed9a1a",
+        "data_version": "comparison-L2-20261014",
+        "request_key": "req-fridge-followF-e46ed4f4c19d",
+        "result_sha256": "21197b58c1e483d84d7c309f257d853714f489700ef2891b68d964c9a433c740",
+        "result_version": 1,
+        "session_id": "session-4ea0debe0a034c8081e4ad52bc1c68d2",
+        "turn_id": "turn-af3368298eb54fa48b3731183eb9b144",
+        "workflow_audit_hash": "1cbf84472b894fe7acbf9fd7a089c1c0780dc8d676d1316fc1d440eb5edb8b94"
+      },
+      "selected_full_text_exact_count": 56,
+      "auto_file_audit_sha256": "2e272fb2de245cfaf474ee81183845aec9d2a05e221c3e292154ad998432e73e",
+      "auto_file_checks": {
+        "actual_case_question_database_turn_and_result_exact": true,
+        "full_binding_stored_review_and_raw_web_sha": true,
+        "all_selected_source_text_in_view_exact": true,
+        "view_export_file_metadata_exact": true,
+        "last_export_built_key_exact": true,
+        "warnings_empty": true
+      },
+      "browser_opening_and_rendering_verified": false
+    }
+  ],
+  "af_lineage": [
+    {
+      "source": "N1",
+      "provider": "CODEX",
+      "same_native_conversation": true,
+      "same_business_session": true,
+      "distinct_current_turns": true
+    },
+    {
+      "source": "N1",
+      "provider": "CLAUDE",
+      "same_native_conversation": true,
+      "same_business_session": true,
+      "distinct_current_turns": true
+    },
+    {
+      "source": "N2",
+      "provider": "CLAUDE",
+      "same_native_conversation": true,
+      "same_business_session": true,
+      "distinct_current_turns": true
+    }
+  ],
+  "checks": [
+    {
+      "name": "product",
+      "count": 443,
+      "skipped": 1,
+      "scope": "N1 product code; N2 changes instructions only",
+      "exit_code": 0,
+      "receipt": ".harness/checks/89f1abe657e54758ae2da83f8be5de1f/receipt.json",
+      "receipt_sha256": "312c18c589ee5edcd6dac016a4b99a1a9e39e9cc921400e3bd192635bc601f0d",
+      "inputs": {
+        "agents/product-planning.md": "2356e83c580decad6a57d7e4b0af7bd84554a41d0f1b8ab2e149aeba6c1194bd",
+        "skills/manifest.json": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+        "skills/needs-structuring/SKILL.md": "4e541205bedb8def69e59c86a5146a63fce8d4e382fd75f42dadc85bcad30666",
+        "skills/review-and-revise/SKILL.md": "9123bb56a677d3f9f3cd796db193261f6f6cfb6accbb8e61417a5706abec1380"
+      }
+    },
+    {
+      "name": "web",
+      "count": 116,
+      "skipped": 0,
+      "scope": "N1 and unchanged N2 web bytes",
+      "exit_code": 0,
+      "receipt": ".harness/checks/93c08772b85349579777f346666aa6a3/receipt.json",
+      "receipt_sha256": "b72203775ae1c8f9a4876fbca0a117bbb0723d4ca7be65b086bf1435c3063fd9",
+      "inputs": {
+        "tests/web/test_lead_accessibility.py": "da756d7470d0f7094174f931938c4d95236db9a2c01eff3761c64009135a91f1",
+        "tests/web/test_visual_viewer.py": "37ee8ae18806a024e565666d87364a47571dd4a6bc08148210ec860b28d46d80",
+        "web/prototypes/visual-viewer/build_view.py": "3b208aeb4b9492664dd8f31abde15d9f22ae692ca44a1dc8731db1f915d8654b",
+        "web/prototypes/visual-viewer/hook.py": "31ce4c9996ba444b9c7b9a7b967532486ff384a75c95bf6a26bee7d8d672593a",
+        "web/prototypes/visual-viewer/index.html": "6f5bf8b2169c3303aae7a16c15bb18f50d60f1128b0ba87556e0c116af4eacf6"
+      }
+    },
+    {
+      "name": "product-assets-N1",
+      "count": 55,
+      "skipped": 0,
+      "scope": "N1 canonical asset files",
+      "exit_code": 0,
+      "receipt": ".harness/checks/4298054e70c744f5ba8b8cbdd35609cf/receipt.json",
+      "receipt_sha256": "d464a7e6c6accea5308533abb3373299a44a5dba78ce65ad0fa5a45e5b824e51",
+      "inputs": {
+        "scripts/check-product-assets.py": "8225cd85c7cff9e975632e7b674b19ca2a4352e7ec401df73d180cd8089bd29f",
+        "skills/manifest.json": "06714c0baf265e5d339626400ba472c5e2248408aa5363ea604b913a9547d708",
+        "web/prototypes/visual-viewer/index.html": "6f5bf8b2169c3303aae7a16c15bb18f50d60f1128b0ba87556e0c116af4eacf6"
+      }
+    },
+    {
+      "name": "development-validate",
+      "count": null,
+      "skipped": 0,
+      "scope": "N1 development configuration",
+      "exit_code": 0,
+      "receipt": ".harness/checks/f00a9086e50c4864a368b47337895a35/receipt.json",
+      "receipt_sha256": "8b0e3c844a93eadb7118a91b07072d69fe4f5b93abfe5f82d72926355e3cba73",
+      "inputs": {
+        "dev-harness/cli.py": "845fba2b31368d1bf4720f63debf5816f29be7645396d601bbb47bd41cc94b96"
+      }
+    },
+    {
+      "name": "product-assets-N2",
+      "count": 55,
+      "skipped": 0,
+      "scope": "Final N2 instructions/manifest",
+      "exit_code": 0,
+      "receipt": ".harness/checks/db2f16952db54558a6d0859ee786ea9c/receipt.json",
+      "receipt_sha256": "54f0fbb72b7b6e0b19a3c6a887e1da31929970df23e7846bdad46b574957561a",
+      "inputs": {
+        "scripts/check-product-assets.py": "8225cd85c7cff9e975632e7b674b19ca2a4352e7ec401df73d180cd8089bd29f",
+        "skills/manifest.json": "e30912be7ef3f87bd79f775e33bf34b0833bc133b731640c74c2bd95d039a34f",
+        "skills/needs-structuring/SKILL.md": "440954bf93c85dc06c51283b399f6b6c5950f249541df256c709644dd93e96bc",
+        "skills/review-and-revise/SKILL.md": "fd297360cbf4c6482f672218017bb0618733499fff82171f343a292f3efeb670"
+      }
+    }
+  ],
+  "independent_audits": {
+    "auditor": "/root/n_web_explorer",
+    "method": "Read-only independent agent reports; no native/API/UI/extra delegation/file changes by auditor",
+    "public_command_audit": {
+      "codex": {
+        "N1_CODEX_A": 23,
+        "N1_CODEX_F": 19,
+        "total": 42,
+        "explicit_viewer_build_open_hook_observer_trace_importer_calls": 0,
+        "parse_errors": 0,
+        "missing_commands": 0,
+        "scope": "Raw lines filtered to item.completed command_execution before inspecting public command; root commands outside these logs excluded"
+      },
+      "claude": {
+        "N1_CLAUDE_A": 29,
+        "N1_CLAUDE_F": 9,
+        "total": 38,
+        "explicit_viewer_build_open_hook_observer_trace_importer_calls": 0,
+        "parse_or_boundary_errors": 0,
+        "scope": "Main-user UUID/time and strict single pasted_content envelope establish A/F boundary; public assistant tool_use shell command fields only; no thinking/reasoning inspected"
+      },
+      "claude_N2": {
+        "N2_CLAUDE_A": 24,
+        "N2_CLAUDE_F": 8,
+        "total": 32,
+        "explicit_viewer_build_open_hook_observer_trace_importer_calls": 0,
+        "parse_or_boundary_errors": 0,
+        "native_skill_tool_calls": 0,
+        "explicit_two_skill_md_read_in_public_shell_commands": 0,
+        "read_tool_calls": {
+          "A": 5,
+          "F": 1
+        },
+        "Read_targets": "bg1iof0rw.txt; dump.txt x3; completion_text.txt; F-completion.txt",
+        "direct_Read_of_main_agent_or_two_skill_md_or_payload_md": 0,
+        "skill_body_consumption": "unknown: indirect dump contents and automatic injection not audited; absence of explicit call does not prove absence of consumption"
+      }
+    },
+    "N1_claude_hook_snapshot": {
+      "native_session": "5508b33e-c06d-4b13-8976-021d9994c11a",
+      "events": 107,
+      "requests": 2,
+      "turn_ends": 2,
+      "hooks": {
+        "SessionStart": 1,
+        "UserPromptSubmit": 2,
+        "PreToolUse": 51,
+        "PostToolUse": 49,
+        "PostToolUseFailure": 2,
+        "Stop": 2
+      },
+      "source": "claude",
+      "timestamp_basis": "hook_received",
+      "open_tool_calls": 0,
+      "mapping_basis": {
+        "observed": 65,
+        "command_based_mapping": 42
+      },
+      "actual_role_or_child_events": 0,
+      "retained_live_js_and_snapshot_event_order_equal": true,
+      "database_business_binding": "unverified_native_session",
+      "observed_public_business_bindings": 0,
+      "scope": "Actual native hook receipt records inspected in immutable retained snapshot; no current rendered-screen verification; command-based Skill mapping is not semantic quality proof"
+    },
+    "N2_guidance_diff": {
+      "material_P1_or_P2": 0,
+      "general_contract": true,
+      "new_required_agents_or_model_calls": false,
+      "product_source_question_hardcoding": false,
+      "manifest_sha_match": true,
+      "diff_check_exit_code": 0,
+      "actual_effect_certified_by_diff_review": false
+    },
+    "N2_claude_hook_snapshot": {
+      "native_session": "88f6818b-3118-42a2-9c83-4722cac2e08f",
+      "events": 105,
+      "requests": 2,
+      "turn_ends": 2,
+      "hooks": {
+        "SessionStart": 1,
+        "UserPromptSubmit": 2,
+        "PreToolUse": 50,
+        "PostToolUse": 49,
+        "PostToolUseFailure": 1,
+        "Stop": 2
+      },
+      "source": "claude",
+      "timestamp_basis": "hook_received",
+      "open_tool_calls": 0,
+      "mapping_basis": {
+        "observed": 89,
+        "command_based_mapping": 16
+      },
+      "actual_role_or_child_events": 0,
+      "retained_live_js_and_snapshot_event_order_equal": true,
+      "database_business_binding": "unverified_native_session",
+      "observed_public_business_bindings": 0,
+      "scope": "Actual native hook receipt records inspected in immutable retained snapshot; no current rendered-screen or direct business-DB binding verification"
+    }
+  },
+  "narrow_target_review": {
+    "advice_or_neutral_only_pain": {
+      "QN77_F": {
+        "verdict": "pass",
+        "basis": "설명서 읽기 권유를 조작 실패로 만들지 않았고, 초기 냉각 후 정상화 관측은 pain에서 제외했다. 현재 pain들은 직접 부정 평가에서 출발한다."
+      },
+      "QN65_A": {
+        "verdict": "pass",
+        "basis": "설명서 권유만으로 pain을 만들지 않았으며 초기 정상화 관측을 불편 집계에서 제외했다. 해당 좁은 표적의 실패는 확인하지 못했다."
+      }
+    },
+    "mixed_negative_preserved": {
+      "QN77_F": {
+        "verdict": "pass",
+        "basis": "p3의 냉동실 좁음과 2인 사용 완화, p4의 효율 아쉬움과 가격·성능 수용, p5의 깊이 장단점과 바구니 대응을 함께 보존했다."
+      },
+      "QN65_A": {
+        "verdict": "pass",
+        "basis": "동일한 p3·p4·p5 혼합 부정과 완화조건을 보존했다. 자발적 선택을 이유로 이 관측들을 삭제한 판단은 없다."
+      }
+    },
+    "scope": "좁은 표적의 pass는 전체 의미 gate 통과가 아니다. QN65 A의 기존 전체 fail 판정은 유지한다."
+  },
+  "final_runtime_restoration": {
+    "receipt_sha256": "947bbcd0d89642d4cf2c75dc9d8ed2c8e63f6542d4f048847fe68d64c1471009",
+    "byte_exact_file_count": 77,
+    "automatic_or_rendering_proof": false
+  },
+  "codex_observer": {
+    "native_session": "01a13cf3-637a-73c2-b4ff-05a3f63ad3d3",
+    "event_count": 173,
+    "actual_requests": 2,
+    "turn_ends": 2,
+    "source": "continuous Codex rollout follower; not native Codex hooks or imported replay",
+    "events_sha256": "b93e6dc96b293efedeafaf2159249b41682f3af88e532b7a47d5fd586051faaa",
+    "stopped_only_after_actual_F_turn_end": true,
+    "browser_rendering_verified": false
+  },
+  "codex_observer_stop_receipt_sha256": "51b2a49070f2d69be963b6843a86d194eb75b4f18d69be14acbad07f7a6f6e65",
+  "browser_inspection": {
+    "observed_action": "CUA createBrowserTab to local agent-office file URL",
+    "automatic_approval_review": "rejected",
+    "reason": "Only http/https protocols allowed; file URL access denied",
+    "file_access_workaround_attempted": false,
+    "alternate_browser_surface_for_file_inspection_used": false,
+    "browser_rendering_verified": false,
+    "user_report": "지금 확인 어려움",
+    "scope": "File linkage/native collector tests continue; actual rendered-page inspection remains not_run",
+    "recorded_utc": "2026-10-15T00:43:48.178713+00:00"
+  },
+  "implementation": {
+    "main_agents": 1,
+    "business_skills": 6,
+    "optional_roles": 3,
+    "new_required_agent_or_model_calls": 0,
+    "visualization_model_calls_observed": 0,
+    "visualization_scope": "ordinary automatic hooks/follower and file generation; no model called to draw UI"
+  },
+  "interpretation_limits": [
+    "N1 fail remains fail after N2 recovery; source versions are not pooled as one all-pass version",
+    "N2 Codex native is not_run; N1 Codex A/F do not certify final N2 native quality",
+    "Parent-only N phase does not retest optional role benefits or native child paths",
+    "Retained full text delivery is not proof of original website completeness, unique customers or market representativeness",
+    "Automatic files and actual native events do not certify browser opening/rendering or observer-to-business-DB binding",
+    "Raw main usage is observed; backend billing and savings rate remain unknown; cache is not added twice",
+    "This narrow fixed-corpus A/F regression does not establish a generally optimal model/effort or measured real-product effect"
+  ],
+  "not_performed": {
+    "main_merge": true,
+    "release_or_final_filming_freeze": true,
+    "outgoing_email": true,
+    "final_submission": true
+  },
+  "private_proofs": "LG-AX-web-neutral-N-20261015 outside Git; originals, runtime, DB and credential settings are excluded",
+  "post_push_remote_check": {
+    "observed_utc": "2026-10-15T01:23:24.367762+00:00",
+    "branch": "codex/evidence-complete",
+    "remote_head": "d53312fe5c5e889e01890614d8fcdf1ecf12831b",
+    "runs": [
+      38665289379,
+      38665295025
+    ],
+    "check_ids": [
+      116195731754,
+      116195731910,
+      116195749083,
+      116195749409
+    ],
+    "workflow_conclusion": "failure",
+    "jobs_started": 0,
+    "steps_in_all_four_jobs": 0,
+    "annotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased.",
+    "cause_scope": "GitHub reports account payment/spending condition; which alternative applies is unverified; not a product test failure",
+    "canonical_git_blobs_checked": 55,
+    "canonical_git_blob_mismatches": 0,
+    "post_push_source_manifest": "e30912be7ef3f87bd79f775e33bf34b0833bc133b731640c74c2bd95d039a34f"
+  }
+}

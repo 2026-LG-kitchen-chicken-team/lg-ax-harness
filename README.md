@@ -1,5 +1,13 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+2026-10-13 최신 작업본: [웹 연결용 출품 하네스 검증](docs/validation/web-ready-harness-20261013.md) · [실측 JSON](docs/validation/web-ready-harness-20261013.json). 메인1·업무Skill6·선택 역할3, 기본 report:false의 현재 정형결과·선택 원문 전체·출처·검토/조사 이력을 웹팀에 전달한다. PDF/DOCX 자동 생성·검수는 기본 완료 경로에서 제외하며 명시 파일 요청은 검토된 현재 저장만 허용한다. [웹 데이터 계약](docs/contracts/web-result.md)·[웹팀 인수](docs/plans/web-team-handoff-20261013.md)를 따른다. source I 제품371·평가144·자산 검사와 독립 코드 리뷰 통과는 AI 의미 품질·HTML 인수와 별개다. 이전 H14/현재 I5 실행을 분리하고, 원문 미명시 매체 귀속·후기 조건 전이·검증 조건의 한계를 보존한다. 최종 모델/effort 권장은 미확정이다. [마감 결정](docs/decisions/web-ready-harness-closure-20261013.md)은 초기 동결 계획의 숫자와 최신24/24 입력 마감을 구분한다. 아래 배포/숫자는 해당 버전의 이력이다.
+
+현재 배포: [제품 v0.10.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.10.0) · [원격 다운로드/제품 소스 인수](docs/validation/product-v0.10.0.md). 두 ZIP105파일·자동 Source code105파일 raw byte·태그 부모0을 확인했다. 원격 CI는 계정 결제/사용한도 사유로 미시작이며 로컬 통과와 구분한다.
+
+이전 배포: [제품 v0.8.2 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.2) · [검토용 PR #9](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/pull/9) · [제품 전용94파일/원격 다운로드 인수](docs/validation/product-v0.8.2.md). 개발 변경은 `codex/evidence-complete`에 푸시했고 main/팀원 프론트/기존 태그는 보존했다.
+
+2026-10-12 사용자 후속 승인에 따른 **v7.5 자료 전체 전달·선택적 검토자 보완**: 메인 Agent1개/업무 Skill6개와 선택적 출품 근거 검토자1개를 유지하고, 일괄 등록·전체 전달/검토 장부·600초 시계·불변 검토 packet·취소/종료 후 등록 거절을 구현했다. 실제 후기92건+정확 식별/사양20건은 격리 평가용이며 기본 출품 catalog는 비어 있다. 전자레인지48자료 본 시험은 Codex507.375초/Claude GUI359.776초에 저장·보고서·export·최종 전달했다. 독립 검토는 partial이며 마지막 지침 변경 뒤 설명 후속은 별도 episode다. 제품338·평가143개 검사는 모두 통과/skip0이며 코드 범위다. [실측·검증·남은 한계](docs/validation/evidence-throughput-20261012.md), [설계 결정](docs/decisions/evidence-throughput-20261012.md)을 우선하며 아래 배포·종료·환경 상태는 당시 이력이다. HTML·프론트는 웹팀 소유로 이번에 수정하지 않았다. 모델 우위·대표성·새 조사5분 성공·최종 제출을 선언하지 않는다.
+
 2026-10-12 최종 변경은 사용자가 지정한 [0.8.1 릴리즈](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.8.1)로 배포한다. 보고서의 컨셉·시연 이미지 기능을 제외하고 핵심 강조·제목 위계·인용 서식과 긴 원문 인쇄 높이를 보완한다. 선택형 저장 결과 뷰어는 기본 훅 미등록이며 출처 지문과 실행 경로를 검사한다. [제품 검사·패키지 무결성](docs/validation/product-v0.8.1.md)과 [실제 서식 검수·원문 보존·새 조사 시간 실패의 구분](docs/validation/report-style-20261012.md)을 따른다. main 반영과 릴리즈 확인 후 이번 작업을 종료한다. 아래 문단은 이전 인수·배포 기록이다.
 
 2026-10-12 실제 제품 인수: **B502S33 냉장고·MWJ25E 전자레인지의 새 실제 조사→근거 분석·기획→검토→저장→원문 자료집·보고서 전달을 완료했다.** 실제 Codex 업무 2건의 조건부 초안과 제품별 XLSX4·DOCX·PDF를 보존하고, 수정한 최종 코드에서 같은 실제 입력을 재생해 확인했다. 최종 Windows PDF·Word·Excel109쪽/30시트와 원문 셀 링크135개를 검수했다. [실제 자료·실행·수정·검수 범위](docs/validation/real-products-20261012.md) · [SHA/사용량/실제 페이지 인수 기록](docs/validation/real-products-20261012.json). 기획은 실물 구현·효과 측정 전 조건부안이다. 합성 목업의 출력 검수로 하네스 완료를 판단했던 이전 선언은 정정하며, v0.8.0과 과거 실패 기록은 보존한다.

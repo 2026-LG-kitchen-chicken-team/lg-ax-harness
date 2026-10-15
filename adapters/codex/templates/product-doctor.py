@@ -1,4 +1,5 @@
 """Inspect the installed product and local Codex readiness; no inference."""
+import argparse
 import hashlib
 import importlib
 import importlib.metadata
@@ -7,6 +8,38 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
+
+
+def check_windows_sandbox(codex, backend):
+    """Run the local doctor under a real sandbox; no model or global config writes."""
+    result = {"requested_backend": backend, "status": "failed", "exit_code": None,
+              "scope": "Windows sandbox process startup and product-local SQLite; no AI, browser, approval escalation or network test"}
+    if sys.platform != "win32":
+        result["error"] = "This optional sandbox diagnostic is Windows-only"
+        return result
+    command = [codex]
+    if backend == "mxc":
+        command += ["-c", "windows.sandbox=mxc"]
+    command += ["sandbox", "--include-managed-config", "--permission-profile", ":workspace", "--",
+                sys.executable, str(ROOT / "product-doctor.py"), "--local-only"]
+    started = time.monotonic()
+    try:
+        process = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=45)
+        result["exit_code"] = process.returncode
+        if process.returncode:
+            result["error"] = (process.stderr or process.stdout).strip()[-1500:]
+        else:
+            local = json.loads(process.stdout)
+            if local.get("errors") or local.get("workspace_storage") != "local_process_checked" or local.get("readiness") != "local_only":
+                result["error"] = "Sandbox started but the product-local doctor did not pass"
+            else:
+                result["status"] = "passed"
+                result["workspace_storage"] = local["workspace_storage"]
+    except (OSError, subprocess.TimeoutExpired, ValueError) as exc:
+        result["error"] = type(exc).__name__
+    result["elapsed_seconds"] = round(time.monotonic() - started, 3)
+    return result
 
 ROOT = Path(__file__).resolve().parent
 
@@ -25,7 +58,20 @@ def reporting_dependencies():
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__)
+    stage = parser.add_mutually_exclusive_group()
+    stage.add_argument("--local-only", action="store_true", help="Check local installation before CLI installation/sign-in")
+    stage.add_argument("--check-sandbox", action="store_true", help="Also run a real Windows sandbox/local SQLite diagnostic; no model call")
+    parser.add_argument("--sandbox-backend", choices=("mxc", "configured"), default="mxc",
+                        help="For --check-sandbox: MXC or the already configured backend; never full access")
+    args = parser.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    python = {"version": sys.version.split()[0], "supported": sys.version_info[:2] == (3, 12)}
+    if not python["supported"]:
+        print(json.dumps({"errors": ["Python 3.12 is required; run uv sync --locked --python 3.12, then uv run python product-doctor.py"],
+                          "python": python, "readiness": "unsupported_python", "native_permissions": "unverified"}))
+        return 1
     errors = []
     report_dependencies = reporting_dependencies()
     for name, detail in report_dependencies.items():
@@ -38,12 +84,14 @@ def main():
             errors.append("Changed/missing installed file: " + entry["path"])
     codex = shutil.which("codex")
     runtime = {"version": None, "login_status": "unobserved"}
-    if not codex:
+    if args.local_only:
+        runtime["login_status"] = "not_checked_local_only"
+    elif not codex:
         errors.append("Codex CLI is not on PATH")
     else:
-        for args, field in ((["--version"], "version"), (["login", "status"], "login_status")):
+        for cli_args, field in ((["--version"], "version"), (["login", "status"], "login_status")):
             try:
-                p = subprocess.run([codex, *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=10)
+                p = subprocess.run([codex, *cli_args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=10)
                 # Login status emits only status; credentials are never read/copied.
                 runtime[field] = (p.stdout + p.stderr).strip()[:300]
                 if p.returncode:
@@ -53,7 +101,21 @@ def main():
     p = subprocess.run([sys.executable, "product-tools/cli.py", "doctor"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", timeout=20)
     if p.returncode:
         errors.append("Common Tool/catalog doctor failed")
-    print(json.dumps({"errors": errors, "runtime": runtime, "installed_skills": manifest["skills"], "common_tool_exit_code": p.returncode,
+    sandbox = {"status": "not_checked"}
+    if args.check_sandbox and not errors:
+        import re
+        version = re.search(r"codex-cli (\d+)\.(\d+)\.(\d+)", runtime["version"] or "")
+        if not version or tuple(map(int, version.groups())) < (0, 162, 0):
+            errors.append("Sandbox diagnostic requires Codex CLI 0.162.0 or later; update using the official CLI instructions")
+        else:
+            sandbox = check_windows_sandbox(codex, args.sandbox_backend)
+            if sandbox["status"] != "passed":
+                errors.append("Windows sandbox diagnostic failed; see sandbox.error and docs/contracts/runtime-access.md")
+    print(json.dumps({"errors": errors, "python": python, "runtime": runtime, "installed_skills": manifest["skills"], "common_tool_exit_code": p.returncode,
+                      "readiness": "local_only" if args.local_only else "cli_status_checked",
+                      "workspace_storage": "local_process_checked" if p.returncode == 0 else "failed",
+                      "native_permissions": "sandbox_process_checked" if sandbox["status"] == "passed" else "unverified",
+                      "sandbox": sandbox, "network": "not_checked", "model_access": "unverified",
                       "reporting_dependencies": report_dependencies, "report_generation": "unverified",
                       "scope": "files, dependency imports, CLI version/login status and local Tool only; document layout/native discovery/AI quality require actual execution"}, ensure_ascii=False))
     return int(bool(errors))

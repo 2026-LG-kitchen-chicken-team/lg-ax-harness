@@ -1,0 +1,85 @@
+{
+  "release": "product-v0.13.0",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.13.0",
+  "published_at": "2026-10-14T07:12:08Z",
+  "prerelease": true,
+  "draft": false,
+  "snapshot_commit": "590edd00b41d5c41ba2af36d6ed05d5cce87874f",
+  "snapshot_parent_count": 0,
+  "development_provenance_commit": "14dfa1a2d8b732258105e6725edeee7cfb94ff57",
+  "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+  "assets": [
+    {
+      "name": "lg-ax-harness-product-v0.13.0.zip",
+      "size": 421060
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 100
+    }
+  ],
+  "downloaded_archive_sha256": "f72a08312991aac3f90161c3181823522cb8634bb0f711b328bf265463a6adfd",
+  "checksum_bytes_equal": true,
+  "automatic_source_zip_raw_bytes_equal": 108,
+  "remote_notes_bytes_equal": true,
+  "release_notes_sha256": "d67079ced8b186750d7fc8b8079b3b904d698cc4ad98b97bf6b2b822894f8aa3",
+  "installations": {
+    "commands": 5,
+    "recorded_exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "raw_log_sha256": [
+      {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "2d10cffb8b863d4f85d0671daad52a6aaf621fe7365eab8df8e06a1f119cd1d0"
+      },
+      {
+        "stdout": "6ec3569b3d2bc9d2ef4b20f6eafdc4e3b3121f654e3aaefed890d5788c017536",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "stdout": "2194b470b8a4d66e5f189397f0150074f22a745e23b04ba355b1cf8f2475773d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "2838044eace86d618881bd63a791f9f1e7c1b1eed4919ab9ccb02295af4fc044"
+      },
+      {
+        "stdout": "f08262e9b2906224bf053f404ff451cc20837da47cd37206656924f5b6d4db0b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "checks": {
+    "total": 419,
+    "passed": 418,
+    "skipped": 1,
+    "exit_code": 0,
+    "seconds": 62.124,
+    "receipt": "f6249b004a6a464cbbf68728fa8298f3"
+  },
+  "check_receipt_sha256": "1975870d92181e871f8474537dd57e3fc7dfbfd31e49665d72c9fa893bd6a2dc",
+  "check_inputs": {
+    "product-tools/product_tools/dataset.py": "d4340d466ffc249cc3716f9ffcb1083919dee3e21e37a0ef0e22b3efcb49157f",
+    "product-tools/product_tools/research_scope.py": "aa6e3e2be7c78670fdb296cbafe265721833d5aec6a1bdc137d3067e5c327a94",
+    "product-tools/product_tools/state.py": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf",
+    "product-tools/product_tools/workflow.py": "923ed390b4f5a227dc082bd8507579b45b149eacd1a1493207184df537df1b5a",
+    "skills/manifest.json": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+    "tests/product-tools/test_product_workflow.py": "e86395ccc8c118b3f2038c2f8e14b33fc17402ac28adb7b870aa705859ee6036",
+    "tests/product-tools/test_research_scope.py": "5305f0299ec54d44879a33de9b8259b74be17fc212ede4050f01086129f91784"
+  },
+  "model_comparison_record_sha256": "63c0f0078c5104dba85d24bb7ed487f21f946c34596cbf06d7f44868273536fa",
+  "native_from_release_zip": "not_run",
+  "fresh_remote_clone": "not_run",
+  "default_Windows_autocrlf_checkout": "not verified; use ZIP",
+  "HTML_UI": "not_run; team-owned",
+  "physical_effect": "not_measured",
+  "full_backend_billing": "unknown",
+  "main_web_existing_tags_changed": false,
+  "final_submission": "not_completed"
+}

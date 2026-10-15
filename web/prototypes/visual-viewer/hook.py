@@ -12,6 +12,7 @@
   오류는 `runtime-data/visual-viewer/hook-error.log`에만 남긴다.
 - 업무·모델·Tool을 실행하지 않는다. `runtime-data/exports`에 아직 그리지 않은 export가 있을 때만
   build_view.generate를 부른다. insights는 출력 폴더의 `insights-*.json`에서 session_id·turn_id로 고른다.
+  같은 세션·질문·결과의 웹 전달 파일(`runtime-data/web-deliveries/web-*.json`)이 있으면 build_view가 함께 읽는다.
 - CLI 세션(claude·codex + session_id)마다 처음 화면을 만들 때만 기본 브라우저를 연다. 세션 기록을 먼저 저장하고
   연다. 열린 화면은 그 뒤로 2초 안에 새 데이터로 바뀐다. `LGAX_VIEWER_NO_OPEN=1`이면 열지 않는다(시험용).
 """
@@ -65,6 +66,8 @@ class Paths:
         harness = str(Path(harness).resolve())
         self.harness = harness
         self.exports = os.path.join(harness, "runtime-data", "exports")
+        # build_view reads the matching web result (product-web-result-v1) from here when it exists.
+        self.web = os.path.join(harness, "runtime-data", "web-deliveries")
         self.out = os.path.join(harness, "runtime-data", "visual-viewer")
         self.state = os.path.join(self.out, ".hook-state.json")
         self.lock = os.path.join(self.out, ".hook.lock")
@@ -75,14 +78,15 @@ class Paths:
     def validate(self) -> None:
         relatives = ("web/prototypes/visual-viewer/hook.py", "web/prototypes/visual-viewer/build_view.py",
                      "web/prototypes/visual-viewer/index.html", ".codex", ".claude",
-                     "runtime-data/exports", "runtime-data/visual-viewer/index.html",
+                     "runtime-data/exports", "runtime-data/web-deliveries", "runtime-data/visual-viewer/index.html",
                      "runtime-data/visual-viewer/view-data.js", "runtime-data/visual-viewer/.hook-state.json",
                      "runtime-data/visual-viewer/.hook.lock", "runtime-data/visual-viewer/.hook-last-export",
                      "runtime-data/visual-viewer/hook-error.log", "runtime-data/visual-viewer/hook-start-error.log")
         for relative in relatives:
             checked_path(self.harness, os.path.join(self.harness, *relative.split("/")))
         # Includes linked export/insight files and pre-existing atomic temp leaves.
-        for directory in (self.exports, self.out):
+        checked_path(self.harness, os.path.join(self.harness, "runtime-data", "web-deliveries"))
+        for directory in (self.exports, self.out, os.path.join(self.harness, "runtime-data", "web-deliveries")):
             if os.path.isdir(directory):
                 for entry in os.scandir(directory):
                     checked_path(self.harness, entry.path)
@@ -138,6 +142,8 @@ def write_marker(paths: Paths, state: dict) -> None:
     표시는 빠른 길의 최적화일 뿐이다. 쓰지 못하면 지워서, 실행기가 Python으로 넘어가게 한다(새 export를 놓치지 않게).
     """
     name = str(state.get("last_key") or "").rsplit(":", 2)[0]
+    if state.get("web_delivery") in ("missing", "mismatch", "unbound"):
+        name = ""  # export can be written before its immutable web payload
     try:
         if not name:
             if os.path.exists(paths.marker):
@@ -178,8 +184,18 @@ def insights_signature(paths: Paths) -> str:
     return sha256_bytes(json.dumps(items).encode("utf-8"))[:16]
 
 
+def web_signature(paths: Paths) -> str:
+    directory = os.path.join(paths.harness, "runtime-data", "web-deliveries")
+    try:
+        items = sorted((e.name, e.stat().st_mtime_ns, e.stat().st_size) for e in os.scandir(directory)
+                       if e.name.startswith("web-") and e.name.endswith(".json") and e.is_file())
+    except OSError:
+        items = []
+    return sha256_bytes(json.dumps(items).encode("utf-8"))[:16]
+
+
 def failure_key(paths: Paths, entry) -> str:
-    return f"{export_key(entry)}|{insights_signature(paths)}"
+    return f"{export_key(entry)}|{insights_signature(paths)}|{web_signature(paths)}"
 
 
 # ---------------------------------------------------------------- lock (OS file lock: 프로세스가 죽으면 저절로 풀린다)
@@ -268,13 +284,14 @@ def rebuild(paths: Paths, export_path: str, hashes: dict | None = None, focus: s
                                index_sha256=hashes.get("index"))
 
 
-def open_browser(paths: Paths) -> None:
+def open_browser(paths: Paths) -> bool:
     if os.environ.get("LGAX_VIEWER_NO_OPEN"):
-        return
+        return False
     import webbrowser
     from pathlib import Path
 
-    webbrowser.open(Path(paths.out, "index.html").resolve().as_uri())
+    # A successful request is still not proof that the page rendered on screen.
+    return bool(webbrowser.open(Path(paths.out, "index.html").resolve().as_uri()))
 
 
 def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict | None = None) -> dict:
@@ -285,7 +302,7 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
         return {"changed": False, "reason": "export 없음"}
     state = read_state(paths)
     key = export_key(latest)
-    if key == state.get("last_key") or failure_key(paths, latest) == state.get("failed_key"):
+    if (key == state.get("last_key") and (state.get("baseline") or web_signature(paths) == state.get("web_signature"))) or failure_key(paths, latest) == state.get("failed_key"):
         return {"changed": False, "reason": "이미 처리한 export", "export": latest.name}
     lock = Lock(paths)
     if not lock.acquire(LOCK_WAIT["sync" if source in SYNC_SOURCES else "async"]):
@@ -300,7 +317,7 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
             if latest is None:
                 break
             key = export_key(latest)
-            if key == state.get("last_key") or failure_key(paths, latest) == state.get("failed_key"):
+            if (key == state.get("last_key") and (state.get("baseline") or web_signature(paths) == state.get("web_signature"))) or failure_key(paths, latest) == state.get("failed_key"):
                 break
             try:
                 summary = rebuild(paths, latest.path, hashes)
@@ -322,6 +339,7 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
                           "built_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "focus": summary["focus"],
                           "insights": summary["insights"], "insights_file": summary.get("insights_file"),
                           "warnings": summary["warnings"]})
+            state.update(web_delivery=summary.get("web_delivery"), web_signature=web_signature(paths))
             write_state(paths, state)
             built = latest.name
         opened = False
@@ -334,8 +352,7 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
                 seen.append(session)
                 state["opened_sessions"] = seen[-KEEP_SESSIONS:]
                 write_state(paths, state)
-                open_browser(paths)
-                opened = True
+                opened = bool(open_browser(paths))
         return {"changed": bool(built), "export": built, "opened_browser": opened}
     finally:
         lock.release()

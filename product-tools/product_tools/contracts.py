@@ -6,8 +6,9 @@ import re
 CONTRACT_VERSION = "product-contract-v1"
 DEFAULT_DATA_PATH = "data/business/empty"
 MAX_BYTES = 65536
+MAX_INPUT_BYTES = 262144
 MAX_PLANNING_BYTES = 12288
-MAX_RESULT_BYTES = 32768
+MAX_RESULT_BYTES = 131072
 
 class ToolError(ValueError):
     def __init__(self, code, message):
@@ -40,15 +41,15 @@ def strict_json(text):
 
 def decode_json_bytes(raw):
     """Accept explicit Windows Unicode BOMs, never guess an ANSI encoding."""
-    if len(raw) > MAX_BYTES:
-        fail("input_limit", "Input exceeds 64 KiB")
+    if len(raw) > MAX_INPUT_BYTES:
+        fail("input_limit", "Input exceeds 256 KiB")
     encoding = "utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"
     try:
         value = raw.decode(encoding)
     except UnicodeError as exc:
         fail("invalid_json", "Expected UTF-8 or BOM-marked UTF-16 JSON: " + str(exc))
-    if len(value.encode("utf-8")) > MAX_BYTES:
-        fail("input_limit", "Decoded input exceeds 64 KiB")
+    if len(value.encode("utf-8")) > MAX_INPUT_BYTES:
+        fail("input_limit", "Decoded input exceeds 256 KiB")
     return value
 
 def obj(value, required, optional=()):
@@ -203,11 +204,43 @@ def claim(value, concept=False):
             for step in steps:
                 text(step, "implementation step", 1000)
         if "validation_plan" in value:
-            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"))
+            plan = obj(value["validation_plan"], ("metric", "baseline", "method", "success_criterion", "business_value", "status"),
+                       ("evaluation_protocol", "condition_controls", "guardrail_metrics"))
             for key in ("metric", "baseline", "method", "success_criterion", "business_value"):
                 text(plan[key], key, 1000)
             if plan["status"] != "planned_not_measured":
                 fail("invalid_input", "Model-authored validation plans cannot certify measured effects")
+            if "evaluation_protocol" in plan:
+                protocol = obj(plan["evaluation_protocol"], ("unit", "failed_or_stopped", "unknown"))
+                for key in ("unit", "failed_or_stopped", "unknown"):
+                    text(protocol[key], key, 1000)
+            if "condition_controls" in plan:
+                controls = items(plan["condition_controls"], "condition_controls", 10)
+                if not controls:
+                    fail("invalid_input", "Declared condition controls cannot be empty")
+                for control in controls:
+                    text(control, "condition control", 1000)
+            if "guardrail_metrics" in plan:
+                metrics = items(plan["guardrail_metrics"], "guardrail_metrics", 8)
+                if not metrics:
+                    fail("invalid_input", "Declared guardrail metrics cannot be empty")
+                for metric in metrics:
+                    obj(metric, ("metric", "method", "non_regression_criterion"))
+                    for key in ("metric", "method", "non_regression_criterion"):
+                        text(metric[key], key, 1000)
+
+
+def planning_quality_diagnostics(result):
+    """Optional field presence only; never infer adequacy or change finalization."""
+    missing = []
+    for concept in result["concepts"]:
+        plan = concept.get("validation_plan")
+        fields = (["validation_plan"] if plan is None else
+                  [key for key in ("evaluation_protocol", "condition_controls", "guardrail_metrics") if key not in plan])
+        if fields:
+            missing.append({"concept_id": concept["id"], "missing_optional_fields": fields})
+    return {"scope": "structural_only", "blocking": False, "concepts": missing,
+            "note": "Optional planning details to consider; presence does not certify meaning, measurement or quality."}
 
 def product_result(value, planning):
     obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"), optional=("decision_notes",))
@@ -246,5 +279,5 @@ def product_result(value, planning):
     if summary["status"] != "unknown":
         fail("invalid_input", "Result must not self-certify usage; record observed calls separately")
     if len(canonical(value).encode("utf-8")) > MAX_RESULT_BYTES:
-        fail("input_limit", "Result exceeds 32 KiB")
+        fail("input_limit", "Result exceeds 128 KiB; preserve claim-source links and use a separate report plan")
     return value

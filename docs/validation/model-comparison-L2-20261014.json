@@ -1,0 +1,1028 @@
+{
+  "date": "2026-10-14",
+  "phase": {
+    "cap": 14,
+    "used": 14,
+    "previous_used": 77,
+    "cumulative_used": 91,
+    "automatic_redispatch": 0,
+    "business_concurrency": 1
+  },
+  "current_source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+  "canonical_files": 55,
+  "installed_files": 86,
+  "corpus": {
+    "seal_sha256": "790817cbd5673be3f873d6fd3a6dc5c97c3823dda59ac32e7ad1f9b08ff9f62a",
+    "files": {
+      "manifest.json": "8d83233b1de9963d526428049b60ced5817aecb3bbb718e1b8ff8cf8ceb0ec41",
+      "models.json": "f994159a4fe6ffc45ee5fb79c5ddf94875aff00981def6c9fbdc44effb903b23",
+      "sources.jsonl": "d741ec27eb4ca1ce9a667191d52b29c6aab58fe4d5685c4db6c357b17c6e6a0c"
+    },
+    "provenance_sha256": "5148e1b80c2970674023aa69756eff7011deb4e1ba7cf7fe1eb1724a12deb140",
+    "registered_records": 219,
+    "review_records": 87,
+    "fact_records": 132,
+    "model_scopes": 9,
+    "families": {
+      "FR": {
+        "review": 23,
+        "fact": 33,
+        "all": 56
+      },
+      "MW": {
+        "review": 26,
+        "fact": 56,
+        "all": 82
+      },
+      "DW": {
+        "review": 38,
+        "fact": 43,
+        "all": 81
+      }
+    },
+    "unique_customer_count": "unknown",
+    "market_representativity": "not_verified",
+    "full_web_coverage": "not_verified"
+  },
+  "trials": [
+    {
+      "case": "L_LIVE_FR",
+      "candidate_id": "LQ1",
+      "family": "FR",
+      "mode": "live",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 1608.89,
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_backend_effort": "low",
+      "clock_scope": "native runner elapsed to final/process completion",
+      "source_manifest_sha256": "c0aa132bd64153c00e065b030a6bf3ac66afc66e586888fb6cdb893c7107d541",
+      "source_unchanged": true,
+      "data_unchanged": null,
+      "selected_count": 56,
+      "usage": {
+        "input_tokens": 9017323,
+        "cached_input_tokens": 8612480,
+        "output_tokens": 33106,
+        "reasoning_output_tokens": 4832
+      },
+      "usage_scope": "Codex reported main-turn delta; cached input is a subset, reasoning output is a subset",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "8387c49d73714c1968be490aa5a39f96eb8f0f3a31ed81c61ac5f0d2c534e27f",
+      "native_sha256": "90e8119433f775bcd23c05ad0f5abc57a18ef4572183a46229577dfcce776593",
+      "packet_sha256": "64ca1f912bc21745c8fc1763b073a23bb21a573ea36ef61799e9b5ec9a54d937",
+      "quality_record_sha256": "e823995e4bbada35112011597e86785b3da41e1840d732d967efb99f8ed081aa",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_accepted": true,
+        "diagnostic_score": 14,
+        "diagnostic_max": 14,
+        "core_blockers": 0,
+        "material_local_errors": 0,
+        "selected_sources_read": 56,
+        "formal_refs": 27,
+        "current_result_version": 2
+      },
+      "axis_breakdown": "not separately recorded in original quality record; no reconstructed scores"
+    },
+    {
+      "case": "L2_LIVE_MW",
+      "candidate_id": "LQ2",
+      "family": "MW",
+      "mode": "live",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 1466.125,
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_backend_effort": "low",
+      "clock_scope": "native runner elapsed to final/process completion",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": null,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": 8237059,
+        "cached_input_tokens": 7807616,
+        "output_tokens": 37785,
+        "reasoning_output_tokens": 5583
+      },
+      "usage_scope": "Codex reported main-turn delta; cached input is a subset, reasoning output is a subset",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "6f29d9b07bf6062a113e9bff8089e5fd2e012620812bc5bbf5fc30aaf6035901",
+      "native_sha256": "4e8af6d6fe70c5fa43cf97da6081e1544a2a70dd8a52f565fd24531aa66d07d8",
+      "packet_sha256": "c2e18a321052adb1cab3e85da04cb3c12c2fba4cd6d7f4b773cc6b4f78c88e74",
+      "quality_record_sha256": "292b1d40a8dcabdb108d1f63923fad1d162bbf71c34c110bd2872db29905015d",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_accepted": true,
+        "diagnostic_score": 14,
+        "diagnostic_max": 14,
+        "core_blockers": 0,
+        "material_local_errors": 0,
+        "selected_sources_read": 82,
+        "formal_refs": 37,
+        "current_result_version": 2,
+        "current_saved_web_export_completion_final_match": true,
+        "review_read_commands": 18,
+        "review_read_exit0": 16,
+        "review_read_exit1": 2
+      },
+      "axis_breakdown": "not separately recorded in original quality record; no reconstructed scores"
+    },
+    {
+      "case": "L2_LIVE_DW",
+      "candidate_id": "LQ3",
+      "family": "DW",
+      "mode": "live",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 1453.516,
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_backend_effort": "low",
+      "clock_scope": "native runner elapsed to final/process completion",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": null,
+      "selected_count": 81,
+      "usage": {
+        "input_tokens": 8597059,
+        "cached_input_tokens": 8152704,
+        "output_tokens": 38008,
+        "reasoning_output_tokens": 5145
+      },
+      "usage_scope": "Codex reported main-turn delta; cached input is a subset, reasoning output is a subset",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "6c5b4170f63ffd42bfdf8c5529b247ecee939a936faeb79328063fdf67407d24",
+      "native_sha256": "482710bb9af29fd385867384855017b84a055605bb5a0cff058aee1e3baee9b7",
+      "packet_sha256": "7650a59165a504d1af165af403276e768270e108382152007570b01217688393",
+      "quality_record_sha256": "3c34437ec38adc66736a278a55e6dcfe3f4d55a4f66d56bd30f72a2803c5db66",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_accepted": true,
+        "diagnostic_score": 13,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2
+        ],
+        "core_blockers": 0,
+        "material_local_errors": 0,
+        "selected_sources_read": 81,
+        "formal_refs": 26,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "review_read_commands": 17,
+        "review_read_exit0": 17,
+        "review_read_exit1": 0
+      }
+    },
+    {
+      "case": "L2_AL_MW",
+      "candidate_id": "LQ4",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 450.859,
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_backend_effort": "low",
+      "clock_scope": "native runner elapsed to final/process completion",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": 2441360,
+        "cached_input_tokens": 2282624,
+        "output_tokens": 14760,
+        "reasoning_output_tokens": 1568
+      },
+      "usage_scope": "Codex reported main-turn delta; cached input is a subset, reasoning output is a subset",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "d648d1a3b5e6a05e4acfa542b64f794632cf27a5f2de9e012c58b812f6bf99dd",
+      "native_sha256": "6d2dc41a037286dd6bb5d119813b673518435844a7122c4e2ba10b4c80fca323",
+      "packet_sha256": "b8a9c6d818d65fa6494e3172d5ca8f1620552e0e66972b681723ebe4dea90e1a",
+      "quality_record_sha256": "fe8353b15b44b4a2df190658e0b7bd3c8da040f3a007cde88b6d32bfc888900e",
+      "quality": {
+        "reviewer_id": "/root/manual_linkage_worker",
+        "business_accepted": true,
+        "diagnostic_score": 13,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2
+        ],
+        "core_blockers": 0,
+        "selected_sources_read": 82,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "review_read_exit1": 1
+      },
+      "omitted_non_numeric_review_count_fields": {
+        "fields": [
+          "review_read_exit0"
+        ],
+        "count": "unknown; original quality record hash preserved"
+      }
+    },
+    {
+      "case": "L2_GUI_OPM_MW",
+      "candidate_id": "LQ5",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 375.42,
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "medium",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 60,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 202371,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4608684,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 38816,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "7efa590ab54c9b757df7645972f9b55f6f7b6bd249dfd3ab089fe3b282244899",
+      "native_sha256": "65d95a755fb7eb95b56565a138d83d2498eb2ebdf475c00b42ec2d3f09dc1461",
+      "packet_sha256": "7433077212d186376d7c09173e52beb4bf195596861212bf66e0968f7989adf6",
+      "quality_record_sha256": "80e55a3d5d844ca59d1f81eec5f52857d105558f68d1f68b4049bdbcc28356fe",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "operational_delivery_accepted": true,
+        "business_accepted": false,
+        "recommendation_eligible": false,
+        "diagnostic_score": 11,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          1,
+          1,
+          2,
+          2,
+          1
+        ],
+        "critical_errors": 0,
+        "core_blockers": 1,
+        "selected_sources_read": 82,
+        "public_Read_full_body_matches": 82,
+        "formal_refs": 28,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "review_read_commands": 11,
+        "review_read_exit0": 11,
+        "review_read_exit1": 0
+      },
+      "UI_model_label": "Opus 5.5",
+      "UI_effort_label": "medium"
+    },
+    {
+      "case": "L2_GUI_OPH_MW",
+      "candidate_id": "LQ6",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 685.907,
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 80,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 234593,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 7555107,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 56491,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "4eb2172d9f00065049f42e03c943f40934e075b6d31f4d9adfbddbf14611c8b7",
+      "native_sha256": "2a214ecf680fc5ff7dd4247244d9df7855f598217eecba9727aac2b06b61fbd5",
+      "packet_sha256": "51507e31e4151674d639882891b72fff73499d2fdbda69ec8e69a59b638cf4eb",
+      "quality_record_sha256": "9e713cae8283f10000c6b53f25886ffaed26a9b6018bbabc9fb9496df4105869",
+      "quality": {
+        "reviewer_id": "/root/manual_linkage_worker",
+        "operational_delivery_accepted": true,
+        "business_accepted": true,
+        "recommendation_eligible": false,
+        "comparison_exclusion": "부모 단독 지시와 달리 실제 검토 Agent1 호출; 순수 모델/effort 비교의 역할 혼입",
+        "diagnostic_score": 13,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "local_wording_findings": 1,
+        "selected_sources_read": 82,
+        "reviewer_selected_sources": 29,
+        "formal_refs": 29,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "review_read_commands": 5,
+        "review_read_exit0": 5
+      },
+      "UI_model_label": "Opus 5.5",
+      "UI_effort_label": "high"
+    },
+    {
+      "case": "L2_GUI_SM_MW",
+      "candidate_id": "LQ7",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 501.883,
+      "requested_model": "Sonnet 5.5",
+      "actual_model": [
+        "claude-sonnet-5-5"
+      ],
+      "requested_effort": "medium",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 102,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 221839,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 8812575,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 58826,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": 0,
+      "parent_only_observed": true,
+      "evaluation_Agent_denial_settings_sha256": "00600614f9b420ae6b16b721e2ec769c149349d74d886c34f0391f860db6d8d0",
+      "result_sha256": "41aa0615f43cc3ab7c0790d95f8b3529f39b2a64eaada1f996ec725209a4c4a9",
+      "native_sha256": "732e43a14b498d97754ef2ac73eb5d288717fcb91ebc15da686231639d53e933",
+      "packet_sha256": "2a8e051f4a6b0c273aa34fbf0422270841981a124afd2e0ba4ac612e0905e849",
+      "quality_record_sha256": "0ee9bac5cab940263da5eee7af831b000eaaaaede64814101897fbe0d73b60db",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_content_conditionally_accepted": true,
+        "business_accepted": false,
+        "operational_delivery_accepted": false,
+        "recommendation_eligible": false,
+        "held_scope": "전량 읽기 실행 인수; 기획 내용 전체 오류 아님",
+        "diagnostic_score": 11,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          1,
+          1
+        ],
+        "critical_errors": 0,
+        "core_blockers": 1,
+        "core_premise_errors": 0,
+        "unperformed_completion_claims": 1,
+        "selected_sources": 82,
+        "public_read_full_body_matches": 80,
+        "public_read_partial_body_matches": 2,
+        "formal_refs": 30,
+        "current_result_version": 1,
+        "current_saved_web_export_match": true,
+        "completion_text_present_exactly_once": true,
+        "completion_prefix_match": false,
+        "added_prefix_characters": 93,
+        "review_read_commands": 12,
+        "review_read_exit0": 12
+      },
+      "UI_model_label": "Sonnet 5.5",
+      "UI_effort_label": "medium"
+    },
+    {
+      "case": "L2_GUI_SH_MW",
+      "candidate_id": "LQ8",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 678.643,
+      "requested_model": "Sonnet 5.5",
+      "actual_model": [
+        "claude-sonnet-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 76,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 266140,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 7216679,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 84499,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": 0,
+      "parent_only_observed": true,
+      "evaluation_Agent_denial_settings_sha256": "00600614f9b420ae6b16b721e2ec769c149349d74d886c34f0391f860db6d8d0",
+      "result_sha256": "5fa25f2e9b5465289861916f038b319287b33097be4ebff5ceeaca7a8f54befa",
+      "native_sha256": "dc705623054fbd5de17e454971dea94432968fcbfdc2ec4ea77eb51e9de771ca",
+      "packet_sha256": "c103881bc855fb5020ca1f94fd8d0e55b806041c5ed697afc0bcb8cd70f7a402",
+      "quality_record_sha256": "e196bbcdc15a4344bd579bf30bb2ce51043b7bbd0afb79bf06a50cbf5fb3358b",
+      "quality": {
+        "reviewer_id": "/root/manual_linkage_worker",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 13,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "selected_sources_read": 82,
+        "public_read_full_body_matches": 82,
+        "formal_refs": 30,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "review_read_commands": 13,
+        "review_read_exit0": 13
+      },
+      "UI_model_label": "Sonnet 5.5",
+      "UI_effort_label": "high"
+    },
+    {
+      "case": "L2_GUI_OPH_SOLO_MW",
+      "candidate_id": "LQ9",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 523.899,
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 66,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 233737,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 5517918,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 57225,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": 0,
+      "parent_only_observed": true,
+      "evaluation_Agent_denial_settings_sha256": "00600614f9b420ae6b16b721e2ec769c149349d74d886c34f0391f860db6d8d0",
+      "result_sha256": "e0c92b865a997fc72bf3ce608aa9f6daf5e781e0c1d1c97e69c0b730122b41dd",
+      "native_sha256": "240e840202ce87acf43b25c01f4491aa1ad4db46712c649ee6e957af7cf5c828",
+      "packet_sha256": "3db828516e825eda75d8b61f0279a5e44c634f5c759fee2946cf98aaa48844c7",
+      "quality_record_sha256": "e3aeb54305d31d9c94cd51c5552267d6937e7f01c07e2cdaa64c14c1e12e5644",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 12,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          1
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "selected_sources_read": 82,
+        "public_read_full_body_matches": 82,
+        "formal_refs": 26,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "material_local_errors": 3,
+        "review_read_commands": 10,
+        "review_read_exit0": 10
+      },
+      "UI_model_label": "Opus 5.5",
+      "UI_effort_label": "high"
+    },
+    {
+      "case": "L2_AL_FR",
+      "candidate_id": "LQ10",
+      "family": "FR",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 411.125,
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_backend_effort": "low",
+      "clock_scope": "native runner elapsed to final/process completion",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 56,
+      "usage": {
+        "input_tokens": 1699634,
+        "cached_input_tokens": 1571584,
+        "output_tokens": 13121,
+        "reasoning_output_tokens": 659
+      },
+      "usage_scope": "Codex reported main-turn delta; cached input is a subset, reasoning output is a subset",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "5ff02e76fa92d6ff3c5d11d97d245a1be7b2c6d6b1590fba8fab08f652c4717e",
+      "native_sha256": "2e2277e01e34d8d248ffae5addc68207e0cc7ca6ca80942cdfea41ba8d94fc1d",
+      "packet_sha256": "16f4f13f9dc99e8792e3cb6755808be9c05884584eba6680d6a77863e018c8b4",
+      "quality_record_sha256": "fb26d57d790986cfb870bb8a7f9d3eddece5a9c86b9f1bec2255db0c557363c1",
+      "quality": {
+        "reviewer_id": "/root/manual_linkage_worker",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 14,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "selected_sources_read": 56,
+        "public_read_full_body_matches": 56,
+        "formal_refs": 36,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "review_read_commands": 9,
+        "review_read_exit0": 9
+      }
+    },
+    {
+      "case": "L2_AL_DW",
+      "candidate_id": "LQ11",
+      "family": "DW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 644.0,
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_backend_effort": "low",
+      "clock_scope": "native runner elapsed to final/process completion",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 81,
+      "usage": {
+        "input_tokens": 3203170,
+        "cached_input_tokens": 3032448,
+        "output_tokens": 17102,
+        "reasoning_output_tokens": 1464
+      },
+      "usage_scope": "Codex reported main-turn delta; cached input is a subset, reasoning output is a subset",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": null,
+      "parent_only_observed": null,
+      "evaluation_Agent_denial_settings_sha256": null,
+      "result_sha256": "449a96ddce9de8f529d92ff4a72831860382650229e9712e24aa32ec04316cd3",
+      "native_sha256": "7fd51180c4d34523643541952e7ca6bbc80c42b970644627037f08b77e77f202",
+      "packet_sha256": "33080077e790a0b85b7f5a8e6e7c894b4db1ad8159c6df361873558b991b8a2d",
+      "quality_record_sha256": "444ef241fe0a3c0d57fce3d3acf66abd3490cc61ae63df601ad6cba0f1620436",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 14,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "selected_sources_read": 81,
+        "public_read_full_body_matches": 81,
+        "formal_refs": 21,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "review_read_commands": 8,
+        "review_read_exit0": 8
+      }
+    },
+    {
+      "case": "L2_GUI_OPH_R2_MW",
+      "candidate_id": "LQ12",
+      "family": "MW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 709.14,
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 82,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 74,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 222746,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 6247589,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 60172,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": 0,
+      "parent_only_observed": true,
+      "evaluation_Agent_denial_settings_sha256": "00600614f9b420ae6b16b721e2ec769c149349d74d886c34f0391f860db6d8d0",
+      "result_sha256": "40ca787e87cc2427ff06fdde9bd126943dec3500d66baed51943207c748fa4e6",
+      "native_sha256": "2a6713d31aacfac2505ffb6269f6412ffabc5664b6b525beeacd6b0c2c05bd21",
+      "packet_sha256": "18b85e8b3e28932bd76edf2dc38caa2a9cd0d1f975df26b4159522a7d5f94acb",
+      "quality_record_sha256": "aa81a586cea781cacea9f6c146904c01f60948894f93a0386495a8d269fde650",
+      "quality": {
+        "reviewer_id": "/root/manual_linkage_worker",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 12,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "selected_sources_read": 82,
+        "public_read_full_body_matches": 82,
+        "formal_refs": 29,
+        "current_result_version": 2,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "review_read_commands": 7,
+        "review_read_exit0": 7
+      },
+      "UI_model_label": "Opus 5.5",
+      "UI_effort_label": "high"
+    },
+    {
+      "case": "L2_GUI_OPH_FR",
+      "candidate_id": "LQ13",
+      "family": "FR",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 495.899,
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 56,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 60,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 195912,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4624786,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 55492,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": 0,
+      "parent_only_observed": true,
+      "evaluation_Agent_denial_settings_sha256": "00600614f9b420ae6b16b721e2ec769c149349d74d886c34f0391f860db6d8d0",
+      "result_sha256": "f6bee4fa1d9ea2314aec2c056ab9fe73620a893ffa55ad626fe95d846fab1bc2",
+      "native_sha256": "71578b0f4e6356613df2e0ae7256803a2ec6a594d2eb7b63453a8bd27ea83f0c",
+      "packet_sha256": "de4e5e7bfd457601a882c929ea3814554f7b5558480f0d1e329b05f7dfaee32d",
+      "quality_record_sha256": "bd5b87a148741bec21f31a67d860210db26c44adc96e18c0edf7c4adc2494f6e",
+      "quality": {
+        "reviewer_id": "/root/manual_linkage_worker",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 13,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2
+        ],
+        "critical_errors": 0,
+        "core_blockers": 0,
+        "selected_sources_read": 56,
+        "public_read_full_body_matches": 56,
+        "formal_refs": 31,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "review_read_commands": 5,
+        "review_read_exit0": 4,
+        "review_read_exit1": 1
+      },
+      "UI_model_label": "Opus 5.5",
+      "UI_effort_label": "high"
+    },
+    {
+      "case": "L2_GUI_OPH_DW",
+      "candidate_id": "LQ14",
+      "family": "DW",
+      "mode": "fixed",
+      "native_status": "succeeded",
+      "actual_elapsed_seconds": 474.451,
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_backend_effort": "unknown",
+      "clock_scope": "actual GUI user→assistant end_turn",
+      "source_manifest_sha256": "9939e2472091eaf8f017e47eb1297a3b7e57beb48870c17307b9e6884db5edc5",
+      "source_unchanged": true,
+      "data_unchanged": true,
+      "selected_count": 81,
+      "usage": {
+        "input_tokens": {
+          "known_sum": 74,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 230334,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 6226968,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 50067,
+          "unknown_messages": 0
+        }
+      },
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "full_backend_billing": "unknown",
+      "actual_main_agent_requests": 0,
+      "parent_only_observed": true,
+      "evaluation_Agent_denial_settings_sha256": "00600614f9b420ae6b16b721e2ec769c149349d74d886c34f0391f860db6d8d0",
+      "result_sha256": "6cbf59cc7d7a341bdf27d65a3dd8102163860dc99c0f49702bf2dcd8de74555e",
+      "native_sha256": "9a1943ecb15ae358f09b357ee8e34df2bccb5936be3c30e7f6885519921ee700",
+      "packet_sha256": "53d88c7f37b25a5e12bceb0f42c9fd02e370352effc4af9a21968f6270074914",
+      "quality_record_sha256": "bd96e6ab9df70c3abcea749c0a7ca6136507f2206a2799b86295f6e8f2bf00d2",
+      "quality": {
+        "reviewer_id": "/root/closure_semantic_audit",
+        "business_accepted": true,
+        "operational_delivery_accepted": true,
+        "recommendation_eligible": true,
+        "diagnostic_score": 12,
+        "diagnostic_max": 14,
+        "axis_scores": [
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          1
+        ],
+        "core_blockers": 0,
+        "critical_errors": 0,
+        "selected_sources_read": 81,
+        "public_read_full_body_matches": 81,
+        "formal_refs": 25,
+        "current_result_version": 1,
+        "current_saved_web_export_completion_final_match": true,
+        "completion_prefix_match": true,
+        "review_read_commands": 7,
+        "review_read_exit0": 7,
+        "review_read_exit1": 0
+      },
+      "UI_model_label": "Opus 5.5",
+      "UI_effort_label": "high"
+    }
+  ],
+  "grade_is_official_score": false,
+  "statistical_equivalence": "not_measured",
+  "safety_ceiling_seconds": 1800,
+  "performance_SLA": "not_promised",
+  "source_data_breadth_reduced": false,
+  "HTML_UI": "not_run; team-owned",
+  "physical_effect": "not_measured",
+  "human_savings": "excluded",
+  "development_usage": "unknown",
+  "full_backend_billing": "unknown",
+  "new_model_API_runner": false,
+  "collector_preflight": {
+    "checks": 10,
+    "exit_code": 0,
+    "seconds": 0.641,
+    "receipt": "07761a8b6746468a8ce8fc7dccc41006",
+    "receipt_sha256": "4c5ef4814d23904fec4e31ee263f34ffacbba8094372a98c354ddaa8427ac65d",
+    "scope": "corruption/missing-policy/actual-turn request-scope and wrapper exception record; not native fail-after-reservation replay"
+  },
+  "product_check": {
+    "total": 419,
+    "passed": 418,
+    "skipped": 1,
+    "exit_code": 0,
+    "seconds": 62.124,
+    "receipt": "f6249b004a6a464cbbf68728fa8298f3"
+  },
+  "role_variant": {
+    "case": "L2_GUI_OPH_MW",
+    "main_agent_requests": 1,
+    "selected_child_sources": 29,
+    "native_return_id": "a70b1d080d92fcb7d",
+    "tool_status": "completed",
+    "content_status": "partial",
+    "public_call_return_interval_seconds": 125.067,
+    "own_child_hash_verification": "unknown",
+    "child_effort": "unknown",
+    "benefit_scope": "one observed missing manual counterexample→review feedback→main proposal scope correction; no causal improvement rate"
+  },
+  "privacy_scope": "no original questions/source bodies/DB/native logs/auth/private paths in public record",
+  "public_output_boundary": {
+    "typed_counts_scores_flags": true,
+    "original_questions_full_bodies_paths_contacts_auth_structures_rejected": true
+  }
+}

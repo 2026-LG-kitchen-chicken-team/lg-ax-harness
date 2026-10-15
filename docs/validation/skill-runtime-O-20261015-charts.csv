@@ -1,0 +1,13 @@
+case,provider,model,effort,family,task_kind,source_records,elapsed_seconds,observed_main_input_tokens,observed_main_cached_read_tokens,observed_main_output_tokens,sample_size_per_task_and_configuration,endpoint,observation_scope,comparison_scope
+O_CODEX_AL_FR,codex,gpt-6-astra,low,FR,planning,56,466.797,1710165,1579008,15785,1,process_exit,main_turn_only_children_separate,matched_FR_5_profiles
+O_CODEX_AM_FR,codex,gpt-6-astra,medium,FR,planning,56,467.344,1777069,1647360,18377,1,process_exit,main_turn_only_children_separate,matched_FR_5_profiles
+O_CODEX_C61M_FR,codex,gpt-6.1-sol,medium,FR,planning,56,370.75,1612656,1473920,19199,1,process_exit,main_turn_only_children_separate,matched_FR_5_profiles
+O_CLAUDE_OH_FR,claude,claude-opus-5-5,high,FR,planning,56,514.448,5036236,4827789,51891,1,native_end_turn,main_turn_only_children_separate,matched_FR_5_profiles
+O_CLAUDE_OM_FR,claude,claude-opus-5-5,medium,FR,planning,56,472.844,4943671,4756245,43696,1,native_end_turn,main_turn_only_children_separate,matched_FR_5_profiles
+O_CODEX_C61M_MW,codex,gpt-6.1-sol,medium,MW,planning,82,273.407,2609393,2434560,17299,1,process_exit,main_turn_only_children_separate,separate_task_not_profile_comparison
+O_CODEX_C61M_DW,codex,gpt-6.1-sol,medium,DW,planning,81,438.094,2683695,2511744,20386,1,process_exit,main_turn_only_children_separate,separate_task_not_profile_comparison
+O_CLAUDE_OM_MW,claude,claude-opus-5-5,medium,MW,planning,82,637.425,7085932,6864753,58879,1,native_end_turn,main_turn_only_children_separate,separate_task_not_profile_comparison
+O_CLAUDE_OM_DW,claude,claude-opus-5-5,medium,DW,planning,81,585.453,8855368,8612399,55257,1,native_end_turn,main_turn_only_children_separate,separate_task_not_profile_comparison
+O_CODEX_C61M_F_REC1,codex,gpt-6.1-sol,medium,FR,followup,56,425.64,4378265,4288000,20831,1,process_exit,main_turn_only_children_separate,separate_task_not_profile_comparison
+O_CLAUDE_OM_F,claude,claude-opus-5-5,medium,FR,followup,56,424.591,4018768,3959184,30667,1,native_end_turn,main_turn_only_children_separate,separate_task_not_profile_comparison
+O_CODEX_C61M_ONLINE,codex,gpt-6.1-sol,medium,MW,online,48,1203.719,18799531,18333696,48732,1,process_exit,main_turn_only_children_separate,separate_task_not_profile_comparison

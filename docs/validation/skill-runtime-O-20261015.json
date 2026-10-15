@@ -1,0 +1,622 @@
+{
+  "date": "2026-10-15",
+  "source_manifest_sha256": "ec224fcfa37c73c65d2448a8c8f013ddd6dcde445ed38b056d38c4c6446223a8",
+  "front_remote_ref": "origin/web/visual-viewer-redesign",
+  "front_head": "0df3d57f4169439585417a4c957260452ef57ef6",
+  "front_already_integrated": true,
+  "corpus": {
+    "models": 9,
+    "registered_records": 219,
+    "review_excerpts": 87,
+    "facts": 132,
+    "selected_by_family": {
+      "FR": 56,
+      "MW": 82,
+      "DW": 81
+    },
+    "scope": "Registered excerpts/facts, not unique customers or market representativeness; online separated"
+  },
+  "phase": {
+    "expected_inputs": 14,
+    "cap": 16,
+    "previous_used": 111,
+    "used": 15,
+    "cumulative_used": 126,
+    "automatic_redispatch": 0
+  },
+  "reservations": 15,
+  "actual_native_parent_questions": 14,
+  "pre_model_cli_failures": 1,
+  "cases": [
+    {
+      "case": "O_CODEX_INSTR",
+      "provider": "codex",
+      "profile": "AL",
+      "kind": "instructions",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 41.125,
+      "actual_model": "gpt-6-astra",
+      "actual_effort": "low",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 78498,
+        "cached_input_tokens": 50432,
+        "output_tokens": 1064,
+        "reasoning_output_tokens": 31
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "069f55883aa2ccd4ec3788f5648def8d77f907c4a7b5edf175a35d33ad8a4ecd",
+      "snapshot_seal_sha256": "266c7b13b98e2d8c546d8d6f3ab1170f42f72f0bd1dc7c6d1a32ea634f4d147a",
+      "prompt_sha256": "83c26575912a994cb4d748cb176281652d95ebb47349323562f3c0ecb36f477f",
+      "native_observed": true,
+      "candidate": null
+    },
+    {
+      "case": "O_CLAUDE_INSTR",
+      "provider": "claude",
+      "profile": "OH",
+      "kind": "instructions",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": null,
+      "elapsed_seconds": 87.588,
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_UI_effort": "high",
+      "usage": {
+        "input_tokens": {
+          "known_sum": 18,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 67314,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 786404,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 6812,
+          "unknown_messages": 0
+        }
+      },
+      "usage_basis": null,
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "a55885f0c8da88afdf39753615617de22679d5491354dfc5b550ffb88ec720ca",
+      "snapshot_seal_sha256": "de1db123bb646f9a38a2a5897b1bed516c1f3f30d88601f16ca6b81598bd0771",
+      "prompt_sha256": "1b352060d3a89e0b1c26fcd5c0203b9f0cf9e5330f031b29275132fef1ee4b60",
+      "native_observed": true,
+      "candidate": null
+    },
+    {
+      "case": "O_CODEX_AL_FR",
+      "provider": "codex",
+      "profile": "AL",
+      "kind": "planning",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 466.797,
+      "actual_model": "gpt-6-astra",
+      "actual_effort": "low",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 1710165,
+        "cached_input_tokens": 1579008,
+        "output_tokens": 15785,
+        "reasoning_output_tokens": 636
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "24ce87865a0c11974dc15f1f505472adabd10b55d42241feebf185b3039d1cc1",
+      "snapshot_seal_sha256": "adda93b99a727e820af2c7b81d442578193359e83076eacc89d62f46d9a10b20",
+      "prompt_sha256": "650f032cc3409c2775424648c1a1edb93ee55b055c332f9369033f454db03b81",
+      "native_observed": true,
+      "candidate": "QO11",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 2,
+      "packet_sha256": "529c37f1f94ed76346081042af024507a405edf2ea5342ad53e5f33b5a1a0b7b",
+      "verdict_sha256": "7d0378cadad62dddd4ccde7942780bfda96275ab994479ebdca9efc44e9cb658"
+    },
+    {
+      "case": "O_CLAUDE_OH_FR",
+      "provider": "claude",
+      "profile": "OH",
+      "kind": "planning",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": null,
+      "elapsed_seconds": 514.448,
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_UI_effort": "high",
+      "usage": {
+        "input_tokens": {
+          "known_sum": 58,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 208389,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4827789,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 51891,
+          "unknown_messages": 0
+        }
+      },
+      "usage_basis": null,
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "142a3a0337515d9fc3abda7727d5826c041ac25757722dc6671ec12b19c71e45",
+      "snapshot_seal_sha256": "c3fb58a1be6418e8f1342d58e97702c0fcb0b6b9f839e03258f49013b072167d",
+      "prompt_sha256": "650f032cc3409c2775424648c1a1edb93ee55b055c332f9369033f454db03b81",
+      "native_observed": true,
+      "candidate": "QO23",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 1,
+      "packet_sha256": "d7a5b61b551953a9f99696b89e04b8cfabff92f84f1b2fab64b20c65dee1f725",
+      "verdict_sha256": "73ab33053dccbc0810fe0a61b6594bfc0265877b363ca3fc516a5eb8bd62b1c5"
+    },
+    {
+      "case": "O_CLAUDE_OM_FR",
+      "provider": "claude",
+      "profile": "OM",
+      "kind": "planning",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": null,
+      "elapsed_seconds": 472.844,
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_UI_effort": "medium",
+      "usage": {
+        "input_tokens": {
+          "known_sum": 58,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 187368,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4756245,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 43696,
+          "unknown_messages": 0
+        }
+      },
+      "usage_basis": null,
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "185ab4583d0ad4c3082a9e94911d01fe095b8ae8c477671d38566125a137082c",
+      "snapshot_seal_sha256": "7d8fda58360022079454f380f9d21c9541711cc968c291d4e7e4ad417be8c404",
+      "prompt_sha256": "650f032cc3409c2775424648c1a1edb93ee55b055c332f9369033f454db03b81",
+      "native_observed": true,
+      "candidate": "QO37",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 2,
+      "packet_sha256": "f108df116a6ccc646dd447de63b9372992389b8dc312fbadda493360900df30b",
+      "verdict_sha256": "aa48eb5143d9813eb9b9a4d852f604f4978e77f1c82dcfb21e90770c1a2dac19"
+    },
+    {
+      "case": "O_CODEX_AM_FR",
+      "provider": "codex",
+      "profile": "AM",
+      "kind": "planning",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 467.344,
+      "actual_model": "gpt-6-astra",
+      "actual_effort": "medium",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 1777069,
+        "cached_input_tokens": 1647360,
+        "output_tokens": 18377,
+        "reasoning_output_tokens": 1367
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "9c5b2ec0cea84765990491675bab1de5f342b5b6d86c47dce29ad5cced8360bc",
+      "snapshot_seal_sha256": "a4801ab7fcd1b480eca0fdea415dad2b1f4bfcd791a6035e8f6d1d2ad5a00d3d",
+      "prompt_sha256": "650f032cc3409c2775424648c1a1edb93ee55b055c332f9369033f454db03b81",
+      "native_observed": true,
+      "candidate": "QO42",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "339c00fac2d920ff4995d975bf0ff71068ece6475697e6a3110a959a9d1a5fee",
+      "verdict_sha256": "3fa84269966842202a4d11d60312b7bc09b800d94dd71c0a9f272336b4da143e"
+    },
+    {
+      "case": "O_CODEX_C61M_FR",
+      "provider": "codex",
+      "profile": "C61M",
+      "kind": "planning",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 370.75,
+      "actual_model": "gpt-6.1-sol",
+      "actual_effort": "medium",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 1612656,
+        "cached_input_tokens": 1473920,
+        "output_tokens": 19199,
+        "reasoning_output_tokens": 1268
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "771dea4cfa0926b768d55ef0ea4bc9352f70065702b14055423a4fe89a4b4177",
+      "snapshot_seal_sha256": "402dfcdab1a2332cf3f4fc9fa5a7e2fd81415ee2d4c5da9f9c3a8498bce6786c",
+      "prompt_sha256": "650f032cc3409c2775424648c1a1edb93ee55b055c332f9369033f454db03b81",
+      "native_observed": true,
+      "candidate": "QO58",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "0636599c9f43f9ef985a7e627925bbc57f870b2cd435338643deffb5ab247d91",
+      "verdict_sha256": "8a60aca7020f52fec90aa5b8d0219ae9dcb97c2fa9cddf8b1de3cb38329c9569"
+    },
+    {
+      "case": "O_CLAUDE_OM_F",
+      "provider": "claude",
+      "profile": "OM",
+      "kind": "followup",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": null,
+      "elapsed_seconds": 424.591,
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_UI_effort": "medium",
+      "usage": {
+        "input_tokens": {
+          "known_sum": 28,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 59556,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3959184,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 30667,
+          "unknown_messages": 0
+        }
+      },
+      "usage_basis": null,
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "f82ce2ccc1ff7c66928cfe323c8676d969804445c9ac144de4e38b403b2ba823",
+      "snapshot_seal_sha256": "33b4581f576fec75b47a47a8ca580a7a864848e3a8dad0185c8440b0b5edbbd3",
+      "prompt_sha256": "7e9b4f077bab8a65d5c58a366dde9ff1bf439c2e50cf55ed0168a1eb531e5eba",
+      "native_observed": true,
+      "candidate": "QO69",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 1,
+      "packet_sha256": "49cf0526ef67c6717172066eb3dbbcf3ed07f6f51232375e54bcab2afe7c1a8f",
+      "verdict_sha256": "912e5da8d61905e0b081d81676223025e397e70cf461cb9a65b8bb6ecec8c209"
+    },
+    {
+      "case": "O_CODEX_C61M_MW",
+      "provider": "codex",
+      "profile": "C61M",
+      "kind": "planning",
+      "family": "MW",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 273.407,
+      "actual_model": "gpt-6.1-sol",
+      "actual_effort": "medium",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 2609393,
+        "cached_input_tokens": 2434560,
+        "output_tokens": 17299,
+        "reasoning_output_tokens": 1111
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "7e52762a3a0ab82b0b3532ecd164ea8d58a2a521b6cbdd7f9159534f4d15343a",
+      "snapshot_seal_sha256": "37ed473c7f391108f735b6f6b7481ffd09232b273c258dacf308225d0ae7d096",
+      "prompt_sha256": "9b89e9c9af04d0ef4e17f7b361c378efa6cce979fde7e62014871cc8a8c81931",
+      "native_observed": true,
+      "candidate": "QO74",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "3c8170324bc2c7a22afddb888054ec6dc883fb8081fd653c7dd6c3c2e58f8602",
+      "verdict_sha256": "844587617fb57adda8246ed9b852a19c2166ec8671505a1cb73f7138c5184de0"
+    },
+    {
+      "case": "O_CODEX_C61M_DW",
+      "provider": "codex",
+      "profile": "C61M",
+      "kind": "planning",
+      "family": "DW",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 438.094,
+      "actual_model": "gpt-6.1-sol",
+      "actual_effort": "medium",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 2683695,
+        "cached_input_tokens": 2511744,
+        "output_tokens": 20386,
+        "reasoning_output_tokens": 1703
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "0751716474f659564dd7b722967f8819742705ffbfc5cc000f9954ced9732ae9",
+      "snapshot_seal_sha256": "89d4235d99be272e9fbb044177ae11562fe7cab363c8ba7536a9aea008ccdd5d",
+      "prompt_sha256": "c587e945f8cadbac25ae5f4a2a06cf34079d768a2a3c7c56f85fe6268f746fd8",
+      "native_observed": true,
+      "candidate": "QO86",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "67b3fe939fcb11408906c60851f2eb0e2057e8a2b51c03a64c7be51acec08770",
+      "verdict_sha256": "d0fbb5978a8fef7423452bcc8f3bdccfe03419b32ed4e0def039aa731bd898ee"
+    },
+    {
+      "case": "O_CODEX_C61M_F",
+      "provider": "codex",
+      "profile": "C61M",
+      "kind": "followup",
+      "family": "FR",
+      "status": "failed",
+      "exit_code": 2,
+      "elapsed_seconds": 0.203,
+      "actual_model": null,
+      "actual_effort": null,
+      "requested_UI_effort": null,
+      "usage": null,
+      "usage_basis": "current turn native reported usage",
+      "usage_scope": null,
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "bc4f9c4752188d3c00229259e5e65d9ef4f54414c35aed160ab4201219779b51",
+      "snapshot_seal_sha256": "402dfcdab1a2332cf3f4fc9fa5a7e2fd81415ee2d4c5da9f9c3a8498bce6786c",
+      "prompt_sha256": "7e9b4f077bab8a65d5c58a366dde9ff1bf439c2e50cf55ed0168a1eb531e5eba",
+      "native_observed": false,
+      "candidate": null
+    },
+    {
+      "case": "O_CODEX_C61M_F_REC1",
+      "provider": "codex",
+      "profile": "C61M",
+      "kind": "followup",
+      "family": "FR",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 425.64,
+      "actual_model": "gpt-6.1-sol",
+      "actual_effort": "medium",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 4378265,
+        "cached_input_tokens": 4288000,
+        "output_tokens": 20831,
+        "reasoning_output_tokens": 2248
+      },
+      "usage_basis": "current cumulative less sealed previous turn",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "8f14cca85c3d29e9519fdbc87e39dab6496894ca8f7b6c0d294e9562e17689c9",
+      "snapshot_seal_sha256": "103b19311421e68374fe7fc7fa4a499c538b940d1c87e7a271578fc3b49f40a4",
+      "prompt_sha256": "7e9b4f077bab8a65d5c58a366dde9ff1bf439c2e50cf55ed0168a1eb531e5eba",
+      "native_observed": true,
+      "candidate": "QO97",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "82ff14db795334bc3431f67083630baddc35282c94fc7418b810500a17ec08ea",
+      "verdict_sha256": "d851a2afccb47bf15d5ba15a5607d6b1f1aea323fe6ae226ff2d3939fb02e437"
+    },
+    {
+      "case": "O_CLAUDE_OM_MW",
+      "provider": "claude",
+      "profile": "OM",
+      "kind": "planning",
+      "family": "MW",
+      "status": "succeeded",
+      "exit_code": null,
+      "elapsed_seconds": 637.425,
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_UI_effort": "medium",
+      "usage": {
+        "input_tokens": {
+          "known_sum": 76,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 221103,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 6864753,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 58879,
+          "unknown_messages": 0
+        }
+      },
+      "usage_basis": null,
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "3d663644df73ffd1e93256b11235cab31891004f8ef203df0f5164baae6eac23",
+      "snapshot_seal_sha256": "5e396359999dcffdcbcbd5dc9e24bd162af4081fe9caf4bd02a0eb98ace1e5ef",
+      "prompt_sha256": "9b89e9c9af04d0ef4e17f7b361c378efa6cce979fde7e62014871cc8a8c81931",
+      "native_observed": true,
+      "candidate": "QO103",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 1,
+      "packet_sha256": "34cc3c699926b7252427519287119bf176134d2741d144387af084f5e96752e4",
+      "verdict_sha256": "93fcbca04f21de4d5539ce7457f67b36a800c24dd509aac60c1b68487ae307a1"
+    },
+    {
+      "case": "O_CLAUDE_OM_DW",
+      "provider": "claude",
+      "profile": "OM",
+      "kind": "planning",
+      "family": "DW",
+      "status": "succeeded",
+      "exit_code": null,
+      "elapsed_seconds": 585.453,
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": "unknown",
+      "requested_UI_effort": "medium",
+      "usage": {
+        "input_tokens": {
+          "known_sum": 92,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 242877,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 8612399,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 55257,
+          "unknown_messages": 0
+        }
+      },
+      "usage_basis": null,
+      "usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "72edebaa0dbfbc647fb223cc44d3c3820604bd18d51949ceb6485ef2999450c2",
+      "snapshot_seal_sha256": "4f48d0e0e644926f2d13fa750c5efe990b3ef415de3b1397ba5cbae71a717c81",
+      "prompt_sha256": "c587e945f8cadbac25ae5f4a2a06cf34079d768a2a3c7c56f85fe6268f746fd8",
+      "native_observed": true,
+      "candidate": "QO118",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "108d513465051c5b96aac52560abbf445e32a09edb0fc4303536fc7024b9d508",
+      "verdict_sha256": "ce8193288e82ff11ac720b99c3adb9a25fdf2c77e582db484f36e62673b7238c"
+    },
+    {
+      "case": "O_CODEX_C61M_ONLINE",
+      "provider": "codex",
+      "profile": "C61M",
+      "kind": "online",
+      "family": "MW",
+      "status": "succeeded",
+      "exit_code": 0,
+      "elapsed_seconds": 1203.719,
+      "actual_model": "gpt-6.1-sol",
+      "actual_effort": "medium",
+      "requested_UI_effort": null,
+      "usage": {
+        "input_tokens": 18799531,
+        "cached_input_tokens": 18333696,
+        "output_tokens": 48732,
+        "reasoning_output_tokens": 13267
+      },
+      "usage_basis": "single turn cumulative usage",
+      "usage_scope": "main native session observation; child observations recorded separately, backend-wide billing unknown",
+      "backend_billing": "unknown",
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "b2ac793e541fddd7e9eb0622d93a6f6e91b6ab91653f70c9b5092a9f8cefd713",
+      "snapshot_seal_sha256": "c0cd6ef4c36341b3dddfe0bb26391db1b8c736f16e9ea639a74c23158524aafd",
+      "prompt_sha256": "b5c6746dfe0c8a88f4359e83eae795263e2e42a9e5ae3ac929eeda09a0929cfb",
+      "native_observed": true,
+      "candidate": "QO129",
+      "core_acceptance": "pass",
+      "critical_findings_count": 0,
+      "nonblocking_notes_count": 0,
+      "packet_sha256": "a345e6857dbfad2917662515733419ab2dcd8fcd319d41abc1a55713e5943b1b",
+      "verdict_sha256": "b2f94d61ec1f5b9416f9edf843b676c7880c44533a1c07354ead1b6c3bf774d9"
+    }
+  ],
+  "local_ci": {
+    "status": "passed",
+    "stages": 21,
+    "tests": 820,
+    "skipped": 0,
+    "report_sha256": "a85a62154f5a166d2d801db518db2be34cc38b9122aa6526bd75843e5e743987",
+    "scope": "Windows locked install/build/package/tests; no native AI or browser certification"
+  },
+  "scope_notes": [
+    "Five FR model/effort configurations have one sequential sample each, with the same prompt/source/corpus and parent-only policy.",
+    "Family extensions/followups/new online are separate tasks, not additional samples of the five-profile comparison.",
+    "Cached input is a subset of Codex input; reasoning output a subset of output. Claude cache fields are separate components.",
+    "Observed model usage is not backend-wide billing. Child observations and incomplete fields are separately preserved.",
+    "Browser local file inspection remained automatically rejected; no alternate-surface workaround attempted.",
+    "No main merge/new release/mail/filming freeze/submission completion claimed."
+  ]
+}

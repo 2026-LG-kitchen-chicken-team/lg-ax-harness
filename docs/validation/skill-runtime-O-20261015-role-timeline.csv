@@ -1,0 +1,4 @@
+lane,role,start_seconds,end_seconds,duration_seconds,native_status,business_completion,timing_basis
+parent,product_planning,0,1203.652,1203.652,succeeded,completed,UTC_relative_observation_not_process_monotonic_elapsed
+official_research,product_official_researcher,103.631,207.099,103.468,completed,partial,UTC_relative_observation_not_process_monotonic_elapsed
+evidence_review,product_evidence_reviewer,1008.357,1063.014,54.657,completed,complete,UTC_relative_observation_not_process_monotonic_elapsed

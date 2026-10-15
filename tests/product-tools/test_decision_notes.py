@@ -53,6 +53,31 @@ class DecisionNotes(unittest.TestCase):
         self.assertEqual(self.validate(value)['semantic_status'],'unverified')
         self.assertFalse(self.validate(value)['acceptance_ready'])
 
+    def test_note_only_held_completion_keeps_basis_and_exact_used_urls_locations(self):
+        value = self.authored('source_fact')
+        value['result']['decision_notes'] += [
+            {'text': '근거의 적용 범위에 대한 시험용 해석', 'source_ids': [self.ref['source_id']], 'basis': 'ai_interpretation'},
+            {'text': '실물 적용은 미확인', 'source_ids': [], 'basis': 'unverified'}]
+        saved = self.conv.save_and_export(value)
+        summary = saved['completion_summary']
+        raw = (self.root / summary['path']).read_bytes()
+        completion = json.loads(raw)
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), summary['sha256'])
+        self.assertEqual(completion['decision_notes'], value['result']['decision_notes'])
+        self.assertEqual(completion['evidence_refs'], value['result']['evidence_refs'])
+        self.assertEqual(completion['source_ids'], [self.ref['source_id']])
+        self.assertEqual(completion['text_source_ids'], [self.ref['source_id']])
+        self.assertGreater(len(self.refs), len(completion['source_ids']))
+        for note in value['result']['decision_notes']:
+            self.assertIn(note['text'], summary['text'])
+        for detail in ('AI 분류', 'AI 해석', '미확인', self.ref['origin']['source_url'], self.ref['location']):
+            # The basis label remains an AI report, including source_fact.
+            self.assertIn(detail, summary['text'])
+        self.assertNotIn(self.ref['quote'], summary['text'])
+        self.assertEqual(completion['concepts'], [])
+        self.assertEqual(completion['semantic_status'], 'unverified')
+        self.assertFalse(completion['acceptance_ready'])
+
     def test_legacy_omission_and_unverified_without_sources(self):
         legacy=copy.deepcopy(self.value);legacy['result'].pop('decision_notes')
         self.assertTrue(self.validate(legacy)['contract_valid'])

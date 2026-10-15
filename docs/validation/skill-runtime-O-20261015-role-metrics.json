@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-15",
+  "case": "O_CODEX_C61M_ONLINE",
+  "actual_role_spawns": 2,
+  "maximum_observed_simultaneous_children": 1,
+  "children": [
+    {
+      "task": "official_research",
+      "role": "product_official_researcher",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "task_started_utc": "2026-10-15T05:23:14.013Z",
+      "task_complete_utc": "2026-10-15T05:24:57.481Z",
+      "task_wall_seconds": 103.468,
+      "native_completion": "completed",
+      "business_completion": "partial",
+      "scope": "ExactMWJ25E official links/manual/version/features/install/cleaning; no catalog writes or further delegation",
+      "response_records": 16,
+      "usage": {
+        "input_tokens": 943977,
+        "cached_input_tokens": 855424,
+        "output_tokens": 3441,
+        "reasoning_output_tokens": 452
+      },
+      "raw_sha256": "48740db11a83b7411158efb0695e5cd32ef719ee99e6d62378de3174ad86c7f4",
+      "raw_bytes": 447992
+    },
+    {
+      "task": "evidence_review",
+      "role": "product_evidence_reviewer",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "task_started_utc": "2026-10-15T05:38:18.739Z",
+      "task_complete_utc": "2026-10-15T05:39:13.396Z",
+      "task_wall_seconds": 54.657,
+      "native_completion": "completed",
+      "business_completion": "complete",
+      "scope": "Candidate and27 cited registered source bodies, not full48catalog",
+      "checked_sources": 27,
+      "findings": 3,
+      "parent_reflected_findings": 3,
+      "response_records": 7,
+      "usage": {
+        "input_tokens": 334604,
+        "cached_input_tokens": 271872,
+        "output_tokens": 2078,
+        "reasoning_output_tokens": 235
+      },
+      "raw_sha256": "d06dc8df078d2d6583b71fb5f9f735c776d954867a494d535fd8342bf6583cf9",
+      "raw_bytes": 493872
+    }
+  ],
+  "parent_only_usage": {
+    "response_records": 74,
+    "input_tokens": 18799531,
+    "cached_input_tokens": 18333696,
+    "output_tokens": 48732,
+    "reasoning_output_tokens": 13267
+  },
+  "observed_parent_plus_children_usage": {
+    "unique_response_records": 97,
+    "input_tokens": 20078112,
+    "cached_input_tokens": 19460992,
+    "uncached_input_tokens": 617120,
+    "output_tokens": 54251,
+    "reasoning_output_tokens": 13954,
+    "cache_write_input_tokens": 0,
+    "total_input_plus_output_tokens": 20132363
+  },
+  "response_id_overlap": 0,
+  "each_transcript_usage_sum_matches_final_cumulative": true,
+  "parent_cumulative_includes_child_usage": false,
+  "timing": {
+    "child_intervals_union_seconds": 158.125,
+    "child_child_overlap_seconds": 0,
+    "parent_tool_overlap_with_child_seconds": 37.103,
+    "parent_public_tool_union_seconds": 202.951,
+    "unattributed_parent_residual_seconds": 1000.768,
+    "scope": "Observed overlap, not causal time savings; residual not pure thinking"
+  },
+  "role_sandbox": {
+    "configured": "read-only in role TOML",
+    "actual_child_turn_context": "danger-full-access for both",
+    "OS_read_only_enforcement_certified": false,
+    "observed_source_and_data_unchanged": true
+  },
+  "parent_reflection": {
+    "findings": 3,
+    "reflected": 3,
+    "before_first_save": true,
+    "stored_result_version": 1,
+    "stored_revision_count": 0,
+    "modified_candidate_new_child_review_observed": 0
+  },
+  "Claude_followup_separate_scope": {
+    "actual_review_child": 1,
+    "parent_current_F": {
+      "input_tokens": 28,
+      "cache_creation_input_tokens": 59556,
+      "cache_read_input_tokens": 3959184,
+      "output_tokens": 30667
+    },
+    "child_observed": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 85494,
+      "cache_read_input_tokens": 212754,
+      "output_tokens_latest_observed_sum": 1114,
+      "output_complete": false
+    },
+    "child_output_complete": false,
+    "Tool_reported_duration_seconds": 130.398,
+    "assigned_registered_sources": 28,
+    "whole_selected_registered_sources": 56,
+    "raw_correction_sha256": "8915d41573818a959dcdc63297bc8fce16f897eae89685abbb08a16d7355fd3a"
+  },
+  "backend_billing": "unknown",
+  "backend_full_model_call_count": "unknown",
+  "raw_audit_record_sha256": "d17ce5bec25aced65f7e4760f108d0afa143c67d3e2e2bb300e532357c9d7c89",
+  "scope": "Public native metadata. OS read-only enforcement not certified; no causal subagent speed saving claim. Cache/reasoning subsets not added twice. Child raw archives private."
+}

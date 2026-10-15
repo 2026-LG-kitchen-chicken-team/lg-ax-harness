@@ -1,24 +1,40 @@
 """JSON/stdin command tools for existing native Agent runtimes; no LLM calls."""
 import argparse
+import hashlib
 import importlib.metadata
 import importlib.util
 import json
 from pathlib import Path
 import sqlite3
 import sys
-from product_tools.contracts import DEFAULT_DATA_PATH, MAX_BYTES, ToolError, decode_json_bytes, fail, obj, strict_json
+from product_tools.contracts import DEFAULT_DATA_PATH, MAX_BYTES, MAX_INPUT_BYTES, ToolError, decode_json_bytes, fail, obj, strict_json
 from product_tools.dataset import Dataset
 from product_tools.state import StateStore
 from product_tools.tools import ProductTools
 from product_tools.planning import review_product_result
 from product_tools.web_evidence import WebEvidence
 from product_tools.conversation import Conversation
+from product_tools.error_receipts import preserve_failure
+from product_tools.instructions import InstructionLoader
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Explicit state-detail operations can return the complete stored candidate.
+# Evidence/bundle/receipt operations keep their smaller context budget.
+STATE_DETAIL_OPERATIONS = frozenset(("get_turn", "get_completion_summary", "current_request", "open_request", "start_turn", "resolve_request",
+                                    "record_request_research", "cancel_turn", "save_result", "save_reviewed_result"))
+
+def output_limit(operation):
+    return MAX_INPUT_BYTES if operation in STATE_DETAIL_OPERATIONS else MAX_BYTES
+
 def dispatch(data, store, operation, payload):
+    if operation == "get_work_instructions":
+        return InstructionLoader(ROOT).get_work_instructions(payload)
     tools = ProductTools(data)
-    if operation in ("set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result"):
+    if operation in ("prepare_review_packet", "verify_review_packet"):
+        from product_tools.reviewer_packet import ReviewPackets
+        return getattr(ReviewPackets(store, ROOT), operation)(payload)
+    if operation in ("evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_and_export", "deliver_result", "prepare_web_result", "get_completion_summary"):
         return getattr(Conversation(store, ROOT), operation)(payload)
     if operation == "save_reviewed_result":
         obj(payload, ("session_id", "turn_id", "result_key", "result", "expected_result_version"), ("assessment", "response_mode"))
@@ -26,11 +42,14 @@ def dispatch(data, store, operation, payload):
         return store.save_result(**payload, require_review=True)
     if operation == "review_product_result":
         return review_product_result(data, payload)
-    if operation in ("fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research"):
+    if operation in ("fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research"):
         web = WebEvidence(store.path, ROOT)
         try:
             if operation == "configure_web_research":
                 return web.configure(payload)
+            if operation == "import_web_evidence_bulk":
+                from product_tools.bulk_import import BulkImporter
+                return BulkImporter(web).run(data, payload)
             return web.import_evidence(data, payload) if operation == "import_web_evidence" else web.collect(payload, browser=operation == "capture_web_page")
         finally:
             web.close()
@@ -93,10 +112,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / DEFAULT_DATA_PATH)
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
-    parser.add_argument("operation", choices=("set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
+    parser.add_argument("operation", choices=("get_work_instructions", "prepare_review_packet", "verify_review_packet", "evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "get_completion_summary", "prepare_web_result", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
     args = parser.parse_args()
     store = None
+    input_sha256 = None
     try:
         db = args.db.resolve()
         allowed = (ROOT / "runtime-data").resolve()
@@ -105,21 +125,26 @@ def main():
         if args.operation == "doctor" and args.input == "-":
             raw = "{}"
         elif args.input == "-":
-            raw = decode_json_bytes(sys.stdin.buffer.read(MAX_BYTES + 1))
+            raw = decode_json_bytes(sys.stdin.buffer.read(MAX_INPUT_BYTES + 1))
         else:
             path = Path(args.input)
-            if path.stat().st_size > MAX_BYTES:
-                fail("input_limit", "Input exceeds 64 KiB")
+            if path.stat().st_size > MAX_INPUT_BYTES:
+                fail("input_limit", "Input exceeds 256 KiB")
             raw = decode_json_bytes(path.read_bytes())
-        if len(raw.encode("utf-8")) > MAX_BYTES:
-            fail("input_limit", "Input exceeds 64 KiB")
+        if len(raw.encode("utf-8")) > MAX_INPUT_BYTES:
+            fail("input_limit", "Input exceeds 256 KiB")
+        input_sha256 = hashlib.sha256(raw.encode("utf8")).hexdigest()
         payload = strict_json(raw)
-        data = Dataset(args.data)
-        store = StateStore(db, data)
-        result = dispatch(data, store, args.operation, payload)
+        if args.operation == "get_work_instructions":
+            # Instruction access precedes model selection and needs no dataset/DB.
+            result = dispatch(None, None, args.operation, payload)
+        else:
+            data = Dataset(args.data)
+            store = StateStore(db, data)
+            result = dispatch(data, store, args.operation, payload)
         output = json.dumps({"ok": True, "result": result}, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
-        if len(output.encode("utf-8")) > MAX_BYTES:
-            fail("output_limit", "Output exceeds 64 KiB; use narrower scope/query or lower limit")
+        if len(output.encode("utf-8")) > output_limit(args.operation):
+            fail("output_limit", "Output exceeds operation byte budget; use receipt/export for state or narrower evidence batches")
         print(output)
         return 0
     except ToolError as exc:
@@ -131,7 +156,8 @@ def main():
     finally:
         if store is not None:
             store.close()
-    print(json.dumps({"ok": False, "error": error}, ensure_ascii=False))
+    receipt = preserve_failure(ROOT, args.operation, error, input_sha256)
+    print(json.dumps({"ok": False, "error": error, "failure_receipt": receipt}, ensure_ascii=False))
     return 1
 
 if __name__ == "__main__":

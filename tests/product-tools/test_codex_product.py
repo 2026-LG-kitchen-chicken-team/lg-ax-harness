@@ -30,7 +30,9 @@ class ProductInstallTests(unittest.TestCase):
             installer.install(target)
             self.assertEqual(installer.check(target)["errors"], [])
             self.assertFalse((target / ".claude").exists())
-            self.assertFalse((target / ".codex").exists())
+            self.assertTrue((target / ".codex/config.toml").is_file())
+            self.assertEqual(sorted(p.name for p in (target / ".codex/agents").glob('*.toml')),
+                             ['product-evidence-reviewer.toml', 'product-official-researcher.toml', 'product-review-researcher.toml'])
             self.assertEqual(len(list((target / ".agents/skills").glob("*/SKILL.md"))), 6)
             for skill in (target / ".agents/skills").glob("*/SKILL.md"):
                 for link in re.findall(r"\]\(([^)]+)\)", skill.read_text(encoding="utf-8")):

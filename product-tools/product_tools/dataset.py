@@ -4,6 +4,9 @@ import hashlib
 from pathlib import Path
 from .contracts import canonical, fail, identifier, integer, obj, origin, product_family, scope, strict_json, text
 
+MAX_CATALOG_FILE_BYTES = 16 * 1024 * 1024
+
+
 class Dataset:
     def __init__(self, root):
         self.root = Path(root).resolve(strict=True)
@@ -107,8 +110,8 @@ class Dataset:
         path = (self.root / name).resolve(strict=True)
         if not path.is_relative_to(self.root) or not path.is_file():
             fail("invalid_dataset", "Catalog path escapes dataset")
-        if path.stat().st_size > 1048576:
-            fail("dataset_limit", "Catalog file exceeds 1 MiB")
+        if path.stat().st_size > MAX_CATALOG_FILE_BYTES:
+            fail("dataset_limit", "Catalog file exceeds 16 MiB")
         return path.read_bytes()
 
     def check_scope(self, exact):

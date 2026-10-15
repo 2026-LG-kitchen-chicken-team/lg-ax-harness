@@ -54,9 +54,11 @@ class ProductWorkflowTests(unittest.TestCase):
         self.conv = Conversation(self.store, self.root)
         self.original = {"question": "  테스트 제품 WF-TEST\n제품명만 입력한 원문  ",
                          "user_submitted": True, "session_id": "original-session", "request_key": "original-question"}
-        self.request = self.conv.open_product_workflow(self.original)
+        self.request = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.research = self.request["research_id"]
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
 
     def tearDown(self):
@@ -106,7 +108,7 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertEqual(json.loads(stored), self.original)
         self.assertEqual(self.store.db.execute("SELECT COUNT(*) FROM turns").fetchone()[0], 0)
         self.now += timedelta(seconds=45)
-        replay = self.conv.open_product_workflow(self.original)
+        replay = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.assertEqual(replay["research_id"], self.research)
         self.assertEqual(replay["workflow"]["started_at"], self.started.isoformat())
         self.assertEqual(replay["workflow"]["elapsed_seconds"], 45)
@@ -121,12 +123,14 @@ class ProductWorkflowTests(unittest.TestCase):
         self.store = StateStore(self.root / "runtime-data/product.sqlite", Dataset(ROOT / "data/business/empty"))
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
-        replay = self.conv.open_product_workflow(self.original)
+        replay = self.conv.open_product_workflow({**self.original, "budget_seconds": 1800})
         self.assertEqual((replay["workflow"]["started_at"], replay["workflow"]["elapsed_seconds"]),
                          (self.started.isoformat(), 70))
         self.error("workflow_conflict", self.conv.open_product_workflow, {**self.original, "budget_seconds": 1200})
-        for invalid in (True, 1199, 1801):
+        for invalid in (True, 299, 1801):
             self.error("invalid_input", self.conv.open_product_workflow, {**self.original, "budget_seconds": invalid})
         self.assertEqual(self.audit.status(self.research)["deadline"], (self.started + timedelta(seconds=1800)).isoformat())
 
@@ -207,6 +211,8 @@ class ProductWorkflowTests(unittest.TestCase):
         self.store = StateStore(self.root / "runtime-data/product.sqlite", Dataset(ROOT / "data/synthetic/kitchen-v1"))
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
         resolved = self.conv.resolve_request(resolve)
         self.assertEqual(resolved["turn"]["input"]["question"], self.original["question"])
@@ -332,6 +338,23 @@ class ProductWorkflowTests(unittest.TestCase):
         changed["data"]["source_ids"] = ["invented"]
         self.error("workflow_conflict", self.audit.record, changed, SimpleNamespace(sources={"invented": {}}))
 
+    def test_analysis_wrong_catalog_reports_repair_without_recording_failed_event(self):
+        self.plan()
+        event = {"research_id": self.research, "event_key": "repairable-analysis", "kind": "analysis_scope",
+                 "data": {"source_ids": ["observed"], "scope_note": "Read from an explicitly selected local catalog"}}
+        before = self.audit.events(self.research)
+        with self.assertRaises(ToolError) as caught:
+            self.audit.record(event, SimpleNamespace(sources={}))
+        self.assertEqual(caught.exception.code, "workflow_analysis_scope")
+        self.assertIn("0 records", str(caught.exception))
+        self.assertIn("--data", str(caught.exception))
+        self.assertIn("local catalogs are supported", str(caught.exception))
+        self.assertEqual(self.audit.events(self.research), before)
+        self.audit.record(event, SimpleNamespace(sources={"observed": {}}))
+        events = [row for row in self.audit.events(self.research) if row["event_key"] == "repairable-analysis"]
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["data"]["source_ids"], ["observed"])
+
     def test_catalog_link_requires_review_kind_matching_url_and_literal_text(self):
         self.plan()
         body = "RID-1 Positive fixture. Qualified fixture."
@@ -363,7 +386,7 @@ class ProductWorkflowTests(unittest.TestCase):
             self.scan(captured, [], key="scan-" + str(index), source_type="manual")
         provider = self.audit.status(self.research)["counts"]["providers"][0]
         self.assertEqual((provider["scan_count"], provider["source_url_count"]), (8, 8))
-        self.assertEqual((len(provider["scans"]), len(provider["source_urls"])), (6, 6))
+        self.assertEqual((len(provider["scans"]), len(provider["source_urls"])), (2, 2))
         exported = self.conv.export_session({"session_id": self.original["session_id"]})
         payload = json.loads((self.root / exported["path"]).read_text(encoding="utf-8"))
         scans = [event for event in payload["requests"][0]["workflow_events"] if event["kind"] == "source_scan"]
@@ -429,6 +452,23 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertEqual(self.conv.record_workflow_event(self.finish_event(normalized))["finished_at"], finished["finished_at"])
         self.error("workflow_finished", self.record, "checkpoint", {"remaining_tasks": ["New task after finish"]}, "late-event")
 
+    def test_layout_pass_declaration_is_not_image_inspection_certification(self):
+        paths = self.seed_delivery()
+        event = self.finish_event(paths)
+        event["data"]["layout_review"] = {"status": "passed", "scope": "Caller claims image review"}
+        finished = self.conv.record_workflow_event(event)
+        review = finished["layout_review"]
+        self.assertEqual(review["declared_status"], "passed")
+        self.assertEqual(review["verification_status"], "not_verified")
+        self.assertIsNone(review["verified_image_inspection"])
+        self.assertEqual(self.audit.events(self.research)[-1]["data"]["layout_review"], event["data"]["layout_review"])
+
+    def test_no_layout_event_does_not_claim_review_or_zero_defects(self):
+        review = self.audit.status(self.research)["layout_review"]
+        self.assertEqual(review["declared_status"], "not_run")
+        self.assertIsNone(review["scope"])
+        self.assertIsNone(review["verified_image_inspection"])
+
     def test_finish_rejects_external_path_and_unready_receipt(self):
         paths = self.seed_delivery()
         outside = self.root / "outside-runtime.pdf"
@@ -479,6 +519,8 @@ class ProductWorkflowTests(unittest.TestCase):
         self.store = StateStore(self.root / "runtime-data/product.sqlite", Dataset(ROOT / "data/synthetic/kitchen-v1"))
         self.conv = Conversation(self.store, self.root)
         self.audit = WorkflowAudit(self.store.db, self.root)
+        # Existing fixtures explicitly exercise pre-scope-ledger workflow history.
+        self.store.db.execute("UPDATE product_workflows SET research_policy=NULL WHERE research_id=?", (self.research,))
         self.web = WebEvidence(self.store.path, self.root)
         turn = self.conv.resolve_request({"session_id": self.original["session_id"], "request_key": self.original["request_key"],
             "expected_request_version": 0, "event_key": "resolve-file-clock", "selection": {

@@ -1,5 +1,11 @@
 # 공통 자료·입출력·상태 도구
 
+2026-10-14 보완: `save_and_export`는 현재 검토 저장 결과에서 일반 코드로 만든 `completion_summary`를 함께 반환한다. 별도 `get_completion_summary({session_id,turn_id,expected_result_version})`로 같은 현재 버전의 텍스트·불변 파일/SHA를 재조회할 수 있다. 새로운 사실을 생성하거나 전체 원문을 다시 모델에 넣지 않는다. 응답 크기 때문에 text가 생략되면 text_omitted/detail_operation을 확인한다. 기본 최종 답변은 이 text의 기획·조건 범위를 유지한다. 코드는 네이티브 최종 자유문장을 가로채지는 않으며 실제 최종 전달은 별도 대조한다.
+
+접근 실패는 코드가 만든 access_failures로 간단히 알리고, 사용자에게 진단 파일 방문을 요구하지 않는다. free-form reason에서 HTTP코드나 파일 링크를 추정하지 않는다. 원래 실패 원문/사건은 내부 이력에 보존한다. 이후 같은 URL을 관측한 경우 ‘아직 접근 못한 자료’로 표시하지 않는다. validation_plan의 선택 evaluation_protocol:{unit,failed_or_stopped,unknown}은 실물 시험 준비를 돕는 항목이며 없다는 이유만으로 유효한 조건부 기획을 모두 실패 처리하지 않는다. 실측 효과나 수치 개선율을 주장하기 전에는 전체 시도·실패·중단·미확인 처리까지 확인한다.
+
+2026-10-13 최신: 웹팀의 작업 화면·보고서 HTML에 현재 정형결과/원문/근거/검토·조사이력을 전달한다. 기본 save_and_export(report:false)의 web_ready/web_result를 확인하고 prepare_web_result로 같은 버전 복구한다. PDF/DOCX 생성·이미지검수는 기본 필수가 아니며 아래 파일규칙은 명시 report:true 호환 경로다. [웹 데이터 계약](web-result.md)을 우선한다. 신규기본1800초는 성능목표가 아닌 안전상한이고 natural-completion-v1 정책으로 전량전달/신고검토와 최종90초예약을 유지한다. 과거300/600초요청/이력은 변경하지 않는다.
+
 브랜드/시장 미지정 새 요청은 국내 LG 대상 기본 정책을 저장한다. set_request_scope_policy는 {session_id,request_key,policy}이며 policy의 mode는 explicit_model(model_id,user_quote), explicit_brand_market(brand,user_quote,market?,market_quote?) 또는 explicit_market(market,market_quote,user_quote)다. 시장만 지정하면 기본 LG 브랜드를 유지한다. quote는 실제 원질문의 연속 부분이어야 한다. 연결 전 기본 정책만 명시 의도로 변경할 수 있다. 같은 공유 검사는 대상 등록·request 연결·후보 저장에 적용한다. 명시 시장은 AI 해석의 원문 근거를 남기며 언어/모델 prefix로 판매국을 자동 인증하지 않는다. legacy 정책 없는 과거 이력과 합성 코드 자료는 이 기본 정책의 새 업무 인수로 설명하지 않는다.
 
 export의 turns와 candidates에는 기존 result/evidence_refs/payload/hash를 바꾸지 않는 source_metadata 배열을 추가한다. 정확 catalog reference 전체가 일치할 때만 kind=review/product_fact를 연결하며 과거/미확인 참조는 kind:null이다. 모델/문서/data 버전·source_id·SHA와 binding을 함께 보존한다. manual은 현 catalog에서 product_fact로 등록되어 있으며 문서 종류를 접두어/URL로 추정하지 않는다.
@@ -35,7 +41,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 
 ## 호출·크기·오류 계약
 
-실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각64KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는0모델·0출처의 data/business/empty이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
+실행: `uv run python product-tools/cli.py OPERATION --input JSON_FILE`. UTF-8을 권장하며 UTF-8 BOM과 명시적 UTF-16 LE/BE BOM도 file/stdin에서 해석한다. BOM 없는 UTF-16·ANSI는 추정하지 않고 오류로 반환한다. 원본과 UTF-8 변환 후 각각256KiB 한도·중복 키·엄격한 JSON 검사를 유지한다. 기본 자료는0모델·0출처의 data/business/empty이고 기본 DB는 Git에서 제외한 `runtime-data/product.sqlite`다. stdin JSON도 가능하다. `--data`로 시험 자료를 명시할 수 있다. CLI DB는 이 프로젝트의 `runtime-data/` 아래만 허용한다. 사용자 전역 설정·인증·다른 레포를 바꾸지 않는다.
 
 | Tool | JSON 입력 | 출력/오류 |
 |---|---|---|
@@ -54,7 +60,7 @@ Python 3.12 표준 라이브러리 JSON·hashlib·SQLite로 구현했다. 추가
 | cancel_turn | session_id/turn_id/cancel_key/reason/expected_result_version/user_submitted | 후보 없는 로컬 취소·멱등 receipt. native/backend 중단은 별도 미확인 |
 | begin_invocation / finish_invocation | 세션/turn/호출 ID/Tool·요청 지문 또는 종료 상태 | 호출자 보고 장부. Tool을 실행·취소하거나 네이티브 호출을 통제하지 않음 |
 
-문자 조회는 literal 부분 문자열 검색이다. 입력·출력 64KiB, 내부 planning 12KiB, 후보 결과 32KiB, 원문 파일 각 1MiB, 조회 최대20건, query 최대200자다. JSON 중복 키·NaN/Infinity·bool 숫자·미지 필드를 거부한다. SQLite 잠금 대기 5초, 실제 검사 명령은 부모 check의 30–120초 상한으로 실행한다. 조건부 HTTP 관측·native 본문 기록·새 버전 등록을 추가했다. 별도 [외부 조사 계약](web-evidence.md)의 지원 형식·socket timeout·native 브라우저 미포함 범위를 따른다.
+문자 조회는 literal 부분 문자열 검색이다. 입력256KiB, 내부 planning12KiB, 후보 결과128KiB다. 일반 조회·bundle·receipt 출력은64KiB이며 상세 상태(get_turn/current_request/open_request/save_result/save_reviewed_result)만256KiB다. 일반 업무는 receipt와 export 경로를 받아 큰 결과를 대화 문맥에 반복하지 않는다. 원문 파일 각1MiB, 조회 최대20건, query 최대200자다. JSON 중복 키·NaN/Infinity·bool 숫자·미지 필드를 거부한다. SQLite 잠금 대기5초, 실제 검사 명령은 부모 check의30–120초 상한으로 실행한다. 조건부 HTTP 관측·native 본문 기록·새 버전 등록을 추가했다. 별도 [외부 조사 계약](web-evidence.md)의 지원 형식·socket timeout·native 브라우저 미포함 범위를 따른다.
 
 종료코드 0은 명령 실행 성공이고 1은 구조화 오류다. 후보 결과가 rejected/held여도 저장 명령 자체가 완료되면 0이며 `accepted=false`와 reason을 확인해야 한다. unknown_model/unknown_scope, 유효 범위의 empty, 파일 무결성 오류, 근거 불일치, 저장 실패, stale_context는 서로 다른 상태다. 출력 초과 시 output_limit을 반환한다.
 
@@ -102,3 +108,18 @@ PlanningInput의 선택 scope_mode는 exact_model/family_catalog다. 구버전 �
 ## 빈 후보 양식 추가(v7.2)
 
 open_request_bundle/resolve_request_bundle 응답의 candidate_template은 현재 turn의 handle/version과 빈 result/assessment를 제공한다. status는 빈 값이므로 그대로 저장하면 거절되고 시도에 포함된다. AI가 실제 판단으로 채워야 한다. result_limits는 기존 배열/크기 상한 안내이며 질문/제품/답안을 선택하지 않는다. 후보3회 소진·실패·취소·오래된 turn에는 양식을 반환하지 않으며 같은 version의 재조회는 같은 key다. 이 필드도 전체 응답63000바이트 예산에 포함한다. 이미 저장한 후보의 재전송에는 기존 key와 같은 원문/assessment를 쓴다. 시간 배분은 Agent 지침이고 원격 종료 강제는 native 실행기/평가 transport의 책임이다.
+
+
+## 2026-10-12: turn에 결속된 자료 전달과 검토
+
+`evidence_inventory`, `evidence_coverage`는 `{session_id,turn_id}`를 받아 선택된 정확 모델/문서 scope의 등록·고유 전달·호출자 신고 검토/제외·누락 수를 반환한다. data_version, dataset SHA, code SHA, context SHA, session/turn/scope를 binding에 포함한다. 기존 이력은 새 입력/code/data로 재사용하지 않는다. 등록본문은 후기 발췌 또는 product_fact의 factual_summary일 수 있으며, 전체 원페이지·독립 고객·의미 충분성을 인증하지 않는다. 제조사 사양/설명서/긍정·부정/장기/조건/반례 다양성은 별도 의미 검토 대상이다.
+
+`read_evidence_batch` 입력: `{session_id,turn_id,offset?:0,limit?:20,max_bytes?:60000,source_ids?:[]}`. 범위 내 전체 reference만 반환하고 원문을 줄이지 않는다. 최대 20개와 실제 byte 상한을 동시에 지키며 `next_offset`는 실제 전달량 다음 위치다. 작은 byte 상한에 한 원문도 들어가지 않으면 output_limit이며 건너뛰지 않는다. 원문은 untrusted_source_data다. 초기 bundle의 byte 제한 후 실제 반환한 refs도 전달장부에 기록하며 생략 항목은 기록하지 않는다. 고유 전달 수는 중복/캐시 재조회로 증가하지 않는다.
+
+`record_evidence_review` 입력: `{session_id,turn_id,review_key,records:[{source_id,disposition:'reviewed'|'excluded',reason}]}` (records 1~100개). reviewed는 완전한 등록본문 전달 뒤만 가능하며 제외 이유도 필수다. immutable review_key의 다른 내용 재사용은 review_conflict다. 의미 정확성은 호출자 신고이고 자동 인증하지 않는다. 상세 원문 전달/검토 이력은 export_session의 turns[].evidence_coverage_history에 남긴다.
+
+새 short-request-v1(예산 ≤600초)의 completed 후보 저장은 모든 선택 catalog 항목의 등록본문 전달 + reviewed/excluded 이유 기록이 필요하다. 초기 3~4건만 읽고 나머지를 검토했다고 통과시키지 않는다. 부족은 같은 turn의 held로 저장하고 근거/미검토를 공개한다. 이 gate는 실제 조사 충분성·주장 지지·결과 정답을 보증하지 않는다. untimed/명시1200~1800초 과거 인수를 이 새 gate 통과로 합산하지 않는다.
+
+## CLI 실패의 실제 보존 위치
+
+CLI가 exit1 오류를 반환하면 추가 failure_receipt에 ready/path/sha256/bytes를 보낸다. ready:true는 runtime-data/tool-errors의 불변 JSON이 실제 쓰였고 SHA를 확인했다는 뜻이다. operation·관측 UTC·입력SHA·기존 code/message/retryable를 보존하며 원문 입력/명령을 복사하지 않는다. input_sha256는 허용 인코딩의 JSON을 디코딩한 문자열을 UTF-8로 인코딩한 내용 지문이며 원파일 바이트 SHA가 아니다. 디코딩/크기 검사 이전 실패에서는 null일 수 있다. receipt message는 최대2000자이고 원문 길이·절단 여부·전체 오류 메시지 UTF-8 SHA를 함께 기록한다. CLI 표준출력에는 기존 오류 메시지를 유지한다. 개별 실패마다 다른 관측파일을 만들고 기존 파일을 덮어쓰지 않는다. 쓰기/경로/무결성 실패는 ready:false로 남기며 원래 CLI 오류와 exit1을 유지한다. shell/모델/브라우저 실패 전체를 이 receipt가 수집했다고 가정하지 않는다. semantic/HTML/native중단 인증이 아니다.

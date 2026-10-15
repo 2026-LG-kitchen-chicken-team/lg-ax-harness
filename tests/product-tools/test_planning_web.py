@@ -334,6 +334,7 @@ class PlanningWebTests(unittest.TestCase):
             self.error("research_limit", self.web.collect, payload)
             self.assertEqual(opener.return_value.open.call_count, 2)
         payload["page_id"] = "403"
+        payload["url"] = "https://example.org/separate-forbidden-page"
         with patch("product_tools.web_evidence.build_opener") as opener:
             opener.return_value.open.side_effect = HTTPError(payload["url"], 403, "Forbidden", {}, None)
             self.assertFalse(self.web.collect(payload)["retryable"])
@@ -357,6 +358,43 @@ class PlanningWebTests(unittest.TestCase):
             self.assertTrue(cached["cached"])
             self.assertEqual(cached["snapshot_id"], succeeded["snapshot_id"])
             self.assertEqual(opener.return_value.open.call_count, 2)
+
+    def test_renaming_http_page_cannot_reset_exhausted_retry_after_restart(self):
+        payload = {k: v for k, v in self.browser().items() if k not in ("observed_text", "native_tool_name")}
+        with patch("product_tools.web_evidence.build_opener") as opener:
+            opener.return_value.open.side_effect = URLError("transport failure")
+            self.web.collect(payload)
+            self.web.collect(payload)
+            self.web.close()
+            self.web = WebEvidence(self.workspace / "web.sqlite", self.workspace)
+            self.error("request_conflict", self.web.collect, {**payload, "page_id": "renamed"})
+            self.assertEqual(opener.return_value.open.call_count, 2)
+            self.assertEqual(self.web.db.execute("SELECT attempts FROM web_pages").fetchone()[0], 2)
+
+    def test_http_failure_and_separate_native_capture_keep_both_observations(self):
+        browser = self.browser()
+        payload = {k: v for k, v in browser.items() if k not in ("observed_text", "native_tool_name")}
+        with patch("product_tools.web_evidence.build_opener") as opener:
+            opener.return_value.open.side_effect = HTTPError(payload["url"], 404, "Not found", {}, None)
+            unavailable = self.web.collect(payload)
+            self.assertFalse(unavailable["retryable"])
+        self.error("request_conflict", self.web.collect, browser, True)
+        recovered = self.web.collect({**browser, "page_id": "native-observation"}, True)
+        self.assertTrue(self.web.collect({**browser, "page_id": "native-observation"}, True)["cached"])
+        self.assertIsNotNone(recovered["snapshot_id"])
+        row = self.web.db.execute("SELECT attempts,snapshot_id FROM web_pages WHERE page_id=?", (payload["page_id"],)).fetchone()
+        self.assertEqual(tuple(row), (1, None))
+        self.assertEqual(self.web.db.execute("SELECT COUNT(*) FROM web_pages").fetchone()[0], 2)
+
+    def test_different_http_url_focus_or_request_is_not_a_renamed_retry(self):
+        payload = {k: v for k, v in self.browser().items() if k not in ("observed_text", "native_tool_name")}
+        with patch("product_tools.web_evidence.build_opener") as opener:
+            opener.return_value.open.side_effect = HTTPError(payload["url"], 403, "Forbidden", {}, None)
+            self.web.collect(payload)
+            self.web.collect({**payload, "page_id": "other-url", "url": "https://example.org/other-source"})
+            self.web.collect({**payload, "page_id": "other-focus", "focus": "Installation section"})
+            self.web.collect({**payload, "research_id": "other-research"})
+            self.assertEqual(opener.return_value.open.call_count, 4)
 
     def observation(self, snapshot):
         return {"snapshot_id": snapshot["snapshot_id"], "source_id": "NEW-REVIEW-01", "kind": "review", "scope": self.scope,

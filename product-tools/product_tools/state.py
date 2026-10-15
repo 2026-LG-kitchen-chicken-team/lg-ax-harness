@@ -233,7 +233,7 @@ class StateStore:
         integer(expected_result_version, "expected_result_version", 0, 3)
         payload = canonical(result)
         if not isinstance(result, dict) or len(payload.encode("utf-8")) > MAX_RESULT_BYTES:
-            fail("input_limit", "Candidate must be an object <= 32 KiB")
+            fail("input_limit", "Candidate must be an object <= 128 KiB")
         accepted, reason = True, None
         report = None
         with self.transaction():
@@ -285,6 +285,8 @@ class StateStore:
                             report.update(review=review, assessment=assessment)
                             if not review["can_finalize_reported_result"]:
                                 fail("review_not_finalizable", "Reported review requires correction or a held result")
+                        if result["status"] == "completed":
+                            self.require_evidence_coverage(session_id, turn_id)
                     except ToolError as exc:
                         report = {**(report or {}), "review_required": require_review, "assessment": assessment, "contract_valid": False, "semantic_status": "unverified", "acceptance_ready": False,
                                   "error": {"code": exc.code, "message": str(exc)}}
@@ -308,6 +310,21 @@ class StateStore:
                 "semantic_status": "unverified", "acceptance_ready": False,
                 "detail_operation": "current_request/get_turn; complete candidate and assessment in export_session"}
         return response
+
+    def require_evidence_coverage(self, session_id, turn_id):
+        tables = {r[0] for r in self.db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not {"product_workflows", "conversation_requests"} <= tables:
+            return
+        for request in self.db.execute("SELECT session_id,request_key FROM conversation_requests WHERE turn_id=?", (turn_id,)):
+            research = "research-" + fingerprint(list(request))
+            columns = {r[1] for r in self.db.execute("PRAGMA table_info(product_workflows)")}
+            query = "SELECT budget_seconds,timing_policy FROM product_workflows WHERE research_id=?" if "timing_policy" in columns else "SELECT budget_seconds,NULL FROM product_workflows WHERE research_id=?"
+            clock = self.db.execute(query, (research,)).fetchone()
+            if clock and (clock[0] <= 600 or clock[1] == "natural-completion-v1"):
+                from .evidence_coverage import EvidenceCoverage
+                EvidenceCoverage(self).require_complete(session_id, turn_id)
+                from .workflow import WorkflowAudit
+                WorkflowAudit(self.db, self.path.parent.parent).require_scope_disclosure(research)
 
     def record_usage(self, session_id, turn_id, call):
         obj(call, ("call_id", "status", "input_tokens", "output_tokens", "cache_tokens", "reasoning_tokens", "cost_usd"))

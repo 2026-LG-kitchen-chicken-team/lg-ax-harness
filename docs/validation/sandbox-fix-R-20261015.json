@@ -1,0 +1,203 @@
+{
+  "phase": "sandbox-fix-R",
+  "date": "2026-10-15",
+  "source_parent_commit": "0363cce",
+  "source_files": {
+    "adapters/codex/templates/README.md": "dec5b73f1e071e90763f9738d7fbd1f57d6c14489d0812efaeb3ccaa5ee3d3f0",
+    "adapters/codex/templates/config.toml": "261de565095725388537064d07e4b4d13d6a7856190e3585a60dc647a28597f1",
+    "adapters/codex/templates/product-doctor.py": "1d249b4ac17228ae6594c65e79de622867272470a79fa768c5a99842b07ed218",
+    "adapters/codex/templates/pyproject.toml": "637e23b1c98515ea2b9c08a62cda2158062be9c3f0a408a7bde9ae62438773c1",
+    "docs/contracts/runtime-access.md": "95fd8091a31df8178003bc03e77f14bab40a51b73d9a897b90b98a3fa2ec7158",
+    "skills/manifest.json": "95f88991ca3ae91d52b6d6271d807b3f9c30066f6899c0b0e675c32ee4a7b3af",
+    "tests/product-tools/test_runtime_readiness.py": "94d9a6ebabb5038bc2de9cd35c7c4ab5b1456265ba218764c8b681b3c4bc7a25"
+  },
+  "manifest_sha256": "95f88991ca3ae91d52b6d6271d807b3f9c30066f6899c0b0e675c32ee4a7b3af",
+  "root_cause": {
+    "legacy_setup_stage": "runtime read/execute validation opening runtime binary for root-only ACL update",
+    "target": "active Computer Use node_repl.exe",
+    "win32_error": 32,
+    "sharing_violation": true,
+    "specific_lock_owner": "unconfirmed",
+    "observed_runtime_process_count": 32,
+    "acl_read_succeeded": true,
+    "requires_administrator": "not_established"
+  },
+  "second_failure": {
+    "operation": "uv interpreter cache persistence",
+    "location": "default AppData sandbox cache",
+    "win32_error": 5,
+    "fix": "project tool.uv.cache-dir=runtime-data/.uv-cache",
+    "initial_failed_folder_retained": true
+  },
+  "environment": {
+    "windows_display_version": "25H2",
+    "windows_build": "26200.9711",
+    "codex_cli": "0.162.0",
+    "uv": "0.12.2",
+    "product_python": "3.12.10"
+  },
+  "mxc_compatibility_probe": {
+    "exit_code": 0,
+    "output": "MXC_OK",
+    "elapsed_seconds": 0.484
+  },
+  "fresh_setup_checks": [
+    {
+      "name": "install",
+      "exit_code": 0,
+      "elapsed_seconds": 0.156
+    },
+    {
+      "name": "sync",
+      "exit_code": 0,
+      "elapsed_seconds": 0.843
+    },
+    {
+      "name": "sandbox-doctor",
+      "exit_code": 0,
+      "elapsed_seconds": 3.0
+    },
+    {
+      "name": "sandbox-uv",
+      "exit_code": 0,
+      "elapsed_seconds": 1.282
+    },
+    {
+      "name": "sandbox-boundary",
+      "exit_code": 0,
+      "elapsed_seconds": 0.296
+    }
+  ],
+  "sandbox_doctor": {
+    "requested_backend": "mxc",
+    "status": "passed",
+    "exit_code": 0,
+    "scope": "Windows sandbox process startup and product-local SQLite; no AI, browser, approval escalation or network test",
+    "workspace_storage": "local_process_checked",
+    "elapsed_seconds": 1.062
+  },
+  "boundary_check": {
+    "inside_read_write": true,
+    "sqlite": true,
+    "outside_write_blocked": true
+  },
+  "native_preparation": {
+    "native_id": "01a13e9d-bf3d-7953-86db-9854be9f1fc8",
+    "requested_model": "gpt-6.1-sol",
+    "observed_model": "gpt-6.1-sol",
+    "requested_effort": "medium",
+    "observed_effort": "medium",
+    "requested_approval_policy": "on-request",
+    "observed_approval_policy": "never",
+    "observed_sandbox_policy": {
+      "type": "workspace-write",
+      "network_access": false,
+      "exclude_tmpdir_env_var": false,
+      "exclude_slash_tmp": false
+    },
+    "requested_windows_backend": "mxc",
+    "elapsed_seconds": 11.547,
+    "process_exit_code": 0,
+    "completed_commands": 1,
+    "command_exit_codes": [
+      0
+    ],
+    "local_tool_success": true,
+    "business_planning_run": false,
+    "interactive_approval_prompt_tested": false,
+    "usage": [
+      {
+        "input_tokens": 53756,
+        "cached_input_tokens": 26496,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 139,
+        "reasoning_output_tokens": 0
+      }
+    ],
+    "events_sha256": "4a2699d9c0f99cc82f5918f51129b4069e6559b5e86d176625401d42d0803bd8",
+    "final_sha256": "663206f98f43fc73529ce592252f9a3cd45968bf97e822a1f3f7fc4bcf4450cb"
+  },
+  "checks": [
+    {
+      "name": "readiness",
+      "receipt": ".harness/checks/a3ec9dcb47704cc29f61921c560d62d7/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "locked-install",
+      "receipt": ".harness/checks/cd01718dc06b4e88959fc4f5d3133cfd/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "portable-install",
+      "receipt": ".harness/checks/475d8df7085f4c27b1db5036371bcb88/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "subagents",
+      "receipt": ".harness/checks/387e09e8d2934af4a8799121d9a2e1f6/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "researchers",
+      "receipt": ".harness/checks/1557c70ae9ec48f18190cdc1ccee410d/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "package",
+      "receipt": ".harness/checks/965fc11cdc054c71a8ad4b4c1b70f272/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "codex-install",
+      "receipt": ".harness/checks/584d2e0e0d55427ba9e6bd8014446279/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "assets",
+      "receipt": ".harness/checks/6a57cf22d7e0455abac1d58ac98929ff/receipt.json",
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "unit_tests": {
+    "counts": {
+      "readiness": 9,
+      "locked-install": 3,
+      "portable-install": 3,
+      "subagents": 8,
+      "researchers": 2,
+      "package": 2,
+      "codex-install": 3
+    },
+    "total": 30,
+    "skipped": 0
+  },
+  "computer_use": {
+    "windows_api": "@oai/sky",
+    "connected": true,
+    "windows_listed": 16,
+    "ui_input_actions": 0,
+    "codex_or_security_ui_automated": false,
+    "prior_unavailable_claim_corrected": true
+  },
+  "native_model_inputs": 1,
+  "automatic_model_redispatch": 0,
+  "explicit_global_config_or_auth_change": false,
+  "acl_relaxation_or_process_termination": false,
+  "frontend_changed": false,
+  "release_published": false,
+  "limits": [
+    "MXC support and managed policy require per-device diagnostic",
+    "native prep is not a business-quality regression",
+    "interactive approvals not newly accepted",
+    "Claude new GUI session and frontend/browser QA outside scope"
+  ]
+}

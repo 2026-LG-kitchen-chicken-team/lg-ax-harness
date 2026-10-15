@@ -12,6 +12,14 @@ FIELDS = ('input_tokens', 'cache_creation_input_tokens',
           'cache_read_input_tokens', 'output_tokens')
 
 
+def runtime_peer_message(row):
+    """Native metadata identifies a runtime handback, not user-provided wording."""
+    origin = row.get('origin')
+    return (row.get('isMeta') is True and row.get('promptSource') == 'system'
+            and row.get('turnOrigin') == 'peer' and isinstance(origin, dict)
+            and origin.get('kind') == 'peer' and isinstance(origin.get('from'), str))
+
+
 def audit_trace(path, session_id, prompt):
     raw = Path(path).read_bytes()
     rows = [json.loads(line) for line in raw.decode('utf-8').splitlines() if line.strip()]
@@ -27,7 +35,7 @@ def audit_trace(path, session_id, prompt):
     start = starts[0]
     end = next((i for i in range(start + 1, len(rows)) if rows[i].get('type') == 'user'
                 and isinstance(rows[i].get('message', {}).get('content'), str)
-                and not rows[i].get('isSidechain')), len(rows))
+                and not rows[i].get('isSidechain') and not runtime_peer_message(rows[i])), len(rows))
     turn = rows[start:end]
     messages, finals, tools, seen_rows, final_blocks, main_rows = {}, [], set(), set(), {}, []
     for r in turn:
@@ -88,6 +96,8 @@ def audit_trace(path, session_id, prompt):
             'elapsed_seconds': round(elapsed, 3), 'final_text': text,
             'final_sha256': hashlib.sha256(text.encode()).hexdigest(),
             'native_final_observed': True, 'assistant_messages': len(messages),
+            'runtime_peer_messages': sum(runtime_peer_message(r) for r in turn),
+            'native_end_turn_messages': len({r['message']['id'] for r, _ in finals}),
             'tool_use_ids': len(tools), 'models': sorted({m.get('model', 'unknown') for m in messages.values()}),
             'usage': totals, 'observed_input_total': input_total,
             'usage_scope': 'unique assistant message ids in this main native turn; backend/subagents/billing unverified'}

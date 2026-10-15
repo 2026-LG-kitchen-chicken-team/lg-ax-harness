@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "source": "M1",
+  "source_commit": "9e7f37d",
+  "canonical_manifest_sha256": "3c810cf1ff2726fe8f77649d32b28e540ebec1e28f41bd4d1fc3a235f9414889",
+  "scope": "Actual combined-source code checks; not a native or semantic acceptance result",
+  "checks": [
+    {
+      "kind": "product",
+      "receipt_id": "bb9434704d4640c0bf830b1a07408a8e",
+      "receipt_sha256": "1592c5dec134a3496a92589bb368cd005df6be2ac24995c55a0496a3c910548f",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:19:38.208174+00:00",
+      "finished_at": "2026-10-14T11:21:04.425744+00:00",
+      "duration_seconds": 86.219,
+      "exit_code": 0,
+      "total_tests": 439,
+      "passed_tests": 439,
+      "skipped_tests": 0,
+      "inputs": {
+        "product-tools/product_tools/conversation.py": "593997e5cebedf0c0ed2fe94a79ab61bdbd8e13aa4a28b74d91b53ba499fce79",
+        "product-tools/product_tools/web_evidence.py": "b460afd2853d444a9cc8f5db7ea98000e8d78fd05a2334c5ee13c08af0355ff4",
+        "product-tools/requirements.lock": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033",
+        "skills/manifest.json": "3c810cf1ff2726fe8f77649d32b28e540ebec1e28f41bd4d1fc3a235f9414889",
+        "tests/product-tools/test_web_delivery.py": "bec68771ed631784f884efd4274f71beef85ab5463e746d2e0acd48acd4e0685",
+        "tests/product-tools/test_web_evidence.py": "5ab9772c6843eb4accb3b9f2d30ca9f926845bf1d713ae391225bba44ee31ab9"
+      },
+      "logs_sha256": {
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr.log": "ba3de0f6b59711390ac5f3f5a7a66dcd7cde837dde8f8ef3901c3c9eed260a5d"
+      }
+    },
+    {
+      "kind": "web",
+      "receipt_id": "2eae0293705f4a119a666c24b56922d9",
+      "receipt_sha256": "0c4e9b9fe9250974f7b20c5d59a84901042799d62f7080d09c3719cf807e8bc2",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/web",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:19:38.208174+00:00",
+      "finished_at": "2026-10-14T11:20:47.074391+00:00",
+      "duration_seconds": 68.86,
+      "exit_code": 0,
+      "total_tests": 102,
+      "passed_tests": 102,
+      "skipped_tests": 0,
+      "inputs": {
+        "skills/manifest.json": "3c810cf1ff2726fe8f77649d32b28e540ebec1e28f41bd4d1fc3a235f9414889",
+        "tests/web/test_agent_office.py": "435eb1344a29b9dfa009d578a7afc3b66146b891752878c5abe8a54d2840c521",
+        "web/prototypes/agent-office/app/src/lib/model.ts": "23eeb6cf99ddd44a24121a5fddda5407e1012389f4a15c784bb8bd0035fdeeac",
+        "web/prototypes/agent-office/app/src/lib/state.ts": "c81f1cd3383ecc6e115a909672de42c19c980907b60ab8f9038695fcadb70805",
+        "web/prototypes/visual-viewer/build_view.py": "5c1939cf99ecb97e526a14948dd797e70a013d5ee7ec6da51c98557f549743f7"
+      },
+      "logs_sha256": {
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr.log": "1eda7794d44d7999f1acaa0f5b8eeec92b0b6b1ac0d1a32c30a56cef9d6eec37"
+      }
+    },
+    {
+      "kind": "assets",
+      "receipt_id": "12397affb5394b93bf413003b7076c11",
+      "receipt_sha256": "902e1e4180c254f4fa56f2815f260f54c536c009dc4b2aefbbbe0def3e0c45e6",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "scripts/check-product-assets.py"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:21:51.047004+00:00",
+      "finished_at": "2026-10-14T11:21:51.162519+00:00",
+      "duration_seconds": 0.125,
+      "exit_code": 0,
+      "total_tests": null,
+      "passed_tests": null,
+      "skipped_tests": null,
+      "inputs": {
+        "scripts/check-product-assets.py": "8225cd85c7cff9e975632e7b674b19ca2a4352e7ec401df73d180cd8089bd29f",
+        "skills/manifest.json": "3c810cf1ff2726fe8f77649d32b28e540ebec1e28f41bd4d1fc3a235f9414889"
+      },
+      "logs_sha256": {
+        "stdout.log": "0bd15dfc7e568dcd86fdf8552ef3c10ada039b09d3831e6e6ca9310664ab1f72",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "kind": "development",
+      "receipt_id": "6b5f8e012d8c493a93c34d6ed935ac64",
+      "receipt_sha256": "cde2ba92ff3ce114759ab515dda34c2d43c50c03990a7bc17d56ba9baa733d61",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "dev-harness/cli.py",
+        "validate"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:21:51.047004+00:00",
+      "finished_at": "2026-10-14T11:21:51.501340+00:00",
+      "duration_seconds": 0.469,
+      "exit_code": 0,
+      "total_tests": null,
+      "passed_tests": null,
+      "skipped_tests": null,
+      "inputs": {
+        "dev-harness/cli.py": "845fba2b31368d1bf4720f63debf5816f29be7645396d601bbb47bd41cc94b96",
+        "skills/manifest.json": "3c810cf1ff2726fe8f77649d32b28e540ebec1e28f41bd4d1fc3a235f9414889"
+      },
+      "logs_sha256": {
+        "stdout.log": "eb18bd79b0dd6f196e0c2a41983925abfdc6369627218e9e4618891f29d012c3",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "native_inputs_from_these_checks": 0,
+  "frontend_styles_changed": false,
+  "ci": "not_started_due_account_spending_limit",
+  "raw_receipts": "Git-excluded local receipts retained; this record contains identifiers and hashes only"
+}

@@ -1,0 +1,77 @@
+{
+  "release": "product-v0.12.0",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.12.0",
+  "published_at": "2026-10-14T01:40:30Z",
+  "prerelease": true,
+  "draft": false,
+  "snapshot_commit": "ced5874137d580ba8f13a7e89d6d63e1f1e24927",
+  "snapshot_parent_count": 0,
+  "development_provenance_commit": "70c6fc145bc8e2b411b43c8b6b293a7ae733576e",
+  "documentation_commit": "fd7ae7896364439914412bd8d4181d11bd53996a",
+  "source_manifest_sha256": "041552e1cc2273a248e6a16c41dd9270c2d72ef17ba9297e12148b0a0341df85",
+  "assets": [
+    {
+      "name": "lg-ax-harness-product-v0.12.0.zip",
+      "size": 412589
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 100
+    }
+  ],
+  "downloaded_archive_sha256": "29851633ade4f32e6a1f1b930c079b1b4b72ef4d7de1fe2a9bbd9c8b3ef71f7e",
+  "checksum_bytes_equal": true,
+  "automatic_source_zip_raw_bytes_equal": 107,
+  "remote_notes_bytes_equal": true,
+  "release_notes_sha256": "deb0bb68810bd80086395b05f42927a977ad661f3fb192394e7e0d46a188caac",
+  "installations": {
+    "commands": 5,
+    "recorded_exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "wrapper_actual_exit": 0,
+    "raw_stdout_stderr": "not retained"
+  },
+  "checks": {
+    "product_total": 402,
+    "product_passed": 401,
+    "product_skipped": 1,
+    "evaluation": 144,
+    "assets_exit": 0
+  },
+  "native_acceptance": {
+    "source": "K1",
+    "inputs": 6,
+    "business_accepted": 6,
+    "core_errors": 0,
+    "local_review_corrections": 1,
+    "current_saved_web_export_and_final_prefix_verified": true,
+    "source_data_protected": true
+  },
+  "recommendation": {
+    "runtime": "Codex",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "scope": "registered real-source planning, three families"
+  },
+  "remote_CI": {
+    "run": 38496892147,
+    "head": "fd7ae7896364439914412bd8d4181d11bd53996a",
+    "jobs": 2,
+    "steps_started": 0,
+    "reason": "account payment/spending-limit restriction; actual annotations verified; not a source test failure"
+  },
+  "native_from_release_zip": "not_run",
+  "fresh_remote_clone": "not_run",
+  "default_Windows_autocrlf_checkout": "not supported; use ZIP",
+  "new_Claude_native": "not_run",
+  "HTML_UI": "not_run",
+  "physical_effect": "not_measured",
+  "full_backend_billing": "unknown",
+  "main_web_existing_tags_changed": false,
+  "final_submission": "not_completed"
+}

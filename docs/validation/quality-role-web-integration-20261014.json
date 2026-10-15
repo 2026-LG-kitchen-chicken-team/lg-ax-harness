@@ -1,0 +1,864 @@
+{
+  "schema_version": 1,
+  "source": "M2",
+  "source_commit": "48e907a5a61088908eb3a9e4ccad4265b45e19f2",
+  "canonical_manifest_sha256": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+  "phase": {
+    "used": 14,
+    "previous_used": 91,
+    "cap": 14,
+    "business_concurrency": 1,
+    "automatic_redispatch": 0
+  },
+  "cumulative_parent_inputs": 105,
+  "M1_parent_inputs": 3,
+  "M2_parent_inputs": 11,
+  "cases": [
+    {
+      "case": "M_CODEX_A",
+      "source": "M1",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 562.906,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "13a02b5f13be0d63835a5e41603318c0f36b4dbf72b59da9dffbdde48672358e",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 2184240,
+        "cached_input_tokens": 2041344,
+        "output_tokens": 19350,
+        "reasoning_output_tokens": 785
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 2184240,
+        "cached_input_tokens": 2041344,
+        "output_tokens": 19350,
+        "reasoning_output_tokens": 785
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M_CODEX_F",
+      "source": "M1",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 42.469,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "ba111db67575fb8a2373efc9bff389fb7f92dce9bf54eea243615bf889411a43",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 609197,
+        "cached_input_tokens": 592512,
+        "output_tokens": 1002,
+        "reasoning_output_tokens": 180
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 609197,
+        "cached_input_tokens": 592512,
+        "output_tokens": 1002,
+        "reasoning_output_tokens": 180
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M_CODEX_R",
+      "source": "M1",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 803.5,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "bd1b250d54e5f0435333e094d63140cc181195d0be74703ab40dedc75bbfd3cb",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 4965968,
+        "cached_input_tokens": 4797568,
+        "output_tokens": 27323,
+        "reasoning_output_tokens": 2479
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 4965968,
+        "cached_input_tokens": 4797568,
+        "output_tokens": 27323,
+        "reasoning_output_tokens": 2479
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CLAUDE_A",
+      "source": "M2",
+      "provider": "claude",
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_effort": "unknown",
+      "status": "succeeded",
+      "elapsed_seconds": 587.934,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "14a187310570f7cf4ffd62b83127f5e214b8b9bfdcf3c788bde817cf2ea4bcbf",
+      "trace_sha256": "9328a92d8e5805d18132e2c925b341a6fa4aad48ae3a60e7c8612046afe5da2a",
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": {
+          "known_sum": 70,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 207515,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 5227695,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 63198,
+          "unknown_messages": 0
+        }
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": {
+          "known_sum": 70,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 207515,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 5227695,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 63198,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified"
+    },
+    {
+      "case": "M2_CLAUDE_C",
+      "source": "M2",
+      "provider": "claude",
+      "requested_model": "Opus 5.5",
+      "actual_model": null,
+      "requested_effort": "high",
+      "actual_effort": "unknown",
+      "status": "cancelled",
+      "elapsed_seconds": null,
+      "final_delivery_observed": false,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "40cb3053c4674f932db3eb592fd01c392ed0cbd089fcb73d1aace9cdf2964de7",
+      "trace_sha256": "247fc6f58f1487e97707b705d74b49e55c74fbe802d712e395a0043dcdc829bd",
+      "business_cancel_verified": true,
+      "normal_quality_pass": false,
+      "raw_parent_usage": {
+        "input_tokens": {
+          "known_sum": 56,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 196363,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3984194,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 47374,
+          "unknown_messages": 0
+        }
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": {
+          "known_sum": 56,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 196363,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3984194,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 47374,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_usage_scope": "partial observed main messages only; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CLAUDE_F",
+      "source": "M2",
+      "provider": "claude",
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_effort": "unknown",
+      "status": "succeeded",
+      "elapsed_seconds": 275.234,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "47e3572cae9eb45eb3949fd523bf67e5a866183752636afe5d966366e21c200f",
+      "trace_sha256": "2b837c4f59a9d9db2fb80fa422c68a704f2cd6af7f6ecda19ce8e7ff56d68df4",
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": {
+          "known_sum": 20,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 53875,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 2740325,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 31379,
+          "unknown_messages": 0
+        }
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": {
+          "known_sum": 20,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 53875,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 2740325,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 31379,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified"
+    },
+    {
+      "case": "M2_CLAUDE_H",
+      "source": "M2",
+      "provider": "claude",
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_effort": "unknown",
+      "status": "succeeded",
+      "elapsed_seconds": 274.33,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "d507a6fa52349af50c311ab9999dc1aef6269f3a3163f6f601c0228affe854de",
+      "trace_sha256": "3664768844d4ff1a84d1e9d28230c5d1a6adffee5572c572fb755636dd9b40d2",
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": {
+          "known_sum": 48,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 138413,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3030354,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 26675,
+          "unknown_messages": 0
+        }
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": {
+          "known_sum": 48,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 138413,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 3030354,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 26675,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified"
+    },
+    {
+      "case": "M2_CLAUDE_R",
+      "source": "M2",
+      "provider": "claude",
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_effort": "unknown",
+      "status": "succeeded",
+      "elapsed_seconds": 855.788,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "e392e4e37b77bb782b0c0043549bb949008fc0a2e4d42a29f32419fd2d1221e3",
+      "trace_sha256": "5059dac74472c0fdebdbc64b295c0a297d3cbd2bc53748f04fb7a7d39ffc13f8",
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": {
+          "known_sum": 96,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 283749,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 9823975,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 74379,
+          "unknown_messages": 0
+        }
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": {
+          "known_sum": 96,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 283749,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 9823975,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 74379,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_usage_scope": "unique main assistant messages across one human input and verified native background callback; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CLAUDE_X",
+      "source": "M2",
+      "provider": "claude",
+      "requested_model": "Opus 5.5",
+      "actual_model": [
+        "claude-opus-5-5"
+      ],
+      "requested_effort": "high",
+      "actual_effort": "unknown",
+      "status": "succeeded",
+      "elapsed_seconds": 355.191,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "624a443104f4d25095547b198234fd60f000f4f5bdb67d537775976a904ece58",
+      "trace_sha256": "fb75ca97bb243bb0f7fab7a5d052dfacf59631160f7f6cc01a063ea201d95d90",
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": {
+          "known_sum": 64,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 175653,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4502858,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 33298,
+          "unknown_messages": 0
+        }
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": {
+          "known_sum": 64,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 175653,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 4502858,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 33298,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_usage_scope": "unique assistant message ids in this main native turn; backend/subagents/billing unverified"
+    },
+    {
+      "case": "M2_CODEX_A",
+      "source": "M2",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 532.531,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "ba1a923ae86e758f203b86823ad32d4f9595a99c2ae8a5d710205a6174cee2f1",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 2119681,
+        "cached_input_tokens": 1990528,
+        "output_tokens": 17530,
+        "reasoning_output_tokens": 835
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 2119681,
+        "cached_input_tokens": 1990528,
+        "output_tokens": 17530,
+        "reasoning_output_tokens": 835
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CODEX_C",
+      "source": "M2",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "cancelled",
+      "elapsed_seconds": 77.828,
+      "final_delivery_observed": false,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "90e35a66ede48f373599896486691f1765481f6e8932b1b095386606a837d56d",
+      "trace_sha256": null,
+      "business_cancel_verified": true,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 285451,
+        "cached_input_tokens": 236160,
+        "output_tokens": 1757,
+        "reasoning_output_tokens": 26
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 285451,
+        "cached_input_tokens": 236160,
+        "output_tokens": 1757,
+        "reasoning_output_tokens": 26
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CODEX_F",
+      "source": "M2",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 628.422,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "7e55a5a946de84121c0a9e98f99167c80fd59eeb5978bcfd4a2e40c8f531d8f6",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 3632005,
+        "cached_input_tokens": 3545984,
+        "output_tokens": 21339,
+        "reasoning_output_tokens": 2228
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 3632005,
+        "cached_input_tokens": 3545984,
+        "output_tokens": 21339,
+        "reasoning_output_tokens": 2228
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CODEX_H",
+      "source": "M2",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 321.266,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "b8b62e7207ff7fe23cc49d5acf7d9612330e648d8667fad2f70881d4260f3dc3",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 1449458,
+        "cached_input_tokens": 1329280,
+        "output_tokens": 10920,
+        "reasoning_output_tokens": 190
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 1449458,
+        "cached_input_tokens": 1329280,
+        "output_tokens": 10920,
+        "reasoning_output_tokens": 190
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    },
+    {
+      "case": "M2_CODEX_X",
+      "source": "M2",
+      "provider": "codex",
+      "requested_model": "gpt-6-astra",
+      "actual_model": "gpt-6-astra",
+      "requested_effort": "low",
+      "actual_effort": "low",
+      "status": "succeeded",
+      "elapsed_seconds": 310.625,
+      "final_delivery_observed": true,
+      "protected_files_unchanged": true,
+      "data_files_unchanged": true,
+      "result_sha256": "6ac66393e976f63ca7e5721d707896d5c4f49dcbc7cc839c9e2062ab15263eb9",
+      "trace_sha256": null,
+      "business_cancel_verified": null,
+      "normal_quality_pass": null,
+      "raw_parent_usage": {
+        "input_tokens": 1772055,
+        "cached_input_tokens": 1655168,
+        "output_tokens": 9145,
+        "reasoning_output_tokens": 464
+      },
+      "raw_usage_scope": "raw public parent trace; cumulative followup and exact case delta must be distinguished; child/backend billing unknown",
+      "backend_billing": "unknown",
+      "observed_parent_usage": {
+        "input_tokens": 1772055,
+        "cached_input_tokens": 1655168,
+        "output_tokens": 9145,
+        "reasoning_output_tokens": 464
+      },
+      "observed_parent_usage_scope": "actual main-session cumulative delta; public per-turn events separate; child/backend billing unknown"
+    }
+  ],
+  "manual_independent_review": {
+    "reviewer": "/root/m_quality_contract_explorer",
+    "basis": "actual independent native review messages; no fabricated verdict file hash",
+    "normal_important_P1_P2_none": [
+      "M_CODEX_A",
+      "M_CODEX_R",
+      "M2_CODEX_A",
+      "M2_CODEX_F",
+      "M2_CLAUDE_R"
+    ],
+    "same_local_P2_preserved": [
+      "M2_CLAUDE_A",
+      "M2_CLAUDE_F"
+    ],
+    "P2_kind": "manual-reading recommendation used as evidence of actual difficulty",
+    "appropriate_held_unresolved": [
+      "M2_CODEX_H",
+      "M2_CLAUDE_H"
+    ],
+    "appropriate_pre_HTTP_validation_rejection": [
+      "M2_CODEX_X",
+      "M2_CLAUDE_X"
+    ],
+    "cancel_operational_no_important_P1_P2": [
+      "M2_CODEX_C",
+      "M2_CLAUDE_C"
+    ],
+    "claude_X_nonblocking_note": "ambiguous source condition made more concrete in one decision note",
+    "packet_cases": {
+      "QP01": "dedd93a8f61b4e3a9b0fc86efbb10070fd82e40932d711b043b01349ba8a301c",
+      "QP02": "c0f88d837a2be9043b9ad6c50b7cc928e2345acbc1cf56d44dfeb02474afc4b6",
+      "QP03": "0ea566e6b227cd896e7387dd32d2f0284301f62fd15193c83ef0c558bfa6b394",
+      "QP04": "a2903860dbfc152b2513ba3757aac603da7753ca2f75f7c9918898a95f094957",
+      "QP05": "bac8b3f7d1ee9e2f8c16d79f5a6839790c780a1641c6c22bdd615d51fe2b08ad",
+      "QP06": "6f8dd20601325553afca9689b9c638399729053155f58f2f76ddfb691f1055e1",
+      "QP07": "5381bf264bf68ebc6f70fd44662bd6e6669a61413c141e03c6b5e23f07eeaa5a",
+      "QP08": "9d0cf68a7cca82c2f21f0032baad4af9dee250a4fea4a70b8e605b9e06daa02d",
+      "QP09": "feab140cbf4c55ecd3506815e559a113c570c6930a71face7c277396b25781f2",
+      "QP10": "4e701c2d84d74cb4b30fff3dec799085cfc459ea63acac13b20ef929213d0cbf",
+      "QP11": "fd5d3c7079b5d3b7e2d67760e52041d1bac2f87a524032a899fc8692b912991c"
+    }
+  },
+  "roles": {
+    "product_main": 1,
+    "product_skills": 6,
+    "optional_product_roles": 3,
+    "Claude_M2_actual_handback_completed_notice": 3,
+    "Claude_ACK_to_notice_seconds": [
+      76.627,
+      80.49,
+      124.602
+    ],
+    "reviewer_findings": 10,
+    "direct_field_changes": 8,
+    "partial_changes": 2,
+    "manual_recommendation_pain_removed_before_reviewer": true,
+    "full_parent_verbatim_child_body_receipt_certified": false,
+    "role_vs_solo_Claude_seconds": 267.854,
+    "role_vs_solo_Codex_M1_seconds": 240.594,
+    "general_speed_token_quality_improvement_rate": null,
+    "actual_public_child_observation_sha256": "325d73c3942457144bf432a02bc0accc4c5eca6eca6088449dafd6a3d2411be7",
+    "corrected_background_final_observation_sha256": "739c963937b4e83260f8a82ed53929265310a9fd69f3e35b189b3a17e186fa7a"
+  },
+  "web": {
+    "PR10_head": "1576a6c2a31d7a927bf73f02eaea4abf33202f80",
+    "PR11_head": "7c8e61b305e3424d0a5b3ac61dd203bbdfacbc71",
+    "current_binding_checked": true,
+    "selected_registered_sources": 56,
+    "selected_chars": 41974,
+    "selected_utf8_bytes": 97846,
+    "extra_visualization_model_calls": 0,
+    "actual_Claude_office_trace_events": 120,
+    "office_mode": "record_replay",
+    "Claude_live_native_hook_verified": false,
+    "browser_receipt_sha256": "77d224ef43208db66d13f5180548f37ee46b1e0c91e79672a6dd7d45d5144b0f",
+    "office_import_receipt_sha256": "b83dcdc46b46764b5cb949c227f2191caddc8aa351162d0e65463d6ab075d123",
+    "late_PR10_head": "34ec4a492e5d12cf4041bdfe60cde63ba39dcf27",
+    "late_PR10_commits_not_in_this_frozen_acceptance": 8
+  },
+  "checks": [
+    {
+      "kind": "product",
+      "receipt_id": "869f86c5422b43c5a7015b2318e8c356",
+      "receipt_sha256": "237fa1f62004962b8801228707e5cab31dc1cd9f2b579e21ee63ff08b6e359d0",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:52:58.164803+00:00",
+      "finished_at": "2026-10-14T11:54:26.111906+00:00",
+      "duration_seconds": 87.9465,
+      "exit_code": 0,
+      "total_tests": 443,
+      "passed_tests": 443,
+      "skipped_tests": 0,
+      "inputs": {
+        "product-tools/product_tools/conversation.py": "03a2bbd7627c801b392cb3b1f6446993041ca4c04aa32b207943cf170305082a",
+        "product-tools/requirements.lock": "d8859b9bdc4c8bdf5282a8b5162bcaeda0393ab78d91c7928735f4b23d0ef033",
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+        "tests/product-tools/test_timed_followup.py": "bcfc1affe1bc3e167f097e526213aa08241c99b2e46c21716f333aff88daaae1"
+      },
+      "logs_sha256": {
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr.log": "e4e63800f78ad73ca021b6416a530e53fa504acba724b750f92ee8d9a5e5ee7c"
+      }
+    },
+    {
+      "kind": "web",
+      "receipt_id": "b9d817c8fddb4b709abb7370c5540488",
+      "receipt_sha256": "885b4142793b2d32da333c36910dd4c56b0648d148cd17bb700ad8ee54a3ec9c",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/web",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:52:58.145950+00:00",
+      "finished_at": "2026-10-14T11:54:08.225415+00:00",
+      "duration_seconds": 70.079,
+      "exit_code": 0,
+      "total_tests": 105,
+      "passed_tests": 105,
+      "skipped_tests": 0,
+      "inputs": {
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff",
+        "tests/web/test_visual_viewer.py": "52760c089f64a1e14909b25c4751506c7177091a4b724a09bcbbaeb8740539e5",
+        "web/prototypes/visual-viewer/build_view.py": "1c302c2eac9a46390d07acfa4deddb118ca2bbddb69044d30b4aa1a46499d9d1"
+      },
+      "logs_sha256": {
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr.log": "76959fbc27e82301ad9a778c6cc229dac4e81a5758c15e052bae1413e245f775"
+      }
+    },
+    {
+      "kind": "assets",
+      "receipt_id": "a85ac00737434c67b3d22e4d33b36ba1",
+      "receipt_sha256": "8adcc6815fbfd45dc8755b8cc92037135d7127fa5c1e853fcaa3222e50d80c98",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "scripts/check-product-assets.py"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:55:00.421701+00:00",
+      "finished_at": "2026-10-14T11:55:00.529955+00:00",
+      "duration_seconds": 0.1082,
+      "exit_code": 0,
+      "total_tests": null,
+      "passed_tests": null,
+      "skipped_tests": null,
+      "inputs": {
+        "scripts/check-product-assets.py": "8225cd85c7cff9e975632e7b674b19ca2a4352e7ec401df73d180cd8089bd29f",
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff"
+      },
+      "logs_sha256": {
+        "stdout.log": "0bd15dfc7e568dcd86fdf8552ef3c10ada039b09d3831e6e6ca9310664ab1f72",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "kind": "development",
+      "receipt_id": "6809f595e79f44a59b43ab73b249bcaa",
+      "receipt_sha256": "86abf5a167e38a46a4fd22a585256a608d20b713f13f2874b99f72c7de28bbf2",
+      "argv": [
+        ".harness/M-productdeps/Scripts/python.exe",
+        "dev-harness/cli.py",
+        "validate"
+      ],
+      "cwd": ".",
+      "started_at": "2026-10-14T11:55:00.425386+00:00",
+      "finished_at": "2026-10-14T11:55:00.853071+00:00",
+      "duration_seconds": 0.4277,
+      "exit_code": 0,
+      "total_tests": null,
+      "passed_tests": null,
+      "skipped_tests": null,
+      "inputs": {
+        "dev-harness/cli.py": "845fba2b31368d1bf4720f63debf5816f29be7645396d601bbb47bd41cc94b96",
+        "skills/manifest.json": "2275cdd7722ca7ff7d24aebbe520dcd2ac41bb7deb49a5ef4f49c89cee3e21ff"
+      },
+      "logs_sha256": {
+        "stdout.log": "eb18bd79b0dd6f196e0c2a41983925abfdc6369627218e9e4618891f29d012c3",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "private_proofs_preservation_sha256": "7ef0df4bbc726c03f73cdfc6ba811108c1bbe95ac6cdaa579efaf00bea8690c2",
+  "product_candidate": {
+    "tag": "product-v0.14.0",
+    "archive_sha256": "a67fc2649da93cce5d5295332860078d469ed850de93357dcacc41f413318a4e",
+    "files": 108,
+    "content_manifest_entries": 107,
+    "snapshot": "8d5a26bb0607aec9bd94e795b1397eda3cadfcff",
+    "parents": 0,
+    "native_from_ZIP": "not_run; same canonical bytes in isolated native adapters",
+    "package_receipt_sha256": "657cfe1a43d4eca9616019e63d181943e92b4d54b09452b7f500e282fe739448",
+    "independent_review_sha256": "f087fe1083dbb96f85c1729a469aed5c139c534e42ea9231ad21f27ed1c15452",
+    "independent_P1_P2": 0
+  },
+  "limits": {
+    "corpus_is_prior_actual_observations_not_fresh_web": true,
+    "corpus_records": 219,
+    "review_excerpts": 87,
+    "product_fact_records": 132,
+    "unique_customer_or_market_representativeness_certified": false,
+    "HTTP_network_outage_recovery_test": false,
+    "backend_stop_billing_verified": false,
+    "all_semantic_failures_prevented": false,
+    "human_savings_measurement": "excluded by user",
+    "controlled_token_savings_percent": null,
+    "remote_CI": "not_started_due_account_spending_limit",
+    "main_merge": "not_run",
+    "final_competition_submission": "not_run"
+  },
+  "phase_closure": {
+    "active_dispatch_lock_present": false,
+    "all_14_dispatch_release_proofs": true,
+    "metrics_sha256": "e9e170eb1a8eb6d156921d43c50f18f9299172583d5c1c821705e22860c24f5f",
+    "phase_sha256": "1cf04f09441f7b9ab2193885e99809be8b794c9d81943546f8761b8baf8fe4fb",
+    "dispatch_counter_sha256": "6b68e768ae70eafda2ceeac7098732501ec37b101b4c99c4549afcbe103a2ece"
+  }
+}

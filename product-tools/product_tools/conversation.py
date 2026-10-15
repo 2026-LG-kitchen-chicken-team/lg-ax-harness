@@ -6,7 +6,7 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import uuid
-from .contracts import canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
+from .contracts import MAX_BYTES, MAX_RESULT_BYTES, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from .payload import candidate_template
 
 
@@ -32,9 +32,9 @@ class Conversation:
 
     def open_product_workflow(self, payload):
         """One product-name request, empty-catalog compatible, measured from entry."""
-        obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds"))
+        obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds", "prior_turn_id"))
         from .contracts import integer
-        integer(payload.get("budget_seconds", 1800), "budget_seconds", 1200, 1800)
+        integer(payload.get("budget_seconds", 1800), "budget_seconds", 300, 1800)
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.store.db, self.workspace)
         with self.store.transaction():
@@ -47,7 +47,7 @@ class Conversation:
             if not research:
                 turn = response["turn"]
                 research = self._research_id(turn["session_id"], turn["request_key"])
-            status = audit.start(research, payload.get("budget_seconds", 1800))
+            status = audit.start(research, payload.get("budget_seconds", 1800), allow_new_bound_request=True)
         return {**response, "research_id": research,
                 "workflow": status,
                 "next_action": "Interpret the original product name, investigate the whole exact product, then resolve this same request; do not ask for a pain when the product is clear"}
@@ -127,7 +127,7 @@ class Conversation:
                                    "claims_per_section": 20, "concept_requirements": 10,
                                    "concept_assumptions": 10, "implementation_steps": 8,
                                    "decision_notes": 10, "decision_source_ids": 20,
-                                   "result_bytes": 32768,
+                                   "result_bytes": MAX_RESULT_BYTES,
                                    "template_status": "blank_invalid_until_authored",
                                    "semantic_status": "unverified"}}
         # Leave headroom for the CLI envelope; never hide a committed handle due
@@ -146,7 +146,26 @@ class Conversation:
             bundle["included_source_ids"].remove(removed)
             bundle["omitted_source_ids"].append(removed)
             bundle["byte_truncated"] = True
+        from .evidence_coverage import EvidenceCoverage
+        EvidenceCoverage(self.store).delivered(turn["session_id"], turn["turn_id"], bundle["evidence_refs"],
+                                               "bundle-" + fingerprint([turn["context_fingerprint"], bundle["evidence_refs"]]))
         return value
+
+    def evidence_inventory(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).evidence_inventory(payload)
+
+    def read_evidence_batch(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).read_evidence_batch(payload)
+
+    def record_evidence_review(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).record_evidence_review(payload)
+
+    def evidence_coverage(self, payload):
+        from .evidence_coverage import EvidenceCoverage
+        return EvidenceCoverage(self.store).evidence_coverage(payload)
 
     def historical(self, session_id, turn_id):
         state = self.store.get_turn(session_id, turn_id)
@@ -171,6 +190,8 @@ class Conversation:
         key = identifier(payload.get("request_key", "request-" + uuid.uuid4().hex), "request_key")
         if "prior_turn_id" in payload and "session_id" not in payload:
             fail("invalid_input", "A follow-up must preserve its session_id")
+        if "prior_turn_id" in payload:
+            identifier(payload["prior_turn_id"], "prior_turn_id")
         previous = self.historical(session, payload["prior_turn_id"]) if "prior_turn_id" in payload else None
         request = {**payload, "session_id": session, "request_key": key}
         raw = canonical(request)
@@ -330,6 +351,12 @@ class Conversation:
         return {**value, "request_version": row[2], "research_id": self._research_id(session, key)}
 
     def export_session(self, payload):
+        # Binding and history must describe one snapshot, including when the
+        # web payload is written after this export by save_and_export.
+        with self.store.transaction():
+            return self._export_session(payload)
+
+    def _export_session(self, payload):
         obj(payload, ("session_id",))
         session = identifier(payload["session_id"], "session_id")
         requests = list(self.store.db.execute("SELECT * FROM conversation_requests WHERE session_id=?", (session,)))
@@ -346,6 +373,18 @@ class Conversation:
                 candidate["source_metadata"] = self._source_metadata(candidate["result"].get("evidence_refs", []))
             latest = histories[-1]["state"].get("latest_result")
             histories[-1]["source_metadata"] = self._source_metadata(latest.get("evidence_refs", []) if latest else [])
+            from .evidence_coverage import EvidenceCoverage
+            histories[-1]["evidence_coverage_history"] = EvidenceCoverage(self.store).history(row["turn_id"])
+            from .workflow import WorkflowAudit
+            state = histories[-1]["state"]
+            audit = WorkflowAudit(self.store.db, self.workspace)
+            research = self._research_id(session, state["request_key"])
+            histories[-1]["web_binding"] = {
+                "session_id": session, "turn_id": state["turn_id"], "request_key": state["request_key"],
+                "result_version": state["result_version"], "result_sha256": fingerprint(latest) if latest else None,
+                "context_sha256": state["context_fingerprint"], "code_sha256": self.store.code_hash,
+                "data_sha256": self.store.dataset.fingerprint, "data_version": self.store.dataset.version,
+                "workflow_audit_hash": audit.report_audit_hash(research) if audit.active(research) else None}
         value = {"session_id": session, "requests": [{"input": strict_json(r["payload"]), "turn_id": r["turn_id"], "request_version": r["request_version"], "response": strict_json(r["response"]) if r["response"] else None,
                  "events": [{"kind": e["kind"], "version": e["version"], "input": strict_json(e["payload"])} for e in self.store.db.execute("SELECT * FROM request_events WHERE session_id=? AND request_key=? ORDER BY version", (session, r["request_key"]))],
                  "research_usage": {"status": "unknown", "coverage": "not measured by request journal; native session evidence required"}} for r in requests],
@@ -420,6 +459,15 @@ class Conversation:
             if response["delivery_ready"]:
                 report = self._deliver_current(payload["session_id"], payload["turn_id"], receipt["current_result_version"], options)
                 response.update(report=report, report_ready=report["ready"], report_error=report.get("error"))
+        else:
+            response.update(web_result=None, web_ready=False, web_error=None)
+            if response["delivery_ready"]:
+                try:
+                    response["web_result"] = self.prepare_web_result({"session_id": payload["session_id"],
+                        "turn_id": payload["turn_id"], "expected_result_version": receipt["current_result_version"]})
+                    response["web_ready"] = response["web_result"]["ready"]
+                except (OSError, ValueError, sqlite3.Error) as exc:
+                    response["web_error"] = {"code": getattr(exc, "code", "web_delivery_failed"), "message": str(exc)[:512]}
         from .workflow import WorkflowAudit
         audit = WorkflowAudit(self.store.db, self.workspace)
         keys = self.store.db.execute("SELECT request_key FROM conversation_requests WHERE session_id=? AND turn_id=?", (payload["session_id"], payload["turn_id"])).fetchall()
@@ -429,8 +477,26 @@ class Conversation:
                 response["workflow"] = audit.status(research)
                 from .workflow import utc_now
                 response["workflow_file_confirmation_at"] = utc_now().isoformat()
-                response["workflow_files_within_budget"] = bool(response.get("report_ready") and utc_now() <= datetime.fromisoformat(response["workflow"]["deadline"]))
+                response["workflow_files_within_budget"] = bool((response.get("report_ready") or response.get("web_ready")) and utc_now() <= datetime.fromisoformat(response["workflow"]["deadline"]))
+        response.update(completion_summary=None, completion_error=None)
+        if response["delivery_ready"]:
+            try:
+                response["completion_summary"] = self.get_completion_summary({"session_id": payload["session_id"],
+                    "turn_id": payload["turn_id"], "expected_result_version": receipt["current_result_version"]})
+            except (OSError, ValueError, sqlite3.Error) as exc:
+                response["completion_error"] = {"code": getattr(exc, "code", "completion_failed"), "message": str(exc)[:512]}
+        if response["completion_summary"] and len(canonical(response).encode("utf-8")) > MAX_BYTES:
+            response["completion_summary"].pop("text", None)
+            response["completion_summary"].update(text_omitted=True, detail_operation="get_completion_summary")
         return response
+
+    def get_completion_summary(self, payload):
+        from .completion import CompletionSummary
+        return CompletionSummary(self.store, self.workspace).get_completion_summary(payload)
+
+    def prepare_web_result(self, payload):
+        from .web_delivery import WebDelivery
+        return WebDelivery(self.store, self.workspace).prepare_web_result(payload)
 
     def _report_options(self, payload, recovery=False):
         report = payload.get("report", recovery)
@@ -457,7 +523,7 @@ class Conversation:
         if not allowed.is_relative_to(self.workspace) or not path.is_relative_to(allowed) or not path.is_file():
             fail("invalid_path", "Authored report plans must be files inside this workspace's runtime-data")
         # Report length has a separate, generous mechanical bound; the business
-        # result's 64 KiB stdin limit is never applied to a report plan.
+        # result's 256 KiB stdin limit is never applied to a report plan.
         if path.stat().st_size > 16 * 1024 * 1024:
             fail("report_plan_limit", "Authored report plan exceeds 16 MiB")
         return strict_json(path.read_text(encoding="utf-8-sig"))
@@ -533,6 +599,13 @@ class Conversation:
                 current = self.store.get_turn(session, turn)
                 if current["result_version"] != version or not current["valid"] or current["status"] not in ("completed", "held", "needs_input") or current["latest_result"] is None:
                     fail("current_state_changed", "Reader generation requires the current valid, reviewed saved result")
+                validation = strict_json(self.store.db.execute(
+                    "SELECT validation_json FROM results WHERE turn_id=? ORDER BY result_version DESC LIMIT 1",
+                    (turn,)).fetchone()[0])
+                if (validation.get("review_required") is not True
+                        or not isinstance(validation.get("assessment"), dict)
+                        or validation.get("review", {}).get("can_finalize_reported_result") is not True):
+                    fail("reader_review_required", "Reader delivery requires the stored reviewed-result contract; structural save alone is insufficient")
                 cached = self.store.db.execute("SELECT response,file_hashes FROM reader_deliveries WHERE turn_id=? AND result_version=? AND plan_hash=?", (turn, version, plan_hash)).fetchone()
                 if cached:
                     response = strict_json(cached["response"])

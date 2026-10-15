@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     errors = []
     manifest = json.loads((ROOT / "skills/manifest.json").read_text(encoding="utf-8"))
+    optional = manifest.get('optional_agents', [])
+    registered = {e['path'] for e in manifest['shared_files']}
+    if not isinstance(optional,list) or any(not isinstance(p,str) or p not in registered for p in optional):
+        errors.append('Optional product role must be a registered shared asset')
     if len(manifest["skills"]) != 6:
         errors.append("Expected six product skills")
     for skill in manifest["skills"]:
@@ -48,7 +52,7 @@ def main():
     for name, version in requirement_pins.items():
         if locked_pins.get(name) != version or uv_pins.get(name) != version:
             errors.append("Reporting dependency lock mismatch: " + name)
-    print(json.dumps({"errors": errors, "product_agents": 1, "product_skills": 6, "scope": "asset/reference/dependency-lock consistency only; document layout/native installation/discovery/AI quality not verified"}, ensure_ascii=False))
+    print(json.dumps({"errors": errors, "product_agents": 1, "optional_product_roles": len(optional) if isinstance(optional,list) else None, "product_skills": 6, "scope": "main Agent asset and optional role assets separately; asset/reference/dependency-lock consistency only; native runs and AI quality not verified"}, ensure_ascii=False))
     return bool(errors)
 
 

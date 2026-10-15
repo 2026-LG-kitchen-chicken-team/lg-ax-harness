@@ -11,6 +11,18 @@ import model_effort_eval as ev
 
 
 class ObserverBoundaryTests(unittest.TestCase):
+    def test_unsupported_delegation_rejected_before_workspace_or_process(self):
+        cases=[({"provider":"claude","product_reviewer":True},{}),
+               ({"provider":"claude","product_researchers":True},{}),
+               ({"provider":"codex","product_reviewer":True},{"mode":"fresh_online_e2e"})]
+        with tempfile.TemporaryDirectory(prefix="lg-effort-preflight-") as folder:
+            for job,plan in cases:
+                with patch.object(ev,"prepare_job") as prepare, patch.object(ev,"execute") as execute:
+                    with self.assertRaises(ValueError):
+                        ev.run_job(job,plan,Path(folder))
+                    prepare.assert_not_called()
+                    execute.assert_not_called()
+
     def test_progress_message_at_timeout_is_not_final_delivery(self):
         code = ('import json,sys,time;sys.stdin.read();'
                 'print(json.dumps({"type":"item.completed","item":{"id":"progress","type":"agent_message","text":"working"}}),flush=True);'

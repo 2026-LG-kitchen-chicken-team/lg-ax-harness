@@ -1,0 +1,6 @@
+comparison,metric,baseline,candidate,reduction_absolute,reduction_percent,unit,sample_size_per_condition,scope
+codex_AL_to_C61M,elapsed_seconds,466.797,370.75,96.047,20.5758,seconds,1,"same_FR56_prompt_source_parent_only_sequential; settings comparison, not harness_vs_no_harness; observed_usage_not_billing"
+codex_AM_to_C61M,elapsed_seconds,467.344,370.75,96.594,20.6687,seconds,1,"same_FR56_prompt_source_parent_only_sequential; settings comparison, not harness_vs_no_harness; observed_usage_not_billing"
+claude_high_to_medium,elapsed_seconds,514.448,472.844,41.604,8.0871,seconds,1,"same_FR56_prompt_source_parent_only_sequential; settings comparison, not harness_vs_no_harness; observed_usage_not_billing"
+claude_high_to_medium,main_output_tokens,51891,43696,8195,15.7927,tokens,1,"same_FR56_prompt_source_parent_only_sequential; settings comparison, not harness_vs_no_harness; observed_usage_not_billing"
+claude_high_to_medium,main_input_components_plus_output_tokens,5088127,4987367,100760,1.9803,tokens,1,"same_FR56_prompt_source_parent_only_sequential; settings comparison, not harness_vs_no_harness; observed_usage_not_billing"

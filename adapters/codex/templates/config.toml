@@ -1,0 +1,19 @@
+# Product-local settings only; account/model/effort remain inherited.
+[features]
+prefer_mxc = true
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 2
+
+[agents.product_evidence_reviewer]
+description = "실제 원문과 후보의 모델 귀속·주장·조건·반례를 독립 대조하는 읽기 전용 출품 근거 검토자"
+config_file = "./agents/product-evidence-reviewer.toml"
+
+[agents.product_official_researcher]
+description = "정확 제품의 공식 자료 조사·대조"
+config_file = "./agents/product-official-researcher.toml"
+
+[agents.product_review_researcher]
+description = "실사용 후기의 불편·긍정·조건·반례 조사·분석"
+config_file = "./agents/product-review-researcher.toml"

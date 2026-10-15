@@ -1,0 +1,165 @@
+{
+  "format": "runtime-access-live-P-v1",
+  "date": "2026-10-15",
+  "source_parent_commit": "9ad94299b56233eb2169d059c427fae269da5299",
+  "source": {
+    "native_manifest_sha256": "995a015b92204b86ae1c7926a39d8261c9198d204649c9f497eb33e3055f91a5",
+    "current_manifest_sha256": "ae4feac29cf9e9694ee89cc80d74f4eb69b8b3154646c5bf738059e76e0d7959",
+    "native_source_frozen_before_final_manual_history_fix": true,
+    "later_changes": "manual viewer history/late web recovery, access docs, observer JSON framing, evaluation runtime-peer continuation"
+  },
+  "native_cases": [
+    {
+      "case": "P_CODEX_FR",
+      "native_id": "01a13e4a-bc7e-7ce3-8c55-8df3636f269a",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox": "workspace-write",
+      "approval_policy": "never",
+      "status": "blocked_by_execution_policy",
+      "process_exit": 0,
+      "business_completed": false,
+      "elapsed_seconds": 11.818,
+      "first_marker_written": false,
+      "automatic_retry_or_full_access_fallback": false,
+      "scope": "noninteractive access diagnostic; not a business success"
+    },
+    {
+      "case": "P_CLAUDE_DW",
+      "native_id": "f4344029-00e8-43b6-b3a5-f4ecf4d3ed21",
+      "model": "claude-opus-5-5",
+      "UI_effort": "medium",
+      "backend_effort": "unknown",
+      "UI_permissions": "auto",
+      "status": "completed",
+      "result_version": 1,
+      "valid": true,
+      "selected_registered_sources": 81,
+      "source_body_equivalence_checked": 81,
+      "review_reports": 81,
+      "candidate_refs_checked": 29,
+      "interim_native_end_seconds": 511.16,
+      "actual_final_seconds": 650.508,
+      "runtime_peer_messages": 1,
+      "native_end_turn_messages": 2,
+      "core_quality_review": "pass_in_defined_followup_scope",
+      "reviewer": {
+        "native_id": "ada816bdc0db4dc30",
+        "role": "product-evidence-reviewer",
+        "reports": "partial",
+        "accepted_corrections": 4,
+        "observed_read_only_tools": true,
+        "OS_read_only_certified": false
+      },
+      "parent_usage": {
+        "input_tokens": {
+          "known_sum": 120,
+          "unknown_messages": 0
+        },
+        "cache_creation_input_tokens": {
+          "known_sum": 253274,
+          "unknown_messages": 0
+        },
+        "cache_read_input_tokens": {
+          "known_sum": 12296324,
+          "unknown_messages": 0
+        },
+        "output_tokens": {
+          "known_sum": 57123,
+          "unknown_messages": 0
+        }
+      },
+      "observed_parent_input_total": 12549718,
+      "backend_child_billing": "unknown",
+      "protected_product_changes": [],
+      "native_audit_sha256": "fe3a58b83c28be45ebecedb85c51551c39eac8895603e74c6a8db15bc8c1961d",
+      "interim_archive_preserved": true
+    },
+    {
+      "case": "P_CLAUDE_LIVE_DIAG",
+      "status": "not_sent",
+      "native_input_sent": false,
+      "reason": "Desktop reported local environment item unavailable before typing/sending; no retry"
+    }
+  ],
+  "automatic_file_chain": {
+    "monitor_sha256": "028785e6613614d34fdaec547796ce93536ee6a30bef9eca84c78d1f8b3c0e40",
+    "changed_samples": 111,
+    "native_session": "f4344029-00e8-43b6-b3a5-f4ecf4d3ed21",
+    "native_user_utc": "2026-10-15T06:43:24.527Z",
+    "workflow_finish_utc": "2026-10-15T06:53:12.697165+00:00",
+    "final_view_data_mtime_utc": "2026-10-15T06:53:15.022702+00:00",
+    "finish_to_view_file_seconds": 2.325537,
+    "native_final_utc": "2026-10-15T06:54:15.035Z",
+    "last_stop_hook_utc": "2026-10-15T06:54:17.379Z",
+    "view_sha_changes": 2,
+    "final_web_binding": "verified_binding",
+    "final_export_sha256": "06c80f7597de438f12ffeba1ebdad8376eb13de1bd8971e3f5dbadcaf25e770b",
+    "final_web_sha256": "7bff8131fd72314f44c3eba38238d5856a6b380345192b25bf9904c19dc35308",
+    "original_observer_business_binding_events": 0,
+    "corrected_parser_actual_response_replays": 2,
+    "replayed_bindings_match_db": true,
+    "conflicting_tuple_replays_rejected": 2,
+    "corrected_observer_new_native": "not_run",
+    "browser_visual": "blocked_not_run",
+    "browser_workaround": false
+  },
+  "report_html": {
+    "generation": "exit0",
+    "web_binding": "verified_binding",
+    "warnings": [],
+    "sha256": "9914ad28a49953a739dbb4b8594073d39b1f4452b3e2577b2537008916c8cb31",
+    "browser_visual": "blocked_not_run",
+    "generated_separately_after_automatic_chain_freeze": true
+  },
+  "checks": {
+    "full_local_CI": {
+      "status": "passed",
+      "stages": 21,
+      "tests": 822,
+      "skips": 0,
+      "report_sha256": "0e64f0f3774f6211da6deda3f7ccb1cccd55e53424e7b183ac3b8a433670959a",
+      "source_changes_during_run": [],
+      "asset_changes_during_run": []
+    },
+    "post_CI_focused": {
+      "observer": {
+        "tests": 36,
+        "receipt": "eecbe85df8344978a8e1bd45091b98c6",
+        "exit": 0
+      },
+      "evaluation": {
+        "tests": 146,
+        "receipt": "ea5ac07f1e3845f3be6eaa15d36f665a",
+        "exit": 0
+      },
+      "installed_roles_and_docs": {
+        "tests": 8,
+        "receipt": "2d2f6f2379514ded8224c2c96cf64914",
+        "exit": 0
+      },
+      "product_assets": {
+        "receipt": "3dffc8c9afa54d65ad5ae7498f8c8145",
+        "exit": 0
+      }
+    }
+  },
+  "phase": {
+    "reserved": 3,
+    "actual_parent_inputs": 2,
+    "not_sent": 1,
+    "prior_reservations": 126,
+    "cumulative_reservations": 129,
+    "automatic_redispatch": 0,
+    "closed": true
+  },
+  "limits": [
+    "Latest browser visual inspection is blocked by tool policy, including indirect workarounds.",
+    "Codex limited noninteractive access was rejected; earlier full-access O success is a separate configuration.",
+    "Codex child inherits parent permissions; role instructions are not OS isolation.",
+    "Reviewer partial coverage was preserved while the parent completed and applied four corrections.",
+    "Actual customer counts, market representativeness, physical effects and billing savings are not inferred.",
+    "O twelve business cases remain separate from this P followup.",
+    "No main merge, release publication, filming or submission in P."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "release": "product-v0.11.0",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.11.0",
+  "published_at": "2026-10-13T16:53:57Z",
+  "prerelease": true,
+  "draft": false,
+  "snapshot_commit": "5774e5ec71c2e47367e52701eef96240b69d1f38",
+  "snapshot_parent_count": 0,
+  "development_provenance_commit": "6fbe0fe432ef7372ee058ac119cd94a2866abd10",
+  "assets": [
+    {
+      "name": "lg-ax-harness-product-v0.11.0.zip",
+      "size": 405357
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 101
+    }
+  ],
+  "downloaded_archive_sha256": "9e90e0762356ba787c80dcb0750881f7aabc84ed348260ead5a7bc5e808e8733",
+  "checksum_bytes_match": true,
+  "source_archive_file_count": 106,
+  "source_archive_raw_bytes_equal_product_zip": true,
+  "remote_notes_equal_final_local_notes": true,
+  "release_notes_sha256": "0fea640f69b265ac1c8861b3cdfca111836d332e962c247cf53993cc0aa4ca7d",
+  "initial_inspector_failure": "read_text universal-newline conversion produced false note mismatch; actual remote UTF8 bytes equal local file bytes; no release changes or repeat uploads",
+  "installation": "Fresh local ZIP locked sync/doctor/Claude install exit0 before upload; remote identical bytes verified",
+  "git_checkout": "Explicit no-conversion local checkout106 exact/locked sync/doctor exit0; default Windows autocrlf not supported",
+  "fresh_remote_clone": "not_run",
+  "native_from_release_zip": "not_run",
+  "final_submission": "not_completed",
+  "main_web_existing_tags_modified": false,
+  "code_tests": {
+    "product": 393,
+    "evaluation": 144,
+    "assets_exit": 0
+  },
+  "model_recommendation_gate": "not_met",
+  "fully_qualified_model_recommendation": null,
+  "remote_CI": "core6fbe runs38422581907/38422573819 jobs not started due account payment/spending limit; not source result"
+}
