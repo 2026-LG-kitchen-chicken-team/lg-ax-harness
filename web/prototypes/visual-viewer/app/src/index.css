@@ -116,6 +116,10 @@
   overflow: visible;
   -webkit-line-clamp: unset;
 }
+@media print {
+  /* The expanded span has an inline display value; print only the dedicated full-text copy. */
+  .skin-ops .lg-lead > span[id] { display: none !important; }
+}
 @media screen {
   .skin-ops p[class*="line-clamp-"] > .lg-lead > .lg-lead-preview {
     display: -webkit-box;

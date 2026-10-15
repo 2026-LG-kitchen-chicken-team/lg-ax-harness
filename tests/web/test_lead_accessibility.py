@@ -81,6 +81,8 @@ assert.match(paragraph, /display:\s*block/);
 assert.match(paragraph, /overflow:\s*visible/);
 assert.match(paragraph, /-webkit-line-clamp:\s*unset/);
 assert.ok(css.includes('> .lg-lead > .lg-lead-preview'), 'Only the preview can remain clamped');
+assert.match(css, /@media print\s*\{[^}]*\.skin-ops \.lg-lead > span\[id\]\s*\{\s*display:\s*none\s*!important;/,
+  'Print must override the expanded inline display and use only the dedicated full-text copy');
 console.log('Actual Lead disclosure: 2000-character tail, ARIA/button, expand/collapse, escaping and unclamped page flow passed.');
 })().catch(error => {console.error(error);process.exitCode = 1});
 '''
