@@ -51,6 +51,5 @@ declare global {
   interface Window {
     LGAX_VIEW?: View
     LGAX_VIEW_INLINE?: boolean
-    LGAX_DEFAULT_MODE?: string
   }
 }

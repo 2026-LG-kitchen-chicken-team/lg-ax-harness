@@ -28,11 +28,6 @@ export const TONE_SOFT: Record<Tone, string> = {
   k3: 'bg-[#dcefe3] text-[#22603c] ring-[#2f8f57]/30',
   k4: 'bg-[#d0e6d8] text-[#163d28] ring-[#1d5c39]/30',
 }
-export const TONE_TEXT: Record<Tone, string> = {
-  blue: 'text-blue-600', green: 'text-emerald-600', red: 'text-rose-600',
-  orange: 'text-amber-600', purple: 'text-violet-600', gray: 'text-zinc-500',
-  k1: 'text-[#5f9c78]', k2: 'text-[#3f8a5f]', k3: 'text-[#2f7d4f]', k4: 'text-[#1d5c39]',
-}
 export const TONE_DOT: Record<Tone, string> = {
   blue: 'bg-blue-500', green: 'bg-emerald-500', red: 'bg-rose-500',
   orange: 'bg-amber-500', purple: 'bg-violet-500', gray: 'bg-zinc-400',

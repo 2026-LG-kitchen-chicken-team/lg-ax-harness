@@ -251,7 +251,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "f5e7595f62ce37944ef97b3b66022cff90604459c42809a7d0e6ea4b8691f1fb"
+      "sha256": "bae922f52664ac4ffbe3d58e9a8d2837d6216be1471714c2c3dfa157ba96d3d1"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -263,11 +263,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "da173081619f70b35417576a3b1920ea4f7076a0dd612cb94a7270f274704634"
+      "sha256": "80826496ec3fd731ce209b07446dc28e9d8204c6cefb6c32e69295b0186a46e1"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "e033fc53cfbbbc32225dd3c82922b4d3690bc22439ff65eb873ff63989a3baff"
+      "sha256": "a0ad2d53343a587edbb3d9abe2e52ad5d1c05ff599fb8b27fd161bcb80d92bb8"
     }
   ],
   "native_installation_verified": false,

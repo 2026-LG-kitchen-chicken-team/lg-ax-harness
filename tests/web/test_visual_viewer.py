@@ -737,10 +737,12 @@ class BuildViewTests(TempCase):
         self.assertEqual(re.findall(r'<link[^>]*href="(https?://[^"]+)"', html),
                          ["https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"])
         self.assertNotIn("/assets/", html)
-        # 묶어 넣은 라이브러리와 고쳐 쓴 컴포넌트의 라이선스 고지가 파일 끝에 남는다
+        # 묶어 넣은 라이브러리의 라이선스 고지가 파일 끝에 남는다. 지운 보기만 쓰던 라이브러리·컴포넌트는 묶지 않는다.
         notices = html[html.index("THIRD-PARTY NOTICES"):]
-        for needle in ("react@", "Cult UI", "Copyright (c) 2023 Jordan-Gilliam", "Skiper UI", "reveal.js@"):
+        for needle in ("react@", "@unovis/ts@", "lucide-react@"):
             self.assertIn(needle, notices)
+        for gone in ("reveal.js@", "motion@", "Cult UI", "Skiper UI"):
+            self.assertNotIn(gone, notices)
         export = self.h.add("microwave")
         report = self.h.out / "report-test.html"
         build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report)
@@ -748,12 +750,9 @@ class BuildViewTests(TempCase):
         self.assertNotIn(tag, text)
         self.assertIn("window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = ", text)
         self.assertIn('"id": "story"', text)
-        # 공유용 B·C 파일은 처음 열 때의 보기를 담는다(받은 사람 브라우저의 기억과 상관없이)
-        for mode in ("slides", "poster", "editorial", "board", "exhibit", "corporate", "landing", "navy", "mono", "ops", "analytics", "monoops"):
-            build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode=mode)
-            self.assertIn(f'window.LGAX_DEFAULT_MODE = "{mode}"; window.LGAX_VIEW = ', report.read_text(encoding="utf-8"))
-        with self.assertRaises(SystemExit):
-            build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report, mode="deck")
+        # 보기는 K 업무형 하나라 공유 파일에 처음 열 보기를 적지 않는다
+        self.assertNotIn("LGAX_DEFAULT_MODE", text)
+        self.assertNotIn("LGAX_DEFAULT_MODE", html)
 
 
 # ---------------------------------------------------------------- web result (product-web-result-v1)

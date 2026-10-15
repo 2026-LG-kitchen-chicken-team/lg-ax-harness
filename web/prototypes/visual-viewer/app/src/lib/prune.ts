@@ -1,7 +1,7 @@
-// K (ops) shows only what the planning work needs (AGENTS.md: question and conditions, evidence → pain → existing
+// The viewer shows only what the planning work needs (AGENTS.md: question and conditions, evidence → pain → existing
 // feature → proposal links, citations with locations, save status and rejections, unconfirmed items and limits, and
 // the export file). Viewer how-tos, the Skill structure, operating notes, usage that was never measured and pages that
-// repeat the story page are left out. build_view.py's data is unchanged; other views show everything.
+// repeat the story page are left out. build_view.py's data is unchanged (it still has everything).
 import type { Block, Page, View } from '../types'
 
 // Pages whose content the story page already shows; anything they hold that the story does not is moved first.
@@ -62,7 +62,7 @@ function exportPage(blocks: Block[]): Block[] {
   return dropAfterHeading(blocks, (b) => b.type === 'section' && startsWith(b, 'text', '관측 사용량'), isHeading)
 }
 
-// The 기능 대조 page is gone in K, so the story's link chart gets its 기존 기능 column (현재 불편 → 기존 기능 → 남은 불편
+// The 기능 대조 page is not shown, so the story's link chart gets its 기존 기능 column (현재 불편 → 기존 기능 → 남은 불편
 // → 제안). The review record links pains to remaining pains (feature_matches) and remaining pains to proposals
 // (concept_links) by id; it has no pain-to-feature id, so no line is drawn to or from a feature and the note says so.
 function withFeatureColumn(blocks: Block[]): Block[] {

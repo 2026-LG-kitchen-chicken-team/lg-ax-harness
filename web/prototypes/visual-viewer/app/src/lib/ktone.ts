@@ -1,7 +1,7 @@
-// K (ops) uses one hue, its own green. The four kinds of items step from light to dark in the order of the work
+// The viewer (K 업무형) uses one hue, its own green. The four kinds of items step from light to dark in the order of the work
 // (현재 불편 k1 → 기존 기능 k2 → 남은 불편 k3 → 제안 k4), wherever they appear: IDs, link-chart columns, counts and
 // bars. Colours that only decorate (blue, purple, green) join the same family; red and orange stay for failures and
-// warnings (index.css tones them down in K). Only tones change; build_view.py's data and the other views are untouched.
+// warnings (index.css tones them down). Only tones change; build_view.py's data is untouched.
 import type { Block, Tone, View } from '../types'
 
 const KINDS: [string, Tone][] = [['현재 불편', 'k1'], ['기존 기능', 'k2'], ['남은 불편', 'k3'], ['제안', 'k4']]

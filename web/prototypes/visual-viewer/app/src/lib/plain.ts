@@ -1,6 +1,6 @@
-// K (ops): the harness writes field names next to Korean words for traceability ("기획 초안 완료(completed)",
-// "결과 가정 1개 (assumptions)", "turn 목록"). K shows the Korean words only. The field names stay where they are kept for
-// reference (chip tips, source notes, folded table details) and in every other view; build_view.py's data is unchanged.
+// The harness writes field names next to Korean words for traceability ("기획 초안 완료(completed)",
+// "결과 가정 1개 (assumptions)", "turn 목록"). The screen shows the Korean words only. The field names stay where they are kept for
+// reference (chip tips, source notes, folded table details); build_view.py's data is unchanged.
 import type { View } from '../types'
 
 // "(completed)", "(held)", "(assumptions)", "(status · valid)": lowercase field names (three letters or more) only, so
