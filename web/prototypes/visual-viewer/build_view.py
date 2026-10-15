@@ -1492,7 +1492,7 @@ def investigation_blocks(c: Ctx) -> list[dict]:
     if inv.get("research_stopped_at"):
         chips.append({"text": f"조사 멈춤 {kst(inv['research_stopped_at'])} · {STOP_LABEL.get(stop.get('code'), stop.get('code') or '사유 미기록')}", "tone": "orange"})
     if isinstance(counts.get("analysed_source_record_count"), int):
-        chips.append({"text": f"분석한 등록 원문 {counts['analysed_source_record_count']}건", "tone": "blue"})
+        chips.append({"text": f"분석 범위로 신고한 원문 {counts['analysed_source_record_count']}건", "tone": "blue"})
     rows = []
     for e in events:
         d = e.get("data") if isinstance(e.get("data"), dict) else {}
@@ -1525,7 +1525,7 @@ def investigation_blocks(c: Ctx) -> list[dict]:
             lines.append(f"{f.get('page_label') or '페이지 이름 미기록'} ({host})")
         blocks.append({"type": "callout", "tone": "warning",
                        "text": f"**접근하지 못한 자료 {len(failures)}건**: " + ", ".join(lines) + (" 외" if len(failures) > 8 else "")
-                               + ". 이 자료의 내용은 결과에 들어 있지 않습니다."})
+                               + ". 접근 실패 관측이며 이 자료의 내용을 분석 근거로 확보했다는 뜻은 아닙니다."})
     if rows:
         blocks.append({"type": "table", "columns": [
             {"key": "time", "label": "시각(KST)", "kind": "mono"}, {"key": "step", "label": "단계"},
@@ -1661,7 +1661,7 @@ def web_source_blocks(c: Ctx) -> list[dict]:
     return [
         {"type": "section", "text": f"등록 원문 전체 {len(sources)}건 (웹 전달 파일)"},
         {"type": "metrics", "items": [
-            {"label": "선택한 원문", "value": count("selected_count")}, {"label": "전달(읽음)", "value": count("delivered_count")},
+            {"label": "선택한 원문", "value": count("selected_count")}, {"label": "전달", "value": count("delivered_count")},
             {"label": "검토 신고", "value": count("caller_reviewed_count")}, {"label": "제외 신고", "value": count("caller_excluded_count")},
             {"label": "전달 누락", "value": count("missing_delivery_count")}, {"label": "결과에 인용", "value": sum(1 for s in sources if s.get("source_id") in c.ev)}]},
         {"type": "table", "search": True, "search_placeholder": "원문·위치·ID 검색", "filter": "type",

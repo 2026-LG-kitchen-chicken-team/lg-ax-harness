@@ -859,6 +859,13 @@ def web_body(key: str) -> dict:
 
 
 class WebResultTests(TempCase):
+    def test_registered_source_table_keeps_the_end_of_a_long_selected_text(self):
+        text = f"{SYNTH} " + "등록 원문 " * 200 + "본문 마지막 표식"
+        context = mock.Mock(web={"sources": [{"source_id": "long-source", "kind": "review", "text": text}],
+                                 "coverage": {}}, ev={})
+        table = next(b for b in build_view.web_source_blocks(context) if b["type"] == "table")
+        self.assertEqual(table["rows"][0]["quote"], text)
+
     def put(self, body: dict, name: str | None = None) -> Path:
         raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
         folder = self.h.root / "runtime-data" / "web-deliveries"
@@ -885,6 +892,7 @@ class WebResultTests(TempCase):
             self.assertIn(source["sha256"], evidence)
         self.assertIn("선택 등록본문 전체", evidence)
         self.assertIn("등록 원문 전체", evidence)
+        self.assertNotIn("전달(읽음)", evidence)
         history = blob(page(view, "history"))
         for text in ("현재 버전의 검토·조사 이력", "근거 검토·전달 이력", "조사 과정 (웹 전달 파일)"):
             self.assertIn(text, history)
