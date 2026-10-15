@@ -42,7 +42,8 @@ class ResearchRoleTests(unittest.TestCase):
                     if engine=="codex":
                         role=tomllib.loads(body)
                         self.assertEqual(role["name"],name)
-                        self.assertEqual(role["sandbox_mode"],"read-only")
+                        self.assertNotIn("sandbox_mode",role)
+                        self.assertNotIn("approval_policy",role)
                         self.assertFalse(role["agents"]["enabled"])
                         self.assertNotIn("model",role)
                         self.assertEqual(role["developer_instructions"].strip(),source.read_text(encoding="utf-8").strip())

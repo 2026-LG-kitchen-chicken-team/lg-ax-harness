@@ -30,7 +30,7 @@ def build():
     common = [ROOT / "agents/product-planning.md", *[ROOT / p for p in roles], ROOT / "product-tools/cli.py", *sorted((ROOT / "product-tools/product_tools").glob("*.py")),
               ROOT / "docs/contracts/common-tools.md", ROOT / "docs/contracts/product-planning.md", ROOT / "docs/contracts/web-evidence.md", ROOT / "docs/contracts/codex-product.md",
               ROOT / "docs/contracts/reader-deliverables.md", ROOT / "docs/contracts/product-workflow.md", ROOT / "docs/contracts/instruction-loading.md", ROOT / "product-tools/requirements.in", ROOT / "product-tools/requirements.lock",
-              ROOT / "docs/contracts/product-reviewer-packet.md", ROOT / "docs/contracts/product-research-agents.md", ROOT / "docs/contracts/web-result.md",
+              ROOT / "docs/contracts/product-reviewer-packet.md", ROOT / "docs/contracts/product-research-agents.md", ROOT / "docs/contracts/web-result.md", ROOT / "docs/contracts/runtime-access.md",
               *[ROOT / "web/prototypes/visual-viewer" / name for name in ("README.md", "viewer.py", "hook.py", "build_view.py", "index.html")]]
     return {"version": "product-skills-v1", "agent": "agents/product-planning.md", "data_path": "data/business/empty", "skills": skills,
             "shared_files": [{"path": p.relative_to(ROOT).as_posix(), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in common],

@@ -295,19 +295,46 @@ def stdout_json(response):
         return None
 
 
+def stdout_frames(response) -> list:
+    """Bounded JSON frames from Tool stdout, with ordinary progress lines allowed.
+
+    Do not choose just the first object: another frame may report conflicting IDs.
+    Invalid/incomplete JSON-looking frames and excessive output fail closed.
+    """
+    text = response.get("stdout") if isinstance(response, dict) else response
+    if not isinstance(text, str) or len(text) > 4 * 1024 * 1024:
+        return []
+    decoder, frames, end = json.JSONDecoder(), [], 0
+    for match in re.finditer(r"(?m)^[ \t]*(?=[{\[])", text):
+        if match.start() < end:
+            continue
+        try:
+            value, end = decoder.raw_decode(text, match.end())
+        except ValueError:
+            return []
+        if not isinstance(value, (dict, list)) or len(frames) >= 32:
+            return []
+        frames.append(value)
+    return frames
+
+
 def business_binding(response) -> dict:
     """Only complete identifiers reported by the product tool can join a native session to the DB."""
-    queue, found = [stdout_json(response)], []
-    for _ in range(6):
-        following = []
-        for item in queue:
-            if not isinstance(item, dict):
-                continue
-            keys = ("session_id", "turn_id", "request_key")
-            if all(isinstance(item.get(k), str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,200}", item[k]) for k in keys):
-                found.append({k: item[k] for k in keys})
-            following.extend(v for v in item.values() if isinstance(v, dict))
-        queue = following
+    queue, found, visited = [(item, 0) for item in stdout_frames(response)], [], 0
+    while queue:
+        item, depth = queue.pop()
+        visited += 1
+        if depth > 32 or visited > 4096:
+            return {}
+        if isinstance(item, list):
+            queue.extend((v, depth + 1) for v in item if isinstance(v, (dict, list)))
+            continue
+        if not isinstance(item, dict):
+            continue
+        keys = ("session_id", "turn_id", "request_key")
+        if all(isinstance(item.get(k), str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,200}", item[k]) for k in keys):
+            found.append({k: item[k] for k in keys})
+        queue.extend((v, depth + 1) for v in item.values() if isinstance(v, (dict, list)))
     if found and all(value == found[0] for value in found):
         return {"business_binding": found[0]}
     return {}

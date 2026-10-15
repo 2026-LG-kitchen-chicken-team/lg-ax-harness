@@ -9,14 +9,16 @@ Python3.12, uv, Codex CLI와 실행자 자신의 Codex 로그인이 필요하다
 ```powershell
 uv sync --locked
 uv run python product-doctor.py
-codex --search --model gpt-6-astra --config 'model_reasoning_effort="low"'
+codex --search --sandbox workspace-write --config 'approval_policy="on-request"' --model gpt-6.1-sol --config 'model_reasoning_effort="medium"'
 ```
 
 `uv sync --locked`는 이 폴더의 잠금 파일로 python-docx·openpyxl·reportlab·Pillow·pypdf와 하위 의존성을 로컬 환경에 설치한다. 설치기는 전역 Python 패키지나 설정을 변경하지 않는다. pip 기반 환경은 `python -m pip install --require-hashes -r product-tools/requirements.lock`으로 같은 잠금 요구사항을 설치할 수 있다. 의존성 가져오기 검사는 파일 제작·레이아웃 검수나 실제 AI 업무 검증을 대신하지 않는다.
 
 기본 결과는 save_and_export(report:false)의 웹 전달 데이터다. delivery_ready/web_ready와 현재 web_result의 SHA/binding을 확인하고 원문·근거·검토/조사 이력을 같은 버전으로 전달한다. 설치된 뷰어는 이 데이터를 일반 코드로 읽어 기획자 화면과 별도 단일 HTML 보고서를 만든다. AI에게 HTML 레이아웃을 다시 작성하게 하거나 PDF/DOCX·이미지 검수를 요구하지 않는다. 명시 파일 요청에만 report:true와 기존 옵션을 사용한다. 웹 데이터 오류는 prepare_web_result로 같은 session/turn/version을 복구하고, 명시 파일 오류만 deliver_result로 복구한다.
 
-위 Astra/low는 동일 자료 비교에서 채택한 테스트 프로파일이다. 사용 중인 계정의 `/model`에서 지원 여부를 확인한다. 다른 모델의 결과를 같은 검증 결과로 간주하지 않는다. 실행 옵션은 [공식 Codex 설정 안내](https://learn.chatgpt.com/docs/developer-settings#change-settings-for-one-run)를 따른다.
+위 Sol/medium은 동일 자료 비교에서 채택한 테스트 프로파일이다. 사용 중인 계정의 `/model`에서 지원 여부를 확인한다. 다른 모델의 결과를 같은 검증 결과로 간주하지 않는다. 실행 옵션은 [공식 Codex 설정 안내](https://learn.chatgpt.com/docs/developer-settings#change-settings-for-one-run)를 따른다.
+
+실행 권한과 별도 관찰 화면의 준비·실시간 갱신은 [실행 권한 안내](docs/contracts/runtime-access.md)를 따른다. 기본은 제품 작업 폴더 쓰기와 요청별 승인이다. 서브에이전트도 부모 권한을 상속하며 역할 지침의 읽기 전용은 별도 OS 샌드박스가 아니다. 일반 권한에서 실행기가 준비되지 않으면 그 오류를 해결한 뒤 진행하며 전체 접근으로 자동 전환하지 않는다.
 
 화면 연결(제품 설치 폴더에서):
 
@@ -52,7 +54,7 @@ doctor는 버전·로그인 상태·설치 파일 지문·실제 자료 조회�
 
 저장된 결과를 읽는 선택형 시각자료 뷰어는 `web/prototypes/visual-viewer/README.md`를 따른다. 기본 설치에서는 자동 훅을 등록하지 않는다. 필요하면 `python web/prototypes/visual-viewer/viewer.py install --codex` 또는 `--claude`로 해당 폴더의 훅만 등록하고 CLI의 프로젝트 신뢰 설정을 확인한다. `status`, `open`, `uninstall`로 상태·화면·해제를 관리한다. 뷰어는 export를 읽으며 업무 질문이나 모델 실행을 대신하지 않는다. 원 개발 소스는 최길웅의 PR #6이고 이번 통합에서는 경로 검사와 출처 종류 메타데이터 연결을 보강했다.
 
-현재 Windows 인수검사에서 workspace-write 모드는 Codex 명령 실행기 준비 오류로 실패했다. 전체 접근 모드에서 실제 업무 도구를 확인했으며 일반 샌드박스 지원을 통과시킨 것은 아니다. 실행 권한은 실행자가 Codex에서 선택한다. 설치 도구는 권한이나 전역 설정을 바꾸지 않는다.
+과거 Windows 인수검사에서는 workspace-write 명령 실행기 준비 오류가 있었고, 이후 비대화식 승인 없음 조건의 제한 권한 시험에서도 첫 명령이 정책으로 거절됐다. 전체 접근의 기존 실제 업무 성공과 제한 권한 지원은 구분한다. 실행자는 `/permissions`와 실제 승인 요청을 확인하며 전체 접근으로 자동 전환하지 않는다. 설치 도구는 권한이나 전역 설정을 바꾸지 않는다.
 
 ## Claude Desktop Code에서 사용
 

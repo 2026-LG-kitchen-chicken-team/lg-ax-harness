@@ -59,6 +59,32 @@ class ClaudeTrace(unittest.TestCase):
         r = self.rows(); r += [{**r[0], 'message': {'content': 'followup'}}, {**r[-1], 'message': {**r[-1]['message'], 'id': 'followup'}}]
         self.assertEqual(self.audit(r)['assistant_messages'], 1)
 
+    def test_native_peer_handback_continues_same_request_after_interim_end(self):
+        r = self.rows()
+        r.append({**r[0], 'timestamp': '2026-10-11T00:00:03Z', 'isMeta': True,
+                  'promptSource': 'system', 'turnOrigin': 'peer',
+                  'origin': {'kind': 'peer', 'from': 'actual-child', 'handback': True},
+                  'message': {'content': 'Another Claude session sent a message: child report'}})
+        r.append({**r[2], 'timestamp': '2026-10-11T00:00:05Z',
+                  'message': {**r[2]['message'], 'id': 'after-handback',
+                              'content': [{'type': 'text', 'text': 'stored current result'}]}})
+        value = self.audit(r)
+        self.assertEqual(value['final_text'], 'stored current result')
+        self.assertEqual(value['elapsed_seconds'], 5)
+        self.assertEqual(value['assistant_messages'], 2)
+        self.assertEqual(value['usage']['output_tokens']['known_sum'], 10)
+        self.assertEqual(value['runtime_peer_messages'], 1)
+        self.assertEqual(value['native_end_turn_messages'], 2)
+
+    def test_user_pasted_handback_prefix_is_still_a_new_user_input(self):
+        r = self.rows()
+        r.append({**r[0], 'message': {'content': 'Another Claude session sent a message: user text'}})
+        r.append({**r[2], 'message': {**r[2]['message'], 'id': 'new-human-response',
+                                    'content': [{'type': 'text', 'text': 'new response'}]}})
+        value = self.audit(r)
+        self.assertEqual(value['final_text'], 'actual final')
+        self.assertEqual(value['assistant_messages'], 1)
+
     def test_partial_json_is_not_success(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d)/'raw'; p.write_text('{', encoding='utf-8')

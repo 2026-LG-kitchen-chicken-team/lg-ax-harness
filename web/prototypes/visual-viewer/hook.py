@@ -284,13 +284,14 @@ def rebuild(paths: Paths, export_path: str, hashes: dict | None = None, focus: s
                                index_sha256=hashes.get("index"))
 
 
-def open_browser(paths: Paths) -> None:
+def open_browser(paths: Paths) -> bool:
     if os.environ.get("LGAX_VIEWER_NO_OPEN"):
-        return
+        return False
     import webbrowser
     from pathlib import Path
 
-    webbrowser.open(Path(paths.out, "index.html").resolve().as_uri())
+    # A successful request is still not proof that the page rendered on screen.
+    return bool(webbrowser.open(Path(paths.out, "index.html").resolve().as_uri()))
 
 
 def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict | None = None) -> dict:
@@ -351,8 +352,7 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
                 seen.append(session)
                 state["opened_sessions"] = seen[-KEEP_SESSIONS:]
                 write_state(paths, state)
-                open_browser(paths)
-                opened = True
+                opened = bool(open_browser(paths))
         return {"changed": bool(built), "export": built, "opened_browser": opened}
     finally:
         lock.release()

@@ -113,6 +113,29 @@ class ObserverTests(unittest.TestCase):
     def tearDown(self):
         self.h.close()
 
+    def test_business_binding_accepts_tool_json_followed_by_progress(self):
+        spec = importlib.util.spec_from_file_location("office_stdout_frames", APP / "observe.py")
+        observer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(observer)
+        binding = {"session_id": "S1", "turn_id": "T1", "request_key": "K1"}
+        text = "Tool started\n" + json.dumps({"ok": True, "data": binding}, indent=2) + "\nexport saved\n"
+        self.assertEqual(observer.business_binding({"stdout": text}), {"business_binding": binding})
+        self.assertEqual(observer.business_binding({"stdout": text + json.dumps(binding) + "\n"}),
+                         {"business_binding": binding})
+
+    def test_business_binding_rejects_conflicting_or_incomplete_frames(self):
+        spec = importlib.util.spec_from_file_location("office_conflicting_frames", APP / "observe.py")
+        observer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(observer)
+        binding = {"session_id": "S1", "turn_id": "T1", "request_key": "K1"}
+        other = {**binding, "request_key": "K2"}
+        for tail in (json.dumps({"data": other}), json.dumps([other]), '{"session_id":'):
+            with self.subTest(tail=tail):
+                self.assertEqual(observer.business_binding({"stdout": json.dumps(binding) + "\n" + tail}), {})
+        for head in ("[\n", "Tool started\n[\n"):
+            self.assertEqual(observer.business_binding({"stdout": head + json.dumps(binding)}), {})
+        self.assertEqual(observer.business_binding({"stdout": json.dumps(binding) + "\n" + "x" * (4 * 1024 * 1024)}), {})
+
     def test_canonical_operation_names_and_interrupted_stop_are_distinct(self):
         import ast
         parsed = ast.parse((ROOT / "product-tools/cli.py").read_text(encoding="utf-8"))

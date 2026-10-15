@@ -86,7 +86,9 @@ class ProductReviewerInstallTests(unittest.TestCase):
         self.assertTrue(role_path.is_relative_to(moved))
         role = tomllib.loads(role_path.read_text(encoding="utf-8"))
         self.assertEqual(role["name"], "product_evidence_reviewer")
-        self.assertEqual(role["sandbox_mode"], "read-only")
+        self.assertNotIn("sandbox_mode", role)
+        self.assertNotIn("approval_policy", role)
+        self.assertIn("parent session", role_path.read_text(encoding="utf-8"))
         self.assertFalse(role["agents"]["enabled"])
         self.assertEqual(role["web_search"], "disabled")
         for value in (config, role):

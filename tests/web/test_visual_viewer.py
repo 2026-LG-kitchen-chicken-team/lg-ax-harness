@@ -1071,6 +1071,24 @@ class InsightsTests(TempCase):  # v07-format-05, claude-hook-bom-insights
 
 class HookTests(TempCase):
 
+    def test_no_open_or_failed_browser_request_is_not_reported_as_open(self):
+        self.h.add("refrigerator")
+        with mock.patch.dict(os.environ, {"LGAX_VIEWER_NO_OPEN": "1"}), mock.patch("webbrowser.open") as browser:
+            result = self.run_hook({"session_id": "no-open"}, "claude")
+            self.assertTrue(result["changed"])
+            self.assertFalse(result["opened_browser"])
+            browser.assert_not_called()
+        self.h.add("microwave")
+        with mock.patch.dict(os.environ, {}, clear=True), mock.patch("webbrowser.open", return_value=False) as browser:
+            result = self.run_hook({"session_id": "browser-failed"}, "claude")
+            self.assertTrue(result["changed"])
+            self.assertFalse(result["opened_browser"])
+            browser.assert_called_once()
+        self.h.add("dishwasher")
+        with mock.patch.object(hook, "open_browser") as browser:
+            self.assertFalse(self.run_hook({"session_id": "browser-failed"}, "claude")["opened_browser"])
+            browser.assert_not_called()
+
     def test_export_before_web_payload_is_rebuilt_when_exact_payload_arrives(self):
         export = self.h.add("microwave")
         body = json.loads(export.read_text(encoding="utf-8"))
@@ -1768,6 +1786,25 @@ class InstallTests(TempCase):
                          (True, False, built.name, while_off.name))
         self.assertTrue(report["claude"]["registered"] and report["claude"]["files_match_command"])
 
+    def test_manual_no_browser_open_does_not_hide_late_web_payload_from_codex(self):
+        for old_state in ({}, {"web_delivery": "verified_binding"}):
+            with self.subTest(old_state=old_state):
+                export = self.h.add("microwave")
+                expected = json.loads(export.read_bytes())["turns"][-1]["web_binding"]
+                path = next(p for p in (self.h.root / "runtime-data/web-deliveries").glob("web-*.json")
+                            if json.loads(p.read_bytes())["binding"] == expected)
+                raw = path.read_bytes()
+                path.unlink()
+                paths = hook.Paths(str(self.h.root))
+                hook.write_state(paths, dict(old_state))
+                code, text = run_viewer("open", "--latest", "--no-browser", str(self.h.root))
+                self.assertEqual(code, 0, text)
+                self.assertFalse(Path(paths.marker).exists())
+                path.write_bytes(raw)
+                with mock.patch.object(hook, "open_browser", return_value=False):
+                    self.assertTrue(hook.run({"session_id": "late-manual"}, "codex", paths)["changed"])
+                self.assertEqual(self.h.state()["web_delivery"], "verified_binding")
+
     def test_open_latest_older_export_and_errors(self):  # side notes: open --export older, wrong-shape insights
         older = self.h.add("refrigerator")
         newest = self.h.add("microwave")
@@ -1782,6 +1819,11 @@ class InstallTests(TempCase):
         report = json.loads(run_viewer("status", str(self.h.root))[1])
         self.assertEqual((report["last_built"], report["up_to_date"]), (older.name, False))
         self.assertEqual(self.h.state()["last_export"], newest.name)
+        self.assertFalse(Path(hook.Paths(str(self.h.root)).marker).exists())
+        with mock.patch.object(hook, "open_browser", return_value=False):
+            restored = hook.run({"session_id": "after-history"}, "codex", hook.Paths(str(self.h.root)))
+        self.assertTrue(restored["changed"])
+        self.assertEqual(restored["export"], newest.name)
         self.h.insights("insights-bad.json", {"session_id": export_of("microwave")["session_id"], "groups": "not-a-list"})
         code, text = run_viewer("open", "--latest", "--no-browser", str(self.h.root))
         self.assertEqual(code, 0, text)

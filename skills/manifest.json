@@ -325,16 +325,20 @@
       "sha256": "f66593c12fe78ec554e3a9ca8ab38681d5a5a70798a8699f96979461d8bf453e"
     },
     {
+      "path": "docs/contracts/runtime-access.md",
+      "sha256": "10fcb2026e64a84637bd648f7c6e08e7719cd9fc194205ee37fbece0d217d8ec"
+    },
+    {
       "path": "web/prototypes/visual-viewer/README.md",
       "sha256": "1417026481dd1c8616e524599ed8433bf5be8e018df99ae59a74e44d2208100e"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
-      "sha256": "a81f6dfe9a4474b857d53ed2a304b7c1e1749bf6bea1f93e5f4ae7340b491541"
+      "sha256": "e36ed44da6ee2972dd69b8c5922cb86b6737e8866268d11d6697dee8e5ba129a"
     },
     {
       "path": "web/prototypes/visual-viewer/hook.py",
-      "sha256": "31ce4c9996ba444b9c7b9a7b967532486ff384a75c95bf6a26bee7d8d672593a"
+      "sha256": "e1893067c4cef070cf10382eb2ebb62676a42a43a8fa5ef1bdc2236a76497fb1"
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",

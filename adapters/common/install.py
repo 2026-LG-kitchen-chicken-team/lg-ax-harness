@@ -106,7 +106,8 @@ pip 환경은 python -m pip install --require-hashes -r product-tools/requiremen
 공통 Skill은 기본 save_and_export(report:false)의 현재버전 웹결과/전체선택원문을 전달한다. 설치된 뷰어는 같은데이터로작업화면·별도HTML보고서를일반코드로만들며추가모델호출을하지않는다. PDF/DOCX/XLSX생성은명시report:true 요청만사용한다.
 화면연결은설치폴더에서 uv run python web/prototypes/visual-viewer/viewer.py install --claude . 을한번실행한다. 이후 uv run python web/prototypes/visual-viewer/viewer.py open . 으로현재저장결과를열수있다.
 별도보고서는 uv run python web/prototypes/visual-viewer/build_view.py --export <현재세션JSON> --out-dir runtime-data/visual-viewer --standalone runtime-data/visual-viewer/report.html --mode ops 로만든다. AI에게HTML레이아웃을다시작성하게하지않는다.
-이번테스트프로파일은유료Desktop Code의 Opus5.5/노력높음이다. 본인앱에보이는모델·노력설정을확인하고다른설정을같은검증결과로간주하지않는다.
+권장프로파일은유료Desktop Code의 Opus5.5/중간이다. 본인앱에보이는모델·노력설정을확인하고다른설정을같은검증결과로간주하지않는다.
+실행 권한은 docs/contracts/runtime-access.md를 따른다. 기본 작업 폴더를 이 설치 폴더로 선택하고 Manual(default) 또는 제공되는 자동 모드에서 필요한 공통 Tool 명령·웹 조회를 확인한다. 모든 권한 우회는 기본값이 아니다. 자식은 tools/disallowedTools로 직접 도구를 제한하며 permissionMode만으로 부모보다 좁은 OS 권한을 만들었다고 설명하지 않는다.
 자료량에 따라 파일·절·페이지 수가 달라지며 내부 JSON·검수 기록은 runtime-data에 보관한다.
 report_plan_path는 runtime-data의 내부 작성 파일이다. open_folder:false로 결과 폴더 열기를 생략할 수 있다.
 제작 실패는 업무 저장을 유지하고 같은 session_id/turn_id/expected_result_version의 deliver_result로 복구한다.
