@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { IdTipProvider } from './components/idtip'
+import { ReportView } from './components/report'
 import { type Hit } from './components/search'
 import { scrollToBlock } from './components/shell'
 import DashApp from './dash/DashApp'
@@ -27,6 +28,8 @@ export default function App() {
   const [big, setBig] = useState(() => read('lgax-text-big') === '1')
   const [searchOpen, setSearchOpen] = useState(false)
   const openSearch = useCallback(() => setSearchOpen(true), [])
+  const [reportOpen, setReportOpen] = useState(false)
+  const closeReport = useCallback(() => setReportOpen(false), [])
   const lastFocus = useRef<string | null>(null)
 
   // Page choice: keep the current page across refreshes; follow the builder's focus when it changes (new export).
@@ -51,8 +54,13 @@ export default function App() {
 
   // The evidence dashboard and the evidence text are drawn as one page (lib/merge.ts); the view keeps only what the
   // planning work needs (lib/prune.ts), reads in report style (lib/voice.ts), leaves field names out of the visible text
-  // (lib/plain.ts) and uses one hue (lib/ktone.ts). build_view.py's data itself is unchanged.
-  const shownView = useMemo(() => recolorView(plainView(voiceView(pruneForPlanning(mergeEvidencePages(view))))), [view])
+  // (lib/plain.ts) and uses one hue (lib/ktone.ts). build_view.py's data itself is unchanged. The export kept for
+  // "보고서로 보기" is set aside first, so none of these touch its saved text.
+  const report = view?.report
+  const shownView = useMemo(() => {
+    const pagesOnly = view && view.report ? { ...view, report: undefined } : view
+    return recolorView(plainView(voiceView(pruneForPlanning(mergeEvidencePages(pagesOnly)))))
+  }, [view])
   const target = (id: string | null) => prunedTarget(mergedTarget(id))
   const page = view?.pages.find((p) => p.id === current) || null
   const shownPage = shownView?.pages.find((p) => p.id === target(current)) || null
@@ -83,7 +91,9 @@ export default function App() {
       <DashApp view={shownView} page={shownPage}
         go={(id) => go(target(id) || id)} pick={pick} copy={copy} live={live} reload={reload}
         openFile={openFile} inline={inline} big={big} toggleBig={toggleBig}
-        searchOpen={searchOpen} openSearch={openSearch} closeSearch={() => setSearchOpen(false)} />
+        searchOpen={searchOpen} openSearch={openSearch} closeSearch={() => setSearchOpen(false)}
+        openReport={report ? () => setReportOpen(true) : undefined} />
+      {reportOpen && report && <ReportView source={report} close={closeReport} />}
       <div className="no-print pointer-events-none fixed right-4 top-20 z-[70] flex flex-col items-end gap-2">
         {toasts.map((t) => <div key={t.id} role="status" className="rounded-full bg-zinc-900 px-4 py-2 text-sm text-white shadow-lg">{reportVoice(t.msg)}</div>)}
       </div>

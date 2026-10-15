@@ -2,7 +2,7 @@
 // a page head card and prev/next. The other twelve views were removed at the user's request (2026-10-15).
 // Only build_view.py's data is shown: nothing from the reference's sample content (names, deltas, offers) is copied.
 import { useLayoutEffect, useState, type ReactNode } from 'react'
-import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Info, Menu, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Info, Menu, NotebookText, RefreshCw, Search, X } from 'lucide-react'
 import { Badge } from '../components/ui'
 import { BlockView } from '../components/blocks'
 import { HoverNote } from '../components/hovernote'
@@ -20,6 +20,8 @@ type Props = {
   live: LiveState; reload: () => void; openFile: (f: File) => void; inline: boolean
   big: boolean; toggleBig: () => void
   searchOpen: boolean; openSearch: () => void; closeSearch: () => void
+  // Set when the data carries the export: opens "보고서로 보기" (components/report.tsx).
+  openReport?: () => void
 }
 
 // Sidebar, menu items and the saved-status card.
@@ -61,10 +63,16 @@ export default function DashApp(p: Props) {
   )
 }
 
-// Search (narrow screens; wider ones have it in the menu), larger text and the live dot.
-function Tools({ view, openSearch, big, toggleBig, live, inline }: Props) {
+// 보고서로 보기, search (narrow screens; wider ones have it in the menu), larger text and the live dot.
+function Tools({ view, openSearch, big, toggleBig, live, inline, openReport }: Props) {
   return (
     <div className="flex items-center gap-2">
+      {openReport && (
+        <button type="button" onClick={openReport} title="이 결과를 문서형 보고서로 보기 (인쇄·PDF)"
+          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#e3e3e3] bg-white px-2.5 text-[13px] font-medium text-zinc-700 hover:border-[#2f8f57]/40 hover:bg-[#f3f8f4] hover:text-[#2f7d4f]">
+          <NotebookText className="size-4" aria-hidden /><span className="hidden sm:inline">보고서로 보기</span><span className="sr-only sm:hidden">보고서로 보기</span>
+        </button>
+      )}
       {view && (
         <button type="button" onClick={openSearch} aria-label="전체 검색 (/ 또는 Ctrl+K)" title="전체 검색 (/ 또는 Ctrl+K)"
           className="grid size-8 place-items-center rounded-md border border-[#e3e3e3] bg-white text-zinc-600 lg:hidden"><Search className="size-4" aria-hidden /></button>

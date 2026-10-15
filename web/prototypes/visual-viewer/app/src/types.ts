@@ -30,6 +30,13 @@ export interface Page {
   blocks: Block[]
 }
 
+// The saved export and the turn the screen shows, for "보고서로 보기" (components/report.tsx). The report page reads
+// the export itself; nothing in the viewer reads or changes it.
+export interface ReportSource {
+  export: unknown
+  turn_id?: string | null
+}
+
 export interface View {
   kind: 'lgax-view'
   schema: number
@@ -45,6 +52,7 @@ export interface View {
   }
   pages: Page[]
   warnings?: string[]
+  report?: ReportSource
 }
 
 declare global {

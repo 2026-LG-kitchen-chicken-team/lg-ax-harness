@@ -17,7 +17,10 @@ const js = files.filter((f) => f.endsWith('.js'))
 const css = files.filter((f) => f.endsWith('.css'))
 if (js.length !== 1 || css.length !== 1) throw new Error(`expected one js and one css asset, got ${files.join(', ')}`)
 
-const code = readFileSync(join(assets, js[0]), 'utf8')
+// The report page for "보고서로 보기" (scripts/jinha-report.mjs) is a string with its own <script> and <style> tags.
+// Inside the inline script a closing tag would end it early, so it is written as <\/script> (the same string to JS).
+const code = readFileSync(join(assets, js[0]), 'utf8').replace(/<\/(script|style)/gi, '<\\/$1')
+if (code.includes('<!--')) throw new Error('bundle contains "<!--", which can change how the inline script is parsed')
 const style = readFileSync(join(assets, css[0]), 'utf8')
 if (/<\/script/i.test(code) || /<\/style/i.test(style)) throw new Error('bundle contains a closing script/style tag')
 if (code.includes(DATA_TAG)) throw new Error('bundle must not contain the view-data.js tag')

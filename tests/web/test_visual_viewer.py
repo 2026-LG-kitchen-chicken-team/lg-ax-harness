@@ -716,6 +716,22 @@ class BuildViewTests(TempCase):
         for private in (str(self.h.root), self.h.root.as_posix(), str(Path.home())):
             self.assertNotIn(private, text)
 
+    def test_report_view_gets_the_export_and_the_shown_turn(self):
+        """보고서로 보기(신진하 양식)는 export를 직접 읽는다. 화면과 같은 결과가 나오도록 지금 화면의 turn을 함께 준다."""
+        _, view = self.build("microwave")
+        self.assertEqual(view["report"]["export"], export_of("microwave"))
+        self.assertEqual(view["report"]["turn_id"], current_turn("microwave"))
+        _, view = self.build("needs_input")  # turn 없이 멈춘 요청 기록만 있으면 보고서를 두지 않는다
+        self.assertNotIn("report", view)
+
+    def test_report_vendor_files_are_kept_byte_for_byte(self):
+        """app/vendor/jinha-report는 받은 그대로 둔다. 바꿀 것은 빌드(scripts/jinha-report.mjs)에서만 바꾼다."""
+        vendor = VIEWER / "app" / "vendor" / "jinha-report"
+        rows = re.findall(r"\| `([^`]+)` \| `([0-9a-f]{64})` \|", (vendor / "SOURCE.md").read_text(encoding="utf-8"))
+        self.assertEqual(sorted(n for n, _ in rows), ["index.html", "report-app.js", "report-data-adapter.js", "result-report.css", "styles.css"])
+        for name, sha in rows:
+            self.assertEqual(hashlib.sha256((vendor / name).read_bytes()).hexdigest(), sha, name)
+
     def test_index_html_pin_and_restore(self):  # tests-docs-new-3
         export = self.h.add("microwave")
         with self.assertRaises(ValueError):
@@ -743,6 +759,9 @@ class BuildViewTests(TempCase):
             self.assertIn(needle, notices)
         for gone in ("reveal.js@", "motion@", "Cult UI", "Skiper UI"):
             self.assertNotIn(gone, notices)
+        # 보고서로 보기: 신진하 보고서 양식이 한 파일 안에 들어 있고 밖에서 불러오는 것은 없다(위의 script·link 검사)
+        for needle in ("HarnessReportAdapter", "embedded-report", "보고서로 보기"):
+            self.assertIn(needle, html)
         export = self.h.add("microwave")
         report = self.h.out / "report-test.html"
         build_view.generate(export, None, "auto", out_dir=self.h.out, standalone=report)

@@ -2071,6 +2071,9 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
             else:
                 ctx.web, ctx.web_path, ctx.web_note = match_web_result(export, ctx.cur, ctx.result, web_folder(export_path))
         view = build(ctx, ctx.ins if ctx else insights, focus)
+        if ctx:
+            # 보고서로 보기(K): 신진하 보고서 양식이 export를 직접 읽는다. 화면과 같은 결과를 보이도록 지금 화면의 turn을 함께 준다.
+            view["report"] = {"export": export, "turn_id": ctx.cur.get("turn_id")}
     payload = json.dumps(view, ensure_ascii=False, indent=1)
 
     html = (HERE / "index.html").read_bytes()
