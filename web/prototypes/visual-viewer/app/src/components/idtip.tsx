@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Block, View } from '../types'
 
 type Entry = { kind: string; text: string }
-type Tip = { id: string; entry: Entry; left: number; top?: number; bottom?: number }
+// light: the chip sits in K, which shows a light card that eases in (index.css "lg-tip"); the other views keep the dark one.
+type Tip = { id: string; entry: Entry; left: number; top?: number; bottom?: number; light: boolean }
 type Api = { lookup: (id: string) => Entry | undefined; show: (id: string, el: HTMLElement) => void; hide: () => void }
 const Ctx = createContext<Api | null>(null)
 export const useIdTip = () => useContext(Ctx)
@@ -39,9 +40,10 @@ export function IdTipProvider({ view, children }: { view: View | null; children:
     const entry = index.get(id)
     if (!entry) return
     const r = el.getBoundingClientRect()
-    const left = Math.max(8, Math.min(r.left, window.innerWidth - 368))
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - (el.closest('.skin-ops') ? 424 : 368)))
+    const light = !!el.closest('.skin-ops')
     // Open below the chip, or above it near the bottom of the window.
-    setTip(r.bottom > window.innerHeight - 200 ? { id, entry, left, bottom: window.innerHeight - r.top + 6 } : { id, entry, left, top: r.bottom + 6 })
+    setTip(r.bottom > window.innerHeight - 200 ? { id, entry, left, light, bottom: window.innerHeight - r.top + 8 } : { id, entry, left, light, top: r.bottom + 8 })
   }, [index])
   const hide = useCallback(() => setTip(null), [])
   useEffect(() => {
@@ -53,7 +55,16 @@ export function IdTipProvider({ view, children }: { view: View | null; children:
   return (
     <Ctx.Provider value={api}>
       {children}
-      {tip && (
+      {tip?.light && (
+        <div key={tip.id} role="tooltip" data-side={tip.top != null ? 'below' : 'above'}
+          className="lg-tip no-print pointer-events-none fixed z-[80] w-max max-w-[min(26rem,calc(100vw-1rem))] rounded-xl border border-[#e3e8e3] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-zinc-800 shadow-[0_14px_36px_-14px_rgb(0_0_0/0.3)]"
+          style={{ left: tip.left, top: tip.top, bottom: tip.bottom }}>
+          <div className="text-xs text-zinc-500"><span className="font-semibold text-[#2f7d4f]">{tip.id}</span> · {tip.entry.kind}</div>
+          {/* K's cards show only the first sentence, so the card here gives the whole text. */}
+          <p className="mt-1 whitespace-pre-line">{tip.entry.text}</p>
+        </div>
+      )}
+      {tip && !tip.light && (
         <div role="tooltip" className="no-print pointer-events-none fixed z-[80] w-[22rem] max-w-[calc(100vw-1rem)] rounded-2xl bg-zinc-900 px-4 py-3 text-sm leading-relaxed text-white shadow-xl"
           style={{ left: tip.left, top: tip.top, bottom: tip.bottom }}>
           <div className="text-xs text-zinc-400"><span className="font-mono font-semibold text-white">{tip.id}</span> · {tip.entry.kind}</div>

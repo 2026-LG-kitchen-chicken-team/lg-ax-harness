@@ -19,6 +19,9 @@ import { cn, Md } from './lib/utils'
 import { useView } from './lib/useView'
 import { MERGED_EVIDENCE_SKINS, mergedTarget, mergeEvidencePages } from './lib/merge'
 import { reportVoice, voiceView } from './lib/voice'
+import { prunedTarget, pruneForPlanning } from './lib/prune'
+import { plainView } from './lib/plain'
+import { recolorView } from './lib/ktone'
 import type { Page, View } from './types'
 
 const LG_RED = 'text-[#d0111b]'
@@ -67,13 +70,19 @@ export default function App() {
   const [mode, setMode] = useMode()
   // J, K and M draw the evidence dashboard and the evidence text as one page (lib/merge.ts); the data keeps both.
   const merged = MERGED_EVIDENCE_SKINS.has(mode)
-  // K also reads in report style (lib/voice.ts): the harness's own sentences only.
+  // K also keeps only what the planning work needs (lib/prune.ts), reads in report style (lib/voice.ts), leaves
+  // field names out of the visible text (lib/plain.ts) and uses one hue (lib/ktone.ts).
+  const ops = mode === 'ops'
   const shownView = useMemo(() => {
     const v = merged ? mergeEvidencePages(view) : view
-    return mode === 'ops' ? voiceView(v) : v
-  }, [merged, mode, view])
+    return ops ? recolorView(plainView(voiceView(pruneForPlanning(v)))) : v
+  }, [merged, ops, view])
+  const target = (id: string | null) => {
+    const m = merged ? mergedTarget(id) : id
+    return ops ? prunedTarget(m) : m
+  }
   const page = view?.pages.find((p) => p.id === current) || null
-  const shownPage = shownView?.pages.find((p) => p.id === (merged ? mergedTarget(current) : current)) || null
+  const shownPage = shownView?.pages.find((p) => p.id === target(current)) || null
   useEffect(() => {
     if (!page || !view) return
     try { if (hashId() !== page.id) history.replaceState(null, '', '#' + encodeURIComponent(page.id)) } catch { /* previews may block */ }
@@ -116,7 +125,7 @@ export default function App() {
     return (
       <IdTipProvider view={view}>
         <DashApp skin={mode} view={shownView} page={shownPage}
-          go={(id) => go(merged ? mergedTarget(id) || id : id)} pick={pick} copy={copy} live={live} reload={reload}
+          go={(id) => go(target(id) || id)} pick={pick} copy={copy} live={live} reload={reload}
           openFile={openFile} inline={inline} mode={mode} setMode={setMode} big={big} toggleBig={toggleBig}
           searchOpen={searchOpen} openSearch={openSearch} closeSearch={() => setSearchOpen(false)} />
         {toastsEl}
