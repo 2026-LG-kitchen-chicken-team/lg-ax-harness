@@ -95,6 +95,9 @@ CLI를 선택한 실행자만:
 기본 catalog는 비어 있다. 첫 질문: `냉장고 사용 불편을 실제 리뷰에서 조사하고 새 부품 없이 개선할 안을 제안해줘.`
 추가 질문: `이전 안을 장보기 전에 쓰는 3단계 안내로 구체화해줘. 조건은 유지해.`
 업무 Skill은 {profile["skills"]}의6개이며 개발 역할/Skill은 포함하지 않는다.
+자연어 요청에 맞는 자동 선택이 기본이고 Claude /evidence-retrieval 등 /Skill이름으로 명시 호출해도 같은 처리 경로다. @ subagent 선택은 .claude/agents의 선택 역할이며 Skill 호출과 구별한다.
+필요 본문이 현재 문맥에 없으면 get_work_instructions로 main/선택 Skill/payload만 받고 동일 문맥·지문은 known_context 신고로 중복 반환을 생략한다. 반환 receipt는 독해·이해·적용 인증이 아니다. docs/contracts/instruction-loading.md를 따른다.
+공식 안내: https://code.claude.com/docs/en/skills · https://code.claude.com/docs/en/sub-agents#invoke-subagents-explicitly
 선택적 공식 자료 조사자·후기 조사분석자·근거 검토자 3개를 .claude/agents에 설치한다. 메인이 필요한 역할만 선택하며 대화·단순 수정에는 호출하지 않는다.
 Claude Desktop의 Code 로컬 세션에서도 이 폴더를 열 수 있다. 일반 Chat 세션은 프로젝트 Agent 설치·발견 검증과 별개다.
 역할 파일 준비와 실제 위임은 구분한다. 역할별 시간은 실제 spawn 응답부터 최대180초와 전체 마감/최종90초 중 더 짧은 범위로 관리한다.

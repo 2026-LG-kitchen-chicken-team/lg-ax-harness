@@ -118,7 +118,16 @@ def install(target, root=ROOT):
     for name in ("AGENTS.md", "README.md", "pyproject.toml", "uv.lock", ".gitignore", "product-doctor.py"):
         source = root / "adapters/codex/templates" / name
         raw = source.read_bytes()
-        write(name, raw, source.relative_to(root).as_posix(), digest(raw), "Product-only template")
+        original_sha = digest(raw)
+        if name == "README.md":
+            raw += ("\n자연어 요청에 맞는 Skill 자동 선택이 기본이다. `/skills` 또는 `$evidence-retrieval` 등 설치된6개 이름으로 명시 호출해도 같은 업무 경로를 쓴다. "
+                    "product-planning은 메인 지침이고 별도7번째 호출 Skill이 아니다. 선택 자식은 .codex/agents의 product_official_researcher/product_review_researcher/product_evidence_reviewer 역할명을 자연어로 지정한다. "
+                    "Claude의 /Skill이름·@ subagent 선택과 구별하며 Codex @agent 명령을 만들지 않는다.\n"
+                    "필요 본문이 현재 문맥에 없으면 get_work_instructions로 main/선택 Skill/payload만 받고 동일 문맥·지문은 known_context 신고로 중복 반환을 생략한다. "
+                    "반환 receipt는 독해·이해·적용 인증이 아니다. docs/contracts/instruction-loading.md를 따른다.\n"
+                    "공식 안내: https://learn.chatgpt.com/docs/build-skills#how-chatgpt-and-codex-use-skills\n").encode("utf-8")
+        write(name, raw, source.relative_to(root).as_posix(), original_sha,
+              "Product-only template; README adds native invocation/loading guide" if name == "README.md" else "Product-only template")
     for relative, raw, source, source_sha, inputs in native_assets:
         write(relative, raw, source, source_sha, "Product reviewer only; model/effort inherited; native invocation unverified", inputs)
     record = {"format": "codex-product-install-v1", "source_manifest_sha256": digest((root / "skills/manifest.json").read_bytes()),

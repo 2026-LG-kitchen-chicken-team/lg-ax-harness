@@ -1,9 +1,12 @@
 ---
 name: web-evidence-collection
 description: "저장 근거 부족·자료 갱신·모델 또는 문서 연결 불명확 시 실제 고객 후기 원문과 공식 제품 자료를 외부에서 확보할 때 사용한다."
+user-invocable: true
 ---
 
 # 외부 근거 조사
+
+자연어 요청의 자동 선택이 기본이며 Codex `$web-evidence-collection`(`/skills`), Claude `/web-evidence-collection` 명시 호출도 같은 업무 경로를 쓴다. 현재 업무 문맥에 같은 본문·지문이 없거나 문맥/버전이 바뀌면 판단 전에 `get_work_instructions`로 `web-evidence-collection`와 필요한 `main`만 선택해 실제 본문을 받는다. 이미 같은 지침이 문맥에 있으면 재독해하지 않고 동일 문맥·지문의 `known_context` 신고를 사용한다. 실행은 `uv run python skills/web-evidence-collection/scripts/run.py get_work_instructions --input runtime-data/instructions.json`이며 입력·증거 구분은 프로젝트 루트 `docs/contracts/instruction-loading.md`를 따른다. 반환 receipt는 코드 반환 근거이고 독해·적용·이해 인증이 아니다.
 
 국소 표현/검증 계획 보완과 핵심 근거 오류는 영향 범위를 구분한다. 전자는 보완 항목이며 그 자체로 업무 전체 실패를 뜻하지 않는다. 최종 전달은 현재 저장 버전의 completion_summary.text를 유지하고 새 사실·조건·매체를 추가하지 않는다.
 

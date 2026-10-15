@@ -27,3 +27,7 @@ Python3.12/uv 초기 설치 검사는 사람이 product-doctor.py로 한 번 한
 큰 JSON은 runtime-data의 파일로 나눠 Python json으로 조합한다. PowerShell here-string의 따옴표에 불필요한 역슬래시를 넣지 않는다. os error206은 명령 길이 오류로 같은 요청에서 복구한다. 실제 제공되는 웹/브라우저/PDF Tool만 조건부 사용하고 수집 실패·자료 부족을 남긴다. 미관측 사용량/비용은 null/unknown이다.
 
 close/maxThreads 지원이 없으면 실제 completed/idle/interrupted 상태와 재사용 정책을 보존하며 close를 만들어 쓰지 않는다. 역할 지침과 fallback은 OS 권한 강제 인증이 아니다.
+
+자연어 상품기획이 기본이다. Codex는 `/skills` 또는 `$evidence-retrieval` 등 설치된6개 Skill 이름으로, Claude는 `/evidence-retrieval` 등으로 명시 호출할 수 있으며 자동 선택과 같은 업무 경로를 쓴다. product-planning은 메인 지침이고 별도의7번째 호출 Skill이 아니다. Codex의 선택 자식은 등록 역할명으로 자연어 위임하며 Claude의 `@` subagent 선택은 Skill 호출과 구별한다.
+
+현재 문맥에 필요한 메인/Skill/양식 본문이 없으면 의미 판단 전에 `get_work_instructions`에 현재 `context_key`와 필요한 지침 ID만 주어 실제 본문·SHA를 받는다. 이미 동일 문맥/지문이 있으면 known_context 신고로 재반환을 생략하며 새 업무 문맥/버전에는 다시 받는다. wrapper 실행·파일 설치·반환 receipt를 독해/적용 인증으로 바꾸지 않는다. 계약: docs/contracts/instruction-loading.md.

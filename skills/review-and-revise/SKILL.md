@@ -1,9 +1,12 @@
 ---
 name: review-and-revise
 description: "상품기획 후보의 원문 의미·모델·기존 기능 중복·가정·제약을 검토하고 최초 생성과 최대2회 수정을 저장할 때 사용한다."
+user-invocable: true
 ---
 
 # 검토·수정·저장
+
+자연어 요청의 자동 선택이 기본이며 Codex `$review-and-revise`(`/skills`), Claude `/review-and-revise` 명시 호출도 같은 업무 경로를 쓴다. 현재 업무 문맥에 같은 본문·지문이 없거나 문맥/버전이 바뀌면 판단 전에 `get_work_instructions`로 `review-and-revise`와 필요한 `main`·`payload`만 선택해 실제 본문을 받는다. 이미 같은 지침이 문맥에 있으면 재독해하지 않고 동일 문맥·지문의 `known_context` 신고를 사용한다. 실행은 `uv run python skills/review-and-revise/scripts/run.py get_work_instructions --input runtime-data/instructions.json`이며 입력·증거 구분은 프로젝트 루트 `docs/contracts/instruction-loading.md`를 따른다. 반환 receipt는 코드 반환 근거이고 독해·적용·이해 인증이 아니다.
 
 명시된 새 사용자 후속 업무는 같은 business session_id와 실제 prior_turn_id, 새 원질문/question·새 request_key로 open_product_workflow를 시작할 수 있다. open_product_workflow는 evidence-retrieval wrapper의 OP이며 이 Skill은 반환된 후속 현재 handle/version을 저장·finish에 사용한다. 이전 완료 결과·수정 횟수·완료 시계는 역사적 참조로 남고 새 문맥에서의 valid 여부와 구별한다. 같은 업무의 실패/timeout/저장 복구는 원래 request/turn/research_id를 유지하며 새 입력으로 한도를 우회하지 않는다. active-workflow 재개와 새 후속 업무를 구분해 현재 handle을 확인한다.
 

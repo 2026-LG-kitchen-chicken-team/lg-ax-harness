@@ -47,6 +47,8 @@ open_request_bundle.question에는 실제 사용자 업무 문장을 그대로 �
 
 같은 업무 입력의 두 번째 문장·출처/한계/검증 요청도 question에 포함한다. 실행 지침에서 '첫 문장'이라고 표현했어도 원래 업무 첫 줄에 여러 문장이 있으면 첫 문장만 잘라 저장하지 않는다. 모호한 경계는 입력 전체 보존 원칙을 따른다.
 
+필요 지침이 현재 문맥에 없으면 판단 전에 evidence-retrieval의 `get_work_instructions`에 현재 업무 문맥을 식별하는 `context_key`와 필요한 `main`·업무 Skill 이름·작성 때의 `payload`만 전달해 실제 본문과 지문을 받는다. 업무 요청·범위·버전이 바뀌면 문맥 키/지문을 갱신하고, 이미 같은 지침이 문맥에 있으면 `known_context`로 신고하여 중복 본문을 받지 않는다. 코드의 returned_to_caller·호출자의 already_in_context_reported·적용 신고·독립 출력 검토는 구별한다. 모든 Skill/역할을 한 번에 로드하지 않고 새 모델 호출을 만들지 않는다. docs/contracts/instruction-loading.md를 따른다.
+
 발견된 Skill에서 필요한 본문만 읽는다. 미발견 때만 skills/manifest.json을 읽는다. 공통 안전 규칙은 한 번 읽고 유지한다. 저장 자료 요청은 evidence-retrieval의 open_request_bundle 한 번으로 입력·turn·원문을 받는다. 정확한 scope가 이미 있으면 doctor/prepare/같은 조회를 반복하지 않는다. 누락·잘림·추가 사실·버전 변경에만 좁혀 조회한다.
 
 새 실제 조사는 아래 제품명 경로의 open_product_workflow로 원질문과 전체 시계를 함께 시작한다. 충분한 기존 자료 재사용은 open_request_bundle이고, open_request는 무시간 이력의 호환 API다. 조사 전에는 선택 필드를 생략해 요청만 만들 수 있다. research_required/pending은 사용자에게 자동 재질문하라는 뜻이 아니다. AI가 원래 질문에서 범위를 판단할 수 있으면 스스로 조사한다. 반환된 research_id를 유지하며 같은 요청의 진행·실패·보류와 관측 snapshot을 기록한다. 조사 후 최종 catalog를 --data로 지정하고 resolve_request_bundle로 같은 요청을 정확 모델/제품군에 연결한다. 원질문·제약·키·시계를 바꾸지 않는다. 선택을 위해 실제 추가 답변이 꼭 필요한 경우에만 이유를 밝히고 needs_input으로 내보낸다.
