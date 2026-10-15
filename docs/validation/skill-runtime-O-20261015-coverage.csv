@@ -1,0 +1,5 @@
+scope,models,review_excerpts,facts,registered_records,count_basis
+fixed_FR,3,23,33,56,registered_records_not_unique_customers_or_full_web_documents
+fixed_MW,3,26,56,82,registered_records_not_unique_customers_or_full_web_documents
+fixed_DW,3,38,43,81,registered_records_not_unique_customers_or_full_web_documents
+online_MW_separate,1,21,27,48,separate_current_observation_not_disjoint_unique_content_from_fixed_corpus

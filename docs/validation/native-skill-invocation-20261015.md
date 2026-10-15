@@ -19,6 +19,7 @@ AI의 대화 입력칸에는 다음처럼 입력한다. 터미널에서 실행�
 - Claude Desktop Code의 `/evidence-retrieval` 입력은 native의 command-message/name/args와 준비 질문을 정확히 대조했다. 실제 Skill 주입은 front matter를 제외한 설치 본문과 일치했다. wrapper의 `get_work_instructions` 실제 실행도 1회다. 원문/반환 SHA와 설치 파일이 일치했다.
 - Codex에서 세 본문을 한 Tool 응답으로 받은 진단은 native 출력 상한으로 main 일부가 잘렸다. 두 Skill 본문은 전체가 남았다. Claude는 출력 미리보기 후 별도 Read로 main·needs-structuring 전체를 받았고, evidence-retrieval은 native 주입으로 받았다. 최초 미리보기나 파일 리다이렉트만으로 전체 독해를 인증하지 않았다.
 - 두 진단 모두 실제 종료를 확인했고 설치 코드·전체 자료의 바이트는 바뀌지 않았다. 별도의 자연어 냉장고 업무도 실제 저장·최종 전달까지 종료됐고, 전체 56개 등록 원문을 보존한 독립 검토에서 핵심 요청을 충족했다. 모델/추론 비교와 다른 제품군의 인수는 별도 기록으로 정리한다.
+- 자연어 공개 기록에서 Codex는 main·근거 조회·불편 구조화·기능 비교의 전체 본문 표시를 확인했다. 나머지는 파일 반환과 전체 재표시를 구분했다. Claude는 slash/Skill 주입 없이 필요한 지침을 선택했고, 최초 미리보기와 후속 Read를 대조해 현재 업무 지침 본문 범위를 확인했다. 자연어 자동 선택의 실제 동작 근거이며 모든 Skill이나 역할을 매번 강제한다는 뜻은 아니다.
 
 `get_work_instructions`는 현재 필요한 본문만 선택해 전달한다. 같은 문맥·manifest·본문 지문이 이미 있다는 신고는 `already_in_context_reported`로 구분해 재반환을 생략한다. 문맥 압축으로 본문이 사라졌거나 문맥·버전이 달라지면 다시 전달한다. 본문 반환과 모델 이해를 자동으로 같은 사실로 인증하지 않는다. 실제 계약은 [지침 로딩](../contracts/instruction-loading.md)을 따른다. 전용 15개 검사와 [전체 로컬 CI](local-ci-20261015.md)를 통과했다.
 
