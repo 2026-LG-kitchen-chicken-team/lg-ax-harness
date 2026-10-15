@@ -154,7 +154,7 @@ python web/prototypes/visual-viewer/build_view.py --export <하네스 runtime-da
 - `facet`: `{title, order, values: {source_id: 구분값}}` 묶음을 나눌 구분(가구 구성 등).
 - `kpis`, `funnel`: 항목마다 `value`(고정 숫자), `group`(묶음 건수), `evidence: "all"`, `evidence_prefix: "REVIEW"` 중 하나. funnel은 `label` 필수.
 - `excluded`(`kind`·`ids`·`text`), `feature_tags`, `node_titles`, `concept_titles`, `concept_steps`(제안 원문과 글자까지 같아야 하며 다르면 그리지 않음), `unresolved`, `usage_note`, `captions`(화면 id별 `{title, text}`).
-- `summaries`: `{항목 ID: 짧은 요약}` 모델이 쓴 항목별 요약(현재 불편·기존 기능·남은 불편·제안). 현재 결과에 있는 ID에만 붙는다. K 업무형은 카드·연결 차트·제안에 이 요약을 `요약` 표시와 함께 보이고, 저장된 원문 전체는 ID 칩에 마우스를 올리면 보인다(요약이 없으면 원문의 첫 문장). 요약은 원문을 대신하지 않는다.
+- `summaries`: `{항목 ID: 짧은 요약}` 모델이 쓴 항목별 요약(현재 불편·기존 기능·남은 불편·제안). 현재 결과에 있는 ID에만 붙는다. K 업무형은 카드·연결 차트·제안에 이 요약을 `요약` 표시와 함께 보이고, 저장된 원문 전체는 ID 칩에 마우스를 올리면 보인다(요약이 없으면 원문의 첫 문장을 자르지 않고 통째로 `첫 문장` 표시와 함께 보인다. 문장 중간에서 잘라 `…`로 끝내지 않는다, 2026-10-15 사용자 요청). 카드가 짧고 깔끔하게 끝나려면 모델이 이 요약을 써야 한다. 요약은 원문을 대신하지 않는다.
 - `pages`: 모델이 블록을 직접 쓴 화면. `[{id, nav, icon, title, caption: {title, text}, blocks: [...]}]`
 
 ## 실제 검사 (2026-10-12, Windows 11, Python 3.12)

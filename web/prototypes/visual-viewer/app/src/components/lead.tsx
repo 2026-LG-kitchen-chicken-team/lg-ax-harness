@@ -1,29 +1,26 @@
 // K: an item's card shows the model's summary of it (insights `summaries`, marked "요약") or, without one, the first
-// sentence the model wrote (cut at a word near `max` characters, "…" when there is more). Its ID chip opens the whole
-// saved text (components/idtip.tsx). The screen never writes a summary of its own. Screen readers and print get the
-// whole text.
+// sentence the model wrote, whole (marked "첫 문장" when more follows). Nothing is cut mid-sentence and no card ends in
+// "…" (user request 2026-10-15). Its ID chip opens the whole saved text (components/idtip.tsx). The screen never writes
+// a summary of its own. Screen readers and print get the whole text.
 import { Md } from '../lib/utils'
 
-export function leadOf(text: string, max: number): string {
+export function firstSentence(text: string): string {
   const whole = String(text || '').trim()
-  const first = /^(.+?[.!?])(?=\s|$)/s.exec(whole)?.[1] ?? whole
-  if (first.length <= max) return first
-  const cut = first.slice(0, max)
-  const space = cut.lastIndexOf(' ')
-  return (space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,·(]+$/, '')
+  return /^(.+?[.!?])(?=\s|$)/s.exec(whole)?.[1] ?? whole
 }
 
-export function Lead({ text, summary, max = 90 }: { text: string; summary?: string | null; max?: number }) {
+export function Lead({ text, summary }: { text: string; summary?: string | null }) {
   const whole = String(text || '').trim()
-  const lead = summary ? summary.trim() : leadOf(text, max)
+  const lead = summary ? summary.trim() : firstSentence(whole)
   if (!summary && lead === whole) return <Md text={text} />
   return (
     <>
       <span aria-hidden className="print:hidden">
         <Md text={lead} />
-        {summary
-          ? <span className="ml-1.5 whitespace-nowrap align-[1px] text-[11px] font-normal text-zinc-400" title="모델이 쓴 요약입니다. 저장된 원문 전체는 ID 칩에 마우스를 올리면 보입니다.">요약</span>
-          : <span className="text-muted-foreground"> …</span>}
+        <span className="ml-1.5 whitespace-nowrap align-[1px] text-[11px] font-normal text-zinc-400"
+          title={summary ? '모델이 쓴 요약입니다. 저장된 원문 전체는 ID 칩에 마우스를 올리면 보입니다.' : '저장된 원문의 첫 문장입니다. 전체는 ID 칩에 마우스를 올리면 보입니다.'}>
+          {summary ? '요약' : '첫 문장'}
+        </span>
       </span>
       <span className="sr-only print:not-sr-only"><Md text={text} /></span>
     </>

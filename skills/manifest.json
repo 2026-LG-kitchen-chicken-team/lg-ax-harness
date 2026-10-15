@@ -251,7 +251,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "ac112836c1fdb3d3af677e5bc5953e76ea1070d1c30edcd1787d42e69dd50fed"
+      "sha256": "174b51ff3cadf474a42b2018467ad6d9dc4f61788f4bad3cfdbaecd9493b89b3"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -267,7 +267,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "ea03d06cfb281bc7a28da51d883ddcd1a7d72eab1788f91d0155f0e79d1ca118"
+      "sha256": "1e7c82149da57971a18fb12c194462a9f80e99e3d301a9f655498723134772b8"
     }
   ],
   "native_installation_verified": false,

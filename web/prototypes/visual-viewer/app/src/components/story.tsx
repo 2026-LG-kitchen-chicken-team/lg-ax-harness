@@ -103,7 +103,7 @@ function Flow({ b }: P) {
                   <Badge chip={{ text: n.id, tone: n.tone }} />
                   {outgoing(n.id).map((l, k) => <Badge key={k} chip={{ text: `→ ${l.to}${l.label ? ' · ' + l.label : ''}`, tone: l.tone || 'gray' }} />)}
                 </div>
-                {n.text && <p className={cn('mt-2 leading-relaxed', 'line-clamp-4 text-[13px]')}><Lead text={n.text} summary={n.summary} max={60} /></p>}
+                {n.text && <p className={cn('mt-2 leading-relaxed', 'text-[13px]')}><Lead text={n.text} summary={n.summary} /></p>}
               </div>
             ))}
             {!nodes.some((n) => n.column === c.key) && <p className="text-xs text-muted-foreground">항목 없음</p>}
@@ -139,7 +139,7 @@ function Solutions({ b }: P) {
                 <Badge chip={{ text: s.id, tone: 'k4' }} />
                 <Badges items={s.chips} />
               </div>
-              <p className="text-[15px] leading-relaxed"><Lead text={s.text} summary={s.summary} max={120} /></p>
+              <p className="text-[15px] leading-relaxed"><Lead text={s.text} summary={s.summary} /></p>
               {s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
               {s.requirements?.length > 0 && <MiniList title="요구사항" items={s.requirements} />}
             </div>
