@@ -110,6 +110,21 @@
 /* Links (원문 ↗, 더 보기) in K's deep green; the arrow icon and hover underline still mark them as links. */
 .skin-ops .text-blue-700 { color: #2f6b49; }
 
+/* Keep K's disclosure control and full text outside the link chart's preview clamp, even when zoomed. */
+.skin-ops p:has(> .lg-lead) {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+@media screen {
+  .skin-ops p[class*="line-clamp-"] > .lg-lead > .lg-lead-preview {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+}
+
 /* K motion: five kinds, each 0.6s or less, all off under prefers-reduced-motion (and in print). Everything is fully
    visible without them: nothing is hidden unless the motion that shows it will run.
    1 blocks below the first screen rise in once (DashApp marks them) · 2 KPI numbers settle into place (the final number
