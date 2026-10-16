@@ -365,12 +365,13 @@ uv run --no-project --python 3.12 python judge.py observe --engine codex --lates
 
 ### 결과 웹을 직접 갱신하고 열기
 
-**선택한 엔진 폴더(`codex` 또는 `claude`)**의 터미널에서 실행합니다. 상태를 확인한 뒤 현재 저장 결과로 화면을 갱신하고 브라우저 열기를 요청합니다.
+**선택한 엔진 폴더(`codex` 또는 `claude`)**의 터미널에서 실행합니다. Claude 폴더라면 마지막 값을 `claude`로 바꿉니다. 검토·저장·작업 종료를 확인한 현재 결과로 화면을 다시 만듭니다.
 
 ```powershell
-uv run python web/prototypes/visual-viewer/viewer.py status .
-uv run python web/prototypes/visual-viewer/viewer.py open .
+uv run python web/prototypes/visual-viewer/watch.py generate --harness . --engine codex
 ```
+
+준비가 끝났다는 결과가 나오면 `runtime-data/visual-viewer/index.html`을 브라우저로 직접 엽니다. 이 수동 명령은 브라우저를 자동으로 열지 않습니다. 아직 작업 중이거나 현재 검토 결과가 없으면 대기 상태를 알리고 마지막 정상 화면을 유지합니다.
 
 ### 화면 연결 진단
 

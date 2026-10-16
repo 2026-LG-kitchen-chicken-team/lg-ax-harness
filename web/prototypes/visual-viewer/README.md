@@ -15,7 +15,7 @@ uv run --no-project --python 3.12 python judge.py observe --engine codex --keep-
 uv run python web/prototypes/visual-viewer/watch.py diagnose --harness . --engine codex
 ```
 
-`index.html`은 같은 폴더의 `view-data.js`를 읽는다. 일반 export JSON이나 `web-result` JSON을 sidecar 대신 연결하지 않는다. 수동 복구는 `viewer.py open .`으로 현재 저장 결과에서 다시 만든다. 열기 요청 성공은 브라우저 렌더링 확인과 구별한다. 손상·부분 쓰기·검토되지 않은 결과는 마지막 정상 화면을 대체하지 않는다.
+`index.html`은 같은 폴더의 `view-data.js`를 읽는다. 일반 export JSON이나 `web-result` JSON을 sidecar 대신 연결하지 않는다. 수동 복구는 `watch.py generate --harness . --engine codex`(Claude는 `claude`)로 검토·작업 종료를 확인한 현재 결과를 다시 만든 뒤 `runtime-data/visual-viewer/index.html`을 직접 연다. `generate`는 브라우저를 요청하지 않는다. 열기 요청 성공은 브라우저 렌더링 확인과 구별한다. 이 관찰·복구 경로에서는 손상·부분 쓰기·검토되지 않은 결과가 마지막 정상 화면을 대체하지 않는다.
 
 # 2026-10-14 현재 결과 연결
 
@@ -68,13 +68,15 @@ uv run python web/prototypes/visual-viewer/viewer.py install --codex C:/내-하�
 - **Codex는 자동으로 업데이트된다.** 버전에 따라 Windows에서 훅을 실행하는 셸이 바뀐다(0.146: cmd, 0.162.1: PowerShell). Codex·Claude Code를 업데이트한 뒤에는 아래 4번의 `selftest`를 실행하고 `/hooks`에서 훅이 `Trusted`인지 다시 본다.
 - **알려진 환경 문제(뷰어와 무관)**: 2026-10-12 이 PC의 codex-cli 0.162.1에서 Windows 샌드박스 "setup refresh had errors"가 났다. 샌드박스 기록에 따르면 Codex 자신의 computer-use 런타임(node_repl) 프로세스가 `%LOCALAPPDATA%\OpenAI\Codex\runtimes\cua_node\…\node_repl.exe`를 열어 두어 그 파일의 ACL을 바꾸지 못했다. 그러면 Codex가 모든 명령을 샌드박스 밖에서 실행할지 사용자에게 매번 묻는다. 기획자는 이 경우 질문마다 승인이 필요할 수 있다.
 
-**4. 확인·직접 열기** — 하네스 폴더에서:
+**4. 확인·검증 후 직접 열기** — 하네스 폴더에서(Claude는 마지막 엔진 값을 바꾼다):
 
 ```powershell
 uv run python web/prototypes/visual-viewer/viewer.py selftest
 uv run python web/prototypes/visual-viewer/viewer.py status
-uv run python web/prototypes/visual-viewer/viewer.py open --latest
+uv run python web/prototypes/visual-viewer/watch.py generate --harness . --engine codex
 ```
+
+화면 준비가 끝나면 `runtime-data/visual-viewer/index.html`을 브라우저로 직접 연다. 과거 `viewer.py open --export ...`은 지정 이력 확인용 builder 경로이며 새 현재 결과의 검토·종료 검증을 대신하지 않는다.
 
 - selftest: 등록된 **정확한 훅 명령**을 이 PC의 각 셸(Codex: cmd·Windows PowerShell 5.1·pwsh, Claude: Git Bash·Windows PowerShell 5.1, macOS·Linux: sh·bash)에서 임시 사본과 합성 export로 실행해 셸마다 pass/fail을 보인다. 실제 화면·상태는 건드리지 않고 브라우저·모델을 쓰지 않는다. 없는 셸은 `skip`으로 적는다. CLI를 업데이트했거나 뷰어를 다시 설치한 뒤 실행한다.
 - status: CLI마다 `registered`(올바른 이벤트·matcher에 등록), `misplaced`, `files_match_command`(설치 파일·실행기가 명령의 지문과 같음), `view_built`·`up_to_date`, `last_built`, `baseline_only`, `codex_features`·`codex_hooks_disabled`(하네스 설정이 사용자 설정보다 우선), `last_error`·`last_error_file`, 그리고 `cli_versions`(`codex --version`·`claude --version`)와 `version_warnings`(확인한 버전 `tested_versions`가 아니면 selftest·`/hooks` 재확인 안내).

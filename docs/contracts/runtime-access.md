@@ -106,12 +106,13 @@ uv run python web/prototypes/visual-viewer/viewer.py install --codex .
 # Claude를 사용하는 폴더에서는 위 명령 대신 install --claude .
 ```
 
-Codex Stop 훅을 사용하려면 정상 `/hooks` 신뢰 확인을 거친다. Claude는 프로젝트 PostToolUse 훅을 사용한다. 폴더 신뢰와 훅 승인은 구별하며 제품은 자동 승인을 수행하지 않는다. `viewer.py open .`은 수동 갱신·열기 명령이다. 자동 브라우저 요청 성공은 화면 렌더링·클릭 검사와 다르다. 훅과 관찰은 공유 열기 상태를 사용해 같은 업무의 중복 열기를 줄인다. 자동 경로의 `LGAX_VIEWER_NO_OPEN=1`은 파일만 생성하고 브라우저를 요청하지 않는 선택이다. 수동 명령에서 열기를 생략하려면 `viewer.py open --no-browser .`을 사용한다.
+Codex Stop 훅을 사용하려면 정상 `/hooks` 신뢰 확인을 거친다. Claude는 프로젝트 PostToolUse 훅을 사용한다. 폴더 신뢰와 훅 승인은 구별하며 제품은 자동 승인을 수행하지 않는다. 자동 브라우저 요청 성공은 화면 렌더링·클릭 검사와 다르다. 훅과 관찰은 공유 열기 상태를 사용해 같은 업무의 중복 열기를 줄인다. 자동 경로의 `LGAX_VIEWER_NO_OPEN=1`은 파일만 생성하고 브라우저를 요청하지 않는 선택이다.
 
-기획자 웹은 같은 폴더의 `index.html`과 `view-data.js`를 함께 사용한다. 일반 export JSON·`web-result` JSON을 `view-data.js` 대신 넣지 않는다. 현재 binding·형식·파일 무결성 진단은 선택한 제품 폴더에서 아래를 실행한다. Claude는 엔진 값을 바꾼다. 진단은 결과를 새로 기획하거나 모델을 호출하지 않으며 필요하면 기존 `viewer.py open .`으로 현재 저장 결과에서 다시 생성한다. 실패한 재생성은 마지막 정상 화면을 대체하지 않는다.
+기획자 웹은 같은 폴더의 `index.html`과 `view-data.js`를 함께 사용한다. 일반 export JSON·`web-result` JSON을 `view-data.js` 대신 넣지 않는다. 현재 binding·형식·파일 무결성 진단은 선택한 제품 폴더에서 아래를 실행한다. Claude는 엔진 값을 바꾼다. 필요하면 이어서 `generate`로 검토·작업 종료를 확인한 현재 결과를 다시 만든다. 모델을 호출하지 않고, 실패·대기 중에는 마지막 정상 화면을 대체하지 않는다. `generate`는 브라우저를 요청하지 않으므로 준비 후 `runtime-data/visual-viewer/index.html`을 직접 연다. 과거 `viewer.py open`은 이 검증 경로를 대신하지 않는다.
 
 ```powershell
 uv run python web/prototypes/visual-viewer/watch.py diagnose --harness . --engine codex
+uv run python web/prototypes/visual-viewer/watch.py generate --harness . --engine codex
 ```
 
 대시보드는 별도 관찰 프로그램이며 현재 제품 설치기와 심사위원용 ZIP에 실행 파일5개를 포함한다. `web/prototypes/agent-office/README.md`를 따라 같은 제품 폴더에 연결한다. Claude는 `office.py install --claude <제품폴더>`, Codex는 실행 **전에** `office.py codex --harness <제품폴더> --wait --until-complete`를 별도 터미널에서 실행한다. 대시보드 HTML은 해당 제품 폴더의 `runtime-data/agent-office/index.html`이다. Codex follower를 나중에 켜서 이전 로그를 읽은 경우는 실시간 관측과 구분한다. 업무가 끝난 뒤 저장 기록 재생을 현재 실행 중으로 표시하지 않는다. 심사 ZIP의 준비·질문·결과 확인은 [사용자 테스트 안내](judge-test.md)를 따른다.
