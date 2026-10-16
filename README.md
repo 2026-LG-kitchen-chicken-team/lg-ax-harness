@@ -1,5 +1,7 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+2026-10-16 심사위원 ZIP 원클릭 시작: ZIP 루트의 `start_claude_gui`·`start_claude_cli`·`start_codex_gui`·`start_codex_cli`(Windows `.cmd` 더블클릭, macOS/Linux `.sh`)가 무결성 확인·첫 준비·실행기 시작을 한 번에 하고, 첫 질문 때 실행 대시보드(`runtime-data/agent-office/index.html`)를 브라우저로 자동으로 연다. Claude Code CLI 설치·실행 명령도 추가했다. [심사위원 README](docs/contracts/judge-test.md) · 원본 `adapters/common/launchers/`.
+
 2026-10-13 최신 작업본: [웹 연결용 출품 하네스 검증](docs/validation/web-ready-harness-20261013.md) · [실측 JSON](docs/validation/web-ready-harness-20261013.json). 메인1·업무Skill6·선택 역할3, 기본 report:false의 현재 정형결과·선택 원문 전체·출처·검토/조사 이력을 웹팀에 전달한다. PDF/DOCX 자동 생성·검수는 기본 완료 경로에서 제외하며 명시 파일 요청은 검토된 현재 저장만 허용한다. [웹 데이터 계약](docs/contracts/web-result.md)·[웹팀 인수](docs/plans/web-team-handoff-20261013.md)를 따른다. source I 제품371·평가144·자산 검사와 독립 코드 리뷰 통과는 AI 의미 품질·HTML 인수와 별개다. 이전 H14/현재 I5 실행을 분리하고, 원문 미명시 매체 귀속·후기 조건 전이·검증 조건의 한계를 보존한다. 최종 모델/effort 권장은 미확정이다. [마감 결정](docs/decisions/web-ready-harness-closure-20261013.md)은 초기 동결 계획의 숫자와 최신24/24 입력 마감을 구분한다. 아래 배포/숫자는 해당 버전의 이력이다.
 
 현재 배포: [제품 v0.10.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.10.0) · [원격 다운로드/제품 소스 인수](docs/validation/product-v0.10.0.md). 두 ZIP105파일·자동 Source code105파일 raw byte·태그 부모0을 확인했다. 원격 CI는 계정 결제/사용한도 사유로 미시작이며 로컬 통과와 구분한다.

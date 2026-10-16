@@ -18,7 +18,8 @@ ADAPTER_FILES=(
     "claude/install.py","claude/templates/CLAUDE.md",
     "claude/templates/product-evidence-reviewer.md",
     "claude/templates/product-official-researcher.md","claude/templates/product-review-researcher.md",
-)
+) + tuple("common/launchers/start_" + engine + "_" + ui + "." + ext
+          for engine in ("claude", "codex") for ui in ("gui", "cli") for ext in ("cmd", "sh"))
 
 
 def load(path,name):

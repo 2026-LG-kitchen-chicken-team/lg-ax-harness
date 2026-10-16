@@ -1,11 +1,12 @@
 """LG AX agent office - install, remove and check the passive observer hook; convert what it recorded.
 
-    uv run python web/prototypes/agent-office/office.py install --claude C:/my-harness
+    uv run python web/prototypes/agent-office/office.py install --claude C:/my-harness [--open-on-prompt]
     uv run python web/prototypes/agent-office/office.py status --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py uninstall --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py watch --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py open --claude C:/my-harness
     uv run python web/prototypes/agent-office/office.py codex --harness C:/my-harness --latest
+    uv run python web/prototypes/agent-office/office.py codex --harness C:/my-harness --wait --open
     uv run python web/prototypes/agent-office/office.py codex-sessions --harness C:/my-harness
     uv run python web/prototypes/agent-office/office.py trace C:/my-harness --out trace.json
     uv run python web/prototypes/agent-office/office.py selftest
@@ -17,6 +18,8 @@ install copies observe.py, office.py, README.md and the office page (index.html,
 as they are. Settings that are not a UTF-8 JSON object stop the install without changes. The hook runs observe.py only
 when its SHA-256 matches the installed fingerprint, refuses symlinked/junction folders, prints nothing and always ends
 with exit 0, so it cannot block or change a tool call. Standard library only; no model or business tool is called.
+`--open-on-prompt` also writes `runtime-data/agent-office/auto-open.json`: the hook then opens the office page in the
+default browser at the first question of each session (once per session). Installing without it removes that file.
 """
 from __future__ import annotations
 
@@ -38,6 +41,7 @@ APP_REL = ("web", "prototypes", "agent-office")
 APP_FILES = ("observe.py", "office.py", "codex_follow.py", "README.md")
 PAGE = "index.html"  # the 3D office, one self-contained file built by app/ (npm run build)
 SETTINGS_REL = (".claude", "settings.local.json")
+AUTO_OPEN = "auto-open.json"  # beside the records; observe.py reads it at UserPromptSubmit
 MARKER = "LG_AX_AGENT_OFFICE_V1"
 TOOL_EVENTS = ("PreToolUse", "PostToolUse", "PostToolUseFailure")
 OTHER_EVENTS = ("UserPromptSubmit", "Stop", "SubagentStart", "SubagentStop", "SessionStart", "SessionEnd")
@@ -194,7 +198,15 @@ def check_harness(harness: Path) -> Path:
     return harness
 
 
-def install(harness: Path) -> str:
+def set_auto_open(harness: Path, enabled: bool):
+    path = harness / "runtime-data" / "agent-office" / AUTO_OPEN
+    if enabled:
+        write_atomic(path, json.dumps({"open_on_prompt": True, "opened": []}) + "\n")
+    elif path.is_file():
+        path.unlink()
+
+
+def install(harness: Path, open_on_prompt: bool = False) -> str:
     harness = check_harness(harness)
     settings = harness.joinpath(*SETTINGS_REL)
     data = read_settings(settings)  # read and check first: nothing is copied when the settings cannot be merged
@@ -202,9 +214,12 @@ def install(harness: Path) -> str:
     page = copy_page(harness)
     sha = digest(app / "observe.py")
     write_atomic(settings, json.dumps(merged(data, hook_command(sha)), ensure_ascii=False, indent=2) + "\n")
+    set_auto_open(harness, open_on_prompt and page is not None)
     events = len(TOOL_EVENTS) + len(OTHER_EVENTS)
     page_line = (f"사무실 화면: {page} (office.py open --claude <폴더>로 열기)\n" if page
                  else "사무실 화면: index.html이 없어 복사하지 않았습니다 (app 폴더에서 npm run build).\n")
+    if page and open_on_prompt:
+        page_line += "  세션의 첫 질문 때 이 화면을 기본 브라우저로 한 번 엽니다 (끄기: --open-on-prompt 없이 다시 install).\n"
     return (f"관찰 파일: {app}\n기록 위치: {harness / 'runtime-data' / 'agent-office'}\n{page_line}"
             f"[Claude Code] {settings.relative_to(harness)}에 관찰 훅 {events}개(백그라운드)를 추가했습니다. 다른 훅은 그대로 둡니다.\n"
             "  다음: 이 하네스 폴더에서 Claude Code를 새로 열고(처음이면 폴더 신뢰 허용) 질문하세요.\n"
@@ -223,10 +238,13 @@ def copy_files(harness: Path) -> Path:
     return app
 
 
-def codex(harness: Path, rollout=None, latest=False, once=False, until_complete=False, max_minutes=180.0, out=None, wait=False) -> int:
-    """Follow one Codex session into the office records (no hooks; Codex settings are not touched)."""
+def codex(harness: Path, rollout=None, latest=False, once=False, until_complete=False, max_minutes=180.0, out=None, wait=False,
+          open_page_once=False, opener=None) -> int:
+    """Follow one Codex session into the office records (no hooks; Codex settings are not touched).
+    open_page_once opens the office page when the first records of the session are written (live view)."""
     harness = check_harness(harness)
     out = out or sys.stdout
+    opened = []
     copy_files(harness)  # the page and the follower live in the harness too (no Codex settings are changed)
     copy_page(harness)
     if str(HERE) not in sys.path:
@@ -238,18 +256,30 @@ def codex(harness: Path, rollout=None, latest=False, once=False, until_complete=
               f"사무실 화면: {harness / 'runtime-data' / 'agent-office' / PAGE}" + ("" if once else "\n따라가는 중입니다. 멈추려면 Ctrl+C."), file=out)
 
     def printer(event):
+        if open_page_once and not opened:
+            opened.append(True)
+            print(open_page(harness, opener=opener), file=out, flush=True)
         print(watch_line(event), file=out, flush=True)
 
     def waiting():
         print(f"새 Codex 세션을 기다립니다. 이제 {harness}에서 codex를 열고 질문하세요.\n"
               f"사무실 화면: {harness / 'runtime-data' / 'agent-office' / PAGE}", file=out, flush=True)
 
+    # One follower per harness: two (say, a second one-click start) would write the same session twice.
+    (harness / "runtime-data" / "agent-office").mkdir(parents=True, exist_ok=True)
+    lock = codex_follow.ob.Lock(harness / "runtime-data" / "agent-office" / ".codex-follow.lock", wait=0.0)
+    try:
+        lock.__enter__()
+    except TimeoutError:
+        raise OfficeError("이 하네스 폴더는 이미 다른 Codex 관찰이 따라가고 있습니다. 그 관찰 창을 쓰거나 닫은 뒤 다시 실행하세요.") from None
     try:
         result = codex_follow.follow(harness, Path(rollout) if rollout else None, latest=latest, once=once,
                                      until_complete=until_complete, max_seconds=max_minutes * 60, printer=printer, announce=announce,
                                      wait=wait, waiting=waiting)
     except codex_follow.FollowError as exc:
         raise OfficeError(str(exc)) from None
+    finally:
+        lock.__exit__(None, None, None)
     print(f"끝: 사건 {result['events_written']}개 기록 · 하위 에이전트 기록 {result['agent_threads']}개 · {result['stop_reason']}", file=out)
     return result["events_written"]
 
@@ -291,11 +321,13 @@ def page_path(harness: Path) -> Path:
     return page
 
 
-def open_page(harness: Path, launch=True) -> str:
+def open_page(harness: Path, launch=True, opener=None) -> str:
     page = page_path(harness)
     if launch:
-        import webbrowser
-        webbrowser.open(page.as_uri())
+        if opener is None:
+            import webbrowser
+            opener = webbrowser.open
+        opener(page.as_uri())
     return f"사무실 화면: {page.as_uri()}"
 
 
@@ -306,6 +338,7 @@ def uninstall(harness: Path) -> str:
     if not settings.exists():
         return "설정 파일이 없어 지울 훅이 없습니다."
     write_atomic(settings, json.dumps(merged(data, None), ensure_ascii=False, indent=2) + "\n")
+    set_auto_open(harness, False)
     return f"{settings.relative_to(harness)}에서 관찰 훅만 지웠습니다. 기록·파일은 남겨 둡니다."
 
 
@@ -329,11 +362,16 @@ def status(harness: Path) -> dict:
     errors = (out / "observe-error.log").read_text(encoding="utf-8").splitlines()[-5:] if (out / "observe-error.log").is_file() else []
     start = (out / "observe-start-error.log").read_text(encoding="utf-8").strip() if (out / "observe-start-error.log").is_file() else ""
     missing = [e for e in TOOL_EVENTS + OTHER_EVENTS if e not in registered]
+    try:
+        auto = json.loads((out / AUTO_OPEN).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        auto = {}
     return {"harness": str(harness), "registered": sorted(set(registered)), "missing_events": missing,
             "files_match_command": bool(installed) and shas == {installed}, "events_recorded": len(lines),
             "last_event": {k: last.get(k) for k in ("ts", "hook", "kind", "node", "op")} if last else None,
             "last_errors": errors, "start_error": start[:500] or None, "claude_version": claude_version(),
             "page": str(out / PAGE) if (out / PAGE).is_file() else None,
+            "open_on_prompt": isinstance(auto, dict) and auto.get("open_on_prompt") is True,
             "tested_claude_versions": list(TESTED_CLAUDE)}
 
 
@@ -549,6 +587,8 @@ def main(argv=None) -> int:
     for name in ("install", "uninstall", "status"):
         p = sub.add_parser(name)
         p.add_argument("--claude", type=Path, required=True, metavar="HARNESS", help="설치된 하네스 폴더 (Claude Code)")
+        if name == "install":
+            p.add_argument("--open-on-prompt", action="store_true", help="세션의 첫 질문 때 사무실 화면을 브라우저로 한 번 열기")
     p = sub.add_parser("open", help="사무실 화면(3D)을 기본 브라우저로 열기")
     p.add_argument("--claude", type=Path, required=True, metavar="HARNESS")
     p.add_argument("--print", action="store_true", help="열지 않고 주소만 출력")
@@ -560,6 +600,7 @@ def main(argv=None) -> int:
     pick.add_argument("--wait", action="store_true", help="이 명령 뒤에 시작되는 새 Codex 세션을 기다렸다가 따라가기")
     p.add_argument("--once", action="store_true", help="지금까지의 기록만 옮기고 끝내기 (지난 세션 재생용)")
     p.add_argument("--until-complete", action="store_true", help="답변이 끝나면 멈추기")
+    p.add_argument("--open", action="store_true", help="세션의 첫 기록이 들어오면 사무실 화면을 브라우저로 한 번 열기")
     p.add_argument("--max-minutes", type=float, default=180.0)
     p = sub.add_parser("codex-sessions", help="이 하네스 폴더에서 연 최근 Codex 세션 목록")
     p.add_argument("--harness", type=Path, required=True)
@@ -576,14 +617,14 @@ def main(argv=None) -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
     try:
         if args.command == "install":
-            print(install(args.claude))
+            print(install(args.claude, open_on_prompt=args.open_on_prompt))
         elif args.command == "uninstall":
             print(uninstall(args.claude))
         elif args.command == "status":
             print(json.dumps(status(args.claude), ensure_ascii=False, indent=1))
         elif args.command == "codex":
             codex(args.harness, rollout=args.rollout, latest=args.latest, once=args.once,
-                  until_complete=args.until_complete, max_minutes=args.max_minutes, wait=args.wait)
+                  until_complete=args.until_complete, max_minutes=args.max_minutes, wait=args.wait, open_page_once=args.open)
         elif args.command == "codex-sessions":
             codex_sessions(args.harness)
         elif args.command == "open":
