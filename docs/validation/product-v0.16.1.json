@@ -1,0 +1,201 @@
+{
+  "release": "product-v0.16.1",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.16.1",
+  "published_at": "2026-10-16T04:11:17Z",
+  "prerelease": true,
+  "draft": false,
+  "source_commit": "5b1729c19247065d872ed5ac2d02b32d1cbae238",
+  "integration_PR": 17,
+  "main_commit": "a9a6b5b37d702128b0b4dd9e76a80c8d642fcacb",
+  "main_product_paths_equal": 101,
+  "snapshot_commit": "70754579da4696e70c1ae1ebb4336e303500acdf",
+  "snapshot_parents": 0,
+  "source_manifest_sha256": "09982faa64c2ce51868b3ce1873840dd182acafd3d4cd1c88c7d7716c30b4d0c",
+  "assets": [
+    {
+      "name": "lg-ax-judge-product-v0.16.1.zip",
+      "size": 2407457
+    },
+    {
+      "name": "lg-ax-product-product-v0.16.1.zip",
+      "size": 1251566
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 198
+    }
+  ],
+  "source_zip": {
+    "files": 128,
+    "sha256": "0f9614ef4e9d660d90322602f2b0645c660716463c24c9348ef514e9d8ee8e15"
+  },
+  "judge_zip": {
+    "files": 205,
+    "sha256": "24e9d5db062545e43e0d5a975eb73f7b728fe034982db6caf6a808ff36537b6f"
+  },
+  "remote_ZIP_bytes_equal": true,
+  "remote_checksums_equal": true,
+  "automatic_source_raw_files_equal": 128,
+  "zip_only_checks": [
+    {
+      "name": "bundle-check",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "judge-setup-codex",
+      "exit_code": 0,
+      "seconds": 2.485
+    },
+    {
+      "name": "bundle-after-codex",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "viewer-status-codex",
+      "exit_code": 0,
+      "seconds": 0.172
+    },
+    {
+      "name": "sandbox-judge",
+      "exit_code": 0,
+      "seconds": 2.984
+    },
+    {
+      "name": "judge-setup-claude",
+      "exit_code": 0,
+      "seconds": 2.938
+    },
+    {
+      "name": "bundle-after-claude",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "viewer-status-claude",
+      "exit_code": 0,
+      "seconds": 0.172
+    },
+    {
+      "name": "office-status-judge",
+      "exit_code": 0,
+      "seconds": 0.125
+    },
+    {
+      "name": "prepare-claude-gui",
+      "exit_code": 0,
+      "seconds": 0.125
+    },
+    {
+      "name": "prepare-codex-cli",
+      "exit_code": 0,
+      "seconds": 2.906
+    }
+  ],
+  "source_zip_reproduces_judge_bytes": true,
+  "focused_checks": [
+    {
+      "id": "c9db9dbb307a426ebbbcb4985d2ad978",
+      "argv": [
+        ".harness/ci-T-v016/venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-p",
+        "test_judge_package.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "fd710d092e9193ab0cea674c0e200b6be8f6e8ebecf972b3cbd0404c3c167bd2"
+    },
+    {
+      "id": "eb36f80e3dc149f8973f261320465809",
+      "argv": [
+        ".harness/ci-T-v016/venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-p",
+        "test_product_package.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "363ab1a033695fc78eb06ac6e269abdbbdbbaeb78a1b7693a3fdedc0095ef1c2"
+    },
+    {
+      "id": "fdf614ef7d0b487b83c73992d0cc606e",
+      "argv": [
+        ".harness/ci-T-v016/venv/Scripts/python.exe",
+        "scripts/check-product-assets.py"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "415996edb3c46cb17fc370fc862895663e637b331e3347c4c7d60eecab50c644"
+    }
+  ],
+  "judge_tests": 9,
+  "source_tests": 2,
+  "independent_review": {
+    "agent_id": "/root/judge_setup_audit",
+    "status": "accepted",
+    "unresolved_p1_p2": 0,
+    "packet_input_mismatches": 0,
+    "receipt_and_log_hashes_verified": true,
+    "files_changed_by_reviewer": 0,
+    "scope": "Documentation, packaging and Windows preparation only"
+  },
+  "new_model_calls": 0,
+  "browser_opened": false,
+  "archive_changes_from_v016": [
+    "README.md",
+    "bundle-manifest.json",
+    "claude/docs/contracts/judge-test.md",
+    "claude/product-install.json",
+    "claude/skills/manifest.json",
+    "codex/docs/contracts/judge-test.md",
+    "codex/product-install.json",
+    "codex/skills/manifest.json"
+  ],
+  "unchanged_archive_files": 197,
+  "previous_release_preserved": {
+    "tag": "product-v0.16.0",
+    "snapshot_commit": "b124fc1ec5740f98e06a9e0c582858a8daefe9d6",
+    "assets_raw_equal": [
+      {
+        "name": "lg-ax-product-product-v0.16.0.zip",
+        "sha256": "afe28d81f368f0efb55098afdf32cac55e2c9c2a7eb4181b6e46168d2d1e0814"
+      },
+      {
+        "name": "lg-ax-judge-product-v0.16.0.zip",
+        "sha256": "fbbb473cdd281976bf7d1985256cdfbb924b082f51a32f2a4b8a42a3dde657a3"
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "sha256": "774b6c148bf2ca7d96819a5b097771c7db286cd43e45ce729acda60f3bcf1353"
+      }
+    ]
+  },
+  "github_actions": {
+    "started": false,
+    "check_run": 116806253012,
+    "annotations": [
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/blob/b4c24c2dc3f3ef536fa136da909e3fa5669a4175/.github",
+        "start_line": 1,
+        "start_column": null,
+        "end_line": 1,
+        "end_column": null,
+        "annotation_level": "failure",
+        "title": "",
+        "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings",
+        "raw_details": ""
+      }
+    ]
+  },
+  "scope": "Documentation/packaging/Windows fresh setup and actual MXC diagnosis; no new AI business, GUI render, or other OS runtime acceptance"
+}
