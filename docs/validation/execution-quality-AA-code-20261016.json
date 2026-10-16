@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "source_commit": "46ddc2d512e19284da1d683f4a149dccdce5a26c",
+  "source_before_after_head_equal": true,
+  "source_changes": [],
+  "started_at": "2026-10-16T11:42:11.495781+00:00",
+  "finished_at": "2026-10-16T11:46:54.288537+00:00",
+  "private_report_sha256": "550bf14a0399ce73f4742f65fdc0c18c0abbdc039ec7eeb114523223be4373f5",
+  "stage_count": 21,
+  "stages": [
+    {
+      "id": "python-version",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "c0a589d62ecc8a20c796be1798b05903341f921719671342bd558639ed82d4ed"
+    },
+    {
+      "id": "uv-version",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "1708e1a61b2f51bfc3f90394de697451ad20aa9d831d1e1640129c0ea77ca82a"
+    },
+    {
+      "id": "node-version",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "ae2f18542de7eac00112f39c7db78da08f1d93b8cdfce0ae9581ae13b5f24c63"
+    },
+    {
+      "id": "npm-version",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "81df58c885c8863e14329e923f1e71970f0091abff47cea109fe2c236e37b9da"
+    },
+    {
+      "id": "isolated-python",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "84c02f1d59bf6a55dab1ba429659115f1a03c1b238317ed59400e4c7527d6760"
+    },
+    {
+      "id": "locked-python-dependencies",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "fd8a961bd9d10a2c38715198541790b33acbe2b05e422e6380ea4a2d8b66fc45"
+    },
+    {
+      "id": "validate",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "5d9322f73a3ac4e37837df6cdf6361ce7dd55bd953f01961f2878b3f2f05b25e"
+    },
+    {
+      "id": "dev-harness",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "41d4fc5da0e819654a07e9f68d8b51315225fad3007877914f298dc5988ceb9f"
+    },
+    {
+      "id": "product-tools",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "7d92da5e5a78706e2807b2351cb1c9e25311081badc1e419a98d01855f045d41"
+    },
+    {
+      "id": "product-assets",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "b2ec3efaf3d52e76ff489ba0f4b727fad62d498ad6f15ed58a3fe3adc40a582b"
+    },
+    {
+      "id": "evaluation",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "e97e285fb22586efc349526a3ccd14b097afe1b53081a40f2cc30c8252ccffa3"
+    },
+    {
+      "id": "visual-viewer-ci",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "3a772d986f11d91d1bf3e088923986b1c484af61654072fd0418b4e427b32264"
+    },
+    {
+      "id": "visual-viewer-build",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "e9ab96d814ffdcb6401b734db4ebc6bc3c043fceb051e614d57806deb39cc479"
+    },
+    {
+      "id": "agent-office-ci",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "ed236b244807feed4c742398eec0f58fc1ed8f745940a12b4c31ba2644ed9d15"
+    },
+    {
+      "id": "agent-office-build",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "788ac463bffb764da74c8c4280f5ce752ab011463ab94bfe01c4cf0b1f0ceab5"
+    },
+    {
+      "id": "web",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "87894657729a9b7b2b79359d576107d761a192d0148820e2a4d881ad8ce40915"
+    },
+    {
+      "id": "observer",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "92a3b17a24fe5269d548d83841952ec6d717f20769285b5af4dc39dce4159721"
+    },
+    {
+      "id": "evals",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "6fc7c65d43dbc18bb8e3dcd0e3bdbd6627041dc7621dc030a156b4adef268c70"
+    },
+    {
+      "id": "locked-portable",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "1ecc82f8c841f05c2117b13ec52fca7fb310772d527ee476ae287fedbbb2364c"
+    },
+    {
+      "id": "locked-package",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "b827e172a8861566540c50061ef27f3e079062d4a3b6cbe65e5c86391b151eb5"
+    },
+    {
+      "id": "product-assets-after-build",
+      "status": "passed",
+      "exit_code": 0,
+      "receipt_sha256": "96386ba56d8229dfafbb9b2cee23c56d1ebe50f75ddc78f22502596f17a0e051"
+    }
+  ],
+  "unit_test_summary": {
+    "total": 942,
+    "passed": 941,
+    "skipped": 1,
+    "skip_reason": "Windows symlink privilege unavailable, specific case only"
+  },
+  "widget_tests_separate": {
+    "total": 14,
+    "passed": 14,
+    "skipped": 0
+  },
+  "remote_actions_run_by_this_record": false,
+  "native_quality_asserted_by_code_tests": false,
+  "browser_visual_review": false,
+  "filming": false
+}
