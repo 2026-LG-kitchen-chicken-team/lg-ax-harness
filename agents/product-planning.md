@@ -4,7 +4,9 @@
 
 ## 입력과 호출 조건
 
-현재 업무의 재개는 원래 active-workflow handle·request·research_id·시계를 유지한다. 사용자가 새 후속 업무를 명시하면 같은 business session_id와 이전 실제 prior_turn_id, 새 question 원문과 새 request_key를 open_product_workflow에 전달한다.
+현재 업무의 재개는 원래 active-workflow handle·request·research_id·시계를 유지한다. 사용자가 새 업무를 명시하면 같은 business session_id와 이전 실제 prior_turn_id, 새 question 원문과 새 request_key를 open_product_workflow에 전달할 수 있다.
+
+새 질문의 제품군·모델뿐 아니라 목표·제약도 이전 업무와 대조한다. 이전 이력만 참고하는 새 범위는 prior_scope:"reference_only"와 현재 model_id 또는 product_family/scope_mode·필요한 버전·constraints를 명시한다. 같은 범위의 실제 후속만 기본 prior_scope:"inherit"로 이전 scope·버전·제약·선택 정책을 상속한다. 단순 복구를 새 업무로 꾸미거나 질문과 다른 이전 범위를 무심코 이어받지 않는다.
 
 반환된 새 handle/research_id가 후속 업무의 현재 값이며 이전 완료 결과·수정 횟수·finish 시계는 역사적 참조로 보존한다. 이전 결과의 현재 valid 여부는 새 문맥에 따라 달라질 수 있다.
 
@@ -62,7 +64,7 @@ AI가 원래 질문에서 범위를 판단할 수 있으면 스스로 조사한�
 
 미관측 문맥은 추정하지 않는다.
 
-이미 충분한 자료가 있는 요청은 open_request_bundle로 바로 시작한다. prior_turn_id가 있는 후속은 선택 필드를 생략해도 이전 scope를 상속해 turn이 생성될 수 있다.
+이미 충분한 자료가 있는 요청은 open_request_bundle로 바로 시작한다. 기본 prior_scope:"inherit"의 실제 후속은 선택 필드를 생략해도 이전 scope를 상속해 turn이 생성될 수 있다.
 
 시작된 turn의 자료 버전과 수정 상한은 고정한다. 그 이후 발견한 부족은 해당 turn의 held로 저장하며 새 자료/키로 한도를 초기화하지 않는다.
 
@@ -152,6 +154,9 @@ validation_plan.status는 planned_not_measured다. 측정 전 절감률·매출/
 - 한 후기 안에서도 실사용 경험·일반 선호·미래 기대를 문장별로 구분한다. 현재 잘 사용한다는 말은 사용 긍정이며 특정 수납부의 크기 만족을 입증하지 않는다. 큰 제품을 선호하거나 청소가 쉬울 것 같다는 말은 실제 넉넉함·청소 효과의 관측으로 올리지 않는다. 적용 모델·속성·시점을 원문이 지지하는 범위로 제한한다.
 - 조언·상태 변화·정상화 경과와 실제 불편을 구분한다. 안내를 권했다는 사실로 안내자의 사용 어려움을 추론하지 않으며, 경과시간만으로 사용 지장·걱정을 만들지 않는다. 불편 후보마다 연결 원문이 현재 대상의 부정 평가·실패·지장·부담을 직접 보고하는지 자체 검토한다. 없는 경우 관측/조건부 가설로 보존하고 pains·불편 집계에서 뺀다. 긍정·정상 설명과 섞인 실제 부정 경험은 조건과 함께 유지하며 제외를 후기·업무 전체로 확대하지 않는다. 이 확인은 기존 검토 안에서 하며 별도 모델/의무 위임을 추가하지 않는다.
 - 상품페이지 연결은 정확 모델의 구매 확인이 아니다. 제한적인 페이지 사례/기획 가설은 귀속·불확실성을 명시한다. completed는 기획 초안 작성 완료이며 실물·시장·효과 검증 완료가 아니다. 불확실성을 supported로 바꿔 통과시키지 않는다.
+- 의미 보존: 요약·pains·existing_features·remaining_pains·concepts·requirements/assumptions·decision_notes·최종 답변에서 같은 주장에는 판단을 바꾸는 조건을 함께 남긴다. 다른 섹션에 조건이 있다는 이유로 기능 요약이나 제안을 무조건적 사실·명령으로 줄이지 않는다. 해당 문장을 단독으로 읽어도 적용 범위를 오해하지 않을 만큼만 적고 원문 전체를 반복하지 않는다.
+- 사건 순서·부정 범위: 누가 언제 무엇을 했는지, 그 전/후·그때까지의 미수행과 이후 수행을 구분한다. 한 시점의 부정을 이후 사건 전체로 옮기거나 시간 순서를 인과로 바꾸지 않는다. 설명/의견을 들음·자료 확인·실물 조치·효과 확인은 서로 다른 사건이며 전문가의 설명도 그 화자의 판단으로 귀속하고 별도 확인 없는 수행·효과를 확정하지 않는다.
+- 조건 축약 점검: 기능·안내의 대상/사용 모드·설정·환경·분기 조건과 부정의 대상을 먼저 대조한다. 미확인과 부재, 미수행과 실패를 바꾸지 않는다. 축약·수정 후 원문→각 섹션→현재 저장/최종 전달을 역대조하며 source_id/SHA 일치만으로 의미 검토를 통과시키지 않는다. 애매한 경우에만 [일반 반례와 대조 기준](../skills/review-and-revise/references/meaning-preservation.md)을 읽는다.
 - 공식 support_quote/원문에 있는 사실, 저장된 factual_summary, AI 해석·제안을 구분한다. factual_summary는 원문 직접 인용이 아니다. 원문에 없는 한계나 해석을 제조사가 말했다고 귀속하지 않는다.
 - 답변과 저장에서 원문 직접 인용은 support_quote의 연속된 문장으로 표시하고, 저장 요약과 AI 판단은 각각 그렇게 표시한다. 비연속 문장을 하나의 인용문으로 합치지 않는다. 불편 판단에 영향을 주는 긍정·조건·유보 문맥도 함께 검토한다. 후기 집계는 관측한 고유 후기 ID와 자료 범위·분모를 밝히며, 언급 수를 독립 고객 수·전체 제품 발생률로 바꾸지 않는다.
 - 보류/확인 답변도 사용한 사실·해석의 근거를 decision_notes와 evidence_refs에 연결한다. basis는 source_fact/ai_interpretation/unverified 중 AI가 신고하는 구분이며 의미 인증이 아니다. 원문에 없는 적합·안전 판단은 AI 해석/미확인으로 남긴다. 근거 자체가 없으면 unverified의 빈 source_ids를 허용하며 출처를 만들어 채우지 않는다.
@@ -227,6 +232,8 @@ timed workflow의 finish에는 web_result.path와 layout_review:{status:"not_run
 finish 후 export_session으로 사건을 보존한다. 최종 전달은 같은 현재 저장 버전의 completion_summary를 사용한다.
 
 ### 최종 답변과 출처
+
+저장 전에 요약·기존 기능·제안·조건의 문장이 같은 사건 순서·부정 범위·적용 조건을 유지하는지 대조한다. 저장된 주장에 의미 오류가 있으면 최종 답변만 고쳐 숨기지 않고 같은 turn의 남은 수정 한도 안에서 수정하거나 해당 핵심 전제의 미확인을 보류한다.
 
 사용자에게는 save_and_export의 completion_summary.text를 그대로 전달한다. 누락 시 get_completion_summary({session_id,turn_id,expected_result_version})로 현재 버전에서 얻으며 새 사실·조건·출처를 보태지 않는다.
 
