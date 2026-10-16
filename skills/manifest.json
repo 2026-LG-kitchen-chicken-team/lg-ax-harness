@@ -382,7 +382,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/watch.py",
-      "sha256": "2e4eb7e1d88abbf7b9ba7cf8a4ef1e92fee202a5afb54e20af1db9a25a06c8a0"
+      "sha256": "841f3ac7a7dfbea0f233eefd0d9c8106bef37b8ce96a2273cd3424ae33d8cf22"
     }
   ],
   "optional_agents": [
