@@ -41,7 +41,7 @@ export function createResearchers(scene, onLoadState, stations={}) {
   let disposed = false, frames = null;
   const loader = new THREE.ImageLoader(), textures = [];
   const ringGeometry = new THREE.RingGeometry(.30, .35, 28);
-  const people = RESEARCHER_ROLES.flatMap((id,roleIndex) => Array.from({length:id==='overview'?1:3},(_,worker)=>{
+  const people = RESEARCHER_ROLES.flatMap((id,roleIndex) => Array.from({length:id==='overview'?0:3},(_,worker)=>{
     const appearance=(roleIndex+worker)%RESEARCHER_ROLES.length;
     const group = new THREE.Group(); group.userData.station = id;
     (stations[id]||scene).add(group);
