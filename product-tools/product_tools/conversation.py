@@ -8,6 +8,7 @@ import subprocess
 import uuid
 from .contracts import MAX_BYTES, MAX_RESULT_BYTES, canonical, fail, fingerprint, identifier, integer, obj, strict_json, text
 from .payload import candidate_template
+from .paths import real_path
 
 
 class Conversation:
@@ -518,7 +519,7 @@ class Conversation:
         if name is None:
             return None
         path = Path(name)
-        path = (path if path.is_absolute() else self.workspace / path).resolve(strict=True)
+        path = real_path(path if path.is_absolute() else self.workspace / path)
         allowed = (self.workspace / "runtime-data").resolve()
         if not allowed.is_relative_to(self.workspace) or not path.is_relative_to(allowed) or not path.is_file():
             fail("invalid_path", "Authored report plans must be files inside this workspace's runtime-data")
@@ -535,7 +536,7 @@ class Conversation:
         hashes = {}
         for item in response.get("files", []):
             path = Path(item["path"])
-            path = (path if path.is_absolute() else self.workspace / path).resolve(strict=True)
+            path = real_path(path if path.is_absolute() else self.workspace / path)
             if not path.is_relative_to(base) or not path.is_file():
                 fail("invalid_path", "Reader files must stay in runtime-data/deliverables")
             hashes[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()

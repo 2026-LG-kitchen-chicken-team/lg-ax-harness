@@ -1,14 +1,14 @@
 """Immutable local failure receipts; no model calls or input bodies."""
 from datetime import datetime, timezone
 import hashlib
-from pathlib import Path
 from .contracts import canonical
+from .paths import real_path
 
 
 def preserve_failure(workspace, operation, error, input_sha256=None):
     """Best effort: a journal failure must not disguise the original Tool error."""
     try:
-        root = Path(workspace).resolve(strict=True)
+        root = real_path(workspace)
         runtime = (root / "runtime-data").resolve()
         folder = (runtime / "tool-errors").resolve()
         if not runtime.is_relative_to(root) or not folder.is_relative_to(runtime):
