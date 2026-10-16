@@ -4,7 +4,11 @@
 
 **AI 설치 요청문·한 줄 설치:** [제품 설치·배포 전용 저장소](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent)에서 제공합니다. 현재는 비공개 GitHub 인증으로 설치하며, 사용자 제공 마감10/20 18:00 KST에 따라 **10/21 09:00 KST 제품 저장소 공개**를 예약했습니다. 개발 저장소는 계속 비공개입니다. [설치 원본](adapters/common/distribution/README.md) · [공개 범위·마감 근거](docs/decisions/private-distribution-20261016.md).
 
-현재 시험판: [product-v0.17.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.17.0). **사용자는 `lg-ax-judge-product-v0.17.0.zip` 하나만 다운로드**합니다. 런처의 별도 관찰 코드가 검토·저장·업무 종료를 확인하고 기획자 웹·보고서를 연결해 브라우저 열기를 요청합니다. Stop 훅 신뢰와 별개인 경로이며, 수동 복구도 같은 검증을 사용합니다. 메인·6 Skill·선택 역할3의 문서 구조와 단계별 지침 로딩을 정리했습니다. 모델 기본값·웹팀 디자인은 변경하지 않았습니다. [네 실행 환경·실패와 복구·시간·사용량](docs/validation/result-delivery-Z-20261016.md) · [발표/영상 근거 인수](docs/plans/result-delivery-demo-evidence-20261016.md).
+현재 시험판: [product-v0.18.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.18.0). **사용자는 `lg-ax-judge-product-v0.18.0.zip` 하나만 다운로드**합니다. 자료 경로가 빠진 export의 같은 세션 지문 복구, 새 업무/후속의 범위 분리, 원문 조건·부정·시간 순서 보존 지침을 보완했습니다. 메인1·업무 Skill6·선택 역할3과 모델 기본값·웹팀 디자인은 유지합니다. [실행·검사 인수](docs/validation/execution-quality-AA-20261016.md) · [제품 ZIP·원격 바이트](docs/validation/product-v0.18.0.md).
+
+발표·영상 전용 [Token Lens](presentation-tools/token-widget/README.md)는 실제 Codex/Claude 로그의 사용량을 별도 로컬 창에 표시합니다. 제품 ZIP에는 포함하지 않으며 모델을 호출하거나 업무 프롬프트를 추가하지 않습니다. [제작 인수](docs/plans/presentation-token-widget-AA-20261016.md) · [동일 자료 모델/추론 비교 계약](docs/validation/execution-quality-AA-method-20261016.md). 촬영은 수행하지 않았습니다.
+
+이전 시험판: [product-v0.17.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.17.0). 런처의 별도 관찰 코드가 검토·저장·업무 종료를 확인하고 기획자 웹·보고서를 연결해 브라우저 열기를 요청합니다. Stop 훅 신뢰와 별개인 경로이며, 수동 복구도 같은 검증을 사용합니다. [당시 네 실행 환경·실패와 복구·시간·사용량](docs/validation/result-delivery-Z-20261016.md) · [발표/영상 근거 인수](docs/plans/result-delivery-demo-evidence-20261016.md).
 
 2026-10-16 Z 마감: 로컬 CI21단계(926검사 중925통과·Windows 조건1skip)와 새 ZIP 단독 준비를 통과했습니다. Codex CLI 냉장고·Claude GUI 냉장고·Codex GUI 새 전자레인지의 현재 결과/전체 원문/웹·보고서 연결과 자동 열기 요청을 확인했습니다. Claude CLI 식기세척기는 저장 후 잘못된 자료 폴더로 내보낸 자동 전달 실패를 보존하고 일반 코드로 복구했습니다. 네 환경 최초 자동 전달 전부 통과·브라우저 육안 인수로 바꾸지 않습니다. 원문219개는 격리 평가용이고 기본 배포 catalog는 비어 있습니다. 촬영0이며 아래 Y 및 버전별 기록은 당시 이력입니다.
 
