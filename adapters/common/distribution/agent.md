@@ -5,7 +5,7 @@
 ## 범위
 
 - 제품 배포: `2026-LG-kitchen-chicken-team/lg-ax-agent`.
-- 기본 제품: `product-v0.16.2`. 설치 도구: `installer-v0.1.1`.
+- 기본 제품: `product-v0.16.3`. 설치 도구: `installer-v0.1.2`.
 - 개발 저장소 전체를 clone하거나 사용자 전역 Skill·AI 설정을 변경하지 않습니다.
 - 기존 폴더·DB·대화·결과는 보존합니다. 새 폴더에 설치합니다.
 - 상품기획 실행·유료 모델 호출·계정 구독·저장소 공개 전환은 설치에 포함하지 않습니다.
@@ -14,7 +14,7 @@
 
 1. 운영체제, 사용할 Codex/Claude Code, 설치할 새 폴더를 확인합니다. 사용자가 이미 정했으면 다시 묻지 않습니다.
 2. 비공개 저장소에는 정상 GitHub 인증과 읽기 권한이 필요합니다. `gh auth status`의 성공 여부만 확인합니다. 토큰을 읽어서 출력·복사·제품 폴더에 저장하지 않습니다. 권한이 없으면 사용자에게 필요한 접근을 알립니다.
-3. 비공개 문서를 브라우저에서 읽을 수 없으면 `gh api 'repos/2026-LG-kitchen-chicken-team/lg-ax-agent/contents/README.md?ref=installer-v0.1.1' -H 'Accept: application/vnd.github.raw+json'`으로 설치 안내를 읽습니다.
+3. 비공개 문서를 브라우저에서 읽을 수 없으면 `gh api 'repos/2026-LG-kitchen-chicken-team/lg-ax-agent/contents/README.md?ref=installer-v0.1.2' -H 'Accept: application/vnd.github.raw+json'`으로 설치 안내를 읽습니다.
 4. README의 운영체제별 명령을 사용합니다. 인증된 기본 경로는 `gh`입니다. 저장소가 실제 공개된 뒤에만 명시적으로 `public` 경로를 선택합니다. 비공개 인증 실패 때 공개 경로로 자동 재시도하지 않습니다.
 5. uv가 없으면 공식 설치 안내와 설치 범위를 사용자에게 설명하고 정상 승인을 따릅니다. 이미 설치됐다면 재설치하지 않습니다. Python 3.12 준비는 uv가 수행합니다.
 6. 설치기는 고정 버전 제품 ZIP·체크섬을 내려받고, SHA256·내부 파일 목록·파일 지문·경로를 확인합니다. 새 폴더에 풀고 기존 `judge.py setup --engine codex|claude`로 의존성과 화면 갱신 준비를 합니다. 실행 코드·Skill·모델 기본값은 변경하지 않습니다.

@@ -15,7 +15,7 @@ import urllib.request
 import zipfile
 
 DEFAULT_REPO = '2026-LG-kitchen-chicken-team/lg-ax-agent'
-DEFAULT_VERSION = 'product-v0.16.2'
+DEFAULT_VERSION = 'product-v0.16.3'
 MAX_ARCHIVE = 64 * 1024 * 1024
 MAX_EXTRACTED = 256 * 1024 * 1024
 
@@ -29,7 +29,7 @@ def validate_source(repo, version):
     if not re.fullmatch(r'[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+', repo) or repo.split('/')[1] in ('.', '..'):
         raise ValueError('Use a GitHub owner/repository name.')
     if not re.fullmatch(r'product-v[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?', version):
-        raise ValueError('Use an exact product release, for example product-v0.16.2.')
+        raise ValueError('Use an exact product release, for example product-v0.16.3.')
 
 
 def download_public(url, target, maximum):

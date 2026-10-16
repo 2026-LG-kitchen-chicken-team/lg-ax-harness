@@ -13,7 +13,8 @@ function renderShape(v: unknown, depth = 0): boolean {
     if (Array.isArray(v[key]) && !v[key].every(item => item != null)) return false
   }
   if (Array.isArray(v.blocks) && !v.blocks.every(b => object(b) && typeof b.type === 'string')) return false
-  if (v.type !== undefined && typeof v.type !== 'string') return false
+  // Table cells may be named `type` and contain a chip object. Only entries in
+  // an actual blocks collection use a required string discriminator (checked above).
   // The planning transform inserts a feature after columns[0]. Missing/empty columns would
   // otherwise replace a good view before prune/recolor throws. Check shape, not source meaning.
   if (v.type === 'flow') {

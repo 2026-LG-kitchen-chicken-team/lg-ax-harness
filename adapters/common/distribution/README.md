@@ -2,13 +2,13 @@
 
 냉장고·전자레인지·식기세척기의 실제 후기와 공식 자료를 조사하고 상품기획·근거·HTML 보고서로 정리하는 Codex·Claude Code용 하네스입니다. 이 저장소는 **제품 설치·배포 전용**이며 개발 저장소의 이력·팀 문서·개인 실행 기록을 포함하지 않습니다.
 
-현재 제품은 **product-v0.16.2**, 설치 도구는 **installer-v0.1.1**입니다. 설치 도구는 검증한 심사위원 ZIP을 그대로 내려받습니다. 업무 Skill·모델·기본 실행 설정은 바꾸지 않습니다.
+현재 제품은 **product-v0.16.3**, 설치 도구는 **installer-v0.1.2**입니다. 설치 도구는 검증한 심사위원 ZIP을 그대로 내려받습니다. 업무 Skill·모델·기본 실행 설정은 바꾸지 않습니다.
 
 ## 설치 방법 선택
 
 1. **AI에게 맡기기:** 아래 설치 요청문을 Codex 또는 Claude Code에 붙여넣습니다.
 2. **터미널에서 설치:** 운영체제에 맞는 아래 명령을 실행합니다.
-3. **ZIP으로 설치:** [제품 릴리즈](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.16.2)에서 `lg-ax-judge-product-v0.16.2.zip` 하나를 받아 모두 풀고 README를 읽습니다. GitHub CLI 없이 이미 받은 ZIP만으로도 사용 가능합니다.
+3. **ZIP으로 설치:** [제품 릴리즈](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.16.3)에서 `lg-ax-judge-product-v0.16.3.zip` 하나를 받아 모두 풀고 README를 읽습니다. GitHub CLI 없이 이미 받은 ZIP만으로도 사용 가능합니다.
 
 현재 비공개 배포 단계에서는 저장소 읽기 권한이 있는 GitHub 계정이 필요합니다. 터미널 설치는 [GitHub CLI](https://cli.github.com/) 설치 후 `gh auth login`으로 로그인하세요. AI 계정 로그인과 GitHub 인증은 서로 다릅니다. 설치기는 인증 토큰을 출력하거나 제품 폴더에 저장하지 않습니다.
 
@@ -29,18 +29,18 @@ https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/blob/main/agent.md �
 GitHub CLI가 설치·로그인된 PowerShell에서 실행합니다. 설치 중 uv가 없으면 공식 설치 여부를 묻습니다. Python 3.12와 필요한 제품 의존성은 자동 준비합니다.
 
 ```powershell
-& ([scriptblock]::Create((gh api 'repos/2026-LG-kitchen-chicken-team/lg-ax-agent/contents/install.ps1?ref=installer-v0.1.1' -H 'Accept: application/vnd.github.raw+json' | Out-String))) -Engine codex
+& ([scriptblock]::Create((gh api 'repos/2026-LG-kitchen-chicken-team/lg-ax-agent/contents/install.ps1?ref=installer-v0.1.2' -H 'Accept: application/vnd.github.raw+json' | Out-String))) -Engine codex
 ```
 
-Claude는 마지막 `-Engine codex`를 `-Engine claude`로 바꿉니다. 버전 지정은 `-Version product-v0.16.2`, 설치 폴더는 `-Target 'C:\LGAX\new-install'`을 덧붙입니다. **이미 존재하는 폴더는 덮어쓰지 않습니다.**
+Claude는 마지막 `-Engine codex`를 `-Engine claude`로 바꿉니다. 버전 지정은 `-Version product-v0.16.3`, 설치 폴더는 `-Target 'C:\LGAX\new-install'`을 덧붙입니다. **이미 존재하는 폴더는 덮어쓰지 않습니다.**
 
 ## macOS / Linux Bash: 한 줄 설치
 
 ```bash
-gh api 'repos/2026-LG-kitchen-chicken-team/lg-ax-agent/contents/install.sh?ref=installer-v0.1.1' -H 'Accept: application/vnd.github.raw+json' | bash -s -- --engine codex
+gh api 'repos/2026-LG-kitchen-chicken-team/lg-ax-agent/contents/install.sh?ref=installer-v0.1.2' -H 'Accept: application/vnd.github.raw+json' | bash -s -- --engine codex
 ```
 
-Claude는 `--engine claude`, 버전은 `--version product-v0.16.2`, 새 폴더는 `--target "$HOME/LGAX/new-install"`을 지정합니다. Linux는 CLI, macOS는 CLI 또는 앱 시작 파일을 사용합니다.
+Claude는 `--engine claude`, 버전은 `--version product-v0.16.3`, 새 폴더는 `--target "$HOME/LGAX/new-install"`을 지정합니다. Linux는 CLI, macOS는 CLI 또는 앱 시작 파일을 사용합니다.
 
 ## 설치가 끝나면
 
@@ -49,7 +49,7 @@ Claude는 `--engine claude`, 버전은 `--version product-v0.16.2`, 새 폴더�
 3. 본인 AI 계정 로그인·작업 폴더 신뢰·필요 권한을 승인합니다. 설치기는 로그인하거나 업무 질문을 보내지 않습니다.
 4. 첫 질문 뒤 진행 대시보드, 결과 저장 뒤 기획자 웹·보고서를 확인합니다. 화면이 열리는 조건과 수동 복구는 설치된 사용설명서에 있습니다.
 
-기본 설치 위치는 명령을 실행한 폴더의 `LG-AX-product-v0.16.2-codex` 또는 `...-claude`입니다. AI 작업 폴더는 그 안의 `codex/` 또는 `claude/`입니다.
+기본 설치 위치는 명령을 실행한 폴더의 `LG-AX-product-v0.16.3-codex` 또는 `...-claude`입니다. AI 작업 폴더는 그 안의 `codex/` 또는 `claude/`입니다.
 
 ## 업데이트·실패·보관
 
@@ -69,13 +69,13 @@ Claude는 `--engine claude`, 버전은 `--version product-v0.16.2`, 새 폴더�
 Windows:
 
 ```powershell
-& ([scriptblock]::Create((Invoke-RestMethod 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.1/install.ps1'))) -Transport public -Engine codex
+& ([scriptblock]::Create((Invoke-RestMethod 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.2/install.ps1'))) -Transport public -Engine codex
 ```
 
 macOS/Linux:
 
 ```bash
-curl -fsSL 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.1/install.sh' | bash -s -- --transport public --engine codex
+curl -fsSL 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.2/install.sh' | bash -s -- --transport public --engine codex
 ```
 
 공개 시점은 제출 마감 확인 후 그 다음 날로 예약합니다. 정확한 마감이 확인되지 않은 상태에서는 공개하지 않습니다.

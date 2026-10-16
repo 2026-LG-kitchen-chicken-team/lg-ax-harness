@@ -46,8 +46,10 @@ const render = fn => {hooks.i=0;const tree=fn();for(const effect of hooks.pendin
 const unmount = () => {for(const clean of hooks.clean)clean?.()};
 const view = text => ({kind:'lgax-view',schema:1,generated_at:'2026-10-16T12:00:00',focus:'story',pages:[{id:'story',title:'합성 시험',blocks:[{type:'text',text}]}]});
 const a=view('가'),b=view('나');
+const chipTable={...a,pages:[{id:'story',title:'합성 표',blocks:[{type:'table',columns:[{key:'type',title:'종류'}],rows:[{id:'row-1',type:{text:'문서',tone:'blue'}}]}]}]};
 (async()=>{
 const state = await import(pathToFileURL(path.join(dir,'lib/viewState.js')));
+assert.equal(state.isLgaxView(chipTable),true);
 assert.notEqual(state.viewIdentity(a),state.viewIdentity(b));
 assert.equal(JSON.stringify(a).length,JSON.stringify(b).length);
 for(const invalid of [{...a,pages:[]},{...a,generated_at:123},{...a,focus:'missing'},{...a,pages:[...a.pages,...a.pages]}, {...a,pages:[{id:'x',title:'x',blocks:[null]}]}, {...a,pages:[{id:'x',title:'x',blocks:[{type:'list',items:{}}]}]}, {...a,pages:[{id:'x',title:'x',blocks:[{type:'table',columns:[null]}]}]}]) assert.equal(state.isLgaxView(invalid),false);

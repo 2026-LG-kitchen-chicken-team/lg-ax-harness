@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo='2026-LG-kitchen-chicken-team/lg-ax-agent'
-installer_tag='installer-v0.1.1'
-core_sha='54a0e30d2b1ced99894782b083e7745421f8a717c1223b89a8ae5e39dda85dd7'
+installer_tag='installer-v0.1.2'
+core_sha='e1650c3878f38c0bf9700f2e51312207307481bf36784969b4a720ce3805b2ac'
 engine=codex
-version=product-v0.16.2
+version=product-v0.16.3
 transport=gh
 target=''
 download_only=no
@@ -15,7 +15,7 @@ while (($#)); do
     --target) target="${2:?Missing target}"; shift 2 ;;
     --transport) transport="${2:?Missing transport}"; shift 2 ;;
     --download-only) download_only=yes; shift ;;
-    -h|--help) printf '%s\n' 'LG AX installer: --engine codex|claude --version product-v0.16.2 --target NEW_FOLDER --transport gh|public --download-only'; exit 0 ;;
+    -h|--help) printf '%s\n' 'LG AX installer: --engine codex|claude --version product-v0.16.3 --target NEW_FOLDER --transport gh|public --download-only'; exit 0 ;;
     *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
