@@ -18,6 +18,8 @@ GUIDE = {'claude': 'https://code.claude.com/docs/en/setup', 'codex': 'https://le
 CLAUDE_INSTALL = (['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'irm https://claude.ai/install.ps1 | iex']
                   if os.name == 'nt' else ['bash', '-c', 'curl -fsSL https://claude.ai/install.sh | bash'])
 DESKTOP_MIN = (2, 1, 285)  # `claude --desktop` opens Claude Desktop on the current folder (macOS, x64 Windows)
+# The run dashboard (factory control room) beside the observer's records; the 3D office page stays next to it.
+DASHBOARD = ('runtime-data', 'agent-office', 'factory.html')
 
 def checked(root=ROOT):
     root = root.resolve(strict=True)
@@ -75,7 +77,8 @@ def setup(engine, folder, release):
         else [str(python), 'product-doctor.py'], folder)
     run([str(python), 'web/prototypes/visual-viewer/viewer.py', 'install', '--' + engine, '.'], folder)
     if engine == 'claude':
-        run([str(python), 'web/prototypes/agent-office/office.py', 'install', '--claude', '.', '--open-on-prompt'], folder)
+        # The first question of each session opens the run dashboard (factory page) once.
+        run([str(python), 'web/prototypes/agent-office/office.py', 'install', '--claude', '.', '--open-on-prompt', '--page', 'factory'], folder)
     mark = folder.joinpath(*SETUP_MARK)
     mark.parent.mkdir(parents=True, exist_ok=True)
     mark.write_text(json.dumps({'release': release, 'engine': engine}) + '\n', encoding='utf-8')
@@ -154,9 +157,9 @@ def prepare(engine, ui, release):
     elif exe and ui == 'cli' and not signed_in(exe, 'claude'):
         print('Claude Code CLI 로그인 전입니다. 곧 열리는 화면의 안내대로 본인 계정으로 로그인하세요 '
               '(Pro·Max·Team·Enterprise 또는 Console 계정).')
-    office = folder / 'runtime-data' / 'agent-office' / 'index.html'
+    office = folder.joinpath(*DASHBOARD)
     viewer = folder / 'runtime-data' / 'visual-viewer' / 'index.html'
-    print('실행 대시보드: ' + ('첫 질문을 보내면' if engine == 'claude' else '관찰 창이 새 Codex 세션을 찾으면')
+    print('실행 대시보드(공장 관제): ' + ('첫 질문을 보내면' if engine == 'claude' else '관찰 창이 새 Codex 세션을 찾으면')
           + ' 브라우저에 자동으로 열립니다 -> ' + str(office))
     print('결과 웹(결과 저장 후 갱신): ' + str(viewer))
     return 0
@@ -232,8 +235,9 @@ def main():
     if a.command == 'observe':
         run_observer(observe_command(a.engine, folder, a.latest, a.keep_following, a.open), folder)
         return 0
-    for name in ('visual-viewer', 'agent-office'):
-        print(str(folder / 'runtime-data' / name / 'index.html'))
+    for path in (folder / 'runtime-data' / 'visual-viewer' / 'index.html', folder.joinpath(*DASHBOARD),
+                 folder / 'runtime-data' / 'agent-office' / 'index.html'):
+        print(str(path))
     return 0
 
 if __name__ == '__main__':

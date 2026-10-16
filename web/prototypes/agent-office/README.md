@@ -27,17 +27,31 @@ Codex `turn_aborted`와 명시 interrupted Stop은 turn 취소 관측으로 표�
 uv run --no-project --python 3.12 python web/prototypes/agent-office/office.py install --claude C:/내-하네스-폴더
 ```
 
-- `observe.py`·`office.py`·`README.md`·`index.html`을 `<하네스>/web/prototypes/agent-office/`에, 화면(`index.html`)을
-  기록 옆 `<하네스>/runtime-data/agent-office/`에 복사하고, `.claude/settings.local.json`에
+- `observe.py`·`office.py`·`README.md`·`index.html`·`factory.html`을 `<하네스>/web/prototypes/agent-office/`에, 두 화면
+  (`factory.html` 실행 대시보드 = 공장 관제, `index.html` 3D 사무실)을 기록 옆 `<하네스>/runtime-data/agent-office/`에 복사하고,
+  `.claude/settings.local.json`에
   백그라운드(async) 훅 9개를 **추가**한다: PreToolUse·PostToolUse·PostToolUseFailure(모든 도구), UserPromptSubmit, Stop,
   SubagentStart, SubagentStop, SessionStart, SessionEnd. 다른 훅(시각자료 뷰어 등)과 설정은 그대로 둔다.
 - 설정이 UTF-8 JSON 객체가 아니면 아무것도 바꾸지 않고 멈춘다. 개발 레포(`dev-harness` 폴더가 있는 곳)에는 설치하지 않는다.
 - 다시 설치하면 이 장치의 훅만 새것으로 바뀐다. 끄기: `office.py uninstall --claude <폴더>` (기록 파일은 남긴다).
-- `--open-on-prompt`(심사위원 ZIP의 `judge.py setup --engine claude`가 사용): 세션의 **첫 질문**이 들어오면 훅이 사무실 화면을
-  기본 브라우저로 한 번 연다(세션마다 한 번, `runtime-data/agent-office/auto-open.json`에 연 세션 ID만 남김). 화면을 여는
-  프로그램의 출력은 버려 모델 문맥에 들어가지 않는다. 하위 에이전트 결과 전달·작업 알림은 질문으로 세지 않는다.
-  끄기: 이 옵션 없이 다시 `install`(파일을 지움).
-- 확인: `office.py status --claude <폴더>` · 화면 열기: `office.py open --claude <폴더>` · 글로 보기: `office.py watch --claude <폴더>`(새 기록을 한 줄씩 한글로 출력, 읽기만 함) · 자체 시험: `office.py selftest`(임시 사본에서 실제 훅 명령을 합성 입력으로 실행).
+- `--open-on-prompt`(심사위원 ZIP의 `judge.py setup --engine claude`가 사용): 세션의 **첫 질문**이 들어오면 훅이 실행 대시보드
+  (`factory.html`, `--page office`면 3D 사무실)를 기본 브라우저로 한 번 연다(세션마다 한 번, `runtime-data/agent-office/auto-open.json`에
+  화면 이름과 연 세션 ID만 남김). 훅은 정해진 두 파일 이름만 열고 경로는 받지 않는다. 화면 이름이 없는 예전 auto-open.json은 계속
+  3D 사무실을 연다. 화면을 여는 프로그램의 출력은 버려 모델 문맥에 들어가지 않는다. 하위 에이전트 결과 전달·작업 알림은 질문으로
+  세지 않는다. 끄기: 이 옵션 없이 다시 `install`(파일을 지움).
+- 확인: `office.py status --claude <폴더>` · 화면 열기: `office.py open --claude <폴더> [--page factory|office]`(기본은 공장 관제) · 글로 보기: `office.py watch --claude <폴더>`(새 기록을 한 줄씩 한글로 출력, 읽기만 함) · 자체 시험: `office.py selftest`(임시 사본에서 실제 훅 명령을 합성 입력으로 실행).
+
+## 실행 대시보드 · 공장 관제 (`factory.html`)
+
+신진하 님의 KITCHEN AX 공장 관제 화면(`web/prototypes/control-room/factory-dashboard`)을 이 기록으로 그린다. 원본에서
+`npm run build:office`가 JS·CSS·연구원 이미지를 넣은 파일 하나를 이 폴더의 `factory.html`로 만든다(직접 고치지 않는다).
+`<하네스>/runtime-data/agent-office/factory.html`을 브라우저로 열면 서버·토큰 없이 옆의 `live.js`를 1초마다, 결과 화면의
+`../visual-viewer/view-data.js`를 4초마다 다시 읽는다. 메뉴에서 실시간·기록 재생·데모(공장 자체의 가상 상품기획 엔진)를 고르고,
+세션 고르기·기록 파일 열기(`events.jsonl`)·결과 화면 열기를 쓴다. 아래 막대로 1~64배속 재생, 빈 시간 건너뛰기, 시각 이동을 한다.
+장면 링크: `factory.html#mode=replay&s=3&t=840&sel=structure&play=0`. 다섯 작업장은 Skill 명령 기록과 함께 하네스 DB의 조사
+종료·분석 범위·저장 후보 개수, 검토 단계 명령을 근거로 진행을 표시한다. 니즈 구조화·기능 대조·콘셉트 작성은 별도 명령이 없어
+단계 경계를 만들지 않고 "분석 구간"으로 함께 표시한다. 설치 버전은 `runtime-data/judge-setup.json`의 release를 따른다(없으면
+"설치 버전 미확인").
 
 ## 사무실 화면 (2단계)
 

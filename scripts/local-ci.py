@@ -25,7 +25,10 @@ WORKFLOW = [
     "python scripts/check-product-assets.py",
     "python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/evaluation -v",
 ]
-APPS = ("web/prototypes/visual-viewer/app", "web/prototypes/agent-office/app")
+# (folder, stage name, npm commands after `npm ci`). The factory run dashboard writes web/prototypes/agent-office/factory.html.
+APPS = (("web/prototypes/visual-viewer/app", "visual-viewer", (("run", "build"),)),
+        ("web/prototypes/agent-office/app", "agent-office", (("run", "build"),)),
+        ("web/prototypes/control-room/factory-dashboard", "factory-dashboard", (("test",), ("run", "build:office"))))
 PYTHON_PROBE = "import json,sys; print(json.dumps({'version':list(sys.version_info[:3]),'executable':sys.executable,'prefix':sys.prefix,'base_prefix':sys.base_prefix}))"
 
 
@@ -183,10 +186,9 @@ def plan(profile: str, python: str, node: str | None, npm: str | None, output: s
               {"id": "product-assets", "argv": [python, "scripts/check-product-assets.py"]},
               suite_stage(python, "evaluation", 120)]
     if profile == "extended":
-        for app in APPS:
-            name = app.split("/")[-2]
-            for command in ("ci", "build"):
-                args = ["ci"] if command == "ci" else ["run", "build"]
+        for app, name, commands in APPS:
+            for args in (("ci",), *commands):
+                command = "build" if args[0] == "run" else args[0]
                 stages.append({"id": name + "-" + command, "cwd": app, "timeout": 600,
                                "argv": [node or "<missing-node>", npm or "<missing-npm-cli>", *args],
                                **(gated if command == "ci" else {})})

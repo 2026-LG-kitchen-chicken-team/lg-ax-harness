@@ -1,4 +1,4 @@
-"""Loopback GET bridge for the pinned product release, not the development queue."""
+"""Loopback GET bridge for an installed product folder, not the development queue."""
 from __future__ import annotations
 
 import argparse
@@ -118,14 +118,14 @@ class ReleaseHandler(HarnessHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="KITCHEN AX v0.15.0 release observer reader")
+    parser = argparse.ArgumentParser(description="KITCHEN AX installed product observer reader")
     parser.add_argument("--port", type=int, default=8033)
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("포트는 1~65535 범위여야 합니다.")
     try:
         reader = ReleaseReader.from_env()
-        # Require a pinned installed product even before accepting connections.
+        # Require an intact installed product (its own install record) before accepting connections.
         # No observation/session artifacts are read or created by this check.
         reader._verify()
         origins = tuple(o.strip().rstrip("/") for o in os.environ.get("AX_HARNESS_ALLOWED_ORIGINS", "").split(",") if o.strip())

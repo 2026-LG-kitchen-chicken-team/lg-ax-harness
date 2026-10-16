@@ -1,4 +1,4 @@
-"""Read only v0.15.0's observer artifacts; never execute JavaScript or native AI.
+"""Read only an installed product's observer artifacts; never execute JavaScript or native AI.
 
 The selected product folder is explicit. No runtime DB, raw session log, home
 directory, credential file, or global latest session is opened by this reader.
@@ -17,13 +17,13 @@ from pathlib import Path, PurePosixPath
 
 from .harness_reader import HarnessReadError
 
-RELEASE = "product-v0.15.0"
-ASSET_SHA256 = "ccf2386fb70f6f73692eb3b9f1cffd2ac7bba9e50c9276b9729513b30b16deb8"
-SOURCE_COMMIT = "3cf62939689aa21564b162ab8d2f855c30d32a66"
-PINNED_INSTALLS = {
-    "codex": "f447334713943d634508d1925320da7ea888e796429d8ae2f77ba5da049f6bf8",
-    "claude": "8c8fbd60d3263586e3d49822475c493e4049a09b1a4b59de5b85ac2d1e4f36d8",
-}
+# The installed product decides the version: its own install record (product-install.json) and, for a judge ZIP,
+# runtime-data/judge-setup.json. No release, asset or install fingerprint is pinned here.
+INSTALL_FORMATS = {"codex-product-install-v1": "codex", "portable-product-install-v1": None}
+RELEASE_PATTERN = re.compile(r"product-v\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?")
+# office.py install refreshes the observer itself; its files may differ from the product's install record.
+OBSERVER_FILES = re.compile(r"web/prototypes/agent-office/[^/]+")
+CONTINUATIONS = ("handback_delivered", "notification")
 SKILLS = {"evidence-retrieval", "web-evidence-collection", "needs-structuring", "feature-comparison", "concept-writing", "review-and-revise"}
 ROLES = {"main", "product_official_researcher", "product_review_researcher", "product_evidence_reviewer", "other_subagent", "unknown_subagent", "unknown_skill"}
 NODES = ROLES | SKILLS
@@ -38,7 +38,7 @@ MAX_EVENTS = 1500
 ERRORS = {
     "not_configured": "제품 하네스 폴더 연결 설정을 기다리고 있습니다.",
     "not_installed": "선택한 폴더의 제품 설치 기록을 확인할 수 없습니다.",
-    "release_mismatch": "선택한 제품이 확인된 v0.15.0 배포본과 일치하지 않습니다.",
+    "release_mismatch": "선택한 폴더의 파일이 그 폴더의 제품 설치 기록과 일치하지 않습니다.",
     "unsafe_path": "제품 관측 파일의 안전한 경계를 확인할 수 없습니다.",
     "schema_error": "제품 관측 파일의 형식이 맞지 않습니다.",
     "unavailable": "제품 관측 파일을 읽을 수 없습니다.",
@@ -172,11 +172,14 @@ def event_projection(raw, engine):
 
 
 def selected_native(events):
-    """Select context from request/session-start, never a late old tool result."""
+    """Select context from request/session-start, never a late old tool result.
+
+    Returns (session, prompts, floor). Claude Code delivers a background role's result (and task notices) as a new
+    prompt id; those prompts continue the selected request instead of starting another one."""
     main = [(index, e) for index, e in enumerate(events) if e["actor"] == "main"]
     anchors = [(index, e) for index, e in main if e["kind"] == "request" or (e["kind"] == "session" and e["phase"] == "start")]
     if not main or not anchors:
-        return None, None, len(events)
+        return None, set(), len(events)
     index, anchor = anchors[-1]
     session = anchor["session"]
     starts = [i for i, e in main if e["session"] == session and e["kind"] == "session" and e["phase"] == "start"]
@@ -184,10 +187,11 @@ def selected_native(events):
     requests = [(i, e) for i, e in main if i >= floor and e["session"] == session and e["kind"] == "request"]
     if requests:
         index, request = requests[-1]
-        return session, request["prompt_id"], index
+        prompts = {request["prompt_id"]} | {e["prompt_id"] for i, e in main if i > index and e["session"] == session and e["kind"] in CONTINUATIONS}
+        return session, prompts, index
     # A resumed session with no new request is not the old turn's completion.
     prompt = None if starts else anchor["prompt_id"]
-    return session, prompt, floor if starts else index
+    return session, {prompt}, floor if starts else index
 
 
 def safe_db(raw, events):
@@ -195,9 +199,9 @@ def safe_db(raw, events):
         return {"available": False, "binding_status": "unavailable", "binding": None, "read_at": timestamp(raw.get("read_at")) if isinstance(raw, dict) else None}
     read_at = timestamp(raw.get("read_at"))
     expected = binding(raw.get("binding"))
-    selected_session, current_prompt, floor = selected_native(events)
+    selected_session, current_prompts, floor = selected_native(events)
     selected = [e for e in events[floor:] if e["actor"] == "main" and e["session"] == selected_session]
-    matched = expected and any(e["detail"].get("business_binding") == expected and e["prompt_id"] == current_prompt for e in selected)
+    matched = expected and any(e["detail"].get("business_binding") == expected and e["prompt_id"] in current_prompts for e in selected)
     if not matched:
         return {"available": True, "binding_status": "unmatched", "binding": None, "read_at": read_at}
     output = {"available": True, "binding_status": "matched", "binding": expected, "read_at": read_at,
@@ -246,8 +250,8 @@ def safe_db(raw, events):
     # Export file names/absolute paths and document content are intentionally not
     # forwarded. A separate result view must verify exact web_binding+file hash.
     latest = raw.get("latest_export")
-    if isinstance(latest, dict):
-        output["latest_export"] = {"available": True, "created_at": timestamp(latest.get("created_at"))}
+    if isinstance(latest, dict):  # observe.py records the export file's modified_at
+        output["latest_export"] = {"available": True, "created_at": timestamp(latest.get("created_at") or latest.get("modified_at"))}
     return output
 
 
@@ -295,26 +299,40 @@ class ReleaseReader:
         return raw
 
     def _verify(self):
+        """The folder's own install record: its format names the engine and every product file must still match it."""
         raw = self._read("product-install.json")
         fingerprint = hashlib.sha256(raw).hexdigest()
-        engine = next((e for e, digest in PINNED_INSTALLS.items() if digest == fingerprint), None)
-        if not engine:
-            raise ReleaseReadError("release_mismatch")
         record = parse_object(raw.decode("utf-8"))
-        if record.get("format") != ("codex-product-install-v1" if engine == "codex" else "portable-product-install-v1"):
+        if record.get("format") not in INSTALL_FORMATS:
+            raise ReleaseReadError("release_mismatch")
+        engine = INSTALL_FORMATS[record["format"]] or record.get("engine")
+        if engine not in ("codex", "claude"):
             raise ReleaseReadError("release_mismatch")
         entries = record.get("files")
-        if not isinstance(entries, list) or not entries or len(entries) > 200 or set(record.get("skills", [])) != SKILLS:
+        if not isinstance(entries, list) or not entries or len(entries) > 400 or set(record.get("skills", [])) != SKILLS:
             raise ReleaseReadError("release_mismatch")
         seen = set()
         for entry in entries:
-            if not isinstance(entry, dict) or entry.get("path") in seen or not re.fullmatch(r"[a-f0-9]{64}", entry.get("sha256", "")):
+            if not isinstance(entry, dict) or not isinstance(entry.get("path"), str) or entry["path"] in seen or not re.fullmatch(r"[a-f0-9]{64}", entry.get("sha256", "")):
                 raise ReleaseReadError("release_mismatch")
+            seen.add(entry["path"])
+            if OBSERVER_FILES.fullmatch(entry["path"]):
+                continue
             data = self._read(entry["path"])
             if hashlib.sha256(data).hexdigest() != entry["sha256"]:
                 raise ReleaseReadError("release_mismatch")
-            seen.add(entry["path"])
         return engine, fingerprint
+
+    def _release(self):
+        """The judge ZIP's setup mark names the product release; other installs leave it unknown (None)."""
+        raw = self._read("runtime-data/judge-setup.json", optional=True)
+        if raw is None:
+            return None
+        try:
+            release = parse_object(raw.decode("utf-8")).get("release")
+        except (ReleaseReadError, UnicodeError):
+            return None
+        return release if isinstance(release, str) and RELEASE_PATTERN.fullmatch(release) else None
 
     def snapshot(self):
         if self.workspace is None:
@@ -368,17 +386,19 @@ class ReleaseReader:
                 updates.append(summary["read_at"])
             now = datetime.fromtimestamp(self.clock(), timezone.utc).isoformat().replace("+00:00", "Z")
             status = "waiting_for_session" if not events else "recorded"
-            selected, prompt, floor = selected_native(events)
-            opened, turn_open = set(), False
-            current = [e for e in events[floor:] if e["session"] == selected and e["prompt_id"] == prompt]
+            selected, prompts, floor = selected_native(events)
+            opened, closed, turn_open = set(), set(), False
+            current = [e for e in events[floor:] if e["session"] == selected and e["prompt_id"] in prompts]
             for event in current:
-                if event["kind"] == "request" and event["actor"] == "main":
+                if event["kind"] in ("request", *CONTINUATIONS) and event["actor"] == "main":
                     turn_open = True
                 if event["call"]:
-                    if event["phase"] == "start":
+                    # Async hooks may record a call's end just before its start; that start is already closed.
+                    if event["phase"] == "start" and event["call"] not in closed:
                         opened.add(event["call"])
                     elif event["phase"] in ("end", "fail"):
                         opened.discard(event["call"])
+                        closed.add(event["call"])
                 if event["kind"] == "subagent":
                     aid = "agent:" + (event["agent_id"] or event["actor"])
                     opened.add(aid) if event["phase"] == "start" else opened.discard(aid)
@@ -392,12 +412,13 @@ class ReleaseReader:
             if current and (opened or turn_open) and -5 <= self.clock() - seconds(current[-1]["ts"]) <= 120:
                 status = "observing"
             from .release_activity import native_activity
+            request = events[floor] if floor < len(events) and events[floor]["kind"] == "request" else None
+            prompt = request["prompt_id"] if request else next(iter(prompts), None)
             activity = native_activity(self.workspace, self.native_sessions_root, selected, prompt) if engine == 'codex' else None
-            return {"schema_version": 1, "activity": activity, "source": {"kind": "lgax_release_observer", "release": RELEASE, "engine": engine,
+            return {"schema_version": 1, "activity": activity, "source": {"kind": "lgax_release_observer", "release": self._release(), "engine": engine,
                         "observed_at": now, "source_updated_at": max(updates, key=seconds) if updates else None,
-                        "observer_status": status, "asset_sha256": ASSET_SHA256, "product_install_sha256": fingerprint,
-                        "source_commit": SOURCE_COMMIT}, "events": events, "db": summary,
-                    "notices": ["v0.15.0 배포본 관측 파일만 읽습니다. 모델·업무·훅·원본 DB를 실행하거나 변경하지 않습니다.",
+                        "observer_status": status, "asset_sha256": None, "product_install_sha256": fingerprint}, "events": events, "db": summary,
+                    "notices": ["설치된 제품 폴더의 관측 파일만 읽습니다. 모델·업무·훅·원본 DB를 실행하거나 변경하지 않습니다.",
                                 "관측 중 표시는 최근 열린 사건의 기록이며 프로세스 생존·모델 성공의 독립 확인이 아닙니다.",
                                 "Skill 지침 읽기와 명령 기반 작업 추정을 실제 의미 판단·완료와 구분합니다."]}
         except ReleaseReadError:

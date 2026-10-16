@@ -1,8 +1,24 @@
 # KITCHEN AX · 상품기획 팩토리
 
-## product-v0.15.0 릴리즈 연결
+## 하네스 실행 대시보드 (파일 보기 · 2026-10-16)
 
-`?view=harness`는 정이량이 배포한 [lg-ax-harness product-v0.15.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.15.0)의 실제 Codex·Claude 관측 기록을 읽는 화면입니다. 공장 전체 화면과 다섯 공간을 유지합니다. 자료 공간에 자료 조회·웹 조사의 두 Skill을 구분해 표시하고 나머지 네 Skill을 각 공간에 연결합니다. 설치된 역할을 실행 중이라고 가정하지 않습니다.
+`npm run build:office`는 이 화면을 파일 하나로 만들어 `web/prototypes/agent-office/factory.html`에 씁니다. 기획 사무실의
+`office.py install`이 그 파일을 하네스의 `runtime-data/agent-office/`에 복사하고, 심사 ZIP은 첫 질문 때 이 화면을 엽니다.
+서버·토큰 없이 옆의 관측 파일(`live.js`, 기록 파일로 연 `events.jsonl`)과 결과 화면 데이터(`../visual-viewer/view-data.js`)만
+읽습니다. 실시간·기록 재생(세션 고르기·속도·빈 시간 건너뛰기·시각 이동)·데모를 전환합니다. 수집은 기획 사무실의 훅(observe.py)·
+Codex 따라가기(codex_follow.py)를 그대로 씁니다. 변환 규칙은 `src/office-records.js`, 읽기·재생은 `src/office-store.js`,
+아래 재생 막대는 `src/OfficeReplayBar.jsx`입니다. 캐릭터 PNG는 file:// 화면에서 WebGL 텍스처로 읽을 수 있게 원본 그대로
+data URI로 넣고, 녹화된 모션 영상(mp4)은 넣지 않습니다(영상 만들기는 그대로 동작). 글꼴은 인터넷이 없으면 시스템 글꼴로 보입니다.
+
+다섯 작업장은 Skill 명령 기록에 더해 하네스가 남긴 기록으로 진행을 표시합니다. 니즈 구조화·기능 대조·콘셉트 작성은 대개 별도
+명령 없이 메인 기획자가 작성하므로, 조사 종료(DB `research_stop`)·최종 근거 묶음 확인(`resolve_request_bundle`)·분석 범위
+(`analysis_scope`) 뒤 저장 전에는 세 곳을 함께 "분석 구간"으로, 검토 단계 명령(`prepare_review_packet` 등)이 6필드 후보 초안을
+받으면 "초안 확인"으로, 업무 식별자가 맞는 DB 저장 후보가 있으면 저장된 불편·기존 기능·남은 불편·콘셉트 수로 표시합니다. 단계별
+시작·끝 시각은 만들지 않습니다. 하위 역할 결과 전달·작업 알림으로 바뀐 프롬프트 ID는 같은 요청으로 이어 봅니다.
+
+## 설치된 하네스 릴리즈 연결
+
+`?view=harness`는 설치된 [lg-ax-harness](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases) 제품 폴더의 실제 Codex·Claude 관측 기록을 읽는 화면입니다. 버전은 고정하지 않고 그 폴더의 설치 기록(`product-install.json`)과 심사 ZIP 준비 기록(`runtime-data/judge-setup.json`)을 따릅니다. 처음 연결 대상은 product-v0.15.0이었습니다. 공장 전체 화면과 다섯 공간을 유지합니다. 자료 공간에 자료 조회·웹 조사의 두 Skill을 구분해 표시하고 나머지 네 Skill을 각 공간에 연결합니다. 설치된 역할을 실행 중이라고 가정하지 않습니다.
 
 설치 준비와 실제 AI 업무 수행은 별개입니다. 세션이 없으면 연결됨·세션 대기이며, 지침 읽기·명령 관측·저장 결과·최종 응답을 구분합니다. DB 결과는 네이티브 세션과 업무 식별자 세 개가 일치할 때만 표시합니다. 원문 질문·명령·키를 공용 사이트로 보내지 않습니다. [릴리즈 연결·검증 안내](docs/RELEASE-CONNECTION.md)를 참고하세요.
 

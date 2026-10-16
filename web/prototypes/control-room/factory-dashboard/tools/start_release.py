@@ -52,12 +52,12 @@ def prepare(workspace, dist, port=8033, *, latest=False, no_open=False):
         raise StartError("제품 폴더와 화면 dist는 절대 경로로 지정하세요.")
     if type(port) is not int or not 1 <= port <= 65535:
         raise StartError("포트는 1~65535 범위여야 합니다.")
-    # The release reader checks the pinned manifest and each original source.
+    # The release reader checks the folder's own install record and each listed product file.
     # It does not read observation artifacts in this verification step.
     try:
         engine, _fingerprint = ReleaseReader(workspace)._verify()
     except (ReleaseReadError, OSError, ValueError, TypeError):
-        raise StartError("설치 제품이 확인된 product-v0.15.0 배포본과 일치하는지 확인하세요.") from None
+        raise StartError("제품 폴더의 파일이 그 폴더의 설치 기록(product-install.json)과 일치하는지 확인하세요.") from None
     if not dist.is_dir() or dist.is_symlink() or not (dist / "index.html").is_file():
         raise StartError("빌드된 로컬 화면 dist와 index.html을 확인하세요.")
     if latest and engine != "codex":

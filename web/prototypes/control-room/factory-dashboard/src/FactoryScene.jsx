@@ -331,7 +331,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       factory.scene.updateMatrixWorld(true);
       const app=host.closest('.fullscreen-app'),hostRect=host.getBoundingClientRect();
       const uiRect=selector=>{const element=app?.querySelector(selector);if(!element)return null;const rect=element.getBoundingClientRect();return rect.width&&rect.height?{top:rect.top-hostRect.top,bottom:rect.bottom-hostRect.top,left:rect.left-hostRect.left,right:rect.right-hostRect.left}:null;};
-      const header=uiRect('.topbar'),footerControls=[uiRect('.scene-controls'),uiRect('.floating-run')].filter(rect=>rect&&rect.right>0&&rect.left<usableWidth&&rect.top>height*.45);
+      const header=uiRect('.topbar'),footerControls=[uiRect('.scene-controls'),uiRect('.floating-run'),uiRect('.office-replay')].filter(rect=>rect&&rect.right>0&&rect.left<usableWidth&&rect.top>height*.45);
       const safeTop=header?Math.max(8,header.bottom+8):8,safeBottom=Math.max(safeTop+70,Math.min(height-8,...footerControls.map(rect=>rect.top-8)));
       const mobileReturn=width<=760?uiRect('.panel-return'):null,sheetBottom=mobileReturn?mobileReturn.top-8:null,projectedLabels=[];
       for(const s of [...STATIONS,{id:'overview',x:0,z:0,labelY:2.8}]){

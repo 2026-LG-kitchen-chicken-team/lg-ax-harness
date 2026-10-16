@@ -18,6 +18,7 @@ adapters/claude/templates/product-official-researcher.md -text
 adapters/claude/templates/product-review-researcher.md -text
 web/prototypes/visual-viewer/** -text
 web/prototypes/agent-office/index.html -text
+web/prototypes/agent-office/factory.html -text
 web/prototypes/agent-office/README.md -text
 web/prototypes/agent-office/office.py -text
 web/prototypes/agent-office/observe.py -text

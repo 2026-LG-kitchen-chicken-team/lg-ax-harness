@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RESEARCHER_ROLES, researcherPose, advanceResearcherClock } from './researcher-motion.js';
 import {patrolPosition,VIEW} from './factory-layout.js';
+import {characters} from 'virtual:factory-assets';
 
 // The original generated PNGs remain intact. UV regions select each figure;
 // alpha bounds and the feet anchor keep the two work poses registered.
@@ -54,11 +55,7 @@ export function createResearchers(scene, onLoadState, stations={}) {
     const shadow=new THREE.Mesh(new THREE.CircleGeometry(.30,20),shadowMaterial);shadow.rotation.x=-Math.PI/2;shadow.position.y=.008;shadow.scale.set(1,.7,1);group.add(shadow);
     return {id,worker,appearance,group,sprite,material,ring,ringMaterial,shadow,shadowMaterial,current:null,time:0,flipped:false};
   }));
-  Promise.all([
-    loader.loadAsync('/characters/researcher-team-v1.png'),
-    loader.loadAsync('/characters/researcher-work-v1.png'),
-    loader.loadAsync('/characters/researcher-walk-v2.png'),
-  ]).then(([idle, work, walk]) => {
+  Promise.all(characters.map(url=>loader.loadAsync(url))).then(([idle, work, walk]) => {
     if (disposed) return;
     frames = { idle: atlasFrames(idle, 3, 2), work: atlasFrames(work, 6, 2), walk:atlasFrames(walk,6,2) };
     textures.push(...Object.values(frames).flat().flatMap(f=>[f.texture,f.mirror]));

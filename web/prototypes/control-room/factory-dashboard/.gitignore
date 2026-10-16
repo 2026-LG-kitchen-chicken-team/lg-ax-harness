@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-office/
 .env
 .env.*
 __pycache__/

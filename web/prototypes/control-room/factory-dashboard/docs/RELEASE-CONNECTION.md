@@ -1,4 +1,10 @@
-# v0.15.0 상품기획 하네스 연결
+# 설치된 상품기획 하네스 연결
+
+## 버전 고정 해제 (2026-10-16)
+
+읽기 서버와 화면은 더 이상 특정 릴리즈를 고정하지 않습니다. 선택한 폴더의 `product-install.json` 형식(`codex-product-install-v1` 또는 `portable-product-install-v1` + `engine`)으로 실행기를 정하고, 그 기록이 선언한 제품 파일 SHA가 맞는지 확인합니다. 관찰 장치(`web/prototypes/agent-office/*`)는 `office.py install`이 새로 복사할 수 있으므로 SHA 비교에서 뺍니다. 릴리즈 이름은 심사 ZIP 준비 기록 `runtime-data/judge-setup.json`의 `release`를 따르고, 없으면 `null`(화면: 설치 버전 미확인)입니다. 아래 v0.15.0 값은 처음 연결했을 때의 기록입니다.
+
+서버 없이 보는 파일 보기(`runtime-data/agent-office/factory.html`)는 [README](../README.md)의 ‘하네스 실행 대시보드’를 참고하세요.
 
 ## 연결 대상
 

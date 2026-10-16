@@ -190,7 +190,8 @@ test('old child activity cannot join the new request without a matching prompt o
   const oldChild = event('old-child', { actor: role, agent_id: 'child-A', prompt_id: 'A', kind: 'subagent', node: role, basis: 'observed', ts: iso(BASE - 1000) });
   const view = viewFor([request('new-request', { prompt_id: 'B', ts: iso(BASE - 3000) }), oldChild]);
   assert.equal(view.roles.length, 1); assert.equal(view.roles[0].active, false); assert.deepEqual(view.activeNodes, []);
-  assert.equal(view.header.state, 'recorded');
+  // The open request B is the main planner's own turn; the old child still lights nothing.
+  assert.equal(view.header.state, 'active'); assert.match(view.header.text, /메인 기획자/); assert.equal(view.mainActive, true);
   const launched = viewFor([request('new-request', { prompt_id: 'B', ts: iso(BASE - 4000) }), event('launch', { prompt_id: 'B', kind: 'delegate', node: role, basis: 'observed', phase: 'end', ts: iso(BASE - 2000), detail: { launched_agent_id: 'child-A', background: true } }), oldChild]);
   assert.equal(launched.roles[0].active, true); assert.equal(launched.roles[0].agentIds[0], 'child-A');
 });
@@ -253,7 +254,7 @@ test('late unrelated prompt traffic cannot refresh the current prompt activity w
 test('schema whitelist, hashes and enum types fail closed; untrusted prose is sanitized and bounded', () => {
   for (const mutate of [
     data => { data.source.kind = 'team_controller_sqlite_readonly'; },
-    data => { data.source.release = 'product-v0.14.0'; },
+    data => { data.source.release = 'latest'; },
     data => { data.source.engine = 'demo'; },
     data => { data.source.product_install_sha256 = 'invalid'; },
     data => { data.events[0].phase = 'complete'; },

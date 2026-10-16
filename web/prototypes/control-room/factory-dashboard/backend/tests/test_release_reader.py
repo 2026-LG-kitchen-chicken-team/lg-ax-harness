@@ -51,10 +51,7 @@ class Fixture(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
-        digest = fake_install(self.root)
-        self.pinned = patch.dict(module.PINNED_INSTALLS, {"codex": digest}, clear=True)
-        self.pinned.start()
-        self.addCleanup(self.pinned.stop)
+        self.install_sha256 = fake_install(self.root)
         self.out = self.root / "runtime-data" / "agent-office"
         self.reader = ReleaseReader(self.root, clock=lambda: NOW + 10)
 
@@ -217,9 +214,8 @@ class ReaderTests(Fixture):
         manifest = {"format": "codex-product-install-v1", "skills": sorted(module.SKILLS), "files": [{"path": "../outside", "sha256": "0" * 64}]}
         raw = json.dumps(manifest).encode()
         (self.root / "product-install.json").write_bytes(raw)
-        with patch.dict(module.PINNED_INSTALLS, {"codex": hashlib.sha256(raw).hexdigest()}, clear=True):
-            with self.assertRaises(ReleaseReadError) as caught:
-                self.reader.snapshot()
+        with self.assertRaises(ReleaseReadError) as caught:
+            self.reader.snapshot()
         self.assertEqual("unsafe_path", caught.exception.code)
 
     def test_runtime_symlink_is_rejected(self):
@@ -235,18 +231,55 @@ class ReaderTests(Fixture):
         self.assertEqual("unsafe_path", caught.exception.code)
 
 
-class ActualReleaseBaseTests(unittest.TestCase):
-    def test_staged_official_base_is_pinned_and_waiting_without_execution(self):
-        workspace = Path(__file__).resolve().parents[4]
-        staged = workspace / "work/release-product-v0.15.0/release/codex"
-        if not staged.is_dir():
-            self.skipTest("별도로 받은 공식 배포본이 없는 소스 ZIP 환경입니다.")
-        before = hashlib.sha256((staged / "product-install.json").read_bytes()).hexdigest()
-        result = ReleaseReader(staged, clock=lambda: NOW).snapshot()
-        self.assertEqual(module.PINNED_INSTALLS["codex"], before)
-        self.assertEqual("product-v0.15.0", result["source"]["release"])
-        self.assertEqual("waiting_for_session", result["source"]["observer_status"])
-        self.assertEqual(before, hashlib.sha256((staged / "product-install.json").read_bytes()).hexdigest())
+class InstalledVersionTests(Fixture):
+    def test_release_follows_the_installed_judge_setup_without_a_pin(self):
+        result = self.reader.snapshot()
+        self.assertIsNone(result["source"]["release"])  # a plain install does not name its release
+        self.assertEqual(self.install_sha256, result["source"]["product_install_sha256"])
+        mark = self.root / "runtime-data" / "judge-setup.json"
+        mark.parent.mkdir(parents=True, exist_ok=True)
+        for release, expected in (("product-v0.16.4", "product-v0.16.4"), ("product-v0.17.0", "product-v0.17.0"), ("latest; rm", None)):
+            mark.write_text(json.dumps({"release": release, "engine": "codex"}), encoding="utf-8")
+            self.assertEqual(expected, self.reader.snapshot()["source"]["release"])
+
+    def test_portable_install_names_its_engine_and_reinstalled_observer_files_are_allowed(self):
+        observer = self.root / "web" / "prototypes" / "agent-office" / "observe.py"
+        observer.parent.mkdir(parents=True)
+        observer.write_text("# installed observer", encoding="utf-8")
+        doctor = self.root / "product-doctor.py"
+        files = [{"path": p.relative_to(self.root).as_posix(), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in (doctor, observer)]
+        record = {"format": "portable-product-install-v1", "engine": "claude", "skills": sorted(module.SKILLS), "files": files}
+        (self.root / "product-install.json").write_text(json.dumps(record), encoding="utf-8")
+        observer.write_text("# refreshed by office.py install", encoding="utf-8")
+        claude = {**event(), "src": "claude", "hook": "UserPromptSubmit"}
+        self.lines([claude])
+        result = self.reader.snapshot()
+        self.assertEqual("claude", result["source"]["engine"])
+        self.assertEqual(1, len(result["events"]))
+        doctor.write_text("changed product file", encoding="utf-8")
+        with self.assertRaises(ReleaseReadError) as caught:
+            self.reader.snapshot()
+        self.assertEqual("release_mismatch", caught.exception.code)
+        record["format"] = "unknown-install"
+        (self.root / "product-install.json").write_text(json.dumps(record), encoding="utf-8")
+        with self.assertRaises(ReleaseReadError) as caught:
+            self.reader.snapshot()
+        self.assertEqual("release_mismatch", caught.exception.code)
+
+    def test_a_delivered_role_result_continues_the_same_request(self):
+        ask = event("ask", prompt="prompt-a")
+        handback = event("handback", kind="handback_delivered", prompt="prompt-b")
+        bound = event("save", kind="shell", prompt="prompt-b", detail={"business_binding": BUSINESS})
+        self.lines([ask, handback, bound])
+        self.db(product_snapshot())
+        result = self.reader.snapshot()
+        self.assertEqual("matched", result["db"]["binding_status"])
+        self.assertEqual("observing", result["source"]["observer_status"])
+        self.assertEqual(("native-session", {"prompt-a", "prompt-b"}),
+                         module.selected_native(result["events"])[:2])
+        other = event("other", prompt="prompt-c", ts="2026-10-16T04:00:01Z")
+        self.lines([ask, handback, bound, {**other, "kind": "request"}])
+        self.assertEqual("unmatched", self.reader.snapshot()["db"]["binding_status"])
 
 
 class HTTPTests(Fixture):

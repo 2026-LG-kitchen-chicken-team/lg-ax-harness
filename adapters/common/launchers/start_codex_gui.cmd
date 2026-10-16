@@ -7,7 +7,7 @@ call :uv || goto fail
 set "PY=uv run --no-project --python 3.12 python"
 %PY% judge.py prepare --engine codex --ui gui || goto fail
 start "LG AX - Codex observer" /min cmd /c "%PY% judge.py observe --engine codex --keep-following --open || pause"
-echo 실행 관찰 창을 작은 창으로 켰습니다. 첫 질문을 보내면 실행 대시보드가 브라우저에 열립니다.
+echo 실행 관찰 창을 작은 창으로 켰습니다. 첫 질문을 보내면 실행 대시보드(공장 관제)가 브라우저에 열립니다.
 codex app "%~dp0codex" || goto fail
 echo.
 echo Codex 앱에서 codex 폴더가 열렸는지 확인하고 질문하세요. 실행 관찰은 작은 창에서 계속됩니다.
