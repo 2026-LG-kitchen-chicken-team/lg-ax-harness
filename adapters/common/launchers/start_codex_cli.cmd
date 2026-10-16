@@ -6,11 +6,7 @@ cd /d "%~dp0"
 call :uv || goto fail
 set "PY=uv run --no-project --python 3.12 python"
 %PY% judge.py prepare --engine codex --ui cli || goto fail
-start "LG AX - Codex observer" /min cmd /c "%PY% judge.py observe --engine codex --keep-following --open || pause"
-echo 실행 관찰 창을 작은 창으로 켰습니다. 첫 질문을 보내면 실행 대시보드가 브라우저에 열립니다.
-cd /d "%~dp0codex"
-codex --search --sandbox workspace-write --ask-for-approval on-request --config windows.sandbox=mxc --model gpt-6.1-sol --config model_reasoning_effort=medium
-if errorlevel 1 pause
+%PY% judge.py launch --engine codex --ui cli || goto fail
 exit /b
 
 :uv

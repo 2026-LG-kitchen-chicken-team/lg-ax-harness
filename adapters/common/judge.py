@@ -7,8 +7,11 @@ from pathlib import Path, PurePosixPath
 import platform
 import re
 import shutil
+import stat
 import subprocess
 import sys
+import time
+import uuid
 
 ROOT = Path(__file__).resolve().parent
 SETUP_MARK = ('runtime-data', 'judge-setup.json')
@@ -50,17 +53,118 @@ def run_observer(argv, folder):
     run(argv, folder)
 
 def observe_command(engine, folder, latest=False, keep=False, open_page=False):
-    office = folder / 'web/prototypes/agent-office/office.py'
-    if engine == 'claude':
-        return [sys.executable, str(office), 'watch', '--claude', str(folder)]
-    # A completed historical turn must not stop observation before a followup.
-    command = [sys.executable, str(office), 'codex', '--harness', str(folder)]
+    command = [sys.executable, str(folder / 'web/prototypes/visual-viewer/watch.py'),
+               'watch', '--harness', str(folder), '--engine', engine]
     if latest:
         command.append('--latest')
-    else:
-        # The one-click start keeps following the new session through followups (keep).
-        command += ['--wait'] if keep else ['--wait', '--until-complete']
+    if keep:
+        command.append('--keep-following')
     return command + (['--open'] if open_page else [])
+
+
+def runtime_path(folder, relative):
+    """A launcher writes only its own guarded runtime files, never a linked directory."""
+    folder = folder.resolve(strict=True)
+    path = folder / relative
+    current = folder
+    for part in path.relative_to(folder).parts:
+        current /= part
+        try:
+            info = current.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400:
+            raise ValueError('Linked runtime path is not supported')
+    if not current.resolve().is_relative_to(folder):
+        raise ValueError('Runtime path escapes the product folder')
+    return path
+
+
+def stop_observer(child, folder, token):
+    if child.poll() is not None:
+        return
+    stop = runtime_path(folder, 'runtime-data/visual-viewer/.watch-stop-' + token)
+    stop.parent.mkdir(parents=True, exist_ok=True)
+    stop.write_text('stop\n', encoding='utf-8')
+    try:
+        child.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        # Only this launcher's child, never the GUI app or an unrelated observer.
+        child.terminate()
+        try:
+            child.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            child.kill()
+            child.wait(timeout=3)
+
+
+def start_observer(engine, folder):
+    token = uuid.uuid4().hex
+    log = runtime_path(folder, 'runtime-data/visual-viewer/observer-supervisor.log')
+    log.parent.mkdir(parents=True, exist_ok=True)
+    stream = log.open('a', encoding='utf-8')
+    child = None
+    try:
+        command = observe_command(engine, folder, keep=True, open_page=True)
+        command += ['--parent-pid', str(os.getpid()), '--stop-token', token]
+        child = subprocess.Popen(command, cwd=folder, stdin=subprocess.DEVNULL, stdout=stream, stderr=stream,
+                                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        # Establish the old-export baseline before a fast native command can write a result.
+        status = runtime_path(folder, 'runtime-data/visual-viewer/watch-status.json')
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            if child.poll() is not None:
+                raise RuntimeError('결과 관찰을 시작하지 못했습니다. 다른 관찰 창과 진단 로그를 확인하세요.')
+            try:
+                value = json.loads(status.read_text(encoding='utf-8'))
+                if value.get('pid') == child.pid:
+                    return child, stream, token
+            except (OSError, ValueError, AttributeError):
+                pass
+            time.sleep(0.05)
+        raise RuntimeError('결과 관찰 시작 확인 시간이 초과되었습니다. 진단 로그를 확인하세요.')
+    except BaseException:
+        if child is not None:
+            stop_observer(child, folder, token)
+        stream.close()
+        raise
+
+
+def native_cli_command(engine):
+    exe = find_cli(engine)
+    if not exe:
+        raise RuntimeError('실행기 CLI를 찾지 못했습니다: ' + engine)
+    if engine == 'claude':
+        return [exe, '--model', 'claude-opus-5-5', '--effort', 'medium']
+    command = [exe, '--search', '--sandbox', 'workspace-write', '--ask-for-approval', 'on-request']
+    if os.name == 'nt':
+        command += ['--config', 'windows.sandbox=mxc']
+    return command + ['--model', 'gpt-6.1-sol', '--config', 'model_reasoning_effort=medium']
+
+
+def launch(engine, ui, folder):
+    child, stream, token = start_observer(engine, folder)
+    try:
+        print('실행 대시보드와 결과 파일 관찰을 시작했습니다. 열기는 OS 요청이며 화면 표시는 별도 확인하세요.', flush=True)
+        if ui == 'cli':
+            return subprocess.run(native_cli_command(engine), cwd=folder, check=False).returncode
+        if engine == 'claude':
+            code = desktop(folder)
+        else:
+            exe = find_cli('codex')
+            if not exe:
+                raise RuntimeError('Codex CLI를 찾지 못했습니다.')
+            code = subprocess.run([exe, 'app', str(folder)], cwd=folder, check=False).returncode
+        if code:
+            return code
+        print('GUI 관찰 창을 유지합니다 (최대 3시간). 관찰을 끝내려면 Ctrl+C 또는 이 창을 닫으세요. 앱은 계속 열려 있습니다.', flush=True)
+        # GUI app/open commands can return immediately; their return is not GUI session completion.
+        return child.wait()
+    except KeyboardInterrupt:
+        return 130
+    finally:
+        stop_observer(child, folder, token)
+        stream.close()
 
 def venv_python(folder):
     return folder / '.venv' / ('Scripts/python.exe' if sys.platform == 'win32' else 'bin/python')
@@ -208,7 +312,7 @@ def main():
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8')
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('command', choices=('check', 'setup', 'observe', 'paths', 'prepare', 'desktop'))
+    p.add_argument('command', choices=('check', 'setup', 'observe', 'paths', 'prepare', 'desktop', 'launch'))
     p.add_argument('--engine', choices=('codex', 'claude'), default='codex')
     p.add_argument('--latest', action='store_true', help='Observe the existing current Codex session instead of waiting for a new one')
     p.add_argument('--keep-following', action='store_true', help='Codex: follow the new session through followups until stopped')
@@ -229,6 +333,8 @@ def main():
         if a.engine != 'claude':
             raise ValueError('desktop is for --engine claude; Codex uses: codex app codex')
         return desktop(folder)
+    if a.command == 'launch':
+        return launch(a.engine, a.ui, folder)
     if a.command == 'observe':
         run_observer(observe_command(a.engine, folder, a.latest, a.keep_following, a.open), folder)
         return 0

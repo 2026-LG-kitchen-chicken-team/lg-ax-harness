@@ -16,7 +16,4 @@ need_uv() {
 }
 need_uv
 uv run --no-project --python 3.12 python judge.py prepare --engine claude --ui cli
-PATH="$HOME/.local/bin:$PATH"
-cd claude
-echo "Claude Code를 시작합니다 (Opus 5.5, 추론 중간). 끝내려면 /exit"
-exec claude --model claude-opus-5-5 --effort medium
+exec uv run --no-project --python 3.12 python judge.py launch --engine claude --ui cli
