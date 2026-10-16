@@ -1,5 +1,7 @@
 # LG AX 신규 프로젝트의 개발용 하네스
 
+현재 시험판: [product-v0.16.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.16.0). **사용자는 심사위원 ZIP 하나만 다운로드**한다. [원격 파일·제품 소스 대조 기록](docs/validation/product-v0.16.0.md).
+
 2026-10-16 현재 배포 기준은 **심사위원용 ZIP**이다. ZIP 루트의 실행 안내와 런처, `codex/`·`claude/` 폴더를 설치·실행·검사의 공통 기준으로 사용한다. PR13/14와 패키징·관찰 종료 보완을 통합했고 로컬 CI21단계·ZIP 단독 준비11검사를 통과했다. [현재 인수 결과](docs/validation/judge-bundle-T-20261016.md) · [폴더 기준](docs/decisions/judge-bundle-layout-20261016.md) · [사용자 테스트 안내](docs/contracts/judge-test.md). 아래 버전별 문단은 해당 시점의 기록이다.
 
 2026-10-16 심사위원 ZIP 원클릭 시작: ZIP 루트의 `start_claude_gui`·`start_claude_cli`·`start_codex_gui`·`start_codex_cli`(Windows `.cmd` 더블클릭, macOS/Linux `.sh`)가 무결성 확인·첫 준비·실행기 시작을 한 번에 하고, 첫 질문 때 실행 대시보드(`runtime-data/agent-office/index.html`)를 브라우저로 자동으로 연다. Claude Code CLI 설치·실행 명령도 추가했다. [심사위원 README](docs/contracts/judge-test.md) · 원본 `adapters/common/launchers/`.

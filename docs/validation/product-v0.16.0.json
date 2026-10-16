@@ -1,0 +1,283 @@
+{
+  "release": "product-v0.16.0",
+  "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.16.0",
+  "published_at": "2026-10-16T03:47:00Z",
+  "prerelease": true,
+  "draft": false,
+  "source_commit": "d47d36187ccd5a8e714ed76966824ee59fee8cc6",
+  "integration_PR": 15,
+  "main_commit": "d8df1347e1d96ab6fd022dabb7a9c06c81a06fc1",
+  "main_product_paths_equal": 101,
+  "snapshot_commit": "b124fc1ec5740f98e06a9e0c582858a8daefe9d6",
+  "snapshot_parents": 0,
+  "source_manifest_sha256": "cd69f8da4c8f98e51acdb6ed46fd92ee091a28655d9287c7c70224587f93455d",
+  "assets": [
+    {
+      "name": "lg-ax-judge-product-v0.16.0.zip",
+      "size": 2396966
+    },
+    {
+      "name": "lg-ax-product-product-v0.16.0.zip",
+      "size": 1248065
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 198
+    }
+  ],
+  "source_zip": {
+    "files": 128,
+    "sha256": "afe28d81f368f0efb55098afdf32cac55e2c9c2a7eb4181b6e46168d2d1e0814"
+  },
+  "judge_zip": {
+    "files": 205,
+    "sha256": "fbbb473cdd281976bf7d1985256cdfbb924b082f51a32f2a4b8a42a3dde657a3"
+  },
+  "remote_ZIP_bytes_equal": true,
+  "remote_checksums_equal": true,
+  "automatic_source_raw_files_equal": 128,
+  "zip_only_checks": [
+    {
+      "name": "bundle-check",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "judge-setup-codex",
+      "exit_code": 0,
+      "seconds": 2.485
+    },
+    {
+      "name": "bundle-after-codex",
+      "exit_code": 0,
+      "seconds": 0.094
+    },
+    {
+      "name": "viewer-status-codex",
+      "exit_code": 0,
+      "seconds": 0.187
+    },
+    {
+      "name": "sandbox-judge",
+      "exit_code": 0,
+      "seconds": 3.219
+    },
+    {
+      "name": "judge-setup-claude",
+      "exit_code": 0,
+      "seconds": 2.734
+    },
+    {
+      "name": "bundle-after-claude",
+      "exit_code": 0,
+      "seconds": 0.125
+    },
+    {
+      "name": "viewer-status-claude",
+      "exit_code": 0,
+      "seconds": 0.188
+    },
+    {
+      "name": "office-status-judge",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "prepare-claude-gui",
+      "exit_code": 0,
+      "seconds": 0.141
+    },
+    {
+      "name": "prepare-codex-cli",
+      "exit_code": 0,
+      "seconds": 3.015
+    }
+  ],
+  "source_zip_reproduces_judge_bytes": true,
+  "local_CI": {
+    "stages": 21,
+    "status": "passed",
+    "test_suites": [
+      {
+        "id": "dev-harness",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "ea6eecc4407e5a982160801a3d545810579e4e37930ad68349a5b4d93ffb9747",
+        "tests": 35,
+        "test_summary": "OK"
+      },
+      {
+        "id": "product-tools",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "51a39b9c4285a2a489e453c7a305faf29c2b51c2625b248a5fb3fc5aa175e264",
+        "tests": 482,
+        "test_summary": "OK"
+      },
+      {
+        "id": "evaluation",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e8bdef8182fe77b63289d48ff52039f365df6674a42467c107db0e690aa3bf3a",
+        "tests": 146,
+        "test_summary": "OK"
+      },
+      {
+        "id": "web",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "84e73955d1f025e1586c315801c76e2cbfd649c96c353d334fc612073fa7fa31",
+        "tests": 133,
+        "test_summary": "OK"
+      },
+      {
+        "id": "observer",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e57c03686be79d0bce0fa89873b00431d9e9a71d1c5fa4826370304dd343b59d",
+        "tests": 38,
+        "test_summary": "OK"
+      },
+      {
+        "id": "evals",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "29f006f96c2bc75764506df32cca9b0cbf1c0b5d821be99bc7971581ebb99ed6",
+        "tests": 28,
+        "test_summary": "OK"
+      }
+    ]
+  },
+  "native_inputs": [
+    {
+      "test": "native",
+      "result": "doctor passed; list_models rejected missing required product_family; no retry",
+      "status": "completed",
+      "elapsed_seconds": 24.922,
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox": "workspaceWrite",
+      "approval": "on-request",
+      "network_access": false,
+      "approval_requested": false,
+      "automatic_redispatch": 0,
+      "observed_usage": {
+        "total": {
+          "totalTokens": 176337,
+          "inputTokens": 175928,
+          "cachedInputTokens": 136192,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 409,
+          "reasoningOutputTokens": 14
+        },
+        "last": {
+          "totalTokens": 39003,
+          "inputTokens": 38877,
+          "cachedInputTokens": 38400,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 126,
+          "reasoningOutputTokens": 0
+        },
+        "modelContextWindow": 475000
+      },
+      "observer_exit": 0,
+      "observed_events": 19,
+      "result_sha256": "8cf94201db8ec00c8bd50e72c3ff8ce43b48acb5a8465e43ee8176da4282aa15",
+      "final_sha256": "2fd456b0fa77e03221a6221db21fe8f693f7f5f696057be37e128dd7afdebd14",
+      "process_returncode": 1,
+      "process_note": "driver terminates app-server after actual turn/completed; not a business failure exit"
+    },
+    {
+      "test": "native-scoped",
+      "result": "doctor and refrigerator list_models passed; empty catalog remained empty",
+      "status": "completed",
+      "elapsed_seconds": 29.75,
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox": "workspaceWrite",
+      "approval": "on-request",
+      "network_access": false,
+      "approval_requested": false,
+      "automatic_redispatch": 0,
+      "observed_usage": {
+        "total": {
+          "totalTokens": 243954,
+          "inputTokens": 243343,
+          "cachedInputTokens": 196096,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 611,
+          "reasoningOutputTokens": 50
+        },
+        "last": {
+          "totalTokens": 46658,
+          "inputTokens": 46495,
+          "cachedInputTokens": 46080,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 163,
+          "reasoningOutputTokens": 0
+        },
+        "modelContextWindow": 475000
+      },
+      "observer_exit": 0,
+      "observed_events": 23,
+      "result_sha256": "4b2bf1d1dfeec2b55d6a50efb62de8b1fabfc25e23b4f7b7a2ac2a88ac5b3fea",
+      "final_sha256": "411026d5b910ef3d315f7a68ac91f2634cd0d82054f8b5ce44760b0524c668a2",
+      "process_returncode": 1,
+      "process_note": "driver terminates app-server after actual turn/completed; not a business failure exit"
+    }
+  ],
+  "scope_limits": [
+    "Windows only; POSIX shell syntax and exec contract tests, not macOS/Linux execution",
+    "Claude setup/GUI prepare/hooks checked; no new Claude AI business run",
+    "browser pixels/clicks and normal interactive hook trust not run",
+    "native2 is local Tool smoke; not broad business quality/model-performance benchmark",
+    "input1 schema failure preserved; not two normal business successes"
+  ],
+  "PR_cleanup": [
+    {
+      "headRefOid": "55291035b041ea5f257a4732f34dd55ca9074173",
+      "number": 15,
+      "state": "MERGED"
+    },
+    {
+      "headRefOid": "c743029003c4ec0e63ac96c9be28470270ca057c",
+      "number": 14,
+      "state": "CLOSED"
+    },
+    {
+      "headRefOid": "f813b556610917abe9895de6a9737ceb0008f817",
+      "number": 13,
+      "state": "CLOSED"
+    },
+    {
+      "headRefOid": "20ce71cdfce5b84a71731bf3cee2937922d7b58b",
+      "number": 12,
+      "state": "MERGED"
+    },
+    {
+      "headRefOid": "7c8e61b305e3424d0a5b3ac61dd203bbdfacbc71",
+      "number": 11,
+      "state": "CLOSED"
+    },
+    {
+      "headRefOid": "93783b757389f438c9c15b1a926bc41e8a6f0b69",
+      "number": 10,
+      "state": "CLOSED"
+    },
+    {
+      "headRefOid": "3cf62939689aa21564b162ab8d2f855c30d32a66",
+      "number": 9,
+      "state": "MERGED"
+    },
+    {
+      "headRefOid": "5388f7a526ffc705c3611cb396f78d2d90f30fd7",
+      "number": 7,
+      "state": "CLOSED"
+    },
+    {
+      "headRefOid": "bdb187bd28341dea9d9a1aba0f7a35e26985d7c2",
+      "number": 6,
+      "state": "MERGED"
+    }
+  ]
+}
