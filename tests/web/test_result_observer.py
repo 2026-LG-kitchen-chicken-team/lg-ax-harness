@@ -262,7 +262,12 @@ class ObserverTests(unittest.TestCase):
         self.h.add("microwave")
         token = "d" * 32
         env = dict(os.environ, LGAX_VIEWER_NO_OPEN="1", PYTHONDONTWRITEBYTECODE="1")
-        child = subprocess.Popen([sys.executable, str(self.app / "watch.py"), "watch", "--harness", str(self.h.root),
+        isolated = Path(self.tmp.name) / "fresh-venv"
+        prepared = subprocess.run([sys.executable, "-m", "venv", "--without-pip", str(isolated)],
+                                  capture_output=True, text=True, timeout=30)
+        self.assertEqual(prepared.returncode, 0, prepared.stderr)
+        python = isolated / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        child = subprocess.Popen([str(python), str(self.app / "watch.py"), "watch", "--harness", str(self.h.root),
             "--no-dashboard", "--parent-pid", str(os.getpid()), "--stop-token", token, "--interval", ".05", "--max-seconds", "10"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env)
         status = self.h.out / "watch-status.json"
@@ -278,7 +283,13 @@ class ObserverTests(unittest.TestCase):
                 time.sleep(.05)
             self.fail("observer status did not reach " + expected)
         try:
-            self.assertEqual(wait_status("baseline_ignored")["pid"], child.pid)
+            started = wait_status("baseline_ignored")
+            self.assertEqual(started["observer_token"], token)
+            self.assertEqual(started["engine"], "codex")
+            self.assertTrue(started["observer_ready"])
+            self.assertIsInstance(started["pid"], int)  # A venv redirector PID need not equal this worker PID.
+            print(json.dumps({"fresh_venv": True, "popen_pid": child.pid, "worker_pid": started["pid"],
+                              "observer_token_matched": True, "engine": started["engine"]}))
             self.assertFalse((self.h.out / "view-data.js").exists())
             self.h.add("dishwasher")
             self.assertEqual(wait_status("ready")["open_status"], "disabled")

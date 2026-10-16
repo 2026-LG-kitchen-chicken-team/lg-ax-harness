@@ -98,6 +98,13 @@ def stop_observer(child, folder, token):
             child.wait(timeout=3)
 
 
+def observer_started(value, engine, token):
+    # Windows venv python.exe may be a waiting redirector with a different PID.
+    # Correlate this launch by its random token; pid remains diagnostic metadata.
+    return (isinstance(value, dict) and value.get('observer_token') == token
+            and value.get('engine') == engine and value.get('observer_ready') is True)
+
+
 def start_observer(engine, folder):
     token = uuid.uuid4().hex
     log = runtime_path(folder, 'runtime-data/visual-viewer/observer-supervisor.log')
@@ -117,7 +124,7 @@ def start_observer(engine, folder):
                 raise RuntimeError('결과 관찰을 시작하지 못했습니다. 다른 관찰 창과 진단 로그를 확인하세요.')
             try:
                 value = json.loads(status.read_text(encoding='utf-8'))
-                if value.get('pid') == child.pid:
+                if observer_started(value, engine, token):
                     return child, stream, token
             except (OSError, ValueError, AttributeError):
                 pass

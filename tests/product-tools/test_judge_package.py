@@ -149,6 +149,30 @@ class JudgePackageTests(unittest.TestCase):
                 stop.assert_called_once_with(child,folder,'a'*32)
                 stream.close.assert_called_once()
 
+    def test_startup_handshake_binds_launch_token_engine_and_readiness_not_wrapper_pid(self):
+        value={'observer_token':'a'*32,'observer_ready':True,'engine':'codex','pid':35248,'status':'baseline_ignored'}
+        self.assertTrue(helper.observer_started(value,'codex','a'*32))
+        for changed in ({'observer_token':'b'*32},{'engine':'claude'},{'observer_ready':False},
+                        {'observer_ready':'true'}):
+            with self.subTest(changed=changed):
+                self.assertFalse(helper.observer_started({**value,**changed},'codex','a'*32))
+        self.assertFalse(helper.observer_started(None,'codex','a'*32))
+        with tempfile.TemporaryDirectory(prefix='lgax-launch-token-') as name:
+            folder=Path(name);status=folder/'runtime-data/visual-viewer/watch-status.json'
+            status.parent.mkdir(parents=True);status.write_text(json.dumps(value),encoding='utf-8')
+            child=mock.Mock();child.pid=63836;child.poll.return_value=None
+            with mock.patch.object(helper.uuid,'uuid4') as identifier, \
+                    mock.patch.object(helper.subprocess,'Popen',return_value=child) as start:
+                identifier.return_value.hex='a'*32
+                actual,stream,token=helper.start_observer('codex',folder)
+            try:
+                self.assertIs(actual,child)
+                self.assertEqual(token,'a'*32)
+                self.assertIn(token,start.call_args.args[0])
+                self.assertNotEqual(value['pid'],child.pid)
+            finally:
+                stream.close()
+
     def test_gui_immediate_app_return_keeps_supervisor_until_explicit_end(self):
         for engine in ('codex','claude'):
             with self.subTest(engine=engine):

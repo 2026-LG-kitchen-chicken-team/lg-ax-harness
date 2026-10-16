@@ -156,6 +156,7 @@ def watch(harness, engine, *, latest=False, keep=False, open_page=False, dashboa
                 tmp = status_path.with_suffix(".json.tmp")
                 hook.checked_path(paths.harness, str(tmp))
                 tmp.write_text(json.dumps({**result, "pid": os.getpid(), "engine": engine,
+                    "observer_token": token, "observer_ready": True,
                     "display_verified": False}, ensure_ascii=False) + "\n", encoding="utf-8")
                 os.replace(tmp, status_path)
                 last = result
