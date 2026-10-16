@@ -1,15 +1,15 @@
 """Integrity-checked business/fixture catalogs and exact version-scoped lookup."""
 import copy
 import hashlib
-from pathlib import Path
 from .contracts import canonical, fail, identifier, integer, obj, origin, product_family, scope, strict_json, text
+from .paths import real_path
 
 MAX_CATALOG_FILE_BYTES = 16 * 1024 * 1024
 
 
 class Dataset:
     def __init__(self, root):
-        self.root = Path(root).resolve(strict=True)
+        self.root = real_path(root)
         raw_manifest = self._read("manifest.json")
         self.manifest = strict_json(raw_manifest.decode("utf-8"))
         obj(self.manifest, ("data_version", "synthetic", "purpose", "created_date", "provenance", "model_count", "scope_count", "review_count", "fact_count", "files"))
@@ -107,7 +107,7 @@ class Dataset:
                 fail("invalid_dataset", f"Manifest count mismatch: {key}")
 
     def _read(self, name):
-        path = (self.root / name).resolve(strict=True)
+        path = real_path(self.root / name)
         if not path.is_relative_to(self.root) or not path.is_file():
             fail("invalid_dataset", "Catalog path escapes dataset")
         if path.stat().st_size > MAX_CATALOG_FILE_BYTES:

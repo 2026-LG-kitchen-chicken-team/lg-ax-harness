@@ -10,6 +10,8 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[2]
 FORBIDDEN = {'.git', '.harness', '.venv', 'node_modules', '__pycache__', 'runtime-data',
              'evals', 'tests', 'dev-harness', 'adapters', 'auth.json', 'settings.local.json'}
+LAUNCHERS = tuple(f'start_{engine}_{ui}.{ext}' for engine in ('claude', 'codex') for ui in ('gui', 'cli')
+                  for ext in ('cmd', 'sh'))
 
 def load(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -64,6 +66,9 @@ def build(staging, archive, version, source_commit, root=ROOT):
                            'source_manifest_sha256': record['source_manifest_sha256']}
     files['README.md'] = (root / 'docs/contracts/judge-test.md').read_bytes()
     files['judge.py'] = (root / 'adapters/common/judge.py').read_bytes()
+    # One-click starts at the ZIP root: .cmd for a Windows double-click, .sh (executable) for macOS/Linux.
+    for name in LAUNCHERS:
+        files[name] = (root / 'adapters/common/launchers' / name).read_bytes()
     manifest = {'format': 'lgax-judge-bundle-v1', 'release': version, 'source_commit': source_commit,
         'engines': engines, 'default_catalog': 'empty',
         'purpose': 'Judge installation and user testing; same business Agent/Skills in isolated native workspaces',
@@ -75,8 +80,9 @@ def build(staging, archive, version, source_commit, root=ROOT):
         for name, raw in sorted(files.items()):
             safe_name(name)
             entry = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+            entry.create_system = 3  # Unix interpretation of the regular-file type and permission bits below.
             entry.compress_type = zipfile.ZIP_DEFLATED
-            entry.external_attr = 0o100644 << 16
+            entry.external_attr = (0o100755 if name.endswith('.sh') else 0o100644) << 16
             output.writestr(entry, raw)
     return {'archive': str(archive), 'sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
             'files': len(files), 'release': version, 'engines': engines}
