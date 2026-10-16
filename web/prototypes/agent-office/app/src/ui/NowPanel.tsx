@@ -5,18 +5,18 @@ import type { Snapshot } from '../lib/state'
 import { statusText } from '../scene/Room'
 
 const GROUPS: { title: string; ids: string[] }[] = [
-  { title: '사람', ids: ['main', 'product_official_researcher', 'product_review_researcher', 'product_evidence_reviewer'] },
+  { title: 'Agent · 선택 연구 역할', ids: ['main', 'product_official_researcher', 'product_review_researcher', 'product_evidence_reviewer'] },
   { title: '업무 Skill 6', ids: ['evidence-retrieval', 'web-evidence-collection', 'needs-structuring', 'feature-comparison', 'concept-writing', 'review-and-revise'] },
   { title: '시설', ids: NODES.filter((n) => n.kind === 'place').map((n) => n.id) },
 ]
 
-export function NowPanel({ snap, selected, onSelect }: { snap: Snapshot; selected: string | null; onSelect: (id: string) => void }) {
+export function NowPanel({ snap, selected, onSelect, stale = false }: { snap: Snapshot; selected: string | null; onSelect: (id: string) => void; stale?: boolean }) {
   const active = Object.values(snap.nodes).filter((n) => n.status === 'active').length
   return (
     <div className="panel pointer-events-auto flex max-h-full flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-[var(--line)] px-3 py-2">
-        <h2 className="text-[13px] font-bold">지금 하는 일</h2>
-        <span className="font-mono text-[11px] text-[var(--dim)]">{active ? `${active}곳 작업 중` : '조용함'}</span>
+        <h2 className="text-[13px] font-bold">{stale ? '마지막으로 확인한 일' : '지금 하는 일'}</h2>
+        <span className="font-mono text-[11px] text-[var(--dim)]">{stale ? '갱신 확인 필요' : active ? `${active}곳 작업 관측` : '새 사건 대기'}</span>
       </div>
       <div className="flex flex-col gap-2 overflow-y-auto px-2 py-2">
         {GROUPS.map((g) => (

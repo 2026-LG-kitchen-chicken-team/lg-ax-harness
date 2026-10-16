@@ -2,7 +2,7 @@
 // fed with the export build_view.py put in view-data.js and the turn K shows, so both show the same result.
 // It runs in a sandboxed iframe without same-origin rights: its own styles and scripts cannot touch K, and text from
 // the export cannot reach K's page or files. Printing, the PDF and "보고서 파일 저장" work from the report's own buttons.
-import { useEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import template from 'virtual:jinha-report'
 import type { ReportSource } from '../types'
@@ -12,15 +12,38 @@ const SLOT = '<script id="embedded-report" type="application/json">null</script>
 const safeJSON = (v: unknown) => JSON.stringify(v).replace(/[<>&\u2028\u2029]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'))
 const attr = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
 
-export function reportHtml(r: ReportSource): string {
+export function reportHtml(r: ReportSource, instance = ''): string {
   // With build_view.py's charts the report gets its combined input {export, report_plan}; the plan is tied to the same turn.
   const payload = r.plan ? { export: r.export, report_plan: r.plan, report_plan_turn_id: r.turn_id || undefined } : r.export
-  const data = `<script id="embedded-report" type="application/json" data-turn-id="${attr(r.turn_id || '')}">${safeJSON(payload)}</script>`
+  const data = `<script id="embedded-report" type="application/json" data-turn-id="${attr(r.turn_id || '')}" data-report-instance="${attr(instance)}">${safeJSON(payload)}</script>`
   return template.replace(SLOT, () => data)
 }
 
-export function ReportView({ source, close }: { source: ReportSource; close: () => void }) {
-  const html = useMemo(() => reportHtml(source), [source])
+export function ReportView({ source, close, outdated = false, latest }: {
+  source: ReportSource; close: () => void; outdated?: boolean; latest?: () => void
+}) {
+  const [frame, setFrame] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [attempt, setAttempt] = useState(0)
+  const iframe = useRef<HTMLIFrameElement | null>(null)
+  const instance = useMemo(() => typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now() + '-' + Math.random(), [source, attempt])
+  const activeInstance = useRef(instance); activeInstance.current = instance
+  const html = useMemo(() => reportHtml(source, instance), [source, instance])
+  useLayoutEffect(() => {
+    activeInstance.current = instance
+    setFrame('loading')
+    const timer = window.setTimeout(() => { if (activeInstance.current === instance) setFrame(value => value === 'loading' ? 'error' : value) }, 10000)
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data
+      if (activeInstance.current !== instance || !iframe.current || event.source !== iframe.current.contentWindow || !data || typeof data !== 'object'
+        || data.turn_id !== source.turn_id || data.instance !== instance) return
+      if (data.type === 'lgax-report-ready') { window.clearTimeout(timer); setFrame('ready') }
+      // The vendor also reports save/selection errors after rendering. Its notice handles those;
+      // keep the already displayed report and do not describe an operation failure as a failed initial render.
+      else if (data.type === 'lgax-report-error') { window.clearTimeout(timer); setFrame(value => value === 'ready' ? value : 'error') }
+    }
+    window.addEventListener('message', onMessage)
+    return () => { activeInstance.current = ''; window.clearTimeout(timer); window.removeEventListener('message', onMessage) }
+  }, [source.turn_id, instance])
   useEffect(() => {
     const was = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -38,7 +61,17 @@ export function ReportView({ source, close }: { source: ReportSource; close: () 
         <span className="truncate font-medium text-[#2f8f57]">보고서로 보기</span>
         <span className="ml-auto hidden truncate text-zinc-500 md:inline">보고서 양식: 신진하 · 인쇄·PDF는 보고서 위쪽 버튼</span>
       </div>
-      <iframe title="결과 보고서" srcDoc={html} className="min-h-0 w-full flex-1 border-0 bg-white"
+      {outdated && <div role="status" className="flex flex-wrap items-center gap-3 border-b border-[#e3e3e3] bg-[#f3f8f4] px-4 py-3 text-sm">
+        <span>새 기획이 저장됐어요. 지금 보고 있는 보고서는 이전 저장 결과예요.</span>
+        <button type="button" onClick={latest || close} className="font-medium text-[#2f7d4f] underline">{latest ? '최신 보고서 보기' : '업무 화면에서 새 결과 보기'}</button>
+      </div>}
+      {frame !== 'ready' && <div role="status" className="flex flex-wrap items-center gap-3 border-b border-[#e3e3e3] px-4 py-3 text-sm text-zinc-600">
+        <span>{frame === 'loading' ? '보고서를 준비하고 있어요. 잠시만 기다려 주세요.' : '보고서를 표시하지 못했어요. 다시 열거나 업무 화면에서 결과를 확인해 주세요.'}</span>
+        {frame === 'error' && <button type="button" onClick={() => setAttempt(value => value + 1)} className="font-medium text-[#2f7d4f] underline">보고서 다시 열기</button>}
+      </div>}
+      <iframe ref={iframe} key={instance} title="결과 보고서" srcDoc={html}
+        onError={() => { if (activeInstance.current === instance) setFrame('error') }}
+        aria-busy={frame === 'loading'} className="min-h-0 w-full flex-1 border-0 bg-white"
         sandbox="allow-scripts allow-modals allow-downloads allow-popups allow-popups-to-escape-sandbox" />
     </div>
   )

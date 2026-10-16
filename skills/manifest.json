@@ -334,7 +334,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "94fd7f7b82875477fc699a7f525f87f03ac6fa0c2c72c215f112122a02258654"
+      "sha256": "06bbfe6a78f549d88b92dd3e3cd80245f9367d26104de38b0618de3675b08424"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
@@ -346,11 +346,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "c2c4b07de003d6587cf8ac3f1913de7de9dee0c45e0f3c4261b656629866ff8e"
+      "sha256": "4b65403bf9a2275986ddd9cfbb21373615d3d2329db6c40e1695d6ff18a7e418"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "cac64d415b3ba0bf6f61748267109e7fa882ca4e8abf76f058307caa30452015"
+      "sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5"
     },
     {
       "path": "web/prototypes/agent-office/README.md",
@@ -370,11 +370,11 @@
     },
     {
       "path": "web/prototypes/agent-office/index.html",
-      "sha256": "c35c3049d160d929b65fdbe8f56a38a65b4a7eeedc3709eae821a93e94f06389"
+      "sha256": "d1a399364db1f5216f86d75f921c54dac58e30996f292b0e8fbded1b29a75a35"
     },
     {
       "path": "docs/contracts/judge-test.md",
-      "sha256": "3310c38c376fa3afccebf05af31628a34ec2ba90f1ffd843794fd44fa37b239a"
+      "sha256": "b462fafc40188c6e894e3ef267a8ba725cfb903f3466879587a51c2d593aaddb"
     }
   ],
   "optional_agents": [

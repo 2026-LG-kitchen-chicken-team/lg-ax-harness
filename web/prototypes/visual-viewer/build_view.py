@@ -238,7 +238,9 @@ def semantic_chip(export: dict) -> dict:
 def family_label(family: str | None) -> str:
     if family in FAMILY:
         return FAMILY[family][0]
-    return f"미지원({family})" if family else "미기록"
+    # FAMILY supplies familiar display names, not a supported-product allowlist.
+    # Preserve a new catalog category rather than presenting it as unsupported.
+    return family.replace("_", " ").replace("-", " ") if family else "제품군 미지정"
 
 
 def https(url: str | None) -> str | None:

@@ -7,17 +7,19 @@ import { Badge } from '../components/ui'
 import { BlockView } from '../components/blocks'
 import { HoverNote } from '../components/hovernote'
 import { SearchDialog, type Hit } from '../components/search'
-import { BackToTop, Empty, ICONS, introOf, LiveDot, noEmoji, SearchHotkey, STORY_IDS, TextScale } from '../components/shell'
+import { BackToTop, Empty, ICONS, introOf, LiveDot, noEmoji, ReadNotice, SearchHotkey, STORY_IDS, TextScale } from '../components/shell'
 import { LOOK, SKIN } from './blocks'
 import { SkinContext } from '../lib/skin'
 import { cn, Md } from '../lib/utils'
 import type { LiveState } from '../lib/useView'
+import type { LoadPhase } from '../lib/viewState'
 import type { Block, Page, View } from '../types'
 import lgLogo from '../assets/lg-logo.png'
 
 type Props = {
   view: View | null; page: Page | null; go: (id: string) => void; pick: (h: Hit) => void; copy: (s: string) => void
   live: LiveState; reload: () => void; openFile: (f: File) => void; inline: boolean
+  phase: LoadPhase; busy: boolean; lastReadAt: number | null; fromFile: boolean
   big: boolean; toggleBig: () => void
   searchOpen: boolean; openSearch: () => void; closeSearch: () => void
   // Set when the data carries the export: opens "보고서로 보기" (components/report.tsx).
@@ -53,7 +55,8 @@ export default function DashApp(p: Props) {
         <div className={S.offset}>
           <TopBar {...p} tools={tools} openNav={() => setNavOpen(true)} />
           <main className="@container flex min-w-0 flex-col gap-3 px-4 py-4 print-full sm:px-6">
-            {view && page ? <Body {...p} go={go} /> : <Empty copy={p.copy} />}
+            {view && page ? <><ReadNotice phase={p.phase} busy={p.busy} reload={p.reload} /><Body {...p} go={go} /></>
+              : <Empty phase={p.phase} busy={p.busy} reload={p.reload} />}
           </main>
         </div>
         <BackToTop />
@@ -98,7 +101,7 @@ function TopBar({ view, page, tools, openNav }: Props & { tools: ReactNode; open
         <span className="truncate font-medium text-[#2f8f57]">{title}</span>
       </nav>
       <div className="ml-auto flex items-center gap-3">
-        {at && <span className="hidden text-zinc-500 xl:inline" title="build_view.py가 이 화면 자료를 만든 시각">화면 생성: {at}</span>}
+        {at && <span className="hidden text-zinc-500 xl:inline" title="최근 저장된 결과로 화면 자료를 만든 시각">화면 자료: {at}</span>}
         {tools}
       </div>
     </header>
@@ -124,7 +127,7 @@ function Brand({ view, close }: { view: View | null; close: () => void }) {
   )
 }
 
-function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSearch }: Props & { open: boolean; close: () => void }) {
+function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSearch, lastReadAt, fromFile, busy }: Props & { open: boolean; close: () => void }) {
   const pages = view?.pages || []
   const groups = [
     { title: '발표', items: pages.filter((x) => STORY_IDS.has(x.id)) },
@@ -166,7 +169,7 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
             </div>
           ))}
         </nav>
-        <SaveCard view={view} reload={reload} openFile={openFile} inline={inline} className={cn(S.card, 'mt-auto')} />
+        <SaveCard view={view} reload={reload} openFile={openFile} inline={inline} lastReadAt={lastReadAt} fromFile={fromFile} busy={busy} className={cn(S.card, 'mt-auto')} />
         </div>
         {(ctx.footer || []).length > 0 && (
           <div className={S.foot}>
@@ -183,13 +186,15 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
 }
 
 // "마지막 저장": the export's status chips (의미 검토 전 · 인수 전 included), the file, reload and open-file.
-function SaveCard({ view, reload, openFile, inline, className }: {
+function SaveCard({ view, reload, openFile, inline, className, lastReadAt, fromFile, busy }: {
   view: View | null; reload: () => void; openFile: (f: File) => void; inline: boolean; className?: string
+  lastReadAt: number | null; fromFile: boolean; busy: boolean
 }) {
   const ctx = view?.context || {}
   return (
     <div className={className}>
-      <div className="text-xs font-semibold opacity-80">마지막 저장</div>
+      <div className="text-xs font-semibold opacity-80">{fromFile ? '직접 연 화면 자료' : '최근 저장 결과'}</div>
+      {lastReadAt && <div className="mt-1 text-[11px] text-zinc-500">{fromFile ? '화면 자료 열기' : '최근 읽기 성공'}: {new Date(lastReadAt).toLocaleTimeString('ko-KR')}</div>}
       <div className="mt-2.5 flex flex-wrap gap-1.5">{(ctx.status || [{ text: '데이터 없음' }]).map((s, k) => <Badge key={k} chip={s} />)}</div>
       {ctx.file && (
         <div className="mt-3 flex items-start gap-2 text-xs">
@@ -201,11 +206,11 @@ function SaveCard({ view, reload, openFile, inline, className }: {
           </div>
         </div>
       )}
-      <button type="button" onClick={reload} className={cn('inline-flex items-center justify-center gap-1.5', S.button)}><RefreshCw className="size-3.5" aria-hidden />다시 불러오기</button>
+      <button type="button" onClick={reload} disabled={busy} className={cn('inline-flex items-center justify-center gap-1.5 disabled:opacity-50', S.button)}><RefreshCw className="size-3.5" aria-hidden />{busy ? '화면 연결 확인 중' : '다시 불러오기'}</button>
       {!inline && (
         <label className="mt-2 flex cursor-pointer items-center justify-center gap-1.5 text-xs underline-offset-2 opacity-80 hover:underline">
-          <FolderOpen className="size-3.5" aria-hidden />화면 파일(view JSON) 열기
-          <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) openFile(f) }} />
+          <FolderOpen className="size-3.5" aria-hidden />저장한 화면 자료 열기
+          <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) openFile(f); e.target.value = '' }} />
         </label>
       )}
     </div>

@@ -47,7 +47,7 @@ function spansFor(model: SessionModel, id: string, t: number): Span[] {
   return model.spans.filter((s) => s.start <= t && (s.target === id || (ROLE_IDS.includes(id) && s.actor === id) || (id === 'main' && s.actor === 'main')))
 }
 
-export function Inspector({ id, model, snap, resultView, onClose }: { id: string; model: SessionModel; snap: Snapshot; resultView: ResultView | null; onClose: () => void }) {
+export function Inspector({ id, model, snap, resultView, onClose, stale = false }: { id: string; model: SessionModel; snap: Snapshot; resultView: ResultView | null; onClose: () => void; stale?: boolean }) {
   const node = NODE[id]
   if (!node) return null
   const st = snap.nodes[id]
@@ -70,7 +70,7 @@ export function Inspector({ id, model, snap, resultView, onClose }: { id: string
       </header>
       <div className="flex flex-col gap-4 overflow-y-auto px-4 py-3">
         <div className="now-box" style={{ ['--c' as string]: node.color }}>
-          <div className="text-[11px] text-[var(--dim)]">지금 ({clock(t)})</div>
+          <div className="text-[11px] text-[var(--dim)]">{stale ? '마지막 관측' : model.live ? '지금' : '재생 시점'} ({clock(t)})</div>
           <div className="text-[14px] font-semibold leading-snug">{statusText(st?.status, st?.activity ?? null, st?.since ?? null, t)}</div>
           {st?.active.length ? (
             <ul className="mt-1 flex flex-col gap-0.5">
@@ -245,7 +245,7 @@ function ResultCard({ model, view }: { model: SessionModel; view: ResultView | n
     <Section title="결과 화면 (시각자료 뷰어)">
       {view ? (
         <div className="result-card">
-          <div className="text-[12px]">{view.context?.file?.name ?? 'export 이름 미확인'}</div>
+          <div className="text-[12px]">마지막으로 저장된 기획</div>
           <div className="text-[11px] text-[var(--dim)]">{Number.isFinite(generated) ? `화면을 만든 시각 ${dayClock(generated)}` : '만든 시각 미확인'}</div>
           {view.context?.status?.length ? (
             <div className="flex flex-wrap gap-1">{view.context.status.map((s, i) => <span key={i} className="chip">{s.text}</span>)}</div>
@@ -254,7 +254,7 @@ function ResultCard({ model, view }: { model: SessionModel; view: ResultView | n
           <p className="text-[10.5px] leading-relaxed text-[var(--dim)]">뷰어는 가장 최근 export를 그립니다. 이 재생 위치의 결과와 다를 수 있습니다.</p>
         </div>
       ) : (
-        <p className="text-[12px] leading-relaxed text-[var(--dim)]">이 하네스에 결과 화면이 아직 없습니다. 시각자료 뷰어를 설치(<code>viewer.py install</code>)하면 결과가 저장될 때 여기서 열 수 있습니다.</p>
+        <p className="text-[12px] leading-relaxed text-[var(--dim)]">저장된 기획을 기다립니다. AI 대화에서 기획이 저장되면 여기서 결과 화면을 열 수 있습니다.</p>
       )}
       {latest?.name && (
         <Row k="가장 최근 export (DB 확인 때)" v={`${latest.name.slice(0, 22)}${latest.name.length > 22 ? '…' : ''}${latest.modified_at ? ` · ${clock(Date.parse(latest.modified_at))}` : ''}`} />
