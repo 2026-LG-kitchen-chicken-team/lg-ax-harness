@@ -1,11 +1,6 @@
 import * as THREE from 'three';
-import { RESEARCHER_ROLES, researcherPose } from './researcher-motion.js';
-
-const PLACEMENTS = {
-  overview: [-2.90, .06, 1.40], retrieve: [-6.80, .42, 1.48],
-  structure: [-3.90, .42, -3.42], compare: [3.18, .42, -2.57],
-  concept: [5.80, .06, 5.10], validate: [-1.60, .06, 8.60],
-};
+import { RESEARCHER_ROLES, researcherPose, advanceResearcherClock } from './researcher-motion.js';
+import {patrolPosition,VIEW} from './factory-layout.js';
 
 // The original generated PNGs remain intact. UV regions select each figure;
 // alpha bounds and the feet anchor keep the two work poses registered.
@@ -37,30 +32,35 @@ function atlasFrames(image, columns, rows) {
     texture.repeat.set((right - left) / image.width, (bottom - top) / image.height);
     texture.offset.set(left / image.width, 1 - bottom / image.height);
     texture.needsUpdate = true;
-    return { texture, aspect: (right - left) / (bottom - top), anchor: ((footCount ? footSum / footCount : (left + right) / 2) - left) / (right - left) };
+    const mirror=texture.clone();mirror.offset.x+=mirror.repeat.x;mirror.repeat.x*=-1;mirror.needsUpdate=true;
+    return { texture, mirror, aspect: (right - left) / (bottom - top), anchor: ((footCount ? footSum / footCount : (left + right) / 2) - left) / (right - left) };
   });
 }
 
-export function createResearchers(scene, onLoadState) {
+export function createResearchers(scene, onLoadState, stations={}) {
   let disposed = false, frames = null;
   const loader = new THREE.ImageLoader(), textures = [];
   const ringGeometry = new THREE.RingGeometry(.30, .35, 28);
   const people = RESEARCHER_ROLES.map(id => {
     const group = new THREE.Group(); group.userData.station = id;
-    group.position.set(...PLACEMENTS[id]); scene.add(group);
+    (stations[id]||scene).add(group);
+    group.name='researcher-'+id;
     const material = new THREE.SpriteMaterial({ transparent: true, alphaTest: .55, depthWrite: false, toneMapped: false });
     const sprite = new THREE.Sprite(material); sprite.visible = false; group.add(sprite);
     const ringMaterial = new THREE.MeshBasicMaterial({ color: '#f69646', transparent: true, opacity: .65, depthWrite: false, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(ringGeometry, ringMaterial); ring.rotation.x = -Math.PI / 2; ring.position.y = .018; ring.visible = false; group.add(ring);
-    return { id, group, sprite, material, ring, ringMaterial, current: null };
+    const shadowMaterial=new THREE.MeshBasicMaterial({color:'#344d40',transparent:true,opacity:.14,depthWrite:false});
+    const shadow=new THREE.Mesh(new THREE.CircleGeometry(.30,20),shadowMaterial);shadow.rotation.x=-Math.PI/2;shadow.position.y=-.035;shadow.scale.set(1,.7,1);group.add(shadow);
+    return {id,group,sprite,material,ring,ringMaterial,shadow,shadowMaterial,current:null,time:0,flipped:false};
   });
   Promise.all([
     loader.loadAsync('/characters/researcher-team-v1.png'),
     loader.loadAsync('/characters/researcher-work-v1.png'),
-  ]).then(([idle, work]) => {
+    loader.loadAsync('/characters/researcher-walk-v2.png'),
+  ]).then(([idle, work, walk]) => {
     if (disposed) return;
-    frames = { idle: atlasFrames(idle, 3, 2), work: atlasFrames(work, 6, 2) };
-    textures.push(...frames.idle.map(f => f.texture), ...frames.work.map(f => f.texture));
+    frames = { idle: atlasFrames(idle, 3, 2), work: atlasFrames(work, 6, 2), walk:atlasFrames(walk,6,2) };
+    textures.push(...Object.values(frames).flat().flatMap(f=>[f.texture,f.mirror]));
     onLoadState?.('ready');
   }).catch(() => { if (!disposed) onLoadState?.('error'); });
   return {
@@ -68,16 +68,24 @@ export function createResearchers(scene, onLoadState) {
       if (!frames || disposed) return;
       people.forEach((person, index) => {
         const pose = researcherPose(person.id, options);
-        const frame = pose.working ? frames.work[index + pose.frame * 6] : frames.idle[index];
-        if (person.current !== frame) {
-          person.material.map = frame.texture; person.material.needsUpdate = true;
-          person.sprite.scale.set(1.82 * frame.aspect, 1.82, 1);
-          person.sprite.center.set(frame.anchor, 0); person.current = frame;
+        person.time=advanceResearcherClock(person.time,{working:pose.working,reducedMotion:options.reducedMotion,dt:options.dt});
+        const route=patrolPosition(person.time,{planner:person.id==='overview'});
+        const walking=pose.working&&!options.reducedMotion&&route.walking;
+        if(walking){const direction=VIEW.rx*route.dx+VIEW.rz*route.dz;if(Math.abs(direction)>.08)person.flipped=direction<0;}
+        const kind=!pose.working?'idle':walking?'walk':'work';
+        const indexInAtlas=kind==='idle'?index:index+(walking?Math.floor(person.time*4)%2:pose.frame)*6;
+        const frame=frames[kind][indexInAtlas],map=person.flipped?frame.mirror:frame.texture;
+        if(person.current!==map){
+          person.material.map=map;person.material.needsUpdate=true;
+          person.sprite.scale.set(1.82*frame.aspect,1.82,1);
+          person.sprite.center.set(person.flipped?1-frame.anchor:frame.anchor,0);person.current=map;
         }
-        person.sprite.visible = true; person.ring.visible = pose.working;
-        person.sprite.position.y = pose.working && !options.reducedMotion ? Math.sin(options.elapsed * 4.4) * .012 : 0;
+        person.group.position.set(route.x,route.y,route.z);
+        person.sprite.visible=true;person.ring.visible=pose.working;
+        person.sprite.position.y=walking?Math.abs(Math.sin(person.time*9))*.045:0;
+        person.shadowMaterial.opacity=walking?.11:.16;
       });
     },
-    dispose() { disposed = true; people.forEach(p => { scene.remove(p.group); p.material.dispose(); p.ringMaterial.dispose(); }); ringGeometry.dispose(); textures.forEach(t => t.dispose()); },
+    dispose() { disposed = true; people.forEach(p => { p.group.parent?.remove(p.group); p.material.dispose(); p.ringMaterial.dispose();p.shadow.geometry.dispose();p.shadowMaterial.dispose(); }); ringGeometry.dispose(); textures.forEach(t => t.dispose()); },
   };
 }

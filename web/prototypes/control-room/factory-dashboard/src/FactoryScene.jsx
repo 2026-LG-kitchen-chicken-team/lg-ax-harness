@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { createResearchers } from './ResearcherCharacters.js';
+import {factoryLayout,fitFactory,transitionFactory,ZONE_IDS} from './factory-layout.js';
 import './factory-scene.css';
 
 const STATIONS = [
   { id: 'retrieve', no: '01', title: '자료 조회', caption: '리뷰 · 제품 문서 수집', x: -5.9, z: .1, labelY: 3.4 },
   { id: 'structure', no: '02', title: '니즈 구조화', caption: '고객의 불편을 구조화', x: -2.9, z: -4.9, labelY: 3.55 },
   { id: 'compare', no: '03', title: '기능 대조', caption: '기존 기능과 남은 불편', x: 3.4, z: -4.05, labelY: 3.45 },
-  { id: 'concept', no: '04', title: '콘셉트 작성', caption: '근거에서 새로운 가능성으로', x: 5.3, z: 1.9, labelY: 1.15 },
-  { id: 'validate', no: '05', title: '검토 · 수정', caption: '근거와 요구사항 최종 점검', x: -1.05, z: 5.7, labelY: 1.15 },
+  { id: 'concept', no: '04', title: '콘셉트 작성', caption: '근거에서 새로운 가능성으로', x: 5.3, z: 1.9, labelY: 3.35 },
+  { id: 'validate', no: '05', title: '검토 · 수정', caption: '근거와 요구사항 최종 점검', x: -1.05, z: 5.7, labelY: 3.35 },
 ];
 const COLORS = { dark: '#293b45', slate: '#65747b', base: '#e9eceb', white: '#f7f7f2', steel: '#b9c4c8', orange: '#fc762c', green: '#219464', blue: '#3a98b9' };
 function stageStatus(value) {
@@ -154,18 +155,26 @@ function createFactory(renderer) {
   scene.add(new THREE.HemisphereLight('#fffdf3','#becad1',2.35));
   const sun = new THREE.DirectionalLight('#fff8e9',3.7);sun.position.set(-6,15,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-15;sun.shadow.camera.right=15;sun.shadow.camera.top=15;sun.shadow.camera.bottom=-15;sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;sun.shadow.radius=3;scene.add(sun);
   const fill = new THREE.DirectionalLight('#d6e8f0',1.15);fill.position.set(10,7,-10);scene.add(fill);
-  const floor=new THREE.Group();scene.add(floor);
-  cube(floor,20.8,.34,19.6,0,-.24,0,'#aeb9bc',.15,.12);
-  cube(floor,20.55,.1,19.35,0,-.025,0,'#d6dcda',.07);
-  for(let x=-10;x<=10;x++){strip(floor,[x,-9.5],[x,9.5],.034,.017,x%3===0?'#bec8c5':'#c7d0cc');}
-  for(let z=-9;z<=9;z++){strip(floor,[-10,z],[10,z],.035,.017,z%3===0?'#bec8c5':'#c7d0cc');}
+  const floor=new THREE.Group();scene.add(floor);const fieldProps=[];
+  const tiles=canvasTexture((ctx,w,h)=>{
+    ctx.fillStyle='#e1e7df';ctx.fillRect(0,0,w,h);
+    const size=w/4;
+    for(let x=0;x<4;x++)for(let y=0;y<4;y++){
+      ctx.fillStyle=(x+y)%3===0?'#e5eae3':'#e1e7df';ctx.fillRect(x*size+1,y*size+1,size-2,size-2);
+      ctx.strokeStyle='#bbc8bc';ctx.lineWidth=3;ctx.strokeRect(x*size+.5,y*size+.5,size,size);
+      ctx.strokeStyle='#f8faf5';ctx.beginPath();ctx.moveTo(x*size+2,y*size+size-2);ctx.lineTo(x*size+size-2,y*size+size-2);ctx.stroke();
+    }
+  },512,512);
+  tiles.wrapS=tiles.wrapT=THREE.RepeatWrapping;tiles.repeat.set(128,128);
+  const groundMaterial=new THREE.MeshStandardMaterial({map:tiles,roughness:.93,color:'#e3e9e0'});resources.push(groundMaterial);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(512,512),groundMaterial);ground.rotation.x=-Math.PI/2;ground.position.y=-.012;ground.receiveShadow=true;floor.add(ground);
   // A narrow safety lane makes the miniature workstations feel like one factory.
   const lane=[[-8,-6],[-3,-7],[5,-6],[8,-1],[7,6],[0,8],[-7,6],[-8,-6]];
   lane.slice(0,-1).forEach((a,i)=>{const b=lane[i+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.floor(len/.65);for(let j=0;j<n;j++){const t=j/n,u=Math.min((j+.5)/n,1);strip(floor,[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u],.05,.065,'#e9ac41');}});
   const floorLabel=canvasTexture((ctx,w,h)=>{ctx.clearRect(0,0,w,h);ctx.fillStyle='#71817d';ctx.font='bold 56px sans-serif';ctx.textAlign='center';ctx.fillText('KITCHEN AX',w/2,90);ctx.font='20px sans-serif';ctx.fillText('PRODUCT PLANNING FACTORY',w/2,132);});
   const labelMaterial=new THREE.MeshBasicMaterial({map:floorLabel,transparent:true,depthWrite:false});resources.push(labelMaterial);const labelGeometry=new THREE.PlaneGeometry(4,2);resources.push(labelGeometry);const floorTitle=new THREE.Mesh(labelGeometry,labelMaterial);floorTitle.rotation.x=-Math.PI/2;floorTitle.position.set(3,.06,6.5);floor.add(floorTitle);
   // Back-of-house architecture: a bright, open workshop, rather than a HUD backdrop.
-  const architecture=new THREE.Group();scene.add(architecture);
+  const architecture=new THREE.Group();scene.add(architecture);architecture.position.z=-8;
   for(let i=0;i<4;i++){
     const x=-9+i*5.65;
     cube(architecture,.22,3.65,.24,x,1.84,-9.1,'#bbc5c5',.025,.2);
@@ -175,7 +184,9 @@ function createFactory(renderer) {
   cube(architecture,18,.16,.2,-.5,3.85,-9.1,'#a9b5b4');
   for(let i=0;i<8;i++){const x=-8.6+i*2.28;cube(architecture,.055,2.75,.06,x,1.9,-9.13,'#becac8',.005);}
   for(let i=0;i<6;i++){plant(architecture,-9.2+i*3.5,-8.35,.78);}
-  for(const [x,z] of [[-9,6],[8,7],[8,-6],[-8,-6]])plant(floor,x,z,1);
+  for(const [x,z] of [[-13,8],[13,9],[-14,-9],[14,-10],[-18,1],[18,-1],[-8,16],[9,17],[-19,13],[19,13]]){
+    const prop=new THREE.Group();prop.position.set(x,0,z);floor.add(prop);plant(prop,0,0,.8+(Math.abs(x)%3)*.1);fieldProps.push({group:prop,x,z});
+  }
 
   const stations = {};
   const stationRims=[];
@@ -261,7 +272,7 @@ function createFactory(renderer) {
   const beacon=cylinder(center,.105,.23,0,1.96,-.09,'#ff8f30');const beaconMaterial=new THREE.MeshStandardMaterial({color:'#ff9f2f',emissive:'#ff6200',emissiveIntensity:1.3,roughness:.25});resources.push(beaconMaterial);beacon.material=beaconMaterial;cylinder(center,.17,.045,0,1.825,-.09,'#4f6269');
   cube(center,.54,.06,.15,-.22,1.81,.34,'#c5d4cf');
   cube(center,.44,.22,.04,0,.91,.62,'#f47b34');
-  const packets=[];
+  const packets=[],links=[];
   const addConveyor=(end,index)=>{
     const s=new THREE.Vector3(0,0,0),e=new THREE.Vector3(end.x,0,end.z),dir=e.clone().normalize(),length=e.length(),start=dir.clone().multiplyScalar(1.7),finish=e.clone().addScaledVector(dir,-1.8);
     const mid=start.clone().add(finish).multiplyScalar(.5),len=start.distanceTo(finish),angle=Math.atan2(dir.x,dir.z);if(len<.3)return;
@@ -273,36 +284,39 @@ function createFactory(renderer) {
     for(let j=0;j<2;j++){
       const packet=new THREE.Group();cube(packet,.31,.12,.22,0,0,0,j%2?'#e9b356':'#eaf3ed',.012);cube(packet,.21,.018,.14,0,.07,0,'#fffdf0',.004);scene.add(packet);packets.push({mesh:packet,start,finish,phase:j*.5+index*.11,id:end.id});
     }
+    links.push({group:belt,baseLength:len,start,finish,id:end.id});
   };
   STATIONS.forEach(addConveyor);
-  // Small shipping crates and architecture add believable scale without hiding the work.
-  for(const [x,z] of [[-7.7,2.2],[7.45,-3.3],[-4,7.6]]){
-    cube(floor,.56,.4,.49,x,.28,z,'#d9c7a2');cube(floor,.07,.42,.51,x,.29,z,'#e6d7b9');cube(floor,.17,.09,.018,x+.14,.34,z+.255,'#faf8ed');
+  for(const [x,z] of [[-12,3],[12,13],[-16,-2],[16,-4],[5,16],[-17,12],[17,5],[-5,-16]]){
+    const prop=new THREE.Group();prop.position.set(x,0,z);floor.add(prop);
+    cube(prop,.56,.4,.49,0,.21,0,'#d9c7a2');cube(prop,.07,.42,.51,0,.22,0,'#e6d7b9');cube(prop,.17,.09,.018,.14,.27,.255,'#faf8ed');
+    fieldProps.push({group:prop,x,z});
   }
   return {
-    scene, stations, stationRims, packets, beaconMaterial,
+    scene, stations, stationRims, packets, links, fieldProps, beaconMaterial,
     dispose(){scene.traverse(o=>{if(o.isMesh){if(o.geometry&&!Array.from(geometries.values()).includes(o.geometry))o.geometry.dispose();}});geometries.forEach(x=>x.dispose());materials.forEach(x=>x.dispose());resources.forEach(x=>x.dispose?.());},
   };
 }
 
-export default function FactoryScene({ selected='overview', onSelect, active=null, stepStates={}, reducedMotion=false, onHome, panelWidth=0, stationLabels={}, centerLabel=null, activeNodes=null, onFrame=null, sceneLabel=null }) {
+export default function FactoryScene({ selected='overview', onSelect, active=null, stepStates={}, reducedMotion=false, onHome, panelWidth=0, stationLabels={}, centerLabel=null, activeNodes=null, onFrame=null, sceneLabel=null, recording=false }) {
   const hostRef=useRef(null), labelsRef=useRef({}), dataRef=useRef({ selected, active, stepStates, reducedMotion, onSelect, onHome, panelWidth, activeNodes });
   const [unavailable,setUnavailable]=useState(false);
-  dataRef.current={selected,active,stepStates,reducedMotion,onSelect,onHome,panelWidth,activeNodes,centerLabel,onFrame};
+  dataRef.current={selected,active,stepStates,reducedMotion,onSelect,onHome,panelWidth,activeNodes,centerLabel,onFrame,recording};
   useEffect(()=>{
     const host=hostRef.current;if(!host)return;
-    let renderer, factory, frame=0, stopped=false, last=0;
+    let renderer, factory, frame=0, recordingTimer=0, stopped=false, last=0;
     try{
       renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setClearColor('#edf0ed',0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;
       renderer.domElement.className='factory-webgl';renderer.domElement.setAttribute('aria-hidden','true');host.prepend(renderer.domElement);
       factory=createFactory(renderer);
       host.dataset.researchers='loading';
-      factory.researchers=createResearchers(factory.scene,state=>{host.dataset.researchers=state;});
+      factory.researchers=createResearchers(factory.scene,state=>{host.dataset.researchers=state;},factory.stations);
     }catch(err){setUnavailable(true);renderer?.dispose();return;}
-    const camera=new THREE.OrthographicCamera(-12,12,12,-12,.1,100),direction=new THREE.Vector3(13,17,18).normalize();
+    const camera=new THREE.OrthographicCamera(-12,12,12,-12,.1,500),direction=new THREE.Vector3(13,17,18).normalize();
     const target=new THREE.Vector3(0,.35,0),desiredTarget=target.clone(),projection=new THREE.Vector3();
-    let width=1,height=1,currentPanelWidth=0;
+    let width=1,height=1,currentPanelWidth=0,currentExtent=12,layoutKey='',desiredLayout=null,lastShadow=0;
+    let reflow=null,metricAt=0,metricFrames=0;
     const clampPanel=value=>Math.min(Math.max(0,Number(value)||0),Math.max(0,width-280));
     function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;width=w;height=h;currentPanelWidth=clampPanel(currentPanelWidth);renderer.setSize(width,height,false);}
     const observer=new ResizeObserver(resize);observer.observe(host);resize();
@@ -317,49 +331,85 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
     const onVisibility=()=>{last=0;};document.addEventListener('visibilitychange',onVisibility);
     let oldSelected='',oldActive='',oldStates='';
     function render(ms){
-      if(stopped)return;frame=requestAnimationFrame(render);if(document.hidden)return;
+      if(stopped)return;
+      // Explicit video export keeps feeding MediaRecorder when the browser
+      // throttles animation frames for an occluded preview window.
+      if(dataRef.current.recording)recordingTimer=setTimeout(()=>render(performance.now()),1000/30);
+      else frame=requestAnimationFrame(render);
+      if(document.hidden&&!dataRef.current.recording)return;
       const {selected:sel,active:activeId,stepStates:states,reducedMotion:reduce,panelWidth:requestedPanelWidth}=dataRef.current;
       const interval=reduce?120:1000/30;if(ms-last<interval)return;const dt=last?Math.min((ms-last)/1000,.08):.033;last=ms;
-      const station=factory.stations[sel],selectedPos=station?.position;
-      desiredTarget.set(selectedPos?.x*.075||0,.35,selectedPos?.z*.075||0);
-      const desiredZoom=sel&&sel!=='overview'?1.035:1;
+      const reportedIds=Array.isArray(dataRef.current.activeNodes)?dataRef.current.activeNodes:activeId?[activeId]:[];
+      const activeIds=[...new Set([...reportedIds,...(dataRef.current.centerLabel?.status==='working'?['overview']:[])])].filter(id=>ZONE_IDS.includes(id)),activeKey=[...activeIds].sort().join('|'),stateKey=JSON.stringify(states),elapsed=ms/1000;
       const smooth=reduce?1:1-Math.exp(-dt*6);
-      target.lerp(desiredTarget,smooth);camera.zoom+=(desiredZoom-camera.zoom)*smooth;
       currentPanelWidth+=(clampPanel(requestedPanelWidth)-currentPanelWidth)*smooth;
       if(Math.abs(currentPanelWidth-clampPanel(requestedPanelWidth))<.1)currentPanelWidth=clampPanel(requestedPanelWidth);
-      // Keep the full canvas filled. An off-axis camera moves the factory left
-      // by half the open drawer width; fitting uses the remaining work area.
-      const usableWidth=Math.max(280,width-currentPanelWidth),aspect=width/height;
-      const baseExtent=Math.max(8.0,9.5/(usableWidth/height));
-      camera.left=-baseExtent*aspect;camera.right=baseExtent*aspect;camera.top=baseExtent;camera.bottom=-baseExtent;
+      const usableWidth=Math.max(240,width-currentPanelWidth),aspect=width/height;
+      const nextKey=[Math.round(usableWidth/4),Math.round(height/4),activeKey].join(':');
+      if(nextKey!==layoutKey){
+        const nextLayout=factoryLayout({width,height,panelWidth:currentPanelWidth,activeIds});
+        if(!desiredLayout||ZONE_IDS.some(id=>{const a=desiredLayout.zones[id],b=nextLayout.zones[id];return Math.abs(a.x-b.x)+Math.abs(a.z-b.z)+Math.abs(a.scale-b.scale)>.001;})){
+          const from=Object.fromEntries(Object.entries(factory.stations).map(([id,g])=>[id,{id,x:g.position.x,z:g.position.z,scale:g.scale.x}]));
+          reflow={from,at:elapsed};
+        }
+        desiredLayout=nextLayout;layoutKey=nextKey;host.dataset.fieldLayout=desiredLayout.compact?'compact':'wide';
+      }
+      const moving=transitionFactory(reflow.from,desiredLayout.zones,elapsed-reflow.at,reduce);
+      let changed=false;
+      for(const [id,dest] of Object.entries(moving)){
+        const group=factory.stations[id];if(!group)continue;
+        changed=changed||Math.abs(group.position.x-dest.x)+Math.abs(group.position.z-dest.z)+Math.abs(group.scale.x-dest.scale)>.001;
+        group.position.set(dest.x,0,dest.z);group.scale.setScalar(dest.scale);group.visible=dest.visible;
+      }
+      const currentShapes=Object.fromEntries(Object.entries(factory.stations).map(([id,g])=>[id,{id,x:g.position.x,z:g.position.z,scale:g.scale.x}]));
+      const fitShapes={...currentShapes,...Object.fromEntries(Object.entries(desiredLayout.zones).map(([id,g])=>[id+'-target',g]))};
+      const fit=fitFactory(fitShapes,{width,height,panelWidth:currentPanelWidth,top:width<600?72:84,bottom:height<500?58:90});
+      desiredTarget.set(fit.x,.35,fit.z);target.lerp(desiredTarget,smooth);
+      currentExtent=fit.extent>currentExtent?fit.extent:currentExtent+(fit.extent-currentExtent)*smooth;
+      camera.zoom=1;camera.left=-currentExtent*aspect;camera.right=currentExtent*aspect;camera.top=currentExtent;camera.bottom=-currentExtent;
       camera.setViewOffset(width,height,currentPanelWidth/2,0,width,height);
-      camera.position.copy(direction).multiplyScalar(31).add(target);camera.lookAt(target);camera.updateMatrixWorld();
-      const activeIds=Array.isArray(dataRef.current.activeNodes)?dataRef.current.activeNodes:activeId?[activeId]:[],activeKey=activeIds.join('|'),stateKey=JSON.stringify(states);
+      camera.position.copy(direction).multiplyScalar(Math.max(31,currentExtent*2.1)).add(target);camera.lookAt(target);camera.updateMatrixWorld();
+      if(changed&&elapsed-lastShadow>.12){renderer.shadowMap.needsUpdate=true;lastShadow=elapsed;}
+      const centerGroup=factory.stations.overview;
+      factory.links.forEach(link=>{
+        const end=factory.stations[link.id],dir=end.position.clone().sub(centerGroup.position),distance=dir.length();dir.normalize();
+        const edge=(g,w,d)=>Math.min(Math.abs(dir.x)>.001?w*g.scale.x/Math.abs(dir.x):Infinity,Math.abs(dir.z)>.001?d*g.scale.x/Math.abs(dir.z):Infinity);
+        link.start.copy(centerGroup.position).addScaledVector(dir,edge(centerGroup,1.5,1.35)+.12);
+        link.finish.copy(end.position).addScaledVector(dir,-edge(end,1.9,1.625)-.12);
+        const len=distance-edge(centerGroup,1.5,1.35)-edge(end,1.9,1.625)-.24;
+        link.group.visible=len>.2;if(len<=.2)return;
+        link.group.position.copy(link.start).add(link.finish).multiplyScalar(.5);link.group.rotation.y=Math.atan2(dir.x,dir.z);link.group.scale.z=len/link.baseLength;
+      });
+      factory.fieldProps.forEach(prop=>{prop.group.visible=!Object.values(currentShapes).some(z=>Math.hypot(z.x-prop.x,z.z-prop.z)<3.0*z.scale+1.2);});
+      host.style.setProperty('--zone-label-width',Math.min(width<600?140:158,Math.max(104,(usableWidth-28)/2))+'px');
+      host.style.setProperty('--zone-active-label-width',Math.min(width<600?154:192,Math.max(110,(usableWidth-28)/2))+'px');
       if(sel!==oldSelected||activeKey!==oldActive||stateKey!==oldStates){
         factory.stationRims.forEach(r=>{const status=stageStatus(states[r.id]),isActive=activeIds.includes(r.id),isSelected=sel===r.id;r.material.color.set(isActive?COLORS.orange:isSelected?'#5bc6c4':status==='done'?COLORS.green:'#b6c1bf');r.material.emissive.set(isActive?COLORS.orange:isSelected?'#2b979d':COLORS.green);r.material.emissiveIntensity=isActive ? .38 : isSelected ? .15 : status==='done' ? .05 : 0;});oldSelected=sel;oldActive=activeKey;oldStates=stateKey;
       }
-      const elapsed=ms/1000;
-      factory.researchers.update({activeIds,plannerWorking:dataRef.current.centerLabel ? dataRef.current.centerLabel.status==='working' : activeIds.length>0,reducedMotion:reduce,elapsed});
+      factory.researchers.update({activeIds,plannerWorking:dataRef.current.centerLabel ? dataRef.current.centerLabel.status==='working' : activeIds.length>0,reducedMotion:reduce,elapsed,dt});
       factory.packets.forEach(p=>{const t=reduce?p.phase%1:(elapsed*.105+p.phase)%1;p.mesh.position.copy(p.start).lerp(p.finish,t);p.mesh.position.y=.84;p.mesh.visible=activeIds.includes(p.id);});
       factory.beaconMaterial.emissiveIntensity=activeIds.length?(reduce?1:1.1+Math.sin(elapsed*4)*.45):.4;
+      factory.scene.updateMatrixWorld(true);
       const app=host.closest('.fullscreen-app'),hostRect=host.getBoundingClientRect();
       const uiRect=selector=>{const element=app?.querySelector(selector);if(!element)return null;const rect=element.getBoundingClientRect();return rect.width&&rect.height?{top:rect.top-hostRect.top,bottom:rect.bottom-hostRect.top,left:rect.left-hostRect.left,right:rect.right-hostRect.left}:null;};
       const header=uiRect('.topbar'),footerControls=[uiRect('.scene-controls'),uiRect('.floating-run')].filter(rect=>rect&&rect.right>0&&rect.left<usableWidth&&rect.top>height*.45);
       const safeTop=header?Math.max(8,header.bottom+8):8,safeBottom=Math.max(safeTop+70,Math.min(height-8,...footerControls.map(rect=>rect.top-8)));
       const mobileReturn=width<=760?uiRect('.panel-return'):null,sheetBottom=mobileReturn?mobileReturn.top-8:null,projectedLabels=[];
-      for(const s of [...STATIONS,{id:'overview',x:0,z:0,labelY:1.12}]){
+      for(const s of [...STATIONS,{id:'overview',x:0,z:0,labelY:2.8}]){
         const el=labelsRef.current[s.id];if(!el)continue;const w=el.offsetWidth,h=el.offsetHeight;if(!w||!h)continue;
-        projection.set(s.x,s.labelY,s.z).project(camera);const gutter=w/2+8,projectedX=(projection.x*.5+.5)*width,x=Math.min(Math.max(projectedX,gutter),Math.max(gutter,usableWidth-gutter)),y=(-projection.y*.5+.5)*height;
-        projectedLabels.push({id:s.id,el,w,h,left:x-w/2,top:y-h,visible:projection.z>-1&&projection.z<1});
+        const group=factory.stations[s.id];projection.set(0,s.labelY,0);group.localToWorld(projection);projection.project(camera);const gutter=w/2+8,projectedX=(projection.x*.5+.5)*width,x=Math.min(Math.max(projectedX,gutter),Math.max(gutter,usableWidth-gutter)),y=(-projection.y*.5+.5)*height;
+        el.style.opacity=Math.min(1,group.scale.x/desiredLayout.zones[s.id].scale*1.8);
+        projectedLabels.push({id:s.id,el,w,h,left:x-w/2,top:y-h,visible:group.visible&&projection.z>-1&&projection.z<1});
       }
       for(const label of arrangeLabelRects(projectedLabels,usableWidth,safeTop,safeBottom,sel,sheetBottom)){
         label.el.style.transform=`translate3d(${label.left+label.w/2}px,${label.top+label.h}px,0) translate(-50%,-100%)`;label.el.style.visibility=label.visible?'visible':'hidden';
       }
       renderer.render(factory.scene,camera);
+      metricFrames++;if(ms-metricAt>1000){host.dataset.renderFps=(metricFrames*1000/(ms-metricAt)).toFixed(1);host.dataset.drawCalls=String(renderer.info.render.calls);metricFrames=0;metricAt=ms;}
       dataRef.current.onFrame?.({canvas:renderer.domElement,host,labels:labelsRef.current,elapsed});
     }
     frame=requestAnimationFrame(render);
-    return()=>{stopped=true;cancelAnimationFrame(frame);observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);renderer.domElement.removeEventListener('pointerdown',pointerDown);renderer.domElement.removeEventListener('pointerup',pointerUp);renderer.domElement.removeEventListener('pointermove',pointerMove);renderer.domElement.removeEventListener('webglcontextlost',onLost);factory.researchers?.dispose();factory.dispose();renderer.dispose();renderer.domElement.remove();};
+    return()=>{stopped=true;cancelAnimationFrame(frame);clearTimeout(recordingTimer);observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);renderer.domElement.removeEventListener('pointerdown',pointerDown);renderer.domElement.removeEventListener('pointerup',pointerUp);renderer.domElement.removeEventListener('pointermove',pointerMove);renderer.domElement.removeEventListener('webglcontextlost',onLost);factory.researchers?.dispose();factory.dispose();renderer.dispose();renderer.domElement.remove();};
   },[]);
   return <div className={`factory-scene ${unavailable?'factory-no-webgl':''}`} ref={hostRef} style={{'--factory-panel-width':`${Math.max(0,Number(panelWidth)||0)}px`}} aria-label={sceneLabel||(centerLabel?'하네스 공장 3D 작업 공간':'상품기획 공장 3D 작업 공간')}>
     <div className="factory-scene-grain" aria-hidden="true" />

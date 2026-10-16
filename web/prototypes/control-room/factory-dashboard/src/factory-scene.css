@@ -55,3 +55,15 @@
 @media(max-width:600px){.factory-scene{min-height:430px}.factory-station-label{padding:5px 7px;border-radius:6px}.factory-station-title{margin-top:3px}.factory-station-label.is-selected,.factory-station-label.status-running{width:170px}.factory-station-label.is-selected .factory-station-title strong,.factory-station-label.status-running .factory-station-title strong{font-size:14px}.factory-station-meta{min-height:15px;gap:4px}.factory-station-number small{display:none}.factory-station-state,.factory-station-selected{font-size:8px;padding:2px 4px}.factory-station-label:not(.is-selected):not(.status-running) .factory-station-caption{display:none}.factory-station-caption{font-size:8px;margin-top:3px}.factory-planner-label{min-width:150px}.factory-planner-label.is-selected{min-width:170px}.factory-planner-label.is-selected strong{font-size:14px}.factory-planner-label>span:last-child{font-size:8px}.factory-scene-corner{display:none}.factory-scene-legend{font-size:7px}}
 @media(max-width:1100px){.factory-scene-legend{right:calc(12px + var(--factory-panel-width,0px))}}
 @media(prefers-reduced-motion:reduce){.factory-station-label,.factory-planner-label,.factory-scene-legend{transition:none;will-change:auto}}
+
+/* Labels follow the animated islands; size is bounded by the usable viewport. */
+.factory-scene .factory-station-label{box-sizing:border-box;width:var(--zone-label-width,158px);min-width:0;max-width:none}
+.factory-scene .factory-station-label.is-selected,.factory-scene .factory-station-label.status-running{width:var(--zone-active-label-width,192px);min-width:0;max-width:none}
+.factory-scene .factory-planner-label,.factory-scene .factory-planner-label.is-selected{box-sizing:border-box;width:var(--zone-label-width,158px);min-width:0;max-width:none}
+.factory-scene .factory-station-caption{overflow:hidden;text-overflow:ellipsis}
+.factory-scene .factory-planner-label>span:last-child{display:block;overflow:hidden;text-overflow:ellipsis}
+.factory-scene .factory-station-label.status-running{animation:zone-active-glow .9s ease-out}
+@keyframes zone-active-glow{0%{box-shadow:0 0 0 0 #ff9f3770,0 8px 21px #3343454d}60%{box-shadow:0 0 0 7px #ff9f3700,0 8px 25px #e88b3950}100%{box-shadow:0 0 0 2px #ff8b3533,0 3px 0 #c8671c59,0 8px 21px #3343454d}}
+@media(max-width:600px){.factory-scene .factory-station-label .factory-station-title strong{font-size:13px}.factory-scene .factory-station-meta{gap:2px}.factory-scene .factory-station-selected{display:none}.factory-scene .factory-planner-label strong{font-size:12px}.factory-scene .factory-planner-eyebrow{font-size:7px}.factory-scene .factory-planner-label>span:last-child{font-size:7px}}
+@media(max-height:500px){.factory-scene .factory-station-caption{display:none}.factory-scene .factory-station-label{padding-top:4px;padding-bottom:4px}.factory-scene .factory-planner-label>span:last-child{display:none}.factory-scene .factory-scene-legend{display:none}}
+@media(prefers-reduced-motion:reduce){.factory-scene .factory-station-label.status-running{animation:none}}
