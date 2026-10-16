@@ -1,14 +1,14 @@
 param(
     [ValidateSet('codex','claude')][string]$Engine = 'codex',
-    [string]$Version = 'product-v0.16.1',
+    [string]$Version = 'product-v0.16.2',
     [string]$Target,
     [ValidateSet('gh','public')][string]$Transport = 'gh',
     [switch]$DownloadOnly
 )
 $ErrorActionPreference = 'Stop'
 $repo = '2026-LG-kitchen-chicken-team/lg-ax-agent'
-$installerTag = 'installer-v0.1.0'
-$coreSHA = '716599e7921665036f77ec2858eaa654bfb982c6093c607ab1208805e4d57cdc'
+$installerTag = 'installer-v0.1.1'
+$coreSHA = '54a0e30d2b1ced99894782b083e7745421f8a717c1223b89a8ae5e39dda85dd7'
 $tempRoot = [IO.Path]::GetTempPath()
 $work = Join-Path $tempRoot ('lgax-installer-' + [Guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path $work

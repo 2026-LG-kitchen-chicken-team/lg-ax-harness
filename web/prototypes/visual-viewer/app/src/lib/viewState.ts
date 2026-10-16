@@ -58,7 +58,7 @@ export function pageTarget(view: View | null, id: string | null, preferred: stri
 
 export function reportSnapshot(view: View): { identity: string; sourceIdentity: string; source: ReportSource } | null {
   const r = view.report
-  if (!r || !r.turn_id || !object(r.export) || !Array.isArray(r.export.turns) || r.export.turns.length !== 1) return null
+  if (!r || typeof r.turn_id !== 'string' || !r.turn_id || !object(r.export) || !Array.isArray(r.export.turns) || r.export.turns.length !== 1) return null
   const turn = r.export.turns[0]
   if (!object(turn) || !object(turn.state) || turn.state.turn_id !== r.turn_id) return null
   const sourceIdentity = JSON.stringify(r)

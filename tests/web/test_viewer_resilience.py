@@ -127,6 +127,7 @@ const rebuilt=state.reportSnapshot({...withReport,generated_at:'2026-10-16T12:00
 withReport.report.export.turns[0].result.text='changed';assert.equal(snapshot.source.export.turns[0].result.text,'원문 </script>');
 assert.equal(state.reportSnapshot({...a,report:{...withReport.report,turn_id:'T2'}}),null);
 assert.equal(state.reportSnapshot({...a,report:{...withReport.report,export:{turns:[]}}}),null);
+assert.equal(state.reportSnapshot({...a,report:{turn_id:1,export:{turns:[{state:{turn_id:1}}]}}}),null);
 const {ReadNotice,Empty}=await import(pathToFileURL(path.join(dir,'components/shell.js')));
 const waiting=renderToStaticMarkup(Empty({phase:'waiting',busy:false,reload(){}}));
 const failed=renderToStaticMarkup(Empty({phase:'error',busy:false,reload(){}}));

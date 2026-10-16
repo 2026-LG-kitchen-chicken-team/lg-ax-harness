@@ -22,6 +22,15 @@ export function jinhaReport() {
         return html.replace(find, () => to)
       }
       const code = { adapter: read('report-data-adapter.js'), app: read('report-app.js') }
+      // The iframe load event only means the document loaded. Report actual
+      // embedded-result rendering separately, without leaking internal errors.
+      // Keep upstream vendor files byte-identical; fail closed on a changed hook.
+      code.app = once(code.app, 'const notice=(message,error=false)=>{',
+        `const reportState=type=>{if(window.parent!==window)window.parent.postMessage({type,turn_id:document.getElementById('embedded-report')?.getAttribute('data-turn-id')||null,instance:document.getElementById('embedded-report')?.getAttribute('data-report-instance')||null},'*');};
+const notice=(message,error=false)=>{if(error){reportState('lgax-report-error');message='보고서를 표시하지 못했어요. 업무 화면에서 다시 열어주세요.';}`,
+        'report status notice')
+      code.app = once(code.app, 'restoreTraceSelection();',
+        "restoreTraceSelection();reportState('lgax-report-ready');", 'embedded render completion')
       const css = read('styles.css') + '\n' + read('result-report.css')
       for (const [name, text] of Object.entries({ ...code, css })) {
         if (/<\/(script|style)/i.test(text)) throw new Error(`jinha-report: ${name} contains a closing script/style tag`)
