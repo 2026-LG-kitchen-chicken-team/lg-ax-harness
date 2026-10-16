@@ -18,6 +18,16 @@
 
 허용 ID는 `main`, `payload`와6개 Skill 이름이다: `evidence-retrieval`, `web-evidence-collection`, `needs-structuring`, `feature-comparison`, `concept-writing`, `review-and-revise`. `main`은 `agents/product-planning.md`, `payload`는 저장 양식이다. 역할·임의 파일 경로를 ID로 받지 않는다. 필요한 것만 선택하며 payload는 실제 후보 작성 시에만 받는다.
 
+## 첫 단독 검토 호출: main부터 나누어 받기
+
+현재 main이 없는 단독 review-and-revise 호출은 아래 두 단계로 시작한다. 본문을 잘라 64KiB에 맞추거나 필요한 규칙을 생략하지 않는다.
+
+1. 같은 실제 context_key로 `instruction_ids:["main"]`을 먼저 요청한다.
+2. 첫 응답의 main 항목과 응답 metadata에서 instruction_id/context_key/manifest_sha256/source_sha256/returned_body_sha256을 그대로 복사해 known_context 한 항목을 만든다. SHA를 추정하거나 예시값으로 채우지 않는다.
+3. 같은 context_key로 `instruction_ids:["main","review-and-revise","payload"]`와 위 known_context를 요청한다. main의 status는 already_in_context_reported이며 body가 없고, review-and-revise와 payload만 새 body로 반환되는지 확인한다.
+
+처음부터 세 ID의 새 본문을 함께 요청하면 metadata를 포함한 응답이 64KiB를 넘을 수 있다. 위 순서는 불필요한 output_limit 재시도를 피한다. main이 같은 문맥에 있고 실제 반환 metadata가 남아 있으면 1단계를 반복하지 않는다. 압축·문맥 상실·버전 변경 시에는 보유 신고를 재사용하지 않고 main부터 받는다. 두 반환 모두 코드의 전달 근거이며 native 실제 전달·독해·적용은 아래 증거 구분을 따른다.
+
 응답은 선택한 지침 각각의 `instruction_id/name`, `canonical_path`, 선택적 `native_path`, 실제 `returned_path`, 원본 바이트의 `source_sha256`, 반환 바이트의 `returned_body_sha256`, 본문 `body`, `manifest_sha256`을 포함한다. 설치본에서는 product-install의 원본 결속·실제 지문과 경로 변환을 함께 확인한다. native 사본은 명령/링크가 변환되어 원본 SHA와 다를 수 있다. 개발 소스에서는 canonical 본문을 사용한다. 설치·manifest는 로컬 무결성 근거이며 위변조 방지 서명이 아니다.
 
 선택적 `expected_manifest_sha256`은 원하는 현재 manifest를 고정한다. 이미 문맥에 있다는 신고는 다음 형식으로 준다. 이전 응답 metadata에서 실제 값을 사용한다.
