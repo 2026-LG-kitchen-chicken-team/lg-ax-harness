@@ -3,15 +3,16 @@ import * as THREE from 'three';
 import { createResearchers } from './ResearcherCharacters.js';
 import {factoryLayout,fitFactory,transitionFactory,ZONE_IDS,ZONE_FLOOR} from './factory-layout.js';
 import './factory-scene.css';
+import {buildWorkroom,buildWorkshopBackdrop} from './factory-workshop.js';
 
 const STATIONS = [
-  { id: 'retrieve', no: '01', title: '자료 조회', caption: '리뷰 · 제품 문서 수집', x: -5.9, z: .1, labelY: 3.4 },
-  { id: 'structure', no: '02', title: '니즈 구조화', caption: '고객의 불편을 구조화', x: -2.9, z: -4.9, labelY: 3.55 },
-  { id: 'compare', no: '03', title: '기능 대조', caption: '기존 기능과 남은 불편', x: 3.4, z: -4.05, labelY: 3.45 },
-  { id: 'concept', no: '04', title: '콘셉트 작성', caption: '근거에서 새로운 가능성으로', x: 5.3, z: 1.9, labelY: 3.35 },
-  { id: 'validate', no: '05', title: '검토 · 수정', caption: '근거와 요구사항 최종 점검', x: -1.05, z: 5.7, labelY: 3.35 },
+  { id: 'retrieve', no: '01', title: '자료 조회', caption: '리뷰 · 제품 문서 수집', x: -5.9, z: .1, labelY: 3.04, labelZ: -1.30 },
+  { id: 'structure', no: '02', title: '니즈 구조화', caption: '고객의 불편을 구조화', x: -2.9, z: -4.9, labelY: 3.04, labelZ: -1.30 },
+  { id: 'compare', no: '03', title: '기능 대조', caption: '기존 기능과 남은 불편', x: 3.4, z: -4.05, labelY: 3.04, labelZ: -1.30 },
+  { id: 'concept', no: '04', title: '콘셉트 작성', caption: '근거에서 새로운 가능성으로', x: 5.3, z: 1.9, labelY: 3.04, labelZ: -1.30 },
+  { id: 'validate', no: '05', title: '검토 · 수정', caption: '근거와 요구사항 최종 점검', x: -1.05, z: 5.7, labelY: 3.04, labelZ: -1.30 },
 ];
-const COLORS = { dark: '#293b45', slate: '#65747b', base: '#e9eceb', white: '#f7f7f2', steel: '#b9c4c8', orange: '#fc762c', green: '#219464', blue: '#3a98b9' };
+const COLORS = { dark: '#344e43', slate: '#80978b', base: '#eeeee4', white: '#f7f5ec', steel: '#b6c3b8', orange: '#fc762c', green: '#219464', blue: '#3a98b9' };
 function stageStatus(value) {
   const s = typeof value === 'object' ? value?.status : value;
   if (['complete', 'completed', 'done', 'passed', 'succeeded'].includes(s)) return 'done';
@@ -152,41 +153,29 @@ function createFactory(renderer) {
     cylinder(group,.019*scale,.57*scale,x,.75*scale,z,'#71866a',.019*scale,8);
     for(let i=0;i<7;i++){const a=i*2.4;sphere(group,.16*scale,x+Math.cos(a)*.18*scale,.91*scale+(i%3)*.1*scale,z+Math.sin(a)*.17*scale,i%2?'#708c5b':'#92a16d',[1.4,.65,1]);}
   };
-  scene.add(new THREE.HemisphereLight('#fffdf3','#becad1',2.35));
-  const sun = new THREE.DirectionalLight('#fff8e9',3.7);sun.position.set(-6,15,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-15;sun.shadow.camera.right=15;sun.shadow.camera.top=15;sun.shadow.camera.bottom=-15;sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;sun.shadow.radius=3;scene.add(sun);
-  const fill = new THREE.DirectionalLight('#d6e8f0',1.15);fill.position.set(10,7,-10);scene.add(fill);
+  scene.add(new THREE.HemisphereLight('#fffdf5','#bdccc1',1.85));
+  const sun = new THREE.DirectionalLight('#fff8e8',3.2);sun.position.set(-6,15,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-15;sun.shadow.camera.right=15;sun.shadow.camera.top=15;sun.shadow.camera.bottom=-15;sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;sun.shadow.radius=3;scene.add(sun);
+  const fill = new THREE.DirectionalLight('#e7eee4',.75);fill.position.set(10,7,-10);scene.add(fill);
   const floor=new THREE.Group();scene.add(floor);const fieldProps=[];
   const tiles=canvasTexture((ctx,w,h)=>{
-    ctx.fillStyle='#e1e7df';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#e9ede4';ctx.fillRect(0,0,w,h);
     const size=w/4;
     for(let x=0;x<4;x++)for(let y=0;y<4;y++){
-      ctx.fillStyle=(x+y)%3===0?'#e5eae3':'#e1e7df';ctx.fillRect(x*size+1,y*size+1,size-2,size-2);
-      ctx.strokeStyle='#bbc8bc';ctx.lineWidth=3;ctx.strokeRect(x*size+.5,y*size+.5,size,size);
+      ctx.fillStyle=(x+y)%3===0?'#eef0e7':'#e8ece3';ctx.fillRect(x*size+1,y*size+1,size-2,size-2);
+      ctx.strokeStyle='#d3dacd';ctx.lineWidth=1;ctx.strokeRect(x*size+.5,y*size+.5,size,size);
       ctx.strokeStyle='#f8faf5';ctx.beginPath();ctx.moveTo(x*size+2,y*size+size-2);ctx.lineTo(x*size+size-2,y*size+size-2);ctx.stroke();
     }
   },512,512);
   tiles.wrapS=tiles.wrapT=THREE.RepeatWrapping;tiles.repeat.set(128,128);
-  const groundMaterial=new THREE.MeshStandardMaterial({map:tiles,roughness:.93,color:'#e3e9e0'});resources.push(groundMaterial);
+  const groundMaterial=new THREE.MeshStandardMaterial({map:tiles,roughness:.93,color:'#fafbf5'});resources.push(groundMaterial);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(512,512),groundMaterial);ground.rotation.x=-Math.PI/2;ground.position.y=-.012;ground.receiveShadow=true;floor.add(ground);
   // A narrow safety lane makes the miniature workstations feel like one factory.
   const lane=[[-8,-6],[-3,-7],[5,-6],[8,-1],[7,6],[0,8],[-7,6],[-8,-6]];
   lane.slice(0,-1).forEach((a,i)=>{const b=lane[i+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.floor(len/.65);for(let j=0;j<n;j++){const t=j/n,u=Math.min((j+.5)/n,1);strip(floor,[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u],.05,.065,'#e9ac41');}});
   const floorLabel=canvasTexture((ctx,w,h)=>{ctx.clearRect(0,0,w,h);ctx.fillStyle='#71817d';ctx.font='bold 56px sans-serif';ctx.textAlign='center';ctx.fillText('KITCHEN AX',w/2,90);ctx.font='20px sans-serif';ctx.fillText('PRODUCT PLANNING FACTORY',w/2,132);});
   const labelMaterial=new THREE.MeshBasicMaterial({map:floorLabel,transparent:true,depthWrite:false});resources.push(labelMaterial);const labelGeometry=new THREE.PlaneGeometry(4,2);resources.push(labelGeometry);const floorTitle=new THREE.Mesh(labelGeometry,labelMaterial);floorTitle.rotation.x=-Math.PI/2;floorTitle.position.set(3,.06,6.5);floor.add(floorTitle);
-  // Back-of-house architecture: a bright, open workshop, rather than a HUD backdrop.
-  const architecture=new THREE.Group();scene.add(architecture);architecture.position.z=-8;
-  for(let i=0;i<4;i++){
-    const x=-9+i*5.65;
-    cube(architecture,.22,3.65,.24,x,1.84,-9.1,'#bbc5c5',.025,.2);
-    cube(architecture,.38,.7,.37,x,.35,-9.1,'#d0b15f');
-    if(i<3){cube(architecture,5.5,.55,.17,x+2.8,.3,-9.1,'#e1e5df');cube(architecture,5.5,.09,.19,x+2.8,2.85,-9.1,'#b0bfc1');cube(architecture,5.5,.14,.21,x+2.8,3.6,-9.1,'#c2cdcb');}
-  }
-  cube(architecture,18,.16,.2,-.5,3.85,-9.1,'#a9b5b4');
-  for(let i=0;i<8;i++){const x=-8.6+i*2.28;cube(architecture,.055,2.75,.06,x,1.9,-9.13,'#becac8',.005);}
-  for(let i=0;i<6;i++){plant(architecture,-9.2+i*3.5,-8.35,.78);}
-  for(const [x,z] of [[-13,8],[13,9],[-14,-9],[14,-10],[-18,1],[18,-1],[-8,16],[9,17],[-19,13],[19,13]]){
-    const prop=new THREE.Group();prop.position.set(x,0,z);floor.add(prop);plant(prop,0,0,.8+(Math.abs(x)%3)*.1);fieldProps.push({group:prop,x,z});
-  }
+  const workshopTools={cube,cylinder,monitor,board,plant,mat,resources,canvasTexture};
+  buildWorkshopBackdrop(scene,workshopTools);
 
   const stations = {};
   const stationRims=[];
@@ -197,74 +186,18 @@ function createFactory(renderer) {
     const rimMaterial=new THREE.MeshStandardMaterial({color:'#b6c7bb',emissive:'#fc8b30',emissiveIntensity:0,roughness:.4});resources.push(rimMaterial);
     const rimPart=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(roundedGeo(w,h,d,.015),rimMaterial);m.position.set(x,y,z);group.add(m);};
     for(const [w,d,x,z] of [[5.42,.065,0,-2.28],[.065,4.56,-2.68,0],[.065,4.56,2.68,0],[1.95,.065,-1.73,2.28],[1.95,.065,1.73,2.28]])rimPart(w,.065,d,x,.66,z);
-    for(const x of [-2.66,2.66])for(const z of [-2.26,2.26]){rimPart(.075,.64,.075,x,.98,z);rimPart(.16,.05,.16,x,1.30,z);}
-    stationRims.push({id:s.id,material:rimMaterial,group});
+    for(const x of [-2.66,2.66])for(const z of [-2.26,2.26]){rimPart(.075,.30,.075,x,.79,z);rimPart(.13,.045,.13,x,.96,z);}
+    const glowMaterial=new THREE.MeshBasicMaterial({color:'#ffb14d',transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});resources.push(glowMaterial);
+    for(const [w,d,x,z] of [[5.4,.23,0,-2.28],[.23,4.56,-2.68,0],[.23,4.56,2.68,0],[1.95,.23,-1.73,2.28],[1.95,.23,1.73,2.28]]){const glow=new THREE.Mesh(roundedGeo(w,.025,d,.01),glowMaterial);glow.position.set(x,.51,z);group.add(glow);}
+    for(const x of [-1.32,1.32]){cube(group,.055,2.52,.065,x,1.78,-1.30,'#b8aa87',.01,.4);cube(group,.11,.08,.12,x,3.01,-1.30,'#ded0ad');}
+    cube(group,2.80,.07,.10,0,3.00,-1.30,'#b3a17c',.018,.3);
+    stationRims.push({id:s.id,material:rimMaterial,glowMaterial,group});
     for(const x of [-2.46,2.46])for(const z of [-2.08,2.08])cube(group,.25,.23,.28,x,.15,z,'#657b71');
     plant(group,-2.42,-2.02,.72);plant(group,2.42,2.02,.65);
     const interior=new THREE.Group();interior.position.y=.10;group.add(interior);
     return interior;
   };
-  // 01 — source intake, books, storage cabinets, and a small scanner.
-  let g=platform(STATIONS[0]);
-  cube(g,2.2,1.45,.43,0,1.12,-1.08,COLORS.steel,.06,.2);
-  for(let row=0;row<3;row++){
-    cube(g,2.08,.045,.53,0,.53+row*.48,-.96,'#67787a');
-    for(let i=0;i<8;i++){
-      const h=.29+(i%3)*.035, x=-.88+i*.25;
-      cube(g,.19,h,.36,x,.54+row*.48+h/2,-.94,['#e5e6d6','#8ba7b3','#b5c0bd','#d5a75d'][i%4],.013);
-      cube(g,.115,.025,.018,x,.54+row*.48+h*.7,-.746,'#f7f8ef',.003);
-    }
-  }
-  cube(g,.64,1.39,.68,-1.25,1.07,.14,'#9eafb1',.05,.4);cube(g,.4,.55,.02,-1.25,1.27,.493,'#314f59');cube(g,.04,.08,.025,-1.02,.99,.5,'#e6f1e7');
-  cube(g,1.5,.13,.8,.48,1.02,.55,'#f9f9f1');for(const x of [-.1,1.06])cube(g,.075,.65,.075,x,.67,.55,COLORS.slate);
-  cube(g,.72,.24,.5,.4,1.19,.53,'#c8cecc');cube(g,.53,.045,.3,.4,1.33,.53,COLORS.dark);
-  cube(g,.4,.28,.37,1.16,.56,-.05,'#eba643');
-  for(let i=0;i<4;i++)cube(g,.48,.035,.35,.2,1.08+i*.04,.93,i%2?'#e6e8e1':'#b9cfdb');
-  monitor(g,-.67,1.5,.4,.7);
-  cube(g,.65,.12,.90,1.55,1.03,-.67,'#f8f6ed');for(const z of [-.96,-.38])cube(g,.07,.62,.07,1.55,.67,z,'#a7b5ad');
-  monitor(g,1.55,1.42,-.69,.70);cylinder(g,.24,.08,1.53,.81,.13,'#78947b');cylinder(g,.045,.36,1.53,.59,.13,'#a0aba4');
-
-  // 02 — customer needs board, colored evidence cards, desk and sorted trays.
-  g=platform(STATIONS[1]);board(g,'sticky',0,1.83,-.92,2.73,1.5);
-  cube(g,2.8,.13,.76,0,.97,.52,'#f5f4ec');for(const x of [-1.17,1.17])cube(g,.1,.58,.54,x,.65,.52,'#aebcbd');
-  for(let i=0;i<3;i++){cube(g,.55,.12,.4,-.88+i*.86,1.09,.46,['#f4c261','#86bdb8','#b4c2d5'][i]);for(let j=0;j<3;j++)cube(g,.37,.025,.24,-.88+i*.86,1.17+j*.032,.46,'#f7f7f1',.005);}
-  cube(g,.32,.29,.4,1.28,.57,1.05,'#dba54b');plant(g,-1.5,-1.17,.6);
-
-  // 03 — real solid miniature refrigerators on an inspection platform.
-  g=platform(STATIONS[2]);
-  const fridge=(x,z,scale,color)=>{
-    const rg=new THREE.Group();rg.position.set(x,.42,z);rg.scale.setScalar(scale);g.add(rg);
-    cube(rg,1.03,2.08,.84,0,1.04,0,color,.07,.5);
-    cube(rg,.97,1.18,.085,0,1.48,.466,'#cbd4d7',.04,.55);
-    cube(rg,.97,.73,.085,0,.47,.466,'#c3cdd0',.04,.55);
-    cube(rg,.018,1.12,.018,0,1.48,.52,'#677e89',.005);
-    cube(rg,.035,.47,.045,-.06,1.47,.539,'#657c89',.01,.7);cube(rg,.035,.47,.045,.06,1.47,.539,'#657c89',.01,.7);
-    cube(rg,.36,.023,.04,0,.79,.534,'#6d838d',.005,.7);
-    cube(rg,.23,.28,.018,.25,1.62,.522,'#264855',.01);cube(rg,.14,.018,.01,.25,1.66,.536,'#71c9d2',.002);
-    cube(rg,.91,.08,.77,0,.03,.025,'#4e636c',.02,.2);
-    cube(rg,.025,1.76,.025,-.525,1.11,.25,'#e9f1ef',.006);
-  };
-  fridge(-.88,-.35,1,'#9eadb5');fridge(.28,-.55,.76,'#6d9aaa');
-  board(g,'check',1.15,1.8,-1.05,1.18,1.3);
-  cube(g,.91,.12,.7,.95,.99,.7,'#f4f2e9');for(const x of [.6,1.3])cube(g,.065,.61,.48,x,.64,.7,'#a4b2b3');
-  cube(g,.4,.45,.37,.95,1.27,.7,'#e0e3dc');cube(g,.21,.15,.025,.95,1.33,.901,'#244a53');cylinder(g,.06,.08,.95,1.54,.68,'#ed8a35');
-  monitor(g,-1.38,1.09,1.0,.67);
-
-  // 04 — engineering bench, blueprint board, modular product prototypes.
-  g=platform(STATIONS[3]);board(g,'blueprint',0,1.89,-.97,2.75,1.57);
-  cube(g,2.7,.16,1.07,0,1.08,.43,'#f6f6ee');for(const x of [-1.08,1.08]){cube(g,.17,.65,.75,x,.69,.43,'#b3c0c2');cube(g,.22,.25,.79,x,.51,.43,'#eba44a');}
-  for(let i=0;i<3;i++){const x=-.84+i*.84;cube(g,.53,.11,.53,x,1.23,.48,'#728b95');cube(g,.36,.29+i*.12,.35,x,1.33+i*.06,.48,'#e8edea',.04);cube(g,.21,.018,.25,x,1.49+i*.12,.48,'#c0d2d6');}
-  monitor(g,-1.15,1.62,.29,.58);plant(g,1.53,-1.16,.65);
-
-  // 05 — checklist, magnifier and inspection tools.
-  g=platform(STATIONS[4]);board(g,'check',-.33,1.9,-.95,2.35,1.55);
-  cube(g,2.65,.14,1.03,0,.96,.47,'#f3f2e8');for(const x of [-1.1,1.1])cube(g,.13,.57,.7,x,.65,.47,'#aeb9b8');
-  cylinder(g,.24,.06,.51,1.07,.35,'#617983');cube(g,.065,.67,.065,.51,1.42,.35,'#506973');
-  const glassMaterial=new THREE.MeshPhysicalMaterial({color:'#b9e1e4',roughness:.12,metalness:.03,transparent:true,opacity:.42});resources.push(glassMaterial);
-  const torusGeometry=new THREE.TorusGeometry(.35,.048,10,28);resources.push(torusGeometry);const magnifier=new THREE.Mesh(torusGeometry,mat('#4c6b77',.3,.6));magnifier.position.set(.51,1.89,.36);g.add(magnifier);
-  const glassGeometry=new THREE.CircleGeometry(.32,28);resources.push(glassGeometry);const glass=new THREE.Mesh(glassGeometry,glassMaterial);glass.position.copy(magnifier.position);g.add(glass);
-  for(let i=0;i<3;i++){cube(g,.35,.18,.34,-.94+i*.46,1.1,.55,i===1?'#d9b785':'#e4e8df');cube(g,.13,.035,.1,-.94+i*.46,1.21,.55,i===1?'#ed9b42':'#64a28b');}
-  monitor(g,1.05,1.47,.26,.65);
+  STATIONS.forEach(s=>buildWorkroom(s.id,platform(s),workshopTools));
 
   const center = new THREE.Group();center.userData.station='overview';scene.add(center);stations.overview=center;
   cube(center,3,.22,2.7,0,.22,0,'#617276',.17,.2);cube(center,2.82,.12,2.5,0,.4,0,'#faf8ee',.1);
@@ -279,16 +212,16 @@ function createFactory(renderer) {
   cube(center,.44,.22,.04,0,.91,.62,'#f47b34');
   const packets=[],links=[];
   const addConveyor=(end,index)=>{
-    const s=new THREE.Vector3(0,0,0),e=new THREE.Vector3(end.x,0,end.z),dir=e.clone().normalize(),length=e.length(),start=dir.clone().multiplyScalar(1.7),finish=e.clone().addScaledVector(dir,-1.8);
-    const mid=start.clone().add(finish).multiplyScalar(.5),len=start.distanceTo(finish),angle=Math.atan2(dir.x,dir.z);if(len<.3)return;
-    const belt=new THREE.Group();belt.position.copy(mid);belt.rotation.y=angle;scene.add(belt);
-    cube(belt,.63,.16,len,0,.56,0,'#bdc7c4',.02,.3);cube(belt,.47,.035,len,0,.66,0,'#374e51',.006);
-    for(const x of [-.29,.29])cube(belt,.045,.12,len+.1,x,.7,0,'#a6b6b6',.009,.6);
-    const count=Math.ceil(len/.18);for(let j=0;j<count;j++){const roller=cylinder(belt,.044,.48,0,.68,-len/2+(j+.5)*len/count,'#8e9fa0',.044,10);roller.rotation.z=Math.PI/2;}
-    for(const z of [-len*.37,len*.37]){for(const x of [-.22,.22])cube(belt,.045,.47,.045,x,.25,z,'#778c8d');cube(belt,.6,.055,.17,0,.085,z,'#a6b4b2');}
-    for(let j=0;j<2;j++){
-      const packet=new THREE.Group();cube(packet,.31,.12,.22,0,0,0,j%2?'#e9b356':'#eaf3ed',.012);cube(packet,.21,.018,.14,0,.07,0,'#fffdf0',.004);scene.add(packet);packets.push({mesh:packet,start,finish,phase:j*.5+index*.11,id:end.id});
-    }
+    const e=new THREE.Vector3(end.x,0,end.z),dir=e.clone().normalize(),start=dir.clone().multiplyScalar(1.7),finish=e.clone().addScaledVector(dir,-1.8),len=start.distanceTo(finish);
+    const belt=new THREE.Group();belt.position.copy(start).add(finish).multiplyScalar(.5);belt.rotation.y=Math.atan2(dir.x,dir.z);scene.add(belt);
+    cube(belt,.78,.10,len,0,.35,0,'#becabd',.025,.2);
+    const glass=cube(belt,.65,.035,len,0,.422,0,'#c8dfd0',.012,.2);
+    const glassMaterial=new THREE.MeshPhysicalMaterial({color:'#cce4d5',roughness:.12,metalness:.1,transparent:true,opacity:.74});glass.material=glassMaterial;resources.push(glassMaterial);
+    for(const x of [-.35,.35])cube(belt,.035,.045,len,x,.45,0,'#f7f4dd',.008,.3);
+    for(let j=0;j<Math.ceil(len/.62);j++){const dash=cube(belt,.20,.012,.06,0,.448,-len/2+(j+.5)*len/Math.ceil(len/.62),'#f5df9b',.005);dash.material=mat('#f5df9b',.25,.15);}
+    for(let j=0;j<3;j++){const packet=new THREE.Group();const m=new THREE.MeshBasicMaterial({color:'#ffd17a',transparent:true,opacity:.9,depthWrite:false});resources.push(m);
+     for(const side of [-1,1]){const arrow=cube(packet,.035,.013,.16,side*.045,0,0,'#ffd17a',.002);arrow.rotation.y=side*.55;arrow.material=m;}
+     scene.add(packet);packets.push({mesh:packet,start,finish,phase:j/3+index*.11,id:end.id});}
     links.push({group:belt,baseLength:len,start,finish,id:end.id});
   };
   STATIONS.forEach(addConveyor);
@@ -312,7 +245,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
     let renderer, factory, frame=0, recordingTimer=0, stopped=false, last=0;
     try{
       renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setClearColor('#edf0ed',0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setClearColor('#edf0ed',0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.02;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;
       renderer.domElement.className='factory-webgl';renderer.domElement.setAttribute('aria-hidden','true');host.prepend(renderer.domElement);
       factory=createFactory(renderer);
       host.dataset.researchers='loading';
@@ -389,10 +322,11 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       host.style.setProperty('--zone-label-width',Math.min(width<600?146:174,Math.max(104,(usableWidth-24)/2))+'px');
       host.style.setProperty('--zone-active-label-width',Math.min(width<600?178:254,Math.max(110,(usableWidth-24)/2))+'px');
       if(sel!==oldSelected||activeKey!==oldActive||stateKey!==oldStates){
-        factory.stationRims.forEach(r=>{const status=stageStatus(states[r.id]),isActive=activeIds.includes(r.id),isSelected=sel===r.id;r.material.color.set(isActive?COLORS.orange:isSelected?'#5bc6c4':status==='done'?COLORS.green:'#b6c1bf');r.material.emissive.set(isActive?COLORS.orange:isSelected?'#2b979d':COLORS.green);r.material.emissiveIntensity=isActive ? .38 : isSelected ? .15 : status==='done' ? .05 : 0;});oldSelected=sel;oldActive=activeKey;oldStates=stateKey;
+        factory.stationRims.forEach(r=>{const status=stageStatus(states[r.id]),isActive=activeIds.includes(r.id),isSelected=sel===r.id;r.material.color.set(isActive?COLORS.orange:isSelected?'#5bc6c4':status==='done'?COLORS.green:'#b6c1bf');r.material.emissive.set(isActive?COLORS.orange:isSelected?'#2b979d':COLORS.green);r.material.emissiveIntensity=isActive ? 1.5 : isSelected ? .15 : status==='done' ? .05 : 0;});oldSelected=sel;oldActive=activeKey;oldStates=stateKey;
       }
+      factory.stationRims.forEach(r=>{r.glowMaterial.opacity=activeIds.includes(r.id)?(reduce?.24:.22+Math.sin(elapsed*2)*.035):0;});
       factory.researchers.update({activeIds,plannerWorking:dataRef.current.centerLabel ? dataRef.current.centerLabel.status==='working' : activeIds.length>0,reducedMotion:reduce,elapsed,dt,pausedIds:Object.keys(states).filter(id=>stageStatus(states[id])==='paused')});
-      factory.packets.forEach(p=>{const t=reduce?p.phase%1:(elapsed*.105+p.phase)%1;p.mesh.position.copy(p.start).lerp(p.finish,t);p.mesh.position.y=.84;p.mesh.visible=activeIds.includes(p.id);});
+      factory.packets.forEach(p=>{const t=reduce?p.phase%1:(elapsed*.105+p.phase)%1;p.mesh.position.copy(p.start).lerp(p.finish,t);p.mesh.position.y=.48;p.mesh.visible=activeIds.includes(p.id);});
       factory.beaconMaterial.emissiveIntensity=activeIds.length?(reduce?1:1.1+Math.sin(elapsed*4)*.45):.4;
       factory.scene.updateMatrixWorld(true);
       const app=host.closest('.fullscreen-app'),hostRect=host.getBoundingClientRect();
@@ -402,7 +336,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       const mobileReturn=width<=760?uiRect('.panel-return'):null,sheetBottom=mobileReturn?mobileReturn.top-8:null,projectedLabels=[];
       for(const s of [...STATIONS,{id:'overview',x:0,z:0,labelY:2.8}]){
         const el=labelsRef.current[s.id];if(!el)continue;const w=el.offsetWidth,h=el.offsetHeight;if(!w||!h)continue;
-        const group=factory.stations[s.id];projection.set(0,s.labelY,0);group.localToWorld(projection);projection.project(camera);const gutter=w/2+8,projectedX=(projection.x*.5+.5)*width,x=Math.min(Math.max(projectedX,gutter),Math.max(gutter,usableWidth-gutter)),y=(-projection.y*.5+.5)*height;
+        const group=factory.stations[s.id];projection.set(0,s.labelY,s.labelZ||0);group.localToWorld(projection);projection.project(camera);const gutter=w/2+8,projectedX=(projection.x*.5+.5)*width,x=Math.min(Math.max(projectedX,gutter),Math.max(gutter,usableWidth-gutter)),y=(-projection.y*.5+.5)*height;
         el.style.opacity=Math.min(1,group.scale.x/desiredLayout.zones[s.id].scale*1.8);
         projectedLabels.push({id:s.id,el,w,h,left:x-w/2,top:y-h,visible:group.visible&&projection.z>-1&&projection.z<1});
       }
