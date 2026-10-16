@@ -38,7 +38,7 @@ import build_view  # noqa: E402
 import hook  # noqa: E402
 
 APP_REL = ("web", "prototypes", "visual-viewer")
-APP_FILES = ("index.html", "build_view.py", "hook.py", "viewer.py", "README.md")
+APP_FILES = ("index.html", "build_view.py", "hook.py", "viewer.py", "delivery.py", "watch.py", "README.md")
 # uv: 작업 폴더의 .python-version·uv.toml·pyproject를 따르지 않고 3.12를 쓰며 Python을 내려받지 않는다.
 UV_PREFIX = "uv run --no-project --no-config --python 3.12 --no-python-downloads --quiet python -I -B -c"
 # Python 코드 부분은 Git Bash·PowerShell·cmd 어디서나 같게 해석되도록 $ % ! ` \ ^ & | < > 를 쓰지 않는다.
@@ -932,10 +932,12 @@ def cmd_selftest(args) -> int:
                     results.append({**row, "result": "fail", "reason": f"{type(exc).__name__}: {exc}"})
                     continue
                 state = hook.read_state(paths)
-                built = state.get("last_export") == export.name and f"{source}:selftest-{name}" in (state.get("opened_sessions") or [])
-                ok = proc.returncode == 0 and not proc.stdout and not proc.stderr and built
+                built = (state.get("last_export") == export.name and Path(paths.out, "index.html").is_file()
+                         and Path(paths.out, "view-data.js").is_file())
+                opened = bool(state.get("opened_sessions"))
+                ok = proc.returncode == 0 and not proc.stdout and not proc.stderr and built and not opened
                 row.update(result="pass" if ok else "fail", exit=proc.returncode, output_bytes=len(proc.stdout) + len(proc.stderr),
-                           view_rebuilt=built, seconds=round(time.perf_counter() - started, 2))
+                           view_rebuilt=built, open_requested=opened, display_verified=False, seconds=round(time.perf_counter() - started, 2))
                 if not ok:
                     logs = [Path(paths.error_log), Path(paths.out, START_LOG)]
                     last = [line for f in logs if f.is_file() for line in f.read_bytes().decode("utf-8", "replace").splitlines() if line.strip()]

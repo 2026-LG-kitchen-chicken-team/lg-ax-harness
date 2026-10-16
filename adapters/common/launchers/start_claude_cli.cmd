@@ -6,11 +6,7 @@ cd /d "%~dp0"
 call :uv || goto fail
 set "PY=uv run --no-project --python 3.12 python"
 %PY% judge.py prepare --engine claude --ui cli || goto fail
-set "PATH=%USERPROFILE%\.local\bin;%PATH%"
-cd /d "%~dp0claude"
-echo Claude Code를 시작합니다 (Opus 5.5, 추론 중간). 끝내려면 /exit
-claude --model claude-opus-5-5 --effort medium
-if errorlevel 1 pause
+%PY% judge.py launch --engine claude --ui cli || goto fail
 exit /b
 
 :uv

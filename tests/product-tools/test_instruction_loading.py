@@ -214,6 +214,31 @@ class InstalledInstructionTests(unittest.TestCase):
                 InstructionLoader(target).get_work_instructions({"context_key": "current", "instruction_ids": ["needs-structuring"]})
             self.assertEqual(error.exception.code, "instruction_integrity")
 
+    def test_standalone_review_loads_main_then_complete_review_and_payload(self):
+        for target in (self.codex, self.claude):
+            with self.subTest(engine=target.name):
+                loader = InstructionLoader(target)
+                first = loader.get_work_instructions({"context_key": "review-request",
+                                                      "instruction_ids": ["main"]})
+                item = first["instructions"][0]
+                known = {"instruction_id": "main", "context_key": first["context_key"],
+                         "manifest_sha256": first["manifest_sha256"],
+                         "source_sha256": item["source_sha256"],
+                         "returned_body_sha256": item["returned_body_sha256"]}
+                second = loader.get_work_instructions({"context_key": "review-request",
+                                                       "instruction_ids": ["main", "review-and-revise", "payload"],
+                                                       "known_context": [known]})
+                self.assertEqual(second["receipt"]["body_instruction_ids"], ["review-and-revise", "payload"])
+                self.assertEqual(second["receipt"]["already_in_context_reported_ids"], ["main"])
+                self.assertNotIn("body", second["instructions"][0])
+                for response in (first, second):
+                    self.assertLessEqual(len(canonical({"ok": True, "result": response}).encode("utf-8")), MAX_BYTES)
+                    for instruction in response["instructions"]:
+                        if "body" in instruction:
+                            self.assertEqual(instruction["body"].encode("utf-8"),
+                                             (target / instruction["returned_path"]).read_bytes())
+                self.assertFalse((target / "runtime-data/product.sqlite").exists())
+
     def test_six_wrappers_return_only_selected_body_without_catalog_or_DB(self):
         for name in SKILLS:
             with self.subTest(skill=name):

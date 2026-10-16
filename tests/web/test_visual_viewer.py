@@ -1167,9 +1167,9 @@ class HookTests(TempCase):
             self.assertFalse(result["opened_browser"])
             browser.assert_called_once()
         self.h.add("dishwasher")
-        with mock.patch.object(hook, "open_browser") as browser:
-            self.assertFalse(self.run_hook({"session_id": "browser-failed"}, "claude")["opened_browser"])
-            browser.assert_not_called()
+        with mock.patch.dict(os.environ, {"LGAX_VIEWER_NO_OPEN": ""}), mock.patch.object(hook, "open_browser", return_value=True) as browser:
+            self.assertTrue(self.run_hook({"session_id": "browser-failed"}, "claude")["opened_browser"])
+            browser.assert_called_once()
 
     def test_export_before_web_payload_is_rebuilt_when_exact_payload_arrives(self):
         export = self.h.add("microwave")
@@ -1191,7 +1191,7 @@ class HookTests(TempCase):
         return hook.run(payload, src, hook.Paths(str(self.h.root)))
 
     def test_rebuild_only_for_new_export_and_open_once_per_cli_session(self):
-        with mock.patch.object(hook, "open_browser") as opened:
+        with mock.patch.dict(os.environ, {"LGAX_VIEWER_NO_OPEN": ""}), mock.patch.object(hook, "open_browser") as opened:
             self.assertEqual(self.run_hook({"session_id": "s1"}, "claude")["reason"], "export 없음")
             first = self.h.add("refrigerator")
             result = self.run_hook({"session_id": "s1"}, "claude")
@@ -1250,7 +1250,7 @@ class HookTests(TempCase):
         with mock.patch.object(hook, "open_browser"):
             self.assertTrue(self.run_hook({"session_id": "s1"}, "claude")["changed"])
 
-    def test_state_write_and_read_retry_and_session_is_recorded_before_opening(self):  # state race, tests-docs-new-3
+    def test_state_write_and_read_retry_and_attempt_is_recorded_before_opening(self):  # state race
         paths = hook.Paths(str(self.h.root))
         real, calls = os.replace, []
 
@@ -1277,11 +1277,11 @@ class HookTests(TempCase):
         real_write = hook.write_state
 
         def fail_on_sessions(p, state):
-            if "claude:y" in (state.get("opened_sessions") or []):
+            if "claude:y" in (state.get("open_attempts") or {}):
                 raise PermissionError("state locked")
             return real_write(p, state)
 
-        with mock.patch.object(hook, "write_state", fail_on_sessions), mock.patch.object(hook, "open_browser") as opened:
+        with mock.patch.dict(os.environ, {"LGAX_VIEWER_NO_OPEN": ""}), mock.patch.object(hook, "write_state", fail_on_sessions), mock.patch.object(hook, "open_browser") as opened:
             with self.assertRaises(PermissionError):
                 hook.run({"session_id": "y"}, "claude", paths)
             opened.assert_not_called()
@@ -1455,13 +1455,13 @@ class InstalledHookProcessTests(TempCase):
     def test_codex_stop_payload_triggers_rebuild(self):  # codex-hook-01, round 5
         self.h.add("microwave")
         self.assertSilentZero(self.call(self.python_part(self.codex), self.stop("x1"), self.h.root))
-        self.assertEqual(self.h.state()["opened_sessions"], ["codex:x1"])
+        self.assertFalse(self.h.state().get("opened_sessions"))  # NO_OPEN is not a successful OS request.
         self.assertTrue((self.h.out / "view-data.js").is_file())
         self.assertEqual((self.h.out / ".hook-last-export").read_text(encoding="utf-8"), EXPORTS["microwave"].name)
         self.h.add("dishwasher")
         self.assertSilentZero(self.call(self.python_part(self.claude), {"session_id": "c1", "tool_name": "PowerShell"}, Path.home(),
                                         env={"CLAUDE_PROJECT_DIR": str(self.h.root)}))
-        self.assertEqual(self.h.state()["opened_sessions"], ["codex:x1", "claude:c1"])
+        self.assertFalse(self.h.state().get("opened_sessions"))
 
     def test_tampered_viewer_files_are_not_executed_and_are_logged(self):  # codex-hook-02, installer-new-pinned-other-cli-silent
         app = self.h.root / "web/prototypes/visual-viewer"
@@ -1486,7 +1486,7 @@ class InstalledHookProcessTests(TempCase):
     def test_garbage_input_missing_script_and_errors_stay_silent(self):
         self.h.add("held")
         self.assertSilentZero(self.call(self.python_part(self.codex), b"\xff not json", self.h.root))
-        self.assertIn("codex:no-session", self.h.state()["opened_sessions"])
+        self.assertFalse(self.h.state().get("opened_sessions"))
         broken = self.h.exports / "export-zz-broken.json"
         broken.write_text("{", encoding="utf-8")
         os.utime(broken, (time.time() + 100, time.time() + 100))
@@ -1507,7 +1507,7 @@ class InstalledHookProcessTests(TempCase):
         self.assertSilentZero(self.call(wrap(self.claude["command"]), {"session_id": name}, Path.home(), shell=shell,
                                         env={"CLAUDE_PROJECT_DIR": str(self.h.root)}))
         self.assertEqual(self.h.state()["last_export"], f"export-{name}.json")
-        self.assertIn(f"claude:{name}", self.h.state()["opened_sessions"])
+        self.assertFalse(self.h.state().get("opened_sessions"))
 
     def test_claude_command_default_shell(self):
         self.claude_run("default", lambda c: c, shell=True)  # cmd.exe on Windows, /bin/sh elsewhere
@@ -1541,7 +1541,7 @@ class InstalledHookProcessTests(TempCase):
         self.assertFalse((self.h.out / "view-data.js").exists())
         self.h.add("microwave")
         run(f"{shell}-1")
-        self.assertIn(f"codex:{shell}-1", self.h.state()["opened_sessions"])
+        self.assertFalse(self.h.state().get("opened_sessions"))
         self.assertEqual(self.h.state()["last_export"], EXPORTS["microwave"].name)
         marker = self.h.root / "planted-ran.txt"
         (self.h.root / "uv.cmd").write_text(f'@echo off\r\necho planted> "{marker}"\r\n', encoding="ascii")
@@ -1620,7 +1620,7 @@ class InstalledHookProcessTests(TempCase):
         self.need_uv()
         self.h.add("microwave")
         self.assertSilentZero(self.call([bash, "-c", self.codex["command"]], self.stop("p2"), self.h.root))
-        self.assertIn("codex:p2", self.h.state()["opened_sessions"])
+        self.assertFalse(self.h.state().get("opened_sessions"))
         app = self.h.root / "web/prototypes/visual-viewer"
         (app / "hook.py").write_bytes((app / "hook.py").read_bytes() + b"\n# tampered\n")
         before = self.log_size()
@@ -1679,7 +1679,7 @@ class InstalledHookProcessTests(TempCase):
         self.assertTrue(report["claude"]["files_match_command"] and report["codex"]["files_match_command"])
         self.h.add("microwave")
         self.assertSilentZero(self.call(self.python_part(self.entry(".codex/hooks.json")), self.stop("after-update"), self.h.root))
-        self.assertIn("codex:after-update", self.h.state()["opened_sessions"])
+        self.assertFalse(self.h.state().get("opened_sessions"))
         (self.h.root / ".codex/hooks.json").write_text("{broken", encoding="utf-8")
         code, text = run_viewer("install", "--claude", str(self.h.root))
         self.assertEqual(code, 0)
@@ -1853,7 +1853,7 @@ class InstallTests(TempCase):
         report = json.loads(run_viewer("status", str(self.h.root))[1])
         self.assertEqual((report["view_built"], report["baseline_only"], report["up_to_date"], report["last_built"]), (False, True, False, None))
         paths = hook.Paths(str(self.h.root))
-        with mock.patch.object(hook, "open_browser") as opened:
+        with mock.patch.dict(os.environ, {"LGAX_VIEWER_NO_OPEN": ""}), mock.patch.object(hook, "open_browser") as opened:
             self.assertFalse(hook.run({"session_id": "a"}, "claude", paths)["changed"])
             built = self.h.add("microwave")
             self.assertTrue(hook.run({"session_id": "a"}, "claude", paths)["opened_browser"])

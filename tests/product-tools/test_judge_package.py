@@ -34,10 +34,9 @@ class JudgePackageTests(unittest.TestCase):
         change_dir.assert_called_once_with(folder)
         replace.assert_called_once_with(sys.executable,command)
         child.assert_not_called()
-        for name in ('start_codex_cli.sh','start_codex_gui.sh'):
+        for name in ('start_codex_cli.sh','start_codex_gui.sh','start_claude_cli.sh','start_claude_gui.sh'):
             text=(ROOT/'adapters/common/launchers'/name).read_text(encoding='utf-8')
-            self.assertIn('kill "$observer"',text)
-            self.assertIn('wait "$observer"',text)
+            self.assertIn('exec uv run --no-project --python 3.12 python judge.py launch',text)
 
     def test_windows_observer_keeps_waited_command_failure(self):
         folder=ROOT/'codex'
@@ -91,14 +90,16 @@ class JudgePackageTests(unittest.TestCase):
         self.assertIn('--latest',cold)
         self.assertNotIn('--until-complete',cold)
         fresh=helper.observe_command('codex',Path('codex'))
-        self.assertIn('--wait',fresh)
-        self.assertIn('--until-complete',fresh)
+        self.assertEqual(fresh[2:5],['watch','--harness','codex'])
+        self.assertIn('--engine',fresh)
         self.assertNotIn('--open',fresh)
         # one-click start: follow the new session through followups and open the dashboard at its first record
         kept=helper.observe_command('codex',Path('codex'),keep=True,open_page=True)
-        self.assertIn('--wait',kept)
-        self.assertNotIn('--until-complete',kept)
+        self.assertIn('--keep-following',kept)
         self.assertEqual('--open',kept[-1])
+        claude=helper.observe_command('claude',Path('claude'),keep=True,open_page=True)
+        self.assertIn('claude',claude)
+        self.assertIn('watch.py',claude[1])
 
     def test_setup_mark_is_bound_to_release_engine_and_environment(self):
         with tempfile.TemporaryDirectory(prefix='lgax-judge-mark-') as name:
@@ -129,18 +130,63 @@ class JudgePackageTests(unittest.TestCase):
                     self.assertTrue(text.startswith('#!/usr/bin/env bash\n'))
                     self.assertIn('\nset -euo pipefail\n',text)
                     self.assertIn('cd "$(dirname "$0")"',text)
-                runner={'claude':'claude --model claude-opus-5-5 --effort medium','codex':'codex --search --sandbox workspace-write'}[engine]
-                folder={'cmd':'cd /d "%~dp0'+engine+'"','sh':'cd '+engine}[name.split('.')[-1]]
-                if ui=='cli':
-                    self.assertIn(runner,text)
-                    self.assertLess(text.index(folder),text.index(runner))  # never at the ZIP root
-                elif engine=='claude':
-                    self.assertIn('judge.py desktop --engine claude',text)
-                else:
-                    self.assertIn('codex app "',text)
-                if engine=='codex':
-                    self.assertIn('judge.py observe --engine codex --keep-following --open',text)
-                    self.assertLess(text.index('--keep-following'),text.index('codex app' if ui=='gui' else runner))
+                self.assertIn('judge.py launch --engine '+engine+' --ui '+ui,text)
+                self.assertLess(text.index('judge.py prepare'),text.index('judge.py launch'))
+
+    def test_cli_launch_preserves_native_arguments_exit_and_owned_observer_cleanup(self):
+        for engine in ('codex','claude'):
+            with self.subTest(engine=engine):
+                child=mock.Mock();stream=mock.Mock();folder=ROOT/engine
+                with mock.patch.object(helper,'start_observer',return_value=(child,stream,'a'*32)), \
+                        mock.patch.object(helper,'find_cli',return_value=engine), \
+                        mock.patch.object(helper.subprocess,'run',return_value=subprocess.CompletedProcess([],7)) as native, \
+                        mock.patch.object(helper,'stop_observer') as stop:
+                    self.assertEqual(helper.launch(engine,'cli',folder),7)
+                argv=native.call_args.args[0]
+                self.assertEqual(native.call_args.kwargs['cwd'],folder)
+                self.assertIn('medium',argv if engine=='claude' else [arg.split('=')[-1] for arg in argv])
+                self.assertIn('claude-opus-5-5' if engine=='claude' else 'gpt-6.1-sol',argv)
+                stop.assert_called_once_with(child,folder,'a'*32)
+                stream.close.assert_called_once()
+
+    def test_startup_handshake_binds_launch_token_engine_and_readiness_not_wrapper_pid(self):
+        value={'observer_token':'a'*32,'observer_ready':True,'engine':'codex','pid':35248,'status':'baseline_ignored'}
+        self.assertTrue(helper.observer_started(value,'codex','a'*32))
+        for changed in ({'observer_token':'b'*32},{'engine':'claude'},{'observer_ready':False},
+                        {'observer_ready':'true'}):
+            with self.subTest(changed=changed):
+                self.assertFalse(helper.observer_started({**value,**changed},'codex','a'*32))
+        self.assertFalse(helper.observer_started(None,'codex','a'*32))
+        with tempfile.TemporaryDirectory(prefix='lgax-launch-token-') as name:
+            folder=Path(name);status=folder/'runtime-data/visual-viewer/watch-status.json'
+            status.parent.mkdir(parents=True);status.write_text(json.dumps(value),encoding='utf-8')
+            child=mock.Mock();child.pid=63836;child.poll.return_value=None
+            with mock.patch.object(helper.uuid,'uuid4') as identifier, \
+                    mock.patch.object(helper.subprocess,'Popen',return_value=child) as start:
+                identifier.return_value.hex='a'*32
+                actual,stream,token=helper.start_observer('codex',folder)
+            try:
+                self.assertIs(actual,child)
+                self.assertEqual(token,'a'*32)
+                self.assertIn(token,start.call_args.args[0])
+                self.assertNotEqual(value['pid'],child.pid)
+            finally:
+                stream.close()
+
+    def test_gui_immediate_app_return_keeps_supervisor_until_explicit_end(self):
+        for engine in ('codex','claude'):
+            with self.subTest(engine=engine):
+                child=mock.Mock();child.wait.return_value=0;stream=mock.Mock();folder=ROOT/engine
+                order=[]
+                with mock.patch.object(helper,'start_observer',return_value=(child,stream,'b'*32)), \
+                        mock.patch.object(helper,'desktop',side_effect=lambda _:order.append('app_return') or 0), \
+                        mock.patch.object(helper,'find_cli',return_value='codex'), \
+                        mock.patch.object(helper.subprocess,'run',side_effect=lambda *a,**k:order.append('app_return') or subprocess.CompletedProcess([],0)), \
+                        mock.patch.object(helper,'stop_observer',side_effect=lambda *a:order.append('stop')):
+                    child.wait.side_effect=lambda:order.append('wait_observer') or 0
+                    self.assertEqual(helper.launch(engine,'gui',folder),0)
+                self.assertEqual(order,['app_return','wait_observer','stop'])
+                child.terminate.assert_not_called()
 
     def test_both_native_products_observer_and_empty_catalog_without_source_repo(self):
         with tempfile.TemporaryDirectory(prefix='lgax-judge-package-') as name:

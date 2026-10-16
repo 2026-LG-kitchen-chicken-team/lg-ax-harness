@@ -16,11 +16,4 @@ need_uv() {
 }
 need_uv
 uv run --no-project --python 3.12 python judge.py prepare --engine codex --ui cli
-python="$(uv python find 3.12)"
-mkdir -p codex/runtime-data/agent-office
-"$python" judge.py observe --engine codex --keep-following --open > codex/runtime-data/agent-office/observer.log 2>&1 &
-observer=$!
-trap 'kill "$observer" 2>/dev/null || true; wait "$observer" 2>/dev/null || true' EXIT
-echo "실행 관찰을 켰습니다(기록: codex/runtime-data/agent-office/observer.log). 첫 질문을 보내면 실행 대시보드가 브라우저에 열립니다."
-cd codex
-codex --search --sandbox workspace-write --ask-for-approval on-request --model gpt-6.1-sol --config model_reasoning_effort=medium
+exec uv run --no-project --python 3.12 python judge.py launch --engine codex --ui cli

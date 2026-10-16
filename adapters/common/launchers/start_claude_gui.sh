@@ -16,5 +16,4 @@ need_uv() {
 }
 need_uv
 uv run --no-project --python 3.12 python judge.py prepare --engine claude --ui gui
-uv run --no-project --python 3.12 python judge.py desktop --engine claude
-echo "첫 질문을 보내면 실행 대시보드가 브라우저에 자동으로 열립니다."
+exec uv run --no-project --python 3.12 python judge.py launch --engine claude --ui gui

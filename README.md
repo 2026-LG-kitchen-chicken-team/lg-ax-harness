@@ -4,7 +4,11 @@
 
 **AI 설치 요청문·한 줄 설치:** [제품 설치·배포 전용 저장소](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent)에서 제공합니다. 현재는 비공개 GitHub 인증으로 설치하며, 사용자 제공 마감10/20 18:00 KST에 따라 **10/21 09:00 KST 제품 저장소 공개**를 예약했습니다. 개발 저장소는 계속 비공개입니다. [설치 원본](adapters/common/distribution/README.md) · [공개 범위·마감 근거](docs/decisions/private-distribution-20261016.md).
 
-현재 시험판: [product-v0.16.4](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.16.4). **사용자는 심사위원 ZIP 하나만 다운로드**합니다. 사용설명서의 첫 질문6개·후속 질문6개를 보강한 문서 패치이며, v0.16.3의 로딩·결과 갱신·오류 복구·대시보드·보고서 연결과 업무 코드·Skill·역할·모델 기본값은 유지합니다. [최신 환경별 실제 검증](docs/validation/quality-platform-Y-20261016.md) · [화면 코드 인수](docs/validation/ui-resilience-X-20261016.md) · [세 제품 촬영 계획](docs/plans/three-product-shooting-20261016.md).
+현재 시험판: [product-v0.17.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.17.0). **사용자는 `lg-ax-judge-product-v0.17.0.zip` 하나만 다운로드**합니다. 런처의 별도 관찰 코드가 검토·저장·업무 종료를 확인하고 기획자 웹·보고서를 연결해 브라우저 열기를 요청합니다. Stop 훅 신뢰와 별개인 경로이며, 수동 복구도 같은 검증을 사용합니다. 메인·6 Skill·선택 역할3의 문서 구조와 단계별 지침 로딩을 정리했습니다. 모델 기본값·웹팀 디자인은 변경하지 않았습니다. [네 실행 환경·실패와 복구·시간·사용량](docs/validation/result-delivery-Z-20261016.md) · [발표/영상 근거 인수](docs/plans/result-delivery-demo-evidence-20261016.md).
+
+2026-10-16 Z 마감: 로컬 CI21단계(926검사 중925통과·Windows 조건1skip)와 새 ZIP 단독 준비를 통과했습니다. Codex CLI 냉장고·Claude GUI 냉장고·Codex GUI 새 전자레인지의 현재 결과/전체 원문/웹·보고서 연결과 자동 열기 요청을 확인했습니다. Claude CLI 식기세척기는 저장 후 잘못된 자료 폴더로 내보낸 자동 전달 실패를 보존하고 일반 코드로 복구했습니다. 네 환경 최초 자동 전달 전부 통과·브라우저 육안 인수로 바꾸지 않습니다. 원문219개는 격리 평가용이고 기본 배포 catalog는 비어 있습니다. 촬영0이며 아래 Y 및 버전별 기록은 당시 이력입니다.
+
+이전 시험판: [product-v0.16.4](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.16.4). 사용설명서 첫 질문6개·후속 질문6개를 보강한 문서 패치입니다. [Y 환경별 검증](docs/validation/quality-platform-Y-20261016.md) · [화면 코드 인수](docs/validation/ui-resilience-X-20261016.md) · [세 제품 촬영 계획](docs/plans/three-product-shooting-20261016.md).
 
 2026-10-16 Y 마감: Codex GUI 냉장고, Claude GUI 전자레인지·신규 인덕션·후속, 인증된 Claude CLI 세 제품군의 실제 저장·최종 전달을 확인했습니다. Codex CLI는 관리 정책 차단 상태이며 네 환경 전체 통과로 표시하지 않습니다. B Skill 후보는 비교 후 미채택했고 기존 업무 구성을 유지했습니다. 로컬 CI21단계·새 ZIP/두 저장소 원격 바이트 인수 완료, 촬영0입니다. 아래 버전별 상태는 해당 시점 이력입니다.
 

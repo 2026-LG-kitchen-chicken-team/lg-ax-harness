@@ -13,8 +13,9 @@
 - 업무·모델·Tool을 실행하지 않는다. `runtime-data/exports`에 아직 그리지 않은 export가 있을 때만
   build_view.generate를 부른다. insights는 출력 폴더의 `insights-*.json`에서 session_id·turn_id로 고른다.
   같은 세션·질문·결과의 웹 전달 파일(`runtime-data/web-deliveries/web-*.json`)이 있으면 build_view가 함께 읽는다.
-- CLI 세션(claude·codex + session_id)마다 처음 화면을 만들 때만 기본 브라우저를 연다. 세션 기록을 먼저 저장하고
-  연다. 열린 화면은 그 뒤로 2초 안에 새 데이터로 바뀐다. `LGAX_VIEWER_NO_OPEN=1`이면 열지 않는다(시험용).
+- 검토된 현재 결과·웹 결속과 로컬 workflow 종료 뒤 CLI 세션마다 기본 브라우저 열기를 요청한다.
+  시도와 성공 요청을 구분하며 실패는 최대 3회 재시도한다. 화면 표시 자체는 인증하지 않는다.
+  열린 화면은 그 뒤로 2초 안에 새 데이터로 바뀐다. `LGAX_VIEWER_NO_OPEN=1`이면 열지 않는다(시험용).
 """
 
 from __future__ import annotations
@@ -294,9 +295,67 @@ def open_browser(paths: Paths) -> bool:
     return bool(webbrowser.open(Path(paths.out, "index.html").resolve().as_uri()))
 
 
+def request_browser(paths: Paths, session: str, business_session: str = "", opener=None) -> dict:
+    """Under .hook.lock: record an OS open request, never a displayed-page claim.
+
+    Failed requests do not enter opened_sessions. The observer can retry them,
+    at most three times for this session. Business aliases deduplicate a native
+    hook and the independent result observer even when native ID is unavailable.
+    """
+    state = read_state(paths)
+    seen = [s for s in state.get("opened_sessions") or [] if isinstance(s, str)]
+    business = [s for s in state.get("opened_business_sessions") or [] if isinstance(s, str)]
+    alias = business_session
+    if session in seen or (alias and alias in business):
+        if session in seen and alias and alias not in business:
+            state["opened_business_sessions"] = (business + [alias])[-KEEP_SESSIONS:]
+            write_state(paths, state)
+        return {"open_requested": False, "open_status": "already_requested"}
+    if os.environ.get("LGAX_VIEWER_NO_OPEN"):
+        return {"open_requested": False, "open_status": "disabled"}
+    attempts = state.get("open_attempts") or {}
+    attempts = attempts if isinstance(attempts, dict) else {}
+    key = session
+    count = attempts.get(key, 0)
+    count = count if isinstance(count, int) and not isinstance(count, bool) and count >= 0 else 0
+    if count >= 3:
+        return {"open_requested": False, "open_status": "retry_exhausted"}
+    attempts[key] = count + 1
+    state["open_attempts"] = dict(list(attempts.items())[-KEEP_SESSIONS:])
+    write_state(paths, state)
+    try:
+        requested = bool((opener or open_browser)(paths))
+    except Exception:
+        requested = False
+    if requested:
+        state["opened_sessions"] = (seen + [session])[-KEEP_SESSIONS:]
+        if alias:
+            state["opened_business_sessions"] = (business + [alias])[-KEEP_SESSIONS:]
+    state["last_open_request"] = {"session": session, "business_session": alias or None,
+                                  "status": "requested" if requested else "failed", "attempt": count + 1,
+                                  "display_verified": False}
+    write_state(paths, state)
+    return {"open_requested": requested, "open_status": state["last_open_request"]["status"]}
+
+
+def observer_active(paths: Paths) -> bool:
+    lease = checked_path(paths.harness, os.path.join(paths.out, ".result-watch.lock"))
+    if not os.path.exists(lease):
+        return False
+    watcher_paths = Paths(paths.harness)
+    watcher_paths.lock = lease
+    lock = Lock(watcher_paths)
+    if not lock.acquire(0):
+        return True
+    lock.release()
+    return False
+
+
 def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict | None = None) -> dict:
     paths = paths or Paths()
     paths.validate()
+    if observer_active(paths):
+        return {"changed": False, "reason": "결과 관찰기가 생성·열기 담당"}
     latest = newest_export(paths)
     if latest is None:
         return {"changed": False, "reason": "export 없음"}
@@ -345,14 +404,21 @@ def run(hook_input: dict, source: str, paths: Paths | None = None, hashes: dict 
         opened = False
         if built:
             session = f"{source}:{hook_input.get('session_id') or 'no-session'}"
-            state = read_state(paths)
-            seen = [s for s in state.get("opened_sessions") or [] if isinstance(s, str)]
-            if session not in seen:
-                # 먼저 기록하고 연다: 기록에 실패하면 열지 않으므로 한 세션에서 두 번 열리지 않는다.
-                seen.append(session)
-                state["opened_sessions"] = seen[-KEEP_SESSIONS:]
-                write_state(paths, state)
-                opened = bool(open_browser(paths))
+            readiness, body = None, {}
+            try:
+                # Use the same readiness gate as the independent observer. A
+                # PostToolUse hook can otherwise open an intermediate draft.
+                if HERE not in sys.path:
+                    sys.path.insert(0, HERE)
+                import delivery
+                active_hashes = hashes or {"build_view": sha256_bytes(Path(HERE, "build_view.py").read_bytes()),
+                                           "index": sha256_bytes(Path(HERE, "index.html").read_bytes())}
+                body, readiness, _ = delivery.preflight(paths, Path(latest.path), active_hashes)
+            except (Exception, SystemExit):
+                pass  # The last valid view and diagnostic records remain available.
+            if readiness in ("verified_binding", "request_only"):
+                business = body.get("session_id") or ""
+                opened = request_browser(paths, session, f"{source}:{business}" if business else "")["open_requested"]
         return {"changed": bool(built), "export": built, "opened_browser": opened}
     finally:
         lock.release()

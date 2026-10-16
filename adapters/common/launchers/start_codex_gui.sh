@@ -16,12 +16,4 @@ need_uv() {
 }
 need_uv
 uv run --no-project --python 3.12 python judge.py prepare --engine codex --ui gui
-python="$(uv python find 3.12)"
-mkdir -p codex/runtime-data/agent-office
-"$python" judge.py observe --engine codex --keep-following --open > codex/runtime-data/agent-office/observer.log 2>&1 &
-observer=$!
-trap 'kill "$observer" 2>/dev/null || true; wait "$observer" 2>/dev/null || true' EXIT
-echo "실행 관찰을 켰습니다(기록: codex/runtime-data/agent-office/observer.log). 첫 질문을 보내면 실행 대시보드가 브라우저에 열립니다."
-codex app "$PWD/codex"
-echo "Codex 앱에서 codex 폴더가 열렸는지 확인하고 질문하세요. 관찰을 멈추려면 Ctrl+C (앱은 계속 열려 있습니다)."
-wait "$observer"
+exec uv run --no-project --python 3.12 python judge.py launch --engine codex --ui gui

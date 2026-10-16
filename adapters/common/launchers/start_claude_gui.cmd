@@ -6,10 +6,7 @@ cd /d "%~dp0"
 call :uv || goto fail
 set "PY=uv run --no-project --python 3.12 python"
 %PY% judge.py prepare --engine claude --ui gui || goto fail
-%PY% judge.py desktop --engine claude || goto fail
-echo.
-echo 첫 질문을 보내면 실행 대시보드가 브라우저에 자동으로 열립니다. 이 창은 닫아도 됩니다.
-pause
+%PY% judge.py launch --engine claude --ui gui || goto fail
 exit /b
 
 :uv

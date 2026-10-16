@@ -1,0 +1,99 @@
+{
+  "release": "product-v0.17.0",
+  "product_source_commit": "93feec8a9085c353ef0722d76d35c533cfd56163",
+  "snapshot_commit": "1784fc0a49e8e2050909da2b2db174424194dd54",
+  "snapshot_parent_count": 0,
+  "release_manifest_sha256": "96cbaa4eb5c3c5e7a1c09077cb0f3f976cdb1fa12abd5fab859282abdafb85ec",
+  "judge_files": 209,
+  "source_files": 130,
+  "repositories": [
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-harness",
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.17.0",
+      "prerelease": true,
+      "snapshot_commit": "1784fc0a49e8e2050909da2b2db174424194dd54",
+      "tag_verified": true,
+      "assets": {
+        "lg-ax-judge-product-v0.17.0.zip": {
+          "sha256": "780087faaeccadbb2614b60f58100cea5c2159b6f3432d814c3118b7f779012d",
+          "github_digest_matches": true,
+          "bytes": 2447093
+        },
+        "lg-ax-harness-product-v0.17.0.zip": {
+          "sha256": "b67bcf5b396b6ffe8c7d0cd028ec9e1522355b7418cbb1b5c2603c4859ea8fa2",
+          "github_digest_matches": true,
+          "bytes": 1270510
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "7e4fe923805d2b013e21b7364d53bf017d3d934170871558b24b2df8690042d6",
+          "github_digest_matches": true,
+          "bytes": 200
+        }
+      },
+      "automatic_source_files": 130,
+      "automatic_source_raw_bytes_equal": true,
+      "previous_v0_16_4_preserved": true
+    },
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.17.0",
+      "prerelease": true,
+      "snapshot_commit": "1784fc0a49e8e2050909da2b2db174424194dd54",
+      "tag_verified": true,
+      "assets": {
+        "lg-ax-judge-product-v0.17.0.zip": {
+          "sha256": "780087faaeccadbb2614b60f58100cea5c2159b6f3432d814c3118b7f779012d",
+          "github_digest_matches": true,
+          "bytes": 2447093
+        },
+        "lg-ax-harness-product-v0.17.0.zip": {
+          "sha256": "b67bcf5b396b6ffe8c7d0cd028ec9e1522355b7418cbb1b5c2603c4859ea8fa2",
+          "github_digest_matches": true,
+          "bytes": 1270510
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "7e4fe923805d2b013e21b7364d53bf017d3d934170871558b24b2df8690042d6",
+          "github_digest_matches": true,
+          "bytes": 200
+        }
+      },
+      "automatic_source_files": 130,
+      "automatic_source_raw_bytes_equal": true,
+      "previous_v0_16_4_preserved": true
+    }
+  ],
+  "windows_pinned_installer": {
+    "installer_tag": "installer-v0.1.2",
+    "explicit_product_version": "product-v0.17.0",
+    "wrapper_source_sha256": "49c34a3d50d7abd3df93dce6a22d8c4fdb57d601bf1eebf3c43feae296735c29",
+    "exit_code": 0,
+    "setup_output_present": true,
+    "source_log_sha256": "73bf3d53758e3c9639d7ebd6e7a1b71353277c3ddbd12b88c50b762d7c15cae9",
+    "existing_data_overwritten": false,
+    "model_inputs": 0,
+    "macos_linux_native_test_inferred": false,
+    "execution_policy_changed": false,
+    "documented_inline_command_tested": true,
+    "verified_files": 209,
+    "prepared": true
+  },
+  "native_and_semantic_scope": "See result-delivery-Z-20261016.md/.json; first-attempt failures preserved, operator repair separate",
+  "visibility_change": false,
+  "old_assets_overwritten": false,
+  "filming": 0,
+  "distribution_docs_commit": "87653badd4d5ebe584895d2ef2cb3c8594d6b96f",
+  "prior_file_execution_diagnostic": {
+    "exit_code": 1,
+    "reason": "Windows script file execution disabled",
+    "policy_changed": false,
+    "product_installer_code_changed": false
+  },
+  "remote_CI": {
+    "job_id": 116921006601,
+    "steps": 0,
+    "conclusion": "failure",
+    "annotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased."
+  },
+  "distribution_docs_raw_equal": true,
+  "future_public_path_live_tested": false
+}

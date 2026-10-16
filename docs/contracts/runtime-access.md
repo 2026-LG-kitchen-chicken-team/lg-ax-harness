@@ -1,6 +1,6 @@
 # 출품 실행 권한과 화면 준비
 
-2026-10-15 공식 문서 기준이다. 설치기는 사용자 계정·전역 설정·Windows 보안 설정을 변경하지 않는다. 이 파일은 실행자가 선택할 권한을 설명하며 설치만으로 권한이 적용됐다는 증거는 아니다.
+2026-10-16 실행 계약이다. 설치기는 사용자 계정·전역 설정·Windows 보안 설정을 변경하지 않는다. 이 파일은 실행자가 선택할 권한을 설명하며 설치만으로 권한이 적용됐다는 증거는 아니다.
 
 ## 심사 실행자 첫 설정
 
@@ -88,14 +88,32 @@ MXC는 [공식 Windows sandbox 안내](https://learn.chatgpt.com/docs/windows/wi
 
 결과 웹은 저장된 현재 결과를 표시한다. 첫 저장 전에는 새 기획이 없으며, 저장/export 후 `view-data.js`가 바뀌면 열어둔 화면이 갱신된다. 실행 대시보드는 그동안의 실제 Tool·Skill 작업·선택 역할 사건을 별도로 표시한다. 화면 생성·관찰은 일반 코드이고 추가 모델 호출이 없다.
 
-제품 설치 폴더에서 결과 뷰어를 한 번 연결한다.
+심사위원 ZIP의 시작 파일은 준비 후 실행 관찰 프로그램과 AI 실행기를 함께 시작한다. 관찰 프로그램이 검토된 현재 저장 결과·내보내기와 완료 상태를 확인해 결과 웹·보고서를 생성하고 기본 브라우저로 열기를 요청한다. AI 실행기의 Stop 훅이 현재 세션에 로드되지 않았거나 아직 신뢰되지 않은 경우에도 이 일반 코드 경로를 사용할 수 있다. 승인 설정을 대신 신뢰시키거나 부모 권한을 넓히지 않는다.
+
+시작 파일 없이 AI를 직접 실행할 때는 **ZIP 루트**의 별도 터미널에서 관찰을 먼저 켠다. 사용할 엔진 하나를 선택하며 작업 중에는 계속 열어둔다.
+
+```powershell
+uv run --no-project --python 3.12 python judge.py observe --engine codex --keep-following --open
+# Claude 사용자는 --engine claude
+```
+
+앱용 시작 명령은 앱 실행 명령이 바로 반환돼도 관찰을 유지한다. 사용을 마치면 시작 터미널에서 Ctrl+C로 관찰을 종료한다. CLI용 시작 명령은 본인이 시작한 CLI가 끝나면 관찰 자식도 종료한다. 관찰 종료는 AI 업무 취소가 아니며 다른 앱·실행기의 프로세스를 강제 종료하지 않는다.
+
+프로젝트 훅을 통한 보조 갱신은 기존 정상 승인 절차로 사용할 수 있다. 제품 설치 폴더에서 연결할 때는 다음과 같다.
 
 ```powershell
 uv run python web/prototypes/visual-viewer/viewer.py install --codex .
 # Claude를 사용하는 폴더에서는 위 명령 대신 install --claude .
 ```
 
-Codex는 정상 `/hooks` 신뢰 확인 뒤 Stop 훅, Claude는 프로젝트 PostToolUse 훅으로 갱신한다. `viewer.py open .`은 수동 열기 명령이다. 자동 브라우저 요청이 성공했다는 값도 화면 렌더링·클릭 검사와는 다르다. 자동 훅에서 `LGAX_VIEWER_NO_OPEN=1`이면 파일만 생성하고 브라우저를 요청하지 않는다. 수동 명령에서 브라우저 요청을 생략하려면 `viewer.py open --no-browser .`을 사용한다.
+Codex Stop 훅을 사용하려면 정상 `/hooks` 신뢰 확인을 거친다. Claude는 프로젝트 PostToolUse 훅을 사용한다. 폴더 신뢰와 훅 승인은 구별하며 제품은 자동 승인을 수행하지 않는다. 자동 브라우저 요청 성공은 화면 렌더링·클릭 검사와 다르다. 훅과 관찰은 공유 열기 상태를 사용해 같은 업무의 중복 열기를 줄인다. 자동 경로의 `LGAX_VIEWER_NO_OPEN=1`은 파일만 생성하고 브라우저를 요청하지 않는 선택이다.
+
+기획자 웹은 같은 폴더의 `index.html`과 `view-data.js`를 함께 사용한다. 일반 export JSON·`web-result` JSON을 `view-data.js` 대신 넣지 않는다. 현재 binding·형식·파일 무결성 진단은 선택한 제품 폴더에서 아래를 실행한다. Claude는 엔진 값을 바꾼다. 필요하면 이어서 `generate`로 검토·작업 종료를 확인한 현재 결과를 다시 만든다. 모델을 호출하지 않고, 실패·대기 중에는 마지막 정상 화면을 대체하지 않는다. `generate`는 브라우저를 요청하지 않으므로 준비 후 `runtime-data/visual-viewer/index.html`을 직접 연다. 과거 `viewer.py open`은 이 검증 경로를 대신하지 않는다.
+
+```powershell
+uv run python web/prototypes/visual-viewer/watch.py diagnose --harness . --engine codex
+uv run python web/prototypes/visual-viewer/watch.py generate --harness . --engine codex
+```
 
 대시보드는 별도 관찰 프로그램이며 현재 제품 설치기와 심사위원용 ZIP에 실행 파일5개를 포함한다. `web/prototypes/agent-office/README.md`를 따라 같은 제품 폴더에 연결한다. Claude는 `office.py install --claude <제품폴더>`, Codex는 실행 **전에** `office.py codex --harness <제품폴더> --wait --until-complete`를 별도 터미널에서 실행한다. 대시보드 HTML은 해당 제품 폴더의 `runtime-data/agent-office/index.html`이다. Codex follower를 나중에 켜서 이전 로그를 읽은 경우는 실시간 관측과 구분한다. 업무가 끝난 뒤 저장 기록 재생을 현재 실행 중으로 표시하지 않는다. 심사 ZIP의 준비·질문·결과 확인은 [사용자 테스트 안내](judge-test.md)를 따른다.
 

@@ -100,8 +100,10 @@ def skip_details(text: str, *, windows: bool) -> dict:
         match = re.match(r"^(.+?) \.\.\. skipped (.+)$", line)
         if match:
             reason = match[2].strip("'\"")
+            symlink_unavailable = (windows and reason == "OS does not allow symlink creation"
+                and match[1] == "test_outside_path_and_symlink_are_rejected (test_result_observer.ObserverTests.test_outside_path_and_symlink_are_rejected)")
             rows.append({"test": match[1], "reason": reason,
-                         "expected_platform_skip": not windows and reason in platform_reasons})
+                         "expected_platform_skip": (not windows and reason in platform_reasons) or symlink_unavailable})
     count = re.findall(r"\bskipped=(\d+)", text)
     reported = int(count[-1]) if count else len(rows)
     ran = re.findall(r"Ran (\d+) tests? in", text)
