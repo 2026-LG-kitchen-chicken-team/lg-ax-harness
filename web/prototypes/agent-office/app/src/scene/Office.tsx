@@ -13,6 +13,7 @@ import {
 } from './Props'
 import { Room } from './Room'
 import { CAMERA_OFFSET, CENTER, ClockRing, Floor, Rig, WebStreet } from './World'
+import { SceneUnavailable } from '../ui/SceneBoundary'
 
 function Ticker() {
   const { model, timeRef, snapRef } = useScene()
@@ -40,12 +41,13 @@ function propFor(n: OfficeNode) {
   }
 }
 
-export function Office({ model, timeRef, speedRef, selected, onSelect }: {
+export function Office({ model, timeRef, speedRef, selected, onSelect, onUnavailable }: {
   model: SessionModel
   timeRef: MutableRefObject<number>
   speedRef: MutableRefObject<number>
   selected: string | null
   onSelect: (id: string | null) => void
+  onUnavailable?: () => void
 }) {
   const snapRef = useRef<Snapshot>(snapshot(model, timeRef.current))
   const overlay = useRef<HTMLDivElement>(null)
@@ -58,6 +60,7 @@ export function Office({ model, timeRef, speedRef, selected, onSelect }: {
   return (
     <div className="relative isolate h-full w-full">
     <Canvas
+      fallback={<SceneUnavailable onUnavailable={onUnavailable} />}
       orthographic
       dpr={[1, 2]}
       camera={{ position: [cam.x, cam.y, cam.z], zoom: 22, near: -200, far: 400 }}

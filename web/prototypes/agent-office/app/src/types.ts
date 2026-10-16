@@ -79,6 +79,7 @@ export interface DbSnapshot {
 export interface ResultView {
   kind?: string
   generated_at?: string
+  result_identity?: string
   context?: { file?: { name?: string }; status?: { text?: string; tone?: string }[] }
 }
 
@@ -96,6 +97,6 @@ export type Mode = 'live' | 'replay' | 'demo'
 declare global {
   interface Window {
     LGAX_OFFICE_LIVE?: LiveFile
-    LGAX_VIEW?: ResultView
+    LGAX_VIEW?: unknown
   }
 }

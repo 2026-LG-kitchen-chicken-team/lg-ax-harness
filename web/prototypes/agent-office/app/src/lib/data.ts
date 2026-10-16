@@ -1,80 +1,82 @@
 // Loading the observer's records: live.js next to the page (re-read every second), or an events.jsonl / live.js file
 // the user opens. Nothing is sent anywhere; the page only reads.
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { LiveFile, OfficeEvent, ResultView } from '../types'
+import { createReadController, initialRead, type Loaded, type ReadSnapshot, type Scheduler, type Transport } from './readController'
 
 const POLL_MS = 1000
 
-function readGlobal(): LiveFile | null {
-  const v = window.LGAX_OFFICE_LIVE
-  return v && v.kind === 'lgax-agent-office-live' && Array.isArray(v.events) ? v : null
+export function validLiveFile(v: unknown): LiveFile | null {
+  const value = v as LiveFile
+  return value && value.kind === 'lgax-agent-office-live' && Array.isArray(value.events) && value.events.every(isEvent) ? value : null
 }
 
-// Re-adding the script tag (with a cache-busting query) re-reads live.js on file:// and http:// alike.
-export function useLiveFile(enabled: boolean): { live: LiveFile | null; checkedAt: number | null } {
-  const [live, setLive] = useState<LiveFile | null>(() => readGlobal())
-  const [checkedAt, setCheckedAt] = useState<number | null>(() => (readGlobal() ? Date.now() : null))
+// Injected scheduling/transport is for no-browser tests; the default only reads the existing local file.
+export function usePassiveRead<T>(enabled: boolean, seed: T | null, transport: Transport<T>, interval: number, scheduler?: Scheduler) {
+  const [read, setRead] = useState<ReadSnapshot<T>>(() => initialRead(seed, scheduler?.now()))
+  const current = useRef(read)
+  current.current = read
+  const control = useRef<ReturnType<typeof createReadController<T>> | null>(null)
   useEffect(() => {
     if (!enabled) return
-    let stopped = false
-    let tag: HTMLScriptElement | null = null
-    const tick = () => {
-      if (stopped) return
-      tag?.remove()
-      tag = document.createElement('script')
-      tag.src = `live.js?ts=${Date.now()}`
-      tag.charset = 'utf-8'
-      tag.onload = () => {
-        const v = readGlobal()
-        setCheckedAt(Date.now())
-        if (v) setLive((old) => (old && old.written_at === v.written_at && old.events.length === v.events.length ? old : v))
-      }
-      tag.onerror = () => setCheckedAt(Date.now())
-      document.head.appendChild(tag)
-    }
-    const id = window.setInterval(tick, POLL_MS)
-    return () => {
-      stopped = true
-      window.clearInterval(id)
-      tag?.remove()
-    }
-  }, [enabled])
-  return { live, checkedAt }
+    const controller = createReadController({ transport, interval, scheduler, initial: current.current, onState: setRead })
+    control.current = controller
+    controller.start()
+    return () => { controller.stop(); if (control.current === controller) control.current = null }
+  }, [enabled, transport, interval, scheduler])
+  const retry = useCallback(() => control.current?.refresh(), [])
+  return { ...read, retry }
 }
 
 export const RESULT_VIEW_URL = '../visual-viewer/index.html'
 
-// The result viewer writes runtime-data/visual-viewer/view-data.js (window.LGAX_VIEW) beside this folder. Re-read
-// every few seconds; null when it is not there (viewer not installed or no export yet).
-export function useResultView(): ResultView | null {
-  const [view, setView] = useState<ResultView | null>(null)
-  useEffect(() => {
-    let stopped = false
-    let tag: HTMLScriptElement | null = null
-    const tick = () => {
-      if (stopped) return
-      tag?.remove()
-      tag = document.createElement('script')
-      tag.src = `../visual-viewer/view-data.js?ts=${Date.now()}`
-      tag.charset = 'utf-8'
-      tag.onload = () => {
-        const v = window.LGAX_VIEW
-        window.LGAX_VIEW = undefined // keep only the few fields below, not the whole result
-        const next = v && v.kind === 'lgax-view' ? { kind: v.kind, generated_at: v.generated_at, context: { file: v.context?.file, status: v.context?.status } } : null
-        setView((old) => (old?.generated_at === next?.generated_at && old?.context?.file?.name === next?.context?.file?.name ? old : next))
-      }
-      tag.onerror = () => setView(null)
-      document.head.appendChild(tag)
+export function resultMetadata(raw: unknown): ResultView | null {
+  const v = raw as { kind?: string; generated_at?: string; result_identity?: string; context?: ResultView['context']; pages?: unknown[] }
+  if (!v || v.kind !== 'lgax-view' || !Array.isArray(v.pages) || !v.pages.length) return null
+  const name = v.context?.file?.name
+  const statuses = Array.isArray(v.context?.status) ? v.context.status.filter((s) => s && typeof s.text === 'string') : []
+  return { kind: v.kind, generated_at: typeof v.generated_at === 'string' ? v.generated_at : undefined,
+    result_identity: typeof v.result_identity === 'string' ? v.result_identity : undefined,
+    context: { file: typeof name === 'string' ? { name } : undefined,
+      status: statuses.map((s) => ({ text: s.text, tone: typeof s.tone === 'string' ? s.tone : undefined })) } }
+}
+
+export function loadedValue<T>(raw: unknown, validate: (raw: unknown) => T | null): Loaded<T> | null {
+  const value = validate(raw)
+  if (!value) return null
+  const identity = JSON.stringify(raw)
+  return identity ? { value, identity } : null
+}
+
+function scriptTransport<T>(url: string, read: () => unknown, reset: () => void, validate: (raw: unknown) => T | null): Transport<T> {
+  return (ok, fail) => {
+    let active = true
+    const tag = document.createElement('script')
+    tag.src = `${url}?ts=${Date.now()}`; tag.charset = 'utf-8'
+    reset() // a load that did not assign data must not reuse an old global as a successful read
+    tag.onload = () => {
+      if (!active) return
+      try {
+        const raw = read(); reset()
+        // Exact content, including result binding/version/status. No timestamp/length collisions.
+        const value = loadedValue(raw, validate)
+        if (!value) { fail('invalid'); return }
+        ok(value)
+      } catch { fail('invalid') }
     }
-    tick()
-    const id = window.setInterval(tick, 4000)
-    return () => {
-      stopped = true
-      window.clearInterval(id)
-      tag?.remove()
-    }
-  }, [])
-  return view
+    tag.onerror = () => { if (active) fail('unavailable') }
+    document.head.appendChild(tag)
+    return () => { active = false; tag.onload = null; tag.onerror = null; tag.remove() }
+  }
+}
+const liveTransport = scriptTransport('live.js', () => window.LGAX_OFFICE_LIVE, () => { window.LGAX_OFFICE_LIVE = undefined }, validLiveFile)
+const resultTransport = scriptTransport('../visual-viewer/view-data.js', () => window.LGAX_VIEW, () => { window.LGAX_VIEW = undefined }, resultMetadata)
+interface ReadEnvironment<T> { transport?: Transport<T>; scheduler?: Scheduler }
+export function useLiveFile(enabled: boolean, environment?: ReadEnvironment<LiveFile>) {
+  return usePassiveRead(enabled, validLiveFile(window.LGAX_OFFICE_LIVE), environment?.transport ?? liveTransport, POLL_MS, environment?.scheduler)
+}
+export function useResultView(environment?: ReadEnvironment<ResultView>) {
+  return usePassiveRead(true, null, environment?.transport ?? resultTransport, 4000, environment?.scheduler)
 }
 
 function isEvent(v: unknown): v is OfficeEvent {
