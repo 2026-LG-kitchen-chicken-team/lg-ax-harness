@@ -67,3 +67,19 @@
 @media(max-width:600px){.factory-scene .factory-station-label .factory-station-title strong{font-size:13px}.factory-scene .factory-station-meta{gap:2px}.factory-scene .factory-station-selected{display:none}.factory-scene .factory-planner-label strong{font-size:12px}.factory-scene .factory-planner-eyebrow{font-size:7px}.factory-scene .factory-planner-label>span:last-child{font-size:7px}}
 @media(max-height:500px){.factory-scene .factory-station-caption{display:none}.factory-scene .factory-station-label{padding-top:4px;padding-bottom:4px}.factory-scene .factory-planner-label>span:last-child{display:none}.factory-scene .factory-scene-legend{display:none}}
 @media(prefers-reduced-motion:reduce){.factory-scene .factory-station-label.status-running{animation:none}}
+
+/* Compact room signs: the room grows, not a floating information card. */
+.fullscreen-app .factory-scene .factory-station-label{display:flex;align-items:center;gap:7px;height:36px;padding:5px 9px;border-radius:5px;background:#2c423df5;box-shadow:0 3px 7px #233a3430;border:1px solid #8bada0}
+.fullscreen-app .factory-scene .factory-station-label.is-selected{width:var(--zone-label-width,174px)}
+.fullscreen-app .factory-scene .factory-station-label.status-running{height:42px;width:var(--zone-active-label-width,254px);background:#31453ef9;border-color:#edb06d;box-shadow:0 2px 10px #e89c4538}
+.fullscreen-app .factory-scene .factory-station-label .factory-station-number{flex:none;font-size:12px;line-height:1;margin:0;color:#9ed5b2}
+.fullscreen-app .factory-scene .factory-station-label .factory-station-title{flex:1;min-width:0;margin:0;line-height:1.2}
+.fullscreen-app .factory-scene .factory-station-label .factory-station-title strong{font-size:14px;font-weight:800;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis}
+.fullscreen-app .factory-scene .factory-station-label.status-running .factory-station-title strong{font-size:18px}
+.fullscreen-app .factory-scene .factory-station-label .factory-station-state{flex:none;font-size:8px;padding:3px 5px;line-height:1.1;border-radius:9px;margin:0}
+.fullscreen-app .factory-scene .factory-station-label.status-running .factory-station-state{color:#fff;background:#ed8b37;border-color:#ffa659;padding:5px 7px;font-size:10px}
+.fullscreen-app .factory-scene .factory-station-caption{display:none}
+.fullscreen-app .factory-scene .factory-planner-label,.fullscreen-app .factory-scene .factory-planner-label.is-selected{width:166px;padding:7px 9px;border-radius:5px;text-align:center;border-top-width:2px}
+.fullscreen-app .factory-scene .factory-planner-label .factory-planner-eyebrow,.fullscreen-app .factory-scene .factory-planner-label>span:last-child{display:none}
+.fullscreen-app .factory-scene .factory-planner-label strong,.fullscreen-app .factory-scene .factory-planner-label.is-selected strong{font-size:13px;line-height:1.25;margin:0}
+@media(max-width:600px){.fullscreen-app .factory-scene .factory-station-label{gap:4px;height:32px;padding:4px 6px}.fullscreen-app .factory-scene .factory-station-label.status-running{height:36px}.fullscreen-app .factory-scene .factory-station-label .factory-station-title strong{font-size:12px}.fullscreen-app .factory-scene .factory-station-label.status-running .factory-station-title strong{font-size:14px}.fullscreen-app .factory-scene .factory-station-label .factory-station-number{font-size:10px}.fullscreen-app .factory-scene .factory-station-label .factory-station-state{font-size:7px;padding:3px}.fullscreen-app .factory-scene .factory-station-label.status-running .factory-station-state{font-size:8px;padding:4px}.fullscreen-app .factory-scene .factory-planner-label,.fullscreen-app .factory-scene .factory-planner-label.is-selected{width:132px}.fullscreen-app .factory-scene .factory-planner-label strong{font-size:11px}}

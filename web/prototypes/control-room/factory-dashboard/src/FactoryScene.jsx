@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { createResearchers } from './ResearcherCharacters.js';
-import {factoryLayout,fitFactory,transitionFactory,ZONE_IDS} from './factory-layout.js';
+import {factoryLayout,fitFactory,transitionFactory,ZONE_IDS,ZONE_FLOOR} from './factory-layout.js';
 import './factory-scene.css';
 
 const STATIONS = [
@@ -192,14 +192,17 @@ function createFactory(renderer) {
   const stationRims=[];
   const platform=(s)=>{
     const group=new THREE.Group();group.position.set(s.x,0,s.z);group.userData.station=s.id;scene.add(group);stations[s.id]=group;
-    cube(group,3.8,.21,3.25,0,.19,0,'#536069',.1,.15);
-    cube(group,3.66,.11,3.11,0,.35,0,'#f1f0e9',.05);
-    const rimMaterial=new THREE.MeshStandardMaterial({color:'#b6c1bf',emissive:'#fc762c',emissiveIntensity:0,roughness:.4});resources.push(rimMaterial);
-    const rim=new THREE.Group();
-    for(const [w,d,x,z] of [[3.75,.045,0,1.64],[3.75,.045,0,-1.64],[.045,3.25,-1.9,0],[.045,3.25,1.9,0]]){const m=new THREE.Mesh(roundedGeo(w,.055,d,.01),rimMaterial);m.position.set(x,.35,z);rim.add(m);}group.add(rim);
+    cube(group,ZONE_FLOOR.halfX*2,.28,ZONE_FLOOR.halfZ*2,0,.22,0,'#70837e',.14,.1);
+    cube(group,5.48,.13,4.68,0,.415,0,'#f7f4e9',.08);
+    const rimMaterial=new THREE.MeshStandardMaterial({color:'#b6c7bb',emissive:'#fc8b30',emissiveIntensity:0,roughness:.4});resources.push(rimMaterial);
+    const rimPart=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(roundedGeo(w,h,d,.015),rimMaterial);m.position.set(x,y,z);group.add(m);};
+    for(const [w,d,x,z] of [[5.42,.065,0,-2.28],[.065,4.56,-2.68,0],[.065,4.56,2.68,0],[1.95,.065,-1.73,2.28],[1.95,.065,1.73,2.28]])rimPart(w,.065,d,x,.66,z);
+    for(const x of [-2.66,2.66])for(const z of [-2.26,2.26]){rimPart(.075,.64,.075,x,.98,z);rimPart(.16,.05,.16,x,1.30,z);}
     stationRims.push({id:s.id,material:rimMaterial,group});
-    for(const x of [-1.55,1.55])for(const z of [-1.3,1.3])cube(group,.22,.23,.25,x,.13,z,'#637074');
-    return group;
+    for(const x of [-2.46,2.46])for(const z of [-2.08,2.08])cube(group,.25,.23,.28,x,.15,z,'#657b71');
+    plant(group,-2.42,-2.02,.72);plant(group,2.42,2.02,.65);
+    const interior=new THREE.Group();interior.position.y=.10;group.add(interior);
+    return interior;
   };
   // 01 — source intake, books, storage cabinets, and a small scanner.
   let g=platform(STATIONS[0]);
@@ -218,6 +221,8 @@ function createFactory(renderer) {
   cube(g,.4,.28,.37,1.16,.56,-.05,'#eba643');
   for(let i=0;i<4;i++)cube(g,.48,.035,.35,.2,1.08+i*.04,.93,i%2?'#e6e8e1':'#b9cfdb');
   monitor(g,-.67,1.5,.4,.7);
+  cube(g,.65,.12,.90,1.55,1.03,-.67,'#f8f6ed');for(const z of [-.96,-.38])cube(g,.07,.62,.07,1.55,.67,z,'#a7b5ad');
+  monitor(g,1.55,1.42,-.69,.70);cylinder(g,.24,.08,1.53,.81,.13,'#78947b');cylinder(g,.045,.36,1.53,.59,.13,'#a0aba4');
 
   // 02 — customer needs board, colored evidence cards, desk and sorted trays.
   g=platform(STATIONS[1]);board(g,'sticky',0,1.83,-.92,2.73,1.5);
@@ -349,7 +354,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       if(nextKey!==layoutKey){
         const nextLayout=factoryLayout({width,height,panelWidth:currentPanelWidth,activeIds});
         if(!desiredLayout||ZONE_IDS.some(id=>{const a=desiredLayout.zones[id],b=nextLayout.zones[id];return Math.abs(a.x-b.x)+Math.abs(a.z-b.z)+Math.abs(a.scale-b.scale)>.001;})){
-          const from=Object.fromEntries(Object.entries(factory.stations).map(([id,g])=>[id,{id,x:g.position.x,z:g.position.z,scale:g.scale.x}]));
+          const from=desiredLayout?Object.fromEntries(Object.entries(factory.stations).map(([id,g])=>[id,{id,x:g.position.x,z:g.position.z,scale:g.scale.x}])):Object.fromEntries(Object.entries(nextLayout.zones).map(([id,g])=>[id,{...g,scale:.01}]));
           reflow={from,at:elapsed};
         }
         desiredLayout=nextLayout;layoutKey=nextKey;host.dataset.fieldLayout=desiredLayout.compact?'compact':'wide';
@@ -363,7 +368,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       }
       const currentShapes=Object.fromEntries(Object.entries(factory.stations).map(([id,g])=>[id,{id,x:g.position.x,z:g.position.z,scale:g.scale.x}]));
       const fitShapes={...currentShapes,...Object.fromEntries(Object.entries(desiredLayout.zones).map(([id,g])=>[id+'-target',g]))};
-      const fit=fitFactory(fitShapes,{width,height,panelWidth:currentPanelWidth,top:width<600?72:84,bottom:height<500?58:90});
+      const fit=fitFactory(fitShapes,{width,height,panelWidth:currentPanelWidth,top:width<600?72:76,bottom:height<500?54:72});
       desiredTarget.set(fit.x,.35,fit.z);target.lerp(desiredTarget,smooth);
       currentExtent=fit.extent>currentExtent?fit.extent:currentExtent+(fit.extent-currentExtent)*smooth;
       camera.zoom=1;camera.left=-currentExtent*aspect;camera.right=currentExtent*aspect;camera.top=currentExtent;camera.bottom=-currentExtent;
@@ -375,18 +380,18 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
         const end=factory.stations[link.id],dir=end.position.clone().sub(centerGroup.position),distance=dir.length();dir.normalize();
         const edge=(g,w,d)=>Math.min(Math.abs(dir.x)>.001?w*g.scale.x/Math.abs(dir.x):Infinity,Math.abs(dir.z)>.001?d*g.scale.x/Math.abs(dir.z):Infinity);
         link.start.copy(centerGroup.position).addScaledVector(dir,edge(centerGroup,1.5,1.35)+.12);
-        link.finish.copy(end.position).addScaledVector(dir,-edge(end,1.9,1.625)-.12);
-        const len=distance-edge(centerGroup,1.5,1.35)-edge(end,1.9,1.625)-.24;
+        link.finish.copy(end.position).addScaledVector(dir,-edge(end,ZONE_FLOOR.halfX,ZONE_FLOOR.halfZ)-.12);
+        const len=distance-edge(centerGroup,1.5,1.35)-edge(end,ZONE_FLOOR.halfX,ZONE_FLOOR.halfZ)-.24;
         link.group.visible=len>.2;if(len<=.2)return;
         link.group.position.copy(link.start).add(link.finish).multiplyScalar(.5);link.group.rotation.y=Math.atan2(dir.x,dir.z);link.group.scale.z=len/link.baseLength;
       });
-      factory.fieldProps.forEach(prop=>{prop.group.visible=!Object.values(currentShapes).some(z=>Math.hypot(z.x-prop.x,z.z-prop.z)<3.0*z.scale+1.2);});
-      host.style.setProperty('--zone-label-width',Math.min(width<600?140:158,Math.max(104,(usableWidth-28)/2))+'px');
-      host.style.setProperty('--zone-active-label-width',Math.min(width<600?154:192,Math.max(110,(usableWidth-28)/2))+'px');
+      factory.fieldProps.forEach(prop=>{prop.group.visible=!Object.values(currentShapes).some(z=>Math.hypot(z.x-prop.x,z.z-prop.z)<(z.id==='overview'?2.0:3.3)*z.scale+1.0);});
+      host.style.setProperty('--zone-label-width',Math.min(width<600?146:174,Math.max(104,(usableWidth-24)/2))+'px');
+      host.style.setProperty('--zone-active-label-width',Math.min(width<600?178:254,Math.max(110,(usableWidth-24)/2))+'px');
       if(sel!==oldSelected||activeKey!==oldActive||stateKey!==oldStates){
         factory.stationRims.forEach(r=>{const status=stageStatus(states[r.id]),isActive=activeIds.includes(r.id),isSelected=sel===r.id;r.material.color.set(isActive?COLORS.orange:isSelected?'#5bc6c4':status==='done'?COLORS.green:'#b6c1bf');r.material.emissive.set(isActive?COLORS.orange:isSelected?'#2b979d':COLORS.green);r.material.emissiveIntensity=isActive ? .38 : isSelected ? .15 : status==='done' ? .05 : 0;});oldSelected=sel;oldActive=activeKey;oldStates=stateKey;
       }
-      factory.researchers.update({activeIds,plannerWorking:dataRef.current.centerLabel ? dataRef.current.centerLabel.status==='working' : activeIds.length>0,reducedMotion:reduce,elapsed,dt});
+      factory.researchers.update({activeIds,plannerWorking:dataRef.current.centerLabel ? dataRef.current.centerLabel.status==='working' : activeIds.length>0,reducedMotion:reduce,elapsed,dt,pausedIds:Object.keys(states).filter(id=>stageStatus(states[id])==='paused')});
       factory.packets.forEach(p=>{const t=reduce?p.phase%1:(elapsed*.105+p.phase)%1;p.mesh.position.copy(p.start).lerp(p.finish,t);p.mesh.position.y=.84;p.mesh.visible=activeIds.includes(p.id);});
       factory.beaconMaterial.emissiveIntensity=activeIds.length?(reduce?1:1.1+Math.sin(elapsed*4)*.45):.4;
       factory.scene.updateMatrixWorld(true);
@@ -416,7 +421,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
     <div className="factory-scene-corner"><span className="factory-isometric-mark" aria-hidden="true">◇</span><span>AX PLANNING FACTORY<small>작은 불편에서, 더 나은 일상으로</small></span></div>
     <div className="factory-label-layer">
       {STATIONS.map(base=>{const s={...base,...stationLabels[base.id]},status=stageStatus(stepStates[s.id]),stateLabel=s.statusLabel||statusText(status);return <button key={s.id} ref={el=>{labelsRef.current[s.id]=el;}} className={`factory-station-label ${selected===s.id?'is-selected':''} status-${status}`} onClick={()=>onSelect?.(s.id)} aria-pressed={selected===s.id} aria-label={`${s.no} ${s.title} · ${stateLabel}${selected===s.id?' · 선택됨':''}`} title={`${s.title} — ${s.caption}`}>
-        <span className="factory-station-meta"><span className="factory-station-number">{s.no}<small>{s.kind||'SKILL'}</small></span><span className="factory-station-badges">{selected===s.id&&<span className="factory-station-selected">선택</span>}<span className="factory-station-state"><i/>{stateLabel}</span></span></span><span className="factory-station-title"><strong>{s.title}</strong></span><span className="factory-station-caption">{s.caption}</span>
+        <span className="factory-station-number">{s.no}</span><span className="factory-station-title"><strong>{s.title}</strong></span><span className="factory-station-state"><i/>{stateLabel}</span><span className="factory-station-caption">{s.caption}</span>
       </button>;})}
       <button ref={el=>{labelsRef.current.overview=el;}} className={`factory-planner-label ${centerLabel?.status==='working'?'status-running':''} ${selected==='overview'?'is-selected':''}`} onClick={()=>onHome?onHome():onSelect?.('overview')} aria-pressed={selected==='overview'}><span className="factory-planner-eyebrow"><i/> {centerLabel?.eyebrow||'ORCHESTRATOR'}</span><strong>{centerLabel?.title||'메인 기획 Agent'}</strong><span>{centerLabel?.caption||'다섯 Skill의 작업을 연결합니다'}</span></button>
     </div>

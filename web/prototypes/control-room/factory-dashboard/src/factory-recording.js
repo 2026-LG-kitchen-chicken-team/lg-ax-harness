@@ -28,17 +28,14 @@ export function createFactoryRecording({ durationMs = 24000, getCaption, onCompl
           if(!element||getComputedStyle(element).visibility==='hidden')continue;
           const r=element.getBoundingClientRect(),x=r.left-bounds.left,y=r.top-bounds.top;
           if(id==='overview'){
-            box(x,y,r.width,r.height,8,'#fbfff9');ctx.strokeStyle='#98b8ad';ctx.strokeRect(x,y,r.width,r.height);
-            text('MAIN PLANNER',x+10,y+15,r.width-20,'700 8px sans-serif','#9e7649');
-            text(element.querySelector('strong')?.textContent||'메인 기획자',x+10,y+34,r.width-20,'800 15px sans-serif','#2c454c');
-            text('연구원 모션 미리보기',x+10,y+r.height-8,r.width-20,'10px sans-serif','#728780');
+            box(x,y,r.width,r.height,5,'#fbfff9');ctx.strokeStyle='#98b8ad';ctx.strokeRect(x,y,r.width,r.height);
+            text(element.querySelector('strong')?.textContent||'메인 기획자',x+9,y+r.height/2+5,r.width-18,'800 13px sans-serif','#2c454c');
           }else{
-            const active=element.classList.contains('status-running');
-            box(x,y,r.width,r.height,8,active?'#5b4837':'#30454b');
-            ctx.strokeStyle=active?'#ffa75c':'#c4d4cd';ctx.strokeRect(x,y,r.width,r.height);
-            text(element.querySelector('.factory-station-number')?.textContent||'',x+10,y+15,r.width-20,'700 9px sans-serif',active?'#ffd298':'#b9d0cb');
-            text(element.querySelector('strong')?.textContent||'',x+10,y+35,r.width-20,'800 15px sans-serif');
-            text(element.querySelector('.factory-station-caption')?.textContent||'',x+10,y+r.height-8,r.width-20,'9px sans-serif','#dce7e1');
+            const active=element.classList.contains('status-running'),badge=element.querySelector('.factory-station-state')?.textContent||'';
+            box(x,y,r.width,r.height,5,'#30473e');ctx.strokeStyle=active?'#efa04a':'#a8c2b1';ctx.strokeRect(x,y,r.width,r.height);
+            text(element.querySelector('.factory-station-number')?.textContent||'',x+8,y+r.height/2+5,22,'800 12px sans-serif','#acd5b8');
+            text(element.querySelector('strong')?.textContent||'',x+30,y+r.height/2+5,r.width-83,'800 15px sans-serif');
+            if(badge){box(x+r.width-50,y+6,44,r.height-12,8,active?'#e88d38':'#516a5b');text(badge,x+r.width-46,y+r.height/2+4,36,'700 9px sans-serif');}
           }
         }
         box(14,14,w-28,50,12,'#ffffffef');
