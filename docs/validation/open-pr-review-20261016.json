@@ -1,0 +1,161 @@
+{
+  "date_kst": "2026-10-16",
+  "main": "c98896422a05fae713a046e3b45e6efb36f29b20",
+  "heads": {
+    "7": "5388f7a526ffc705c3611cb396f78d2d90f30fd7",
+    "10": "93783b757389f438c9c15b1a926bc41e8a6f0b69",
+    "11": "7c8e61b305e3424d0a5b3ac61dd203bbdfacbc71",
+    "13": "f813b556610917abe9895de6a9737ceb0008f817",
+    "14": "c743029003c4ec0e63ac96c9be28470270ca057c"
+  },
+  "reviews": {
+    "pr13": {
+      "status": "review_completed_changes_requested",
+      "findings": [
+        {
+          "priority": "P2",
+          "path": "adapters/common/package_judge.py",
+          "line": 69,
+          "summary": "New launchers omitted from product-source archive; rebuilding judge ZIP fails FileNotFoundError."
+        },
+        {
+          "priority": "P2",
+          "path": "adapters/common/launchers/start_codex_cli.sh",
+          "line": 23,
+          "summary": "Exit trap kills wrapper only, leaves spawned follower and lock until it exits."
+        }
+      ],
+      "limits": [
+        "No actual macOS/Linux launcher run",
+        "No authenticated native business/UI test"
+      ]
+    },
+    "pr14": {
+      "status": "review_completed_no_material_finding",
+      "findings": [],
+      "limits": [
+        "Readiness tests use mocked subprocess; no new actual MXC/model/hook run"
+      ]
+    },
+    "older": {
+      "status": "review_completed",
+      "findings": [
+        {
+          "priority": "P2",
+          "scope": "current main pre-existing documentation",
+          "path": "web/prototypes/visual-viewer/README.md",
+          "line": 131,
+          "summary": "Removed modes still documented; --mode app returns exit 2."
+        }
+      ],
+      "decisions": {
+        "7": "Not adopted; separate HTTP server differs from selected product path. Recommend close as not adopted.",
+        "10": "Features already absorbed and hardened; recommend close as incorporated, not merging old side.",
+        "11": "Features already absorbed and hardened; recommend close as incorporated, not merging old side."
+      }
+    }
+  },
+  "unit_tests": {
+    "judge_package": 5,
+    "observer": 42,
+    "paths": 4,
+    "readiness": 11,
+    "total": 62,
+    "passed": 62,
+    "observer_typescript_build_case": "not_run; node_modules absent from immutable Git snapshot"
+  },
+  "receipts": [
+    "18e8167437714d9aabfca95de6231adb",
+    "f63f25d73e53413794d7a7368fda9efe",
+    "b614379ff49b4c0a8e2af1b091367ef6",
+    "ce0964e80e1049baa2e9d2b9788834fe",
+    "d7a2402e18b049f1861f76afb51451fe",
+    "4dc9387c2e934f4594f4a2fdeaa5b7e7"
+  ],
+  "package_reproduction": {
+    "direct_judge": {
+      "archive": "C:\\Users\\user\\AppData\\Local\\Temp\\lgax-pr13-review-2609hdn1\\judge.zip",
+      "sha256": "9540b7739e34c3e8a33dea07dd32eab869e2d882fb5d351b8c92b81c53869491",
+      "files": 203,
+      "release": "product-v0.15.1-review",
+      "engines": {
+        "codex": {
+          "files": 96,
+          "skills": [
+            "evidence-retrieval",
+            "web-evidence-collection",
+            "needs-structuring",
+            "feature-comparison",
+            "concept-writing",
+            "review-and-revise"
+          ],
+          "native_agents": [
+            "product_evidence_reviewer",
+            "product_official_researcher",
+            "product_review_researcher"
+          ],
+          "source_manifest_sha256": "e469425c87746f356fdd291d2438a6c80c1f90b9612fe22894211588f12d9bea"
+        },
+        "claude": {
+          "files": 96,
+          "skills": [
+            "evidence-retrieval",
+            "web-evidence-collection",
+            "needs-structuring",
+            "feature-comparison",
+            "concept-writing",
+            "review-and-revise"
+          ],
+          "native_agents": [
+            "product-evidence-reviewer",
+            "product-official-researcher",
+            "product-review-researcher"
+          ],
+          "source_manifest_sha256": "e469425c87746f356fdd291d2438a6c80c1f90b9612fe22894211588f12d9bea"
+        }
+      }
+    },
+    "source_package": {
+      "archive": "C:\\Users\\user\\AppData\\Local\\Temp\\lgax-pr13-review-2609hdn1\\product.zip",
+      "sha256": "ee4c45259512b732550b49c6bb080bde89e0d06d9e9bbda5ff66b8416bddc8e1",
+      "files": 119,
+      "purpose": "submission_source_rehearsal_not_final_submission"
+    },
+    "source_launchers": [],
+    "rebuild": {
+      "error": "FileNotFoundError",
+      "message": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\lgax-pr13-review-2609hdn1\\\\source-extracted\\\\adapters\\\\common\\\\launchers\\\\start_claude_gui.cmd'"
+    },
+    "readme_matches_pr": true
+  },
+  "process_reproduction": {
+    "platform": "Windows controlled process test; POSIX launcher trap not executed",
+    "actual_PR13_judge_run_used": true,
+    "wrapper_terminated": true,
+    "child_alive_after_wrapper_termination": true,
+    "child_self_exited_within_7s": true,
+    "real_observer_or_browser_started": false
+  },
+  "mode_reproduction": {
+    "exit_code": 2,
+    "stderr": "usage: build_view.py [-h] [--export EXPORT] [--web-result WEB_RESULT]\n                     [--web-result-sha256 WEB_RESULT_SHA256]\n                     [--insights INSIGHTS] [--focus FOCUS]\n                     [--standalone STANDALONE] [--mode {ops}]\n                     [--out-dir OUT_DIR] [--open]\nbuild_view.py: error: argument --mode: invalid choice: 'app' (choose from ops)\n",
+    "output_exists": false
+  },
+  "remote_release": {
+    "sha256": "ccf2386fb70f6f73692eb3b9f1cffd2ac7bba9e50c9276b9729513b30b16deb8",
+    "files": 195,
+    "launchers": [],
+    "readme_matches_main": true,
+    "readme_matches_pr13": false,
+    "pr14_paths_present": false
+  },
+  "remote_ci": "PR13/14 jobs have steps=[]; billing/spending-limit annotation, not code-test failures",
+  "mutations": {
+    "product_code": false,
+    "pr_comments": false,
+    "merged": false,
+    "closed": false,
+    "published_release": false,
+    "local_review_and_layout_decision_documents": true
+  }
+}

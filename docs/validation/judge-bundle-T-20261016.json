@@ -1,0 +1,330 @@
+{
+  "date": "2026-10-16",
+  "source_commit": "d47d36187ccd5a8e714ed76966824ee59fee8cc6",
+  "source_manifest_sha256": "cd69f8da4c8f98e51acdb6ed46fd92ee091a28655d9287c7c70224587f93455d",
+  "included_PRs": [
+    13,
+    14
+  ],
+  "review_fixes": [
+    "source ZIP includes eight launchers",
+    "POSIX observer exec replaces wrapper and launcher waits",
+    "Unix ZIP metadata",
+    "removed modes README"
+  ],
+  "ci": {
+    "status": "passed",
+    "stages": [
+      {
+        "id": "python-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "d66092a5ab5aee0e903b10dd4273dd901c0d73ff322c23be585ac7fb022dd306"
+      },
+      {
+        "id": "uv-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "94c98c28609261580de4a8c1d72b684a5efde01136db1fb9e606bb40f7e669fd"
+      },
+      {
+        "id": "node-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "8b0bbf8ab665f70d8a91313b0b37cd5f4035cb244d8f04748d4e1b58894d3db3"
+      },
+      {
+        "id": "npm-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e0b83fde7dcfb21081578fb188cac0b0544670f8bbe6c9fca5bb3240f33d5608"
+      },
+      {
+        "id": "isolated-python",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "b7a4696d6609a844b9149bec3cc011d7b8aba0beecf896549fd08838523b16d5"
+      },
+      {
+        "id": "locked-python-dependencies",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "a700c484b7ee7367e6c1acf70020aaa8f16ede9bc8df57fcd89e6be38eae4e03"
+      },
+      {
+        "id": "validate",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e4ac729a65a72740ef8dca52239e955133013d01cf28e50b0ed05067dc42f028"
+      },
+      {
+        "id": "dev-harness",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "ea6eecc4407e5a982160801a3d545810579e4e37930ad68349a5b4d93ffb9747",
+        "tests": 35,
+        "test_summary": "OK"
+      },
+      {
+        "id": "product-tools",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "51a39b9c4285a2a489e453c7a305faf29c2b51c2625b248a5fb3fc5aa175e264",
+        "tests": 482,
+        "test_summary": "OK"
+      },
+      {
+        "id": "product-assets",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "0a648aa99ea0777144a8718b68814fde12140792d7dd6c1632f6efac19117434"
+      },
+      {
+        "id": "evaluation",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e8bdef8182fe77b63289d48ff52039f365df6674a42467c107db0e690aa3bf3a",
+        "tests": 146,
+        "test_summary": "OK"
+      },
+      {
+        "id": "visual-viewer-ci",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "4c565975c80930eedf8e74c0863ab854b6910bb1d646faf7f807946c9cc3f709"
+      },
+      {
+        "id": "visual-viewer-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "0f1dab6f94708d4105b333a094d54370cf687234b5ceb7a4b3af34abdbe429dd"
+      },
+      {
+        "id": "agent-office-ci",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "677667390e33b8531a04960cd8b106b98c2bc7e626f46fe7e63a6f6cdc95216c"
+      },
+      {
+        "id": "agent-office-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "9ff46828dc430ba92074ce7afb26a94a8ce81412987295fd43badb4af734ee18"
+      },
+      {
+        "id": "web",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "84e73955d1f025e1586c315801c76e2cbfd649c96c353d334fc612073fa7fa31",
+        "tests": 133,
+        "test_summary": "OK"
+      },
+      {
+        "id": "observer",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e57c03686be79d0bce0fa89873b00431d9e9a71d1c5fa4826370304dd343b59d",
+        "tests": 38,
+        "test_summary": "OK"
+      },
+      {
+        "id": "evals",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "29f006f96c2bc75764506df32cca9b0cbf1c0b5d821be99bc7971581ebb99ed6",
+        "tests": 28,
+        "test_summary": "OK"
+      },
+      {
+        "id": "locked-portable",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "492c75b7b0d8cb16ae15093ca1b6c1ed9b1ed837426cd1b057e329fc470b7892"
+      },
+      {
+        "id": "locked-package",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "2632a716c5385d646284d7d4ef48c8437799d1d2dcadedbad55ec1a9041f769f"
+      },
+      {
+        "id": "product-assets-after-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "62861d5bb08e1bc896c9451727cc3a701d67845eda02eaa39548e9c3b37c2d66"
+      }
+    ],
+    "source_changes": [],
+    "asset_changes": [],
+    "report_sha256": "302ab2d0b7b7a2e050cf81b7c68b08b561f15bbddd88213c83d4c97c82f0a1f1"
+  },
+  "packages": {
+    "source_package": {
+      "files": 128,
+      "sha256": "afe28d81f368f0efb55098afdf32cac55e2c9c2a7eb4181b6e46168d2d1e0814"
+    },
+    "judge_package": {
+      "files": 205,
+      "sha256": "fbbb473cdd281976bf7d1985256cdfbb924b082f51a32f2a4b8a42a3dde657a3"
+    }
+  },
+  "source_zip_reproduces_judge_bytes": true,
+  "zip_only_checks": [
+    {
+      "name": "bundle-check",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "judge-setup-codex",
+      "exit_code": 0,
+      "seconds": 2.485
+    },
+    {
+      "name": "bundle-after-codex",
+      "exit_code": 0,
+      "seconds": 0.094
+    },
+    {
+      "name": "viewer-status-codex",
+      "exit_code": 0,
+      "seconds": 0.187
+    },
+    {
+      "name": "sandbox-judge",
+      "exit_code": 0,
+      "seconds": 3.219
+    },
+    {
+      "name": "judge-setup-claude",
+      "exit_code": 0,
+      "seconds": 2.734
+    },
+    {
+      "name": "bundle-after-claude",
+      "exit_code": 0,
+      "seconds": 0.125
+    },
+    {
+      "name": "viewer-status-claude",
+      "exit_code": 0,
+      "seconds": 0.188
+    },
+    {
+      "name": "office-status-judge",
+      "exit_code": 0,
+      "seconds": 0.109
+    },
+    {
+      "name": "prepare-claude-gui",
+      "exit_code": 0,
+      "seconds": 0.141
+    },
+    {
+      "name": "prepare-codex-cli",
+      "exit_code": 0,
+      "seconds": 3.015
+    }
+  ],
+  "sandbox": {
+    "requested_backend": "mxc",
+    "status": "passed",
+    "exit_code": 0,
+    "tool_python": ".venv/Scripts/python.exe",
+    "scope": "Windows sandbox process startup with the product venv Python used by business Tools and product-local SQLite; uv run launcher reported only; no AI, browser, approval escalation or network test",
+    "workspace_storage": "local_process_checked",
+    "uv_run": {
+      "status": "passed",
+      "required": false,
+      "exit_code": 0
+    },
+    "elapsed_seconds": 2.532
+  },
+  "native_inputs": [
+    {
+      "test": "native",
+      "result": "doctor passed; list_models rejected missing required product_family; no retry",
+      "status": "completed",
+      "elapsed_seconds": 24.922,
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox": "workspaceWrite",
+      "approval": "on-request",
+      "network_access": false,
+      "approval_requested": false,
+      "automatic_redispatch": 0,
+      "observed_usage": {
+        "total": {
+          "totalTokens": 176337,
+          "inputTokens": 175928,
+          "cachedInputTokens": 136192,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 409,
+          "reasoningOutputTokens": 14
+        },
+        "last": {
+          "totalTokens": 39003,
+          "inputTokens": 38877,
+          "cachedInputTokens": 38400,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 126,
+          "reasoningOutputTokens": 0
+        },
+        "modelContextWindow": 475000
+      },
+      "observer_exit": 0,
+      "observed_events": 19,
+      "result_sha256": "8cf94201db8ec00c8bd50e72c3ff8ce43b48acb5a8465e43ee8176da4282aa15",
+      "final_sha256": "2fd456b0fa77e03221a6221db21fe8f693f7f5f696057be37e128dd7afdebd14",
+      "process_returncode": 1,
+      "process_note": "driver terminates app-server after actual turn/completed; not a business failure exit"
+    },
+    {
+      "test": "native-scoped",
+      "result": "doctor and refrigerator list_models passed; empty catalog remained empty",
+      "status": "completed",
+      "elapsed_seconds": 29.75,
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox": "workspaceWrite",
+      "approval": "on-request",
+      "network_access": false,
+      "approval_requested": false,
+      "automatic_redispatch": 0,
+      "observed_usage": {
+        "total": {
+          "totalTokens": 243954,
+          "inputTokens": 243343,
+          "cachedInputTokens": 196096,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 611,
+          "reasoningOutputTokens": 50
+        },
+        "last": {
+          "totalTokens": 46658,
+          "inputTokens": 46495,
+          "cachedInputTokens": 46080,
+          "cacheWriteInputTokens": 0,
+          "outputTokens": 163,
+          "reasoningOutputTokens": 0
+        },
+        "modelContextWindow": 475000
+      },
+      "observer_exit": 0,
+      "observed_events": 23,
+      "result_sha256": "4b2bf1d1dfeec2b55d6a50efb62de8b1fabfc25e23b4f7b7a2ac2a88ac5b3fea",
+      "final_sha256": "411026d5b910ef3d315f7a68ac91f2634cd0d82054f8b5ce44760b0524c668a2",
+      "process_returncode": 1,
+      "process_note": "driver terminates app-server after actual turn/completed; not a business failure exit"
+    }
+  ],
+  "native_input_count": 2,
+  "scope_limits": [
+    "Windows only; POSIX shell syntax and exec contract tests, not macOS/Linux execution",
+    "Claude setup/GUI prepare/hooks checked; no new Claude AI business run",
+    "browser pixels/clicks and normal interactive hook trust not run",
+    "native2 is local Tool smoke; not broad business quality/model-performance benchmark",
+    "input1 schema failure preserved; not two normal business successes"
+  ],
+  "independent_review": "read-only /root/judge_setup_audit; no remaining P1/P2 in reviewed changes; final scope in accompanying md"
+}
