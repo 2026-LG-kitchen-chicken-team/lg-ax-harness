@@ -37,7 +37,9 @@ export function ReportView({ source, close, outdated = false, latest }: {
       if (activeInstance.current !== instance || !iframe.current || event.source !== iframe.current.contentWindow || !data || typeof data !== 'object'
         || data.turn_id !== source.turn_id || data.instance !== instance) return
       if (data.type === 'lgax-report-ready') { window.clearTimeout(timer); setFrame('ready') }
-      else if (data.type === 'lgax-report-error') { window.clearTimeout(timer); setFrame('error') }
+      // The vendor also reports save/selection errors after rendering. Its notice handles those;
+      // keep the already displayed report and do not describe an operation failure as a failed initial render.
+      else if (data.type === 'lgax-report-error') { window.clearTimeout(timer); setFrame(value => value === 'ready' ? value : 'error') }
     }
     window.addEventListener('message', onMessage)
     return () => { activeInstance.current = ''; window.clearTimeout(timer); window.removeEventListener('message', onMessage) }

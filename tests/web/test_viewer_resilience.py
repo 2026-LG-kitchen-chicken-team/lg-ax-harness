@@ -118,7 +118,6 @@ const message=data=>listeners.get('message')({source:frameWindow,data});
 const ready={type:'lgax-report-ready',turn_id:'T1',instance};
 listeners.get('message')({source:{},data:ready});message({...ready,turn_id:'T2'});message({...ready,instance:'old'});
 report=render(()=>ReportView({source:snapshot.source,close(){}}));assert.ok(renderToStaticMarkup(report).includes('보고서를 준비하고'));
-message(ready);report=render(()=>ReportView({source:snapshot.source,close(){}}));assert.ok(!renderToStaticMarkup(report).includes('보고서를 준비하고'));
 message({...ready,type:'lgax-report-error',error:'private internal details'});report=render(()=>ReportView({source:snapshot.source,close(){}}));assert.ok(renderToStaticMarkup(report).includes('보고서 다시 열기'));assert.ok(!renderToStaticMarkup(report).includes('private internal'));
 const retry=React.Children.toArray(report.props.children).find(c=>c.props?.role==='status'&&React.Children.toArray(c.props.children).some(x=>x.type==='button'));
 const oldFrameError=iframe.props.onError;
@@ -126,6 +125,16 @@ React.Children.toArray(retry.props.children).find(c=>c.type==='button').props.on
 report=render(()=>ReportView({source:snapshot.source,close(){}}));iframe=React.Children.toArray(report.props.children).find(c=>c.type==='iframe');const retryInstance=iframe.props.srcDoc.match(/data-report-instance="([^"]+)"/)[1];assert.notEqual(retryInstance,instance);
 iframe.props.ref.current={contentWindow:frameWindow};message(ready);assert.ok(renderToStaticMarkup(render(()=>ReportView({source:snapshot.source,close(){}}))).includes('보고서를 준비하고'));
 message({...ready,instance:retryInstance});oldFrameError();assert.ok(!renderToStaticMarkup(render(()=>ReportView({source:snapshot.source,close(){}}))).includes('보고서 다시 열기'));
+report=render(()=>ReportView({source:snapshot.source,close(){}}));
+const displayedFrame=React.Children.toArray(report.props.children).find(c=>c.type==='iframe');
+for(const operation of ['HTML save failed','turn selection failed']) {
+ message({...ready,instance:retryInstance,type:'lgax-report-error',error:operation});
+ report=render(()=>ReportView({source:snapshot.source,close(){}}));
+ const sameFrame=React.Children.toArray(report.props.children).find(c=>c.type==='iframe');
+ assert.equal(sameFrame.key,displayedFrame.key);assert.equal(sameFrame.props.srcDoc,displayedFrame.props.srcDoc);
+ assert.equal(sameFrame.props['aria-busy'],false);
+ const displayed=renderToStaticMarkup(report);assert.ok(!displayed.includes('보고서를 표시하지 못했어요'));assert.ok(!displayed.includes('보고서 다시 열기'));assert.ok(!displayed.includes(operation));
+}
 unmount();assert.equal(document.body.style.overflow,'');assert.equal(listeners.has('message'),false);
 console.log('PASS: exact payload, validation/hash, serialized reads, timeout/late/dispose, actual hook script/file/recovery, report snapshot/turn/escaping, static status/frame controls');
 })().catch(e=>{console.error(e);process.exitCode=1});
