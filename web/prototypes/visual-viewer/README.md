@@ -1,3 +1,22 @@
+# 2026-10-16 실행 관찰로 결과 연결
+
+심사위원 ZIP의 시작 파일은 AI 실행기와 별도로 `watch.py`를 시작한다. 관찰 프로그램은 안정된 새 export의 검토된 현재 결과·웹 binding·작업 종료를 확인하고 기존 builder로 기획자 웹과 보고서를 만든다. Codex Stop 훅 신뢰 여부와 별개인 일반 코드 경로이며 추가 모델 호출·서버·권한 변경이 없다. 앱용 시작 터미널은 작업 중 계속 켜두고 사용 후 Ctrl+C로 종료한다. 아래 과거 훅 설명은 선택적인 보조 경로다.
+
+ZIP 루트에서 직접 연결할 때:
+
+```powershell
+uv run --no-project --python 3.12 python judge.py observe --engine codex --keep-following --open
+# Claude는 --engine claude
+```
+
+선택한 엔진 폴더에서 파일·sidecar 형식·SHA·현재 binding을 진단할 때:
+
+```powershell
+uv run python web/prototypes/visual-viewer/watch.py diagnose --harness . --engine codex
+```
+
+`index.html`은 같은 폴더의 `view-data.js`를 읽는다. 일반 export JSON이나 `web-result` JSON을 sidecar 대신 연결하지 않는다. 수동 복구는 `viewer.py open .`으로 현재 저장 결과에서 다시 만든다. 열기 요청 성공은 브라우저 렌더링 확인과 구별한다. 손상·부분 쓰기·검토되지 않은 결과는 마지막 정상 화면을 대체하지 않는다.
+
 # 2026-10-14 현재 결과 연결
 
 현재 전달은 `export_session`의 마지막 turn에 있는 `web_binding`과 같은 불변 `runtime-data/web-deliveries/web-<sha256>.json`을 연결해야 표시한다. 저장 구조 검사만 통과한 후보, 취소된 마지막 turn, 다른 결과 버전·코드·자료·문맥·조사 지문은 현재 전달로 표시하지 않는다. 파일 바이트 SHA-256과 파일명도 대조한다. 파일이 없거나 맞지 않으면 현재 웹 전달 미검증 안내와 후보 이력을 유지한다. 연결 검증은 출처 의미 품질 인증이 아니다.

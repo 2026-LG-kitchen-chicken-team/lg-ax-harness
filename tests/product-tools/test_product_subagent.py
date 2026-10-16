@@ -109,7 +109,7 @@ class ProductReviewerInstallTests(unittest.TestCase):
         self.assertEqual({x.strip() for x in fields["tools"].split(",")}, {"Read", "Glob", "Grep"})
         for blocked in ("Bash", "Write", "Edit", "Agent", "Task", "Skill", "mcp__*"):
             self.assertIn(blocked, {x.strip() for x in fields["disallowedTools"].split(",")})
-        self.assertEqual(fields["maxTurns"], "6")
+        self.assertEqual(fields["maxTurns"], "10")
         self.assertEqual(body.strip(), (target / CANONICAL).read_text(encoding="utf-8").strip())
         self.assertFalse((target / ".codex").exists())
         guide = (target / "README.md").read_text(encoding="utf-8")

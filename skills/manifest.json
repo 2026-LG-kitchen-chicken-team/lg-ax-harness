@@ -38,7 +38,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "c5e03b92d957a5be65f57997a3005f6486a7edc1d4e67186a71ec82dc8f04134"
+          "sha256": "e81cf65b86b6685cc586e4e80cf5df4f0d13c464f8e580c61228a42affbfdca9"
         }
       ]
     },
@@ -61,7 +61,7 @@
         },
         {
           "path": "skills/web-evidence-collection/SKILL.md",
-          "sha256": "d706eaef3ef60778bcb3f0143ca0fe2e2526054f7e55e06da5b9ac7811d37765"
+          "sha256": "528f46070b13a3e8f70b730cf24548ecd8c9b6132a16663c1cbad5ba04019b77"
         }
       ]
     },
@@ -81,7 +81,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "8085763a33d39a5a01e236f56e984a5a188c4538f84379513047c4c96d841535"
+          "sha256": "9350ef7828fb50c8d5c82ee02a285bba778d661f46e2ea9bce8f3d064a7829e2"
         }
       ]
     },
@@ -102,7 +102,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "ccf1674a4e525561b7be4c99e674a87cfc9734e46642159602ccb933a65b35d5"
+          "sha256": "c80e044b73d02d01ae9d4c457d81e7e0a7e2ed8579fe3ab9d5eb0eb8d1cdb32c"
         }
       ]
     },
@@ -122,7 +122,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "49cc6d3ac7637d5f74450e1dc5186e36249a0587adf41014be04b437385b9bd6"
+          "sha256": "883bd57a0e2154f1f303a7229e81f262a985702006cac98030028d3cc2e06c23"
         }
       ]
     },
@@ -166,7 +166,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "dcb927cac07234c5f9060b4076ab96c992380b85fb409442fbf1cdb8f633c572"
+          "sha256": "63a1f8ad1a9572658e2f3265d13fb19efbd800639b26ba27cd502a40e063d913"
         }
       ]
     }
@@ -174,19 +174,19 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "5a071f5f47a2e98e584cee91a283030001a9099531b145b8d0f6755b6d605ac7"
+      "sha256": "571392348c3b0279a0231b6d4043028dbace858d656f56540ee55d094192ca35"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
-      "sha256": "292aa74ed2709392bc13aee80a7db5109ec2f70724e99061acdca81817c0b8d6"
+      "sha256": "915cea2768fe60df0289b1f0af1bb9e685a81861156784aeae2679cfa44a8a81"
     },
     {
       "path": "agents/product-official-researcher.md",
-      "sha256": "06bb7f1d353f63f1f9021f8b75ec35e836d311d18b4d660fd604ef4609b013fc"
+      "sha256": "638613899a7360c8cb0b708c9cbe23ec2d2fe14ea8a29fc55cd200be40c8eaf0"
     },
     {
       "path": "agents/product-review-researcher.md",
-      "sha256": "99ff0efe7ebd522b319c095d8e37a75d1ba5aeecd1b41d94653895c2b07afb2a"
+      "sha256": "37f78f640145973000ed37c0d123ab2a2457c7214b918765b10f663d1bbc8b83"
     },
     {
       "path": "product-tools/cli.py",
@@ -306,7 +306,7 @@
     },
     {
       "path": "docs/contracts/instruction-loading.md",
-      "sha256": "c33d77702e5c27f00271a070bffd50eb1898e0f8a9badd953713c3561b18a843"
+      "sha256": "5efcec36d31ae839c1cc29c91c8ef1cfcbe56055b0631d3adaf26ae66eb071f5"
     },
     {
       "path": "product-tools/requirements.in",
@@ -330,19 +330,19 @@
     },
     {
       "path": "docs/contracts/runtime-access.md",
-      "sha256": "d65fafddf8e439e3007a38804467ed99e9245832db107677e42cb558f08fc947"
+      "sha256": "527100c3eb68bac31a01889352cb43150f73405bde502453813796a4aafb8ac1"
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
-      "sha256": "06bbfe6a78f549d88b92dd3e3cd80245f9367d26104de38b0618de3675b08424"
+      "sha256": "0c49fe2b6ac0e34639734f01432aa0fbbe3d4bb1541febe372ab0eb3252ec1a1"
     },
     {
       "path": "web/prototypes/visual-viewer/viewer.py",
-      "sha256": "e36ed44da6ee2972dd69b8c5922cb86b6737e8866268d11d6697dee8e5ba129a"
+      "sha256": "6fddbe08dac0bcde7ce4087cbd3482cec8649e94b80fa4f61282fb2305897d06"
     },
     {
       "path": "web/prototypes/visual-viewer/hook.py",
-      "sha256": "e1893067c4cef070cf10382eb2ebb62676a42a43a8fa5ef1bdc2236a76497fb1"
+      "sha256": "89c06428f1297dd1751130ae259d3712c7ab54d0a174c2081c0c16a91d328619"
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
@@ -374,7 +374,15 @@
     },
     {
       "path": "docs/contracts/judge-test.md",
-      "sha256": "e38e02da91c42951bbb933ec03fcac44e5fb872fb6fa56c7bdba3985faa28c72"
+      "sha256": "08627eacc48734a0cf7c85d3b2798f6b74053020ee688cd676d046432adf1365"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/delivery.py",
+      "sha256": "353fc871c0df58b8265c7a95fe1ee6a2bb09dc90fce2dd23ab66f3f730ed91c0"
+    },
+    {
+      "path": "web/prototypes/visual-viewer/watch.py",
+      "sha256": "2e4eb7e1d88abbf7b9ba7cf8a4ef1e92fee202a5afb54e20af1db9a25a06c8a0"
     }
   ],
   "optional_agents": [

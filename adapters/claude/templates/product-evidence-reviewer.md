@@ -5,7 +5,7 @@ tools: Read, Glob, Grep
 disallowedTools: Bash, Write, Edit, Agent, Task, Skill, WebFetch, WebSearch, mcp__*
 model: inherit
 permissionMode: default
-maxTurns: 6
+maxTurns: 10
 ---
 
 {{instructions}}
