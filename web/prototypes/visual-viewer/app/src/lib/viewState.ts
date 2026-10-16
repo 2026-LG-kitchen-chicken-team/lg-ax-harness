@@ -8,12 +8,20 @@ function renderShape(v: unknown, depth = 0): boolean {
   if (depth > 64) return false
   if (Array.isArray(v)) return v.every(item => renderShape(item, depth + 1))
   if (!object(v)) return true
-  for (const key of ['blocks', 'items', 'columns', 'rows', 'nodes', 'links', 'quotes']) {
+  for (const key of ['blocks', 'items', 'columns', 'cols', 'rows', 'nodes', 'links', 'quotes']) {
     if (v[key] !== undefined && !Array.isArray(v[key])) return false
     if (Array.isArray(v[key]) && !v[key].every(item => item != null)) return false
   }
   if (Array.isArray(v.blocks) && !v.blocks.every(b => object(b) && typeof b.type === 'string')) return false
   if (v.type !== undefined && typeof v.type !== 'string') return false
+  // The planning transform inserts a feature after columns[0]. Missing/empty columns would
+  // otherwise replace a good view before prune/recolor throws. Check shape, not source meaning.
+  if (v.type === 'flow') {
+    if (!Array.isArray(v.columns) || !v.columns.length || !v.columns.every(c => object(c)
+      && typeof c.key === 'string' && !!c.key && text(c.title))) return false
+    for (const key of ['nodes', 'links']) if (Array.isArray(v[key]) && !v[key].every(object)) return false
+  }
+  if (v.type === 'claims' && Array.isArray(v.items) && !v.items.every(object)) return false
   return Object.values(v).every(item => renderShape(item, depth + 1))
 }
 
@@ -24,6 +32,7 @@ export function isLgaxView(v: unknown): v is View {
     if (!object(p) || typeof p.id !== 'string' || !p.id || ids.has(p.id) || typeof p.title !== 'string'
       || !text(p.nav) || !Array.isArray(p.blocks) || !p.blocks.every(b => object(b) && typeof b.type === 'string' && renderShape(b))) return false
     ids.add(p.id)
+    if (p.caption != null && (!object(p.caption) || !text(p.caption.title) || !text(p.caption.text) || !text(p.caption.meta))) return false
   }
   if (v.focus != null && (typeof v.focus !== 'string' || !ids.has(v.focus))) return false
   if (v.app !== undefined && (!object(v.app) || !text(v.app.title) || !text(v.app.subtitle))) return false

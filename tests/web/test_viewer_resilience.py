@@ -71,6 +71,32 @@ assert.deepEqual(changes.at(-1),{manual:true,changed:false});
 loader.load();loader.replace(a);pending[6].done(b);assert.equal(current.view,a);
 loader.load();const before=current;loader.dispose();pending[7].done(b);assert.equal(current,before);assert.equal(loader.load(),false);assert.ok(cancellations>=8);
 
+// Guard the actual prune/recolor pipeline before a malformed flow can replace last-good state.
+const {pruneForPlanning}=await import(pathToFileURL(path.join(dir,'lib/prune.js')));
+const {recolorView}=await import(pathToFileURL(path.join(dir,'lib/ktone.js')));
+const flowView=flow=>({...a,pages:[{id:'story',title:'합성 연결 시험',blocks:[
+ {type:'story',key:'check',blocks:[{type:'claims',items:[{id:'F1',text:'합성 기존 기능'}]}]},
+ {type:'story',key:'flow',blocks:[flow]},
+]}]});
+const goodFlow={type:'flow',columns:[{key:'pain',title:'현재 불편'},{key:'remaining',title:'남은 불편'}],nodes:[],links:[]};
+const validFlow=flowView(goodFlow);
+assert.equal(state.isLgaxView(validFlow),true);
+assert.doesNotThrow(()=>recolorView(pruneForPlanning(validFlow)));
+const missingFlow=flowView({type:'flow'});
+assert.throws(()=>pruneForPlanning(missingFlow),TypeError,'This fixture exercises the actual previously unguarded columns access');
+let protectedState=state.initialViewState(a), deliverProtected;
+const protectedLoader=state.createViewLoader({initial:protectedState,update:s=>protectedState=s,
+ transport:done=>{deliverProtected=done;return()=>{}},schedule:()=>0,clear:()=>{}});
+protectedLoader.load();deliverProtected(validFlow);const lastGood=protectedState.view;
+for(const damaged of [missingFlow,flowView({...goodFlow,columns:[]}),flowView({...goodFlow,columns:[null]}),
+ flowView({...goodFlow,columns:['bad']}),flowView({...goodFlow,nodes:[1]}),
+ {...validFlow,pages:[{...validFlow.pages[0],caption:{title:['01 · 손상']}}]}]) {
+ assert.equal(state.isLgaxView(damaged),false);
+ protectedLoader.load();deliverProtected(damaged);assert.equal(protectedState.phase,'error');assert.equal(protectedState.view,lastGood);
+ assert.doesNotThrow(()=>recolorView(pruneForPlanning(protectedState.view)));
+}
+protectedLoader.load();deliverProtected(a);assert.equal(protectedState.phase,'ready');assert.equal(protectedState.view,a);protectedLoader.dispose();
+
 // Run the actual hook and classic-script transport with fake DOM/time/file I/O, without executing a browser.
 let scripts=[], timeouts=new Map(), intervals=new Map(), tick=0, readers=[], toasts=[];
 globalThis.location={protocol:'file:',hostname:''};
@@ -144,6 +170,7 @@ console.log('PASS: exact payload, validation/hash, serialized reads, timeout/lat
                 "--target", "es2022", "--module", "es2022", "--moduleResolution", "bundler",
                 "--jsx", "react-jsx", "--skipLibCheck", "--rootDir", str(APP / "src"),
                 "--outDir", compiled, str(APP / "src/lib/useView.ts"),
+                str(APP / "src/lib/prune.ts"), str(APP / "src/lib/ktone.ts"),
                 str(APP / "src/components/shell.tsx"), str(APP / "src/components/report.tsx"),
                 str(APP / "src/report.d.ts")], cwd=ROOT, capture_output=True,
                 text=True, encoding="utf-8", timeout=45)
