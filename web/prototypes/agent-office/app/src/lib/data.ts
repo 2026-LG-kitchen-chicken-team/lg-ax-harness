@@ -48,29 +48,45 @@ export function loadedValue<T>(raw: unknown, validate: (raw: unknown) => T | nul
   return identity ? { value, identity } : null
 }
 
-function scriptTransport<T>(url: string, read: () => unknown, reset: () => void, validate: (raw: unknown) => T | null): Transport<T> {
+export function scriptTransport<T>(url: string, key: 'LGAX_OFFICE_LIVE' | 'LGAX_VIEW', validate: (raw: unknown) => T | null): Transport<T> {
   return (ok, fail) => {
     let active = true
     const tag = document.createElement('script')
+    const previous = Object.getOwnPropertyDescriptor(window, key)
+    let raw: unknown
+    let assigned = false
+    const get = () => previous?.get ? previous.get.call(window) : previous?.value
+    const set = (next: unknown) => {
+      // A removed/timed-out script may still execute. Accept only this request's assignment,
+      // never an old script's global value or a file that did not assign its own payload.
+      if (active && document.currentScript === tag) { raw = next; assigned = true }
+    }
+    Object.defineProperty(window, key, { configurable: true, get, set })
+    const cleanup = () => {
+      if (!active) return
+      active = false; tag.onload = null; tag.onerror = null; tag.remove()
+      const current = Object.getOwnPropertyDescriptor(window, key)
+      if (current?.get !== get || current?.set !== set) return
+      if (previous) Object.defineProperty(window, key, previous)
+      else delete window[key]
+    }
     tag.src = `${url}?ts=${Date.now()}`; tag.charset = 'utf-8'
-    reset() // a load that did not assign data must not reuse an old global as a successful read
     tag.onload = () => {
       if (!active) return
       try {
-        const raw = read(); reset()
         // Exact content, including result binding/version/status. No timestamp/length collisions.
-        const value = loadedValue(raw, validate)
+        const value = loadedValue(assigned ? raw : undefined, validate)
         if (!value) { fail('invalid'); return }
         ok(value)
       } catch { fail('invalid') }
     }
     tag.onerror = () => { if (active) fail('unavailable') }
-    document.head.appendChild(tag)
-    return () => { active = false; tag.onload = null; tag.onerror = null; tag.remove() }
+    try { document.head.appendChild(tag) } catch { cleanup(); throw new Error('observation read failed') }
+    return cleanup
   }
 }
-const liveTransport = scriptTransport('live.js', () => window.LGAX_OFFICE_LIVE, () => { window.LGAX_OFFICE_LIVE = undefined }, validLiveFile)
-const resultTransport = scriptTransport('../visual-viewer/view-data.js', () => window.LGAX_VIEW, () => { window.LGAX_VIEW = undefined }, resultMetadata)
+const liveTransport = scriptTransport('live.js', 'LGAX_OFFICE_LIVE', validLiveFile)
+const resultTransport = scriptTransport('../visual-viewer/view-data.js', 'LGAX_VIEW', resultMetadata)
 interface ReadEnvironment<T> { transport?: Transport<T>; scheduler?: Scheduler }
 export function useLiveFile(enabled: boolean, environment?: ReadEnvironment<LiveFile>) {
   return usePassiveRead(enabled, validLiveFile(window.LGAX_OFFICE_LIVE), environment?.transport ?? liveTransport, POLL_MS, environment?.scheduler)

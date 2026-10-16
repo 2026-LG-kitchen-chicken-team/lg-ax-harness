@@ -180,18 +180,55 @@ switch (name) {
   case 'real_script_adapter_missing_assignment_timeout_cleanup': {
     const clock = fakeClock(); const tags = [];
     // Plain IO stubs, not a DOM/browser implementation or rendering environment.
-    global.document = { createElement: () => ({ remove() { this.removed = true; } }), head: { appendChild: (tag) => tags.push(tag) } };
+    global.document = { currentScript: null, createElement: () => ({ remove() { this.removed = true; } }), head: { appendChild: (tag) => tags.push(tag) } };
+    const assign = (tag, value) => { document.currentScript = tag; window.LGAX_OFFICE_LIVE = value; document.currentScript = null; };
     const env = { scheduler: clock }; const render = () => hooks.render(() => data.useLiveFile(true, env));
     render(); assert.equal(tags.length, 1); assert.equal(window.LGAX_OFFICE_LIVE, undefined);
     tags[0].onload(); assert.equal(render().error, 'invalid'); assert.equal(tags[0].removed, true);
-    clock.advance(1000); window.LGAX_OFFICE_LIVE = liveFile('A'); tags[1].onload();
+    clock.advance(1000); assign(tags[1], liveFile('A')); tags[1].onload();
     const first = render().value; assert.equal(first.events[0].detail.note, 'A');
     clock.advance(1000); const late = tags[2].onload; clock.advance(5000);
     assert.equal(tags[2].onload, null); assert.equal(tags[2].removed, true); assert.equal(render().error, 'timeout');
-    window.LGAX_OFFICE_LIVE = liveFile('old'); late(); assert.equal(render().value, first);
-    clock.advance(1000); assert.equal(window.LGAX_OFFICE_LIVE, undefined);
-    window.LGAX_OFFICE_LIVE = liveFile('B'); tags[3].onload(); assert.equal(render().value.events[0].detail.note, 'B');
+    clock.advance(1000); assign(tags[2], liveFile('old')); late(); assert.equal(render().value, first);
+    assert.equal(window.LGAX_OFFICE_LIVE, undefined);
+    assign(tags[3], liveFile('B')); tags[3].onload(); assert.equal(render().value.events[0].detail.note, 'B');
     hooks.unmount(); assert.equal(clock.count(), 0); break;
+  }
+  case 'script_assignment_is_request_bound_for_both_globals': {
+    for (const [key, validate, payload] of [['LGAX_OFFICE_LIVE', data.validLiveFile, liveFile], ['LGAX_VIEW', data.resultMetadata, viewFile]]) {
+      const clock = fakeClock(); const tags = [];
+      global.document = { currentScript: null, createElement: () => ({ remove() { this.removed = true; } }), head: { appendChild: (tag) => tags.push(tag) } };
+      const assign = (tag, value) => { document.currentScript = tag; window[key] = value; document.currentScript = null; };
+      const transport = data.scriptTransport('local.js', key, validate);
+      const controller = c.createReadController({ scheduler: clock, transport, interval: 1000, timeout: 2000, onState: () => {} });
+      controller.start(); const late = tags[0].onload; clock.advance(2000); assert.equal(controller.getState().error, 'timeout');
+      clock.advance(1000); assign(tags[0], payload('old')); late(); tags[1].onload();
+      assert.equal(controller.getState().error, 'invalid'); assert.equal(controller.getState().value, null);
+      clock.advance(1000); assign(tags[2], payload('new')); assign(tags[0], payload('old')); tags[2].onload();
+      assert.equal(controller.getState().status, 'ready'); assert.equal(controller.getState().value.result_identity ?? controller.getState().value.events[0].detail.note, 'new');
+      controller.stop(); assert.equal(Object.hasOwn(window, key), false); assert.equal(clock.count(), 0);
+    }
+    break;
+  }
+  case 'script_global_descriptors_restore_on_cleanup_and_append_error': {
+    for (const accessor of [false, true]) {
+      const tags = []; const old = liveFile('seed'); let writes = 0;
+      const descriptor = accessor ? { configurable: true, enumerable: false, get: () => old, set: () => writes++ }
+        : { configurable: true, enumerable: false, writable: true, value: old };
+      Object.defineProperty(window, 'LGAX_OFFICE_LIVE', descriptor);
+      const expected = Object.getOwnPropertyDescriptor(window, 'LGAX_OFFICE_LIVE');
+      global.document = { currentScript: null, createElement: () => ({ remove() { this.removed = true; } }), head: { appendChild: (tag) => tags.push(tag) } };
+      const transport = data.scriptTransport('local.js', 'LGAX_OFFICE_LIVE', data.validLiveFile);
+      let accepted = null; const cleanup = transport((value) => accepted = value, () => {});
+      assert.equal(window.LGAX_OFFICE_LIVE, old); document.currentScript = tags[0]; window.LGAX_OFFICE_LIVE = liveFile('new'); document.currentScript = null;
+      tags[0].onload(); assert.equal(accepted.value.events[0].detail.note, 'new'); cleanup(); cleanup();
+      assert.deepEqual(Object.getOwnPropertyDescriptor(window, 'LGAX_OFFICE_LIVE'), expected); assert.equal(writes, 0);
+      document.head.appendChild = () => { throw new Error('synthetic append failure'); };
+      assert.throws(() => transport(() => {}, () => {}), /observation read failed/);
+      assert.deepEqual(Object.getOwnPropertyDescriptor(window, 'LGAX_OFFICE_LIVE'), expected);
+      delete window.LGAX_OFFICE_LIVE;
+    }
+    break;
   }
   default: throw new Error('Unknown case ' + name);
 }
@@ -217,6 +254,8 @@ for case in (
     "real_result_hook_preserves_metadata_on_error",
     "scene_failure_is_optional_and_actionable",
     "real_script_adapter_missing_assignment_timeout_cleanup",
+    "script_assignment_is_request_bound_for_both_globals",
+    "script_global_descriptors_restore_on_cleanup_and_append_error",
 ):
     setattr(OfficeResilienceTests, "test_" + case, lambda self, name=case: self.run_case(name))
 
