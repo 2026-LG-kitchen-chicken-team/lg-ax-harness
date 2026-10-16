@@ -2,7 +2,7 @@
 
 **처음 사용한다면 [LG AX 상품기획 에이전트 사용설명서](docs/contracts/judge-test.md)를 읽어주세요.** 제품 소개·준비물·처음 켜기·첫 질문·결과 읽기·다시 사용하기·문제 해결을 한 문서에 담았습니다. 심사위원 ZIP 루트의 `README.md`에도 같은 설명서가 들어 있습니다.
 
-현재 시험판: [product-v0.16.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.16.0). **사용자는 심사위원 ZIP 하나만 다운로드**한다. [원격 파일·제품 소스 대조 기록](docs/validation/product-v0.16.0.md).
+현재 시험판: [product-v0.16.1](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.16.1). **사용자는 심사위원 ZIP 하나만 다운로드**한다. 사용설명서를 개편한 문서 패치이며 실행 코드·Skill·서브에이전트·모델 기본값은 v0.16.0과 같다. [원격 파일·제품 소스 대조 기록](docs/validation/product-v0.16.1.md).
 
 2026-10-16 현재 배포 기준은 **심사위원용 ZIP**이다. ZIP 루트의 실행 안내와 런처, `codex/`·`claude/` 폴더를 설치·실행·검사의 공통 기준으로 사용한다. PR13/14와 패키징·관찰 종료 보완을 통합했고 로컬 CI21단계·ZIP 단독 준비11검사를 통과했다. [현재 인수 결과](docs/validation/judge-bundle-T-20261016.md) · [폴더 기준](docs/decisions/judge-bundle-layout-20261016.md) · [사용자 테스트 안내](docs/contracts/judge-test.md). 아래 버전별 문단은 해당 시점의 기록이다.
 
