@@ -4,7 +4,9 @@
 
 **AI 설치 요청문·한 줄 설치:** [제품 설치·배포 전용 저장소](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent)에서 제공합니다. 현재는 비공개 GitHub 인증으로 설치하며, 사용자 제공 마감10/20 18:00 KST에 따라 **10/21 09:00 KST 제품 저장소 공개**를 예약했습니다. 개발 저장소는 계속 비공개입니다. [설치 원본](adapters/common/distribution/README.md) · [공개 범위·마감 근거](docs/decisions/private-distribution-20261016.md).
 
-현재 시험판: [product-v0.16.3](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.16.3). **사용자는 심사위원 ZIP 하나만 다운로드**합니다. 로딩·결과 갱신·오류 복구·대시보드·동일 결과 보고서 연결을 보완했습니다. [현재 검증·남은 작업](docs/validation/ui-resilience-X-20261016.md) · [세 제품 필수 촬영 계획](docs/plans/three-product-shooting-20261016.md).
+현재 시험판: [product-v0.16.4](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.16.4). **사용자는 심사위원 ZIP 하나만 다운로드**합니다. 사용설명서의 첫 질문6개·후속 질문6개를 보강한 문서 패치이며, v0.16.3의 로딩·결과 갱신·오류 복구·대시보드·보고서 연결과 업무 코드·Skill·역할·모델 기본값은 유지합니다. [최신 환경별 실제 검증](docs/validation/quality-platform-Y-20261016.md) · [화면 코드 인수](docs/validation/ui-resilience-X-20261016.md) · [세 제품 촬영 계획](docs/plans/three-product-shooting-20261016.md).
+
+2026-10-16 Y 마감: Codex GUI 냉장고, Claude GUI 전자레인지·신규 인덕션·후속, 인증된 Claude CLI 세 제품군의 실제 저장·최종 전달을 확인했습니다. Codex CLI는 관리 정책 차단 상태이며 네 환경 전체 통과로 표시하지 않습니다. B Skill 후보는 비교 후 미채택했고 기존 업무 구성을 유지했습니다. 로컬 CI21단계·새 ZIP/두 저장소 원격 바이트 인수 완료, 촬영0입니다. 아래 버전별 상태는 해당 시점 이력입니다.
 
 2026-10-16 현재 배포 기준은 **심사위원용 ZIP**이다. ZIP 루트의 실행 안내와 런처, `codex/`·`claude/` 폴더를 설치·실행·검사의 공통 기준으로 사용한다. PR13/14와 패키징·관찰 종료 보완을 통합했고 로컬 CI21단계·ZIP 단독 준비11검사를 통과했다. [현재 인수 결과](docs/validation/judge-bundle-T-20261016.md) · [폴더 기준](docs/decisions/judge-bundle-layout-20261016.md) · [사용자 테스트 안내](docs/contracts/judge-test.md). 아래 버전별 문단은 해당 시점의 기록이다.
 
