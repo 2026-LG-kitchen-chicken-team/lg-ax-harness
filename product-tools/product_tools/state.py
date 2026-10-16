@@ -18,8 +18,9 @@ def code_fingerprint():
     return hashlib.sha256(b"".join(p.name.encode() + b"\0" + p.read_bytes() for p in sorted(base.glob("*.py")))).hexdigest()
 
 class StateStore:
-    def __init__(self, path, dataset):
+    def __init__(self, path, dataset, workspace=None):
         self.dataset = dataset
+        self.workspace = Path(workspace).resolve() if workspace is not None else None
         self.tools = ProductTools(dataset)
         self.code_hash = code_fingerprint()
         path = Path(path)
@@ -58,6 +59,10 @@ class StateStore:
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(results)")}
         if "validation_json" not in columns:
             self.db.execute("ALTER TABLE results ADD COLUMN validation_json TEXT NOT NULL DEFAULT '{}'")
+        if "dataset_path" not in {row[1] for row in self.db.execute("PRAGMA table_info(turns)")}:
+            # Internal recovery hint only. Old turns remain unbound until an
+            # explicit --data is supplied; never infer a path from a version.
+            self.db.execute("ALTER TABLE turns ADD COLUMN dataset_path TEXT")
         try:
             with self.transaction():
                 known = self.db.execute("SELECT fingerprint FROM datasets WHERE version=?", (dataset.version,)).fetchone()
@@ -129,8 +134,11 @@ class StateStore:
                 # Conservative whole-result invalidation; retrieval has a separate cache key.
                 self.db.execute("UPDATE turns SET valid=0, invalidation_reason='input_or_dependency_changed' WHERE session_id=? AND context_hash!=? AND valid=1", (planning["session_id"], context_hash))
                 turn_id = "turn-" + uuid.uuid4().hex
-                self.db.execute("INSERT INTO turns(turn_id,session_id,request_key,input_json,context_hash,dataset_hash,code_hash,created_at) VALUES(?,?,?,?,?,?,?,?)",
-                                (turn_id, planning["session_id"], planning["request_key"], payload, context_hash, self.dataset.fingerprint, self.code_hash, now()))
+                catalog = self.dataset.root
+                relative = (catalog.relative_to(self.workspace).as_posix()
+                            if self.workspace is not None and catalog.is_relative_to(self.workspace) else None)
+                self.db.execute("INSERT INTO turns(turn_id,session_id,request_key,input_json,context_hash,dataset_hash,code_hash,created_at,dataset_path) VALUES(?,?,?,?,?,?,?,?,?)",
+                                (turn_id, planning["session_id"], planning["request_key"], payload, context_hash, self.dataset.fingerprint, self.code_hash, now(), relative))
         return {"reused_request": reused, **self.get_turn(planning["session_id"], turn_id)}
 
     def usage_summary(self, session_id, turn_id=None):

@@ -15,6 +15,8 @@ class Conversation:
     def __init__(self, store, workspace):
         self.store = store
         self.workspace = Path(workspace).resolve()
+        if store.workspace is None:
+            store.workspace = self.workspace
         store.db.execute("""CREATE TABLE IF NOT EXISTS conversation_requests(
             session_id TEXT NOT NULL, request_key TEXT NOT NULL, payload TEXT NOT NULL,
             turn_id TEXT, response TEXT, PRIMARY KEY(session_id,request_key))""")
@@ -33,7 +35,8 @@ class Conversation:
 
     def open_product_workflow(self, payload):
         """One product-name request, empty-catalog compatible, measured from entry."""
-        obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds", "prior_turn_id"))
+        obj(payload, ("question", "user_submitted"), ("session_id", "request_key", "budget_seconds", "prior_turn_id",
+            "prior_scope", "model_id", "product_family", "scope_mode", "model_version", "document_version", "constraints", "runtime"))
         from .contracts import integer
         integer(payload.get("budget_seconds", 1800), "budget_seconds", 300, 1800)
         from .workflow import WorkflowAudit
@@ -183,7 +186,9 @@ class Conversation:
             return self._open_request(payload)
 
     def _open_request(self, payload):
-        obj(payload, ("question", "user_submitted"), ("model_id", "product_family", "scope_mode", "model_version", "document_version", "session_id", "request_key", "prior_turn_id", "constraints", "runtime"))
+        obj(payload, ("question", "user_submitted"), ("model_id", "product_family", "scope_mode", "model_version", "document_version", "session_id", "request_key", "prior_turn_id", "prior_scope", "constraints", "runtime"))
+        if payload.get("prior_scope", "inherit") not in ("inherit", "reference_only"):
+            fail("invalid_input", "prior_scope must be inherit or reference_only")
         text(payload["question"], "question")
         if payload["user_submitted"] is not True:
             fail("user_input_required", "Only a real user question creates a request; resume with current_request")
@@ -215,7 +220,9 @@ class Conversation:
         return self._bind_request(session, key, payload, previous)
 
     def _bind_request(self, session, key, payload, previous):
-        prior_input = previous["input"] if previous else {}
+        # A historical link can accompany a separate new product task without
+        # importing its model, versions, conditions, or selection policy.
+        prior_input = previous["input"] if previous and payload.get("prior_scope", "inherit") == "inherit" else {}
         family = payload.get("product_family", prior_input.get("product_family"))
         prior_family_mode = prior_input.get("scope_mode") == "family_catalog"
         family_mode = (payload["scope_mode"] == "family_catalog" if "scope_mode" in payload else
@@ -244,7 +251,7 @@ class Conversation:
             prepared["runtime"] = payload["runtime"]
         version_keys = ("model_version", "document_version")
         prepared.update({k: payload[k] for k in version_keys if k in payload})
-        if previous and not family_mode and not any(k in payload for k in version_keys):
+        if prior_input and not family_mode and not any(k in payload for k in version_keys):
             matching_scopes = [s for s in prior_input["model_scope"] if s["model_id"] == model]
             if len(matching_scopes) == 1:
                 prepared.update({k: matching_scopes[0][k] for k in version_keys})

@@ -7,8 +7,7 @@ import json
 from pathlib import Path
 import sqlite3
 import sys
-from product_tools.contracts import DEFAULT_DATA_PATH, MAX_BYTES, MAX_INPUT_BYTES, ToolError, decode_json_bytes, fail, obj, strict_json
-from product_tools.dataset import Dataset
+from product_tools.contracts import MAX_BYTES, MAX_INPUT_BYTES, ToolError, decode_json_bytes, fail, obj, strict_json
 from product_tools.state import StateStore
 from product_tools.tools import ProductTools
 from product_tools.planning import review_product_result
@@ -16,6 +15,7 @@ from product_tools.web_evidence import WebEvidence
 from product_tools.conversation import Conversation
 from product_tools.error_receipts import preserve_failure
 from product_tools.instructions import InstructionLoader
+from product_tools.execution_context import operation_dataset
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -110,7 +110,7 @@ def main():
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", type=Path, default=ROOT / DEFAULT_DATA_PATH)
+    parser.add_argument("--data", type=Path, default=None)
     parser.add_argument("--db", type=Path, default=ROOT / "runtime-data/product.sqlite")
     parser.add_argument("operation", choices=("get_work_instructions", "prepare_review_packet", "verify_review_packet", "evidence_inventory", "read_evidence_batch", "record_evidence_review", "evidence_coverage", "set_request_scope_policy", "doctor", "list_models", "prepare_planning_input", "retrieve_reviews", "retrieve_product_facts", "select_evidence", "match_product_scope", "validate_source_refs", "validate_constraints", "validate_result_contract", "review_product_result", "fetch_web_page", "capture_web_page", "import_web_evidence", "import_web_evidence_bulk", "configure_web_research", "open_product_workflow", "record_workflow_event", "workflow_status", "open_request", "open_request_bundle", "resolve_request", "resolve_request_bundle", "record_request_research", "current_request", "export_session", "save_reviewed_result", "save_and_export", "get_completion_summary", "prepare_web_result", "deliver_result", "start_turn", "get_turn", "save_result", "record_usage", "cancel_turn", "begin_invocation", "finish_invocation"))
     parser.add_argument("--input", default="-", help="UTF-8 JSON file or - for stdin; doctor needs no input")
@@ -139,8 +139,8 @@ def main():
             # Instruction access precedes model selection and needs no dataset/DB.
             result = dispatch(None, None, args.operation, payload)
         else:
-            data = Dataset(args.data)
-            store = StateStore(db, data)
+            data = operation_dataset(ROOT, db, args.operation, payload, args.data)
+            store = StateStore(db, data, workspace=ROOT)
             result = dispatch(data, store, args.operation, payload)
         output = json.dumps({"ok": True, "result": result}, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
         if len(output.encode("utf-8")) > output_limit(args.operation):
