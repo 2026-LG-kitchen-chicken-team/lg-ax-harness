@@ -1,0 +1,218 @@
+{
+  "id": "frontend-readiness-W-20261016",
+  "date_kst": "2026-10-16",
+  "reviewed_source_commit": "0efad2f2c9e5bb2bb7bbc9ae2c7cd9d99a4dccc4",
+  "product_release": "product-v0.16.1",
+  "installer_release": "installer-v0.1.0",
+  "scope": "Document and read-only source/data audit. Team frontend and existing product releases are unchanged.",
+  "actual_output": {
+    "view_sha256": "0602685537b7ebafc19cb5b78db71428db29d020521bbe81245a3ee7b04f6ce4",
+    "web_sha256": "8b1b12f74cd45e3f8cd7e5ca87991a1627802793bd9a3ff74f48d332aa674816",
+    "pages": 9,
+    "report_turn_count": 1,
+    "selected_bodies": 81,
+    "report_preserved_full_bodies": 81,
+    "selected_count": 81,
+    "delivered_count": 81,
+    "cited_source_metadata": 28,
+    "result_and_binding_equal": true,
+    "status": "completed",
+    "scope_note": "81 registered selected bodies and 28 cited metadata entries, not 81 unique customers or complete web documents."
+  },
+  "existing_deck": {
+    "slide_count": 12,
+    "media_count": 0,
+    "video_count": 0,
+    "html_video_tag_count": 0,
+    "sha256": "0fefb9f500654ed34f04f8b8418a7157432644681dfc7314fb304893b8218f79",
+    "status": "2026-10-11 draft, not current final submission"
+  },
+  "ui_review": {
+    "status": "blocked",
+    "reason": "Browser Use URL policy denied file protocol and explicitly disallowed workaround/indirect/alternate-surface access.",
+    "screenshots": 0,
+    "clicks": 0,
+    "workaround_attempts": 0
+  },
+  "current_file_generation": {
+    "scope": "Generate current HTML/data files only in disposable folder; no browser or image rendering, no model calls.",
+    "current_html_matches_main": true,
+    "preserved_S_html_matches_main": false,
+    "current_html_sha256": "cac64d415b3ba0bf6f61748267109e7fa882ca4e8abf76f058307caa30452015",
+    "data_pages": 9,
+    "report_turns": 1,
+    "selected_report_turn_matches": true,
+    "warnings": []
+  },
+  "source_function_reproduction": {
+    "scope": "Pure source-function reproduction; no browser, DOM, screenshot, network, model or product-data mutation.",
+    "signature_collision": {
+      "reproduced": true,
+      "same_second_and_same_length": true
+    },
+    "malformed_hash": {
+      "reproduced": true,
+      "error_type": "URIError",
+      "example": "#%"
+    },
+    "empty_pages_accepted": {
+      "reproduced": true,
+      "subsequent_first_page_access_would_fail": true
+    },
+    "interpretation": "These checks reproduce current gaps. They do not declare the product corrected or visually reviewed."
+  },
+  "findings": [
+    {
+      "id": "W01",
+      "kind": "ux_state_gap",
+      "status": "open",
+      "priority": "before_capture",
+      "files": [
+        "web/prototypes/visual-viewer/app/src/lib/useView.ts",
+        "web/prototypes/visual-viewer/app/src/components/shell.tsx"
+      ],
+      "summary": "First-result wait, actual work and file-read failures lack distinct states and last successful read information."
+    },
+    {
+      "id": "W02",
+      "kind": "update_identity",
+      "status": "function_reproduced",
+      "priority": "before_capture",
+      "files": [
+        "web/prototypes/visual-viewer/app/src/lib/useView.ts"
+      ],
+      "summary": "Same-second same-length changed payload has the same signature."
+    },
+    {
+      "id": "W03",
+      "kind": "manual_file_validation",
+      "status": "function_reproduced",
+      "priority": "robustness",
+      "files": [
+        "web/prototypes/visual-viewer/app/src/lib/useView.ts",
+        "web/prototypes/visual-viewer/app/src/App.tsx"
+      ],
+      "summary": "Empty pages array passes the view guard while later code reads first-page id."
+    },
+    {
+      "id": "W04",
+      "kind": "fragment_validation",
+      "status": "function_reproduced",
+      "priority": "robustness",
+      "files": [
+        "web/prototypes/visual-viewer/app/src/App.tsx"
+      ],
+      "summary": "Malformed encoded fragment throws URIError."
+    },
+    {
+      "id": "W05",
+      "kind": "observer_first_run",
+      "status": "open",
+      "priority": "before_capture",
+      "files": [
+        "web/prototypes/agent-office/app/src/App.tsx"
+      ],
+      "summary": "No records initially selects marked demo; new live records require a manual mode switch."
+    }
+  ],
+  "web_test_count": 133,
+  "web_test_skipped": 0,
+  "checks": [
+    {
+      "name": "web contracts",
+      "receipt": ".harness/checks/7b20dd16c6a34dd6ad0f9d577b6349fc/receipt.json",
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/web"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 64.703,
+      "stdout_sha256": "a1df34b1b29c1b971fea46f9a752d5d426287fdce68b4abe1d90e9e6cf0ba13c",
+      "stderr_sha256": "04195717205d29928b5d7d9e41efc5e42ab8fa84e1e1a37dff011c5e89063097"
+    },
+    {
+      "name": "preserved actual output and existing deck",
+      "receipt": ".harness/checks/497c513acf1f4dfb9a77e46704026146/receipt.json",
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        ".harness/W-output-audit.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.187,
+      "stdout_sha256": "df02dc5b9c9a304459c04469d11cb3f606f9482b40287d93aa5453554dc65d0b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "current data and HTML file generation without browser",
+      "receipt": ".harness/checks/d5ede31ca28945b58e4434a2734ce825/receipt.json",
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        ".harness/W-latest-view-build.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.203,
+      "stdout_sha256": "779d84d64c367091dda03ccadadc132ded9fc36bf7a6cfd9a0f392b2eac3c08f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-function gap reproduction, not a fix",
+      "receipt": ".harness/checks/500bf2f7866f4e2a8162dad9dc2d9d8d/receipt.json",
+      "argv": [
+        "node",
+        ".harness/W-state-repro.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.063,
+      "stdout_sha256": "4e19233a355ba0a94581081f78a8e5497cfa2c1075eb3049aa9aade5374927e4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "code_sha256": {
+    "web/prototypes/visual-viewer/index.html": "cac64d415b3ba0bf6f61748267109e7fa882ca4e8abf76f058307caa30452015",
+    "web/prototypes/agent-office/index.html": "c35c3049d160d929b65fdbe8f56a38a65b4a7eeedc3709eae821a93e94f06389",
+    "web/prototypes/visual-viewer/app/src/lib/useView.ts": "82024611a196767bf1159031588db9d7c6d3f03e8abcaa6f98fa4de87c7bc86a",
+    "web/prototypes/visual-viewer/app/src/components/report.tsx": "12527139e64513d0cdd9249402039f4cb155cb275f4ae7cf98722448dbc4d5a5",
+    "web/prototypes/visual-viewer/app/src/components/shell.tsx": "8efa0ce34d53bdd09af579ed244129488db1a12ff74265a157c1c8a547ff1c35",
+    "web/prototypes/agent-office/app/src/lib/data.ts": "48664586e27d234143dd676e8442db941496183f61cfb758d57e103c3c61f911"
+  },
+  "new_business_inputs": 0,
+  "new_model_calls": 0,
+  "new_investigations": 0,
+  "planning": {
+    "source": "docs/plans/submission-master-20261016.md",
+    "az_items": 26,
+    "proposed_detailed_slides": 26,
+    "appendix_unlimited": true,
+    "video_chapters": 6,
+    "proposed_detailed_video_seconds": 720,
+    "detailed_submission_duration_limit": null,
+    "live_content_seconds": 580,
+    "live_buffer_seconds": 20,
+    "live_limit_seconds": 600,
+    "status": "plan_updated_not_filmed_not_authored_not_rehearsed_not_submitted"
+  },
+  "next_steps": [
+    "Team UI state and update fixes plus actual visual acceptance",
+    "Freeze capture version, refrigerator run and same-run evidence",
+    "Record and edit real footage, metrics, captions and chosen narration",
+    "Author current detailed deck and embedded clips; split legacy prep checker limits",
+    "Rehearse combined presentation and video within 600 seconds",
+    "Validate submission access, final hashes and upload receipt before user-recorded deadline"
+  ],
+  "limitations": [
+    "No browser rendering, screenshots or UI clicks.",
+    "Existing S result HTML differs from main; current file generation was separately checked.",
+    "Reproduced frontend issues are not fixed in this documentation change.",
+    "133 passing web checks do not certify visual fit or AI semantic correctness."
+  ]
+}

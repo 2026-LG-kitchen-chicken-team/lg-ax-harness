@@ -1,5 +1,15 @@
 # 제출 준비 원본
 
+## 2026-10-16 최신 제작 계획
+
+[제출 상세판·현장10분 발표·시연 계획](../docs/plans/submission-master-20261016.md)을 현재 제작 원본으로 사용한다. A–Z26개 어필을 평가항목·실제 근거·영상·장표로 연결했다. 제안 구성은 상세판26장+부록·영상6챕터이며 현장판은 발표·영상580초+여유20초다. 제출 상세판의 분량 상한은 없다. 제품 v0.16.1·installer-v0.1.0과 권장 모델·실제 역할·웹 통합의 최신 성과를 반영한다.
+
+현재 `presentation/kitchen-planning.pptx`·`presentation.html`·`slides.json`·`demo-plan.json`은 **10/11 초안**이다. 실제 PPTX12장·삽입 미디어/영상0이며 새 계획의 완성본이 아니다. 구형 자료의20쪽·웹 미수신·Claude 대기·초기 자료수·과거 토큰 수치를 현재 상태로 사용하지 않는다. [웹·보고서·로딩 점검 W](../docs/validation/frontend-readiness-W-20261016.md)는 데이터/코드 확인과 브라우저 정책 차단으로 남은 육안 검수를 구분한다.
+
+제출 마감은 사용자 제공 운영자료 기준 **10/20 18:00 KST**다.10/21 09시 제품 저장소 공개 예약을 접수로 대신하지 않는다. 공개 전 심사자에게는 심사용 ZIP·소스 ZIP을 실제 제출 경로로 제공하고 GitHub 접근 권한이 없는 상태도 고려한다.
+
+아래 내용은 이전 단계의 제작·검수 이력이다. 파일 규격·접수 경로는 최종 제출 전에 확인하며 영상 제작·삽입 재생·10분 리허설·접수는 아직 완료되지 않았다.
+
 2026-10-11: 냉장고·전자레인지·식기세척기 기획의 **실제 발표 초안12쪽**을 [PPTX](presentation/kitchen-planning.pptx)와 [독립 HTML](presentation/presentation.html)로 작성했다. [내용 원본](presentation/slides.json), [발표 구성](demo-plan.json), [실제 시연 절차](demo-runbook.md), [평가항목 대조](../docs/validation/kitchen-progress-20261011.md)를 함께 관리한다. 현재 `preparation_only`: 영상·리허설·최종 접수는 미완료다.
 
 계획525초는 실측 발표 시간이 아니다. PPTX의12쪽을 다시 import/render해 글자·표·차트를 확인했으며 표2개와 차트1개는 편집 가능하다. 실제 입력/Skill/Tool 화면 캡처를 꾸며 넣지 않았다. `uv run python scripts/check-submission-preparation.py`는 계획·경로·C01~C09 연결 검사이며 심사 점수나 촬영 완료를 인증하지 않는다.
