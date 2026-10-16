@@ -1,0 +1,635 @@
+{
+  "id": "ui-resilience-X-20261016",
+  "date_kst": "2026-10-16",
+  "product_release": "product-v0.16.3",
+  "installer_release": "installer-v0.1.2",
+  "source_commit": "a5507290cfa1db6c864ffdb57b89b64e234a1140",
+  "scope": "Planner loading/refresh/error recovery, passive dashboard, same-result report and generic category display. No new AI business run or visual rendering.",
+  "resolved_W": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05"
+  ],
+  "baseline_local_ci": {
+    "source_commit": "a87a92764ccdc7c263ee7ae5e0c9fd05b0521419",
+    "status": "passed",
+    "stages": 21,
+    "source_changes": [],
+    "report_sha256": "99d8650d0e2d3f52258829ebfe982852aeb9400f2927ce491cc32bbdd9a50dd3",
+    "suites": [
+      {
+        "name": "dev-harness",
+        "tests_run": 35,
+        "reported_skips": 0,
+        "skips": [],
+        "unexpected_skips": [],
+        "skip_reasons_complete": true
+      },
+      {
+        "name": "product-tools",
+        "tests_run": 496,
+        "reported_skips": 0,
+        "skips": [],
+        "unexpected_skips": [],
+        "skip_reasons_complete": true
+      },
+      {
+        "name": "evaluation",
+        "tests_run": 146,
+        "reported_skips": 0,
+        "skips": [],
+        "unexpected_skips": [],
+        "skip_reasons_complete": true
+      },
+      {
+        "name": "web",
+        "tests_run": 155,
+        "reported_skips": 0,
+        "skips": [],
+        "unexpected_skips": [],
+        "skip_reasons_complete": true
+      },
+      {
+        "name": "observer",
+        "tests_run": 38,
+        "reported_skips": 0,
+        "skips": [],
+        "unexpected_skips": [],
+        "skip_reasons_complete": true
+      },
+      {
+        "name": "evals",
+        "tests_run": 28,
+        "reported_skips": 0,
+        "skips": [],
+        "unexpected_skips": [],
+        "skip_reasons_complete": true
+      }
+    ]
+  },
+  "final_delta_from_full_ci": {
+    "changed_files": [
+      "adapters/common/distribution/README.md",
+      "adapters/common/distribution/agent.md",
+      "adapters/common/distribution/install.ps1",
+      "adapters/common/distribution/install.py",
+      "adapters/common/distribution/install.sh",
+      "skills/manifest.json",
+      "tests/web/test_viewer_resilience.py",
+      "web/prototypes/visual-viewer/app/src/lib/viewState.ts",
+      "web/prototypes/visual-viewer/index.html"
+    ],
+    "final_web_tests": 155,
+    "installer_tests": 14,
+    "scope_note": "Full21-stage CI belongs to a87a927/v0.16.2. Final compatibility/version patch reruns web155, installer14, actual-data6, package/setup and source assets; unchanged core/locks are matched to the full CI."
+  },
+  "checks": [
+    {
+      "name": "final-web-155",
+      "receipt": ".harness/checks/4e63d0c0ac0c40e3b361d81382d69c36/receipt.json",
+      "receipt_sha256": "a62f69f2e0a1fbf54a0db30a78313929284b554e5d6d22a92c66da528933ca6c",
+      "exit_code": 0,
+      "seconds": 68.953,
+      "inputs": {
+        "skills/manifest.json": "0026b6cb8c138e7664a6397e8389f99207a2bbd2b0c04d17e34312845194f119",
+        "tests/web/test_office_resilience.py": "bc35f7479b7d7d4f625da9cdeb1a65279bc428abc6a08009a59a08667294b627",
+        "tests/web/test_viewer_resilience.py": "69f26018f6312bc2c8afb91a675687633e21ba7ce10ab4446c60b6307cb4c2c8",
+        "web/prototypes/agent-office/app/src/lib/data.ts": "756647dc374a36d180581e7442c45c381bdc6b253cd7ec4347b689be108d8ed2",
+        "web/prototypes/visual-viewer/app/src/lib/viewState.ts": "8059e40dd39760ee2c1de5cf21dc94a02e9060c5599001c896fe4b7bb6408ddf"
+      },
+      "log_hashes": {
+        "stdout.log": "569b81a25f6358370a35d499130961233512e28c395a440766aad67a7a0f20ee",
+        "stderr.log": "37c681a4d13d50a19cd320d36a30ec3eb9904f2923675578d4fed3dd9d907380"
+      }
+    },
+    {
+      "name": "installer-14",
+      "receipt": ".harness/checks/4a10d353a6b1491f96023c2091866f70/receipt.json",
+      "receipt_sha256": "c3d055e5f25a61e627a818d3aacb4d095b481146f5d2324d6ac2ca0bcff45341",
+      "exit_code": 0,
+      "seconds": 0.266,
+      "inputs": {
+        "adapters/common/distribution/README.md": "2f5e0804dac7265d56fc3b2108bb8b743430772f7014d0e8f336ce4f28d749d4",
+        "adapters/common/distribution/agent.md": "8ffbfb13b6e7393f1948732be8e375964cae88921f0650f97b2aa66e80e36f09",
+        "adapters/common/distribution/install.ps1": "49c34a3d50d7abd3df93dce6a22d8c4fdb57d601bf1eebf3c43feae296735c29",
+        "adapters/common/distribution/install.py": "e1650c3878f38c0bf9700f2e51312207307481bf36784969b4a720ce3805b2ac",
+        "adapters/common/distribution/install.sh": "dcac5e21e393445bf4c18849fa935d68afb41cee27245f82da026746cdfeab0e",
+        "tests/product-tools/test_distribution_install.py": "3996c3da10e4b3b27df1742f92fe8bb0dcfb92ef41283c0832c57ed3ca069d44"
+      },
+      "log_hashes": {
+        "stdout.log": "64e6fd3eb6939e94913021187e4fe5e416463034bdc2404ce80bb7d7f2020e47",
+        "stderr.log": "1abc9db92ef54188934be2889776aea8b3978b773370bc3250b879b54ed2053d"
+      }
+    },
+    {
+      "name": "three-products-current-projection",
+      "receipt": ".harness/checks/6fb4d4819e184df993b70134ab1f2a67/receipt.json",
+      "receipt_sha256": "b5a8472cc7b9049e8e26a6b36ef17564fc840178e605e9f89d2a125476896db4",
+      "exit_code": 0,
+      "seconds": 0.687,
+      "inputs": {
+        ".harness/Xfix-replay.py": "4f5506470eca157633462b6c9e2a848ba83e7f62624e83aad87dc4bc0bb60801",
+        "web/prototypes/visual-viewer/build_view.py": "4b65403bf9a2275986ddd9cfbb21373615d3d2329db6c40e1695d6ff18a7e418",
+        "web/prototypes/visual-viewer/index.html": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5"
+      },
+      "log_hashes": {
+        "stdout.log": "b14ed919171c2fdef054e3aa4c07826c3feaf66ec57bfc4f317571cd4f262ce4",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "actual-data-guard-and-transforms",
+      "receipt": ".harness/checks/dffb23d589754ceb9420bd32360bf6a2/receipt.json",
+      "receipt_sha256": "e9eb34ef976c8facdb356877beb7f04f9bc8f0c7617a3d296db90978250f5987",
+      "exit_code": 0,
+      "seconds": 0.266,
+      "inputs": {
+        ".harness/Xfix-shape-products.mjs": "7a4d9a7ed7bb363de64df038e85aa88eda4f3be91fcb1ae699422f4b86847784",
+        "web/prototypes/visual-viewer/app/src/lib/prune.ts": "e03dd6b340d40e8f61cc371ae73f5c9f4d05f3b57113f6a00870fb1388633472",
+        "web/prototypes/visual-viewer/app/src/lib/viewState.ts": "8059e40dd39760ee2c1de5cf21dc94a02e9060c5599001c896fe4b7bb6408ddf"
+      },
+      "log_hashes": {
+        "stdout.log": "218816de3b72e4deb191ad574967523fd896ba81ca9058a1365d037fcd32cab5",
+        "stderr.log": "91ebf1c703000ad4f77b9d38433309751bb373b1da946cbe8d23d57d193e7c8e"
+      }
+    },
+    {
+      "name": "zip-only-two-engine-setup",
+      "receipt": ".harness/checks/f83967393a084cdaaf2bc96e69bc5f3c/receipt.json",
+      "receipt_sha256": "fab59a129fca3c9939b80921bc3e3402178bda87c3834b777915210aa608e9e8",
+      "exit_code": 0,
+      "seconds": 6.563,
+      "inputs": {
+        ".harness/Xfix-bundle-setup.py": "00d989b7a4e90779cc7c1674a98841fe36cada312fb6945271e33119440a709d",
+        "adapters/common/judge.py": "cdca57b867e30b0cc3768c7c17e02f0d0119e5897636743c89e3df9fa51c9f57",
+        "skills/manifest.json": "0026b6cb8c138e7664a6397e8389f99207a2bbd2b0c04d17e34312845194f119"
+      },
+      "log_hashes": {
+        "stdout.log": "7d9c2cf2965ace3b9bbd522238056108c09fb0499bdd524c97d379fdc6199ba3",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "actual_preserved_AI_outputs": {
+    "scope": "Six preserved actual O AI outputs rebuilt and compared with current viewer/report data. No new AI, network, browser or image rendering.",
+    "results": [
+      {
+        "provider": "codex",
+        "product_family": "refrigerator",
+        "run": "O_CODEX_C61M_FR",
+        "input_export_sha256": "3faba40c98146b5fac2097f90f97951eba0d304d62894b26a8972f058bc03f99",
+        "current_html_sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5",
+        "view_data_sha256": "bb6cd025e3eef1b9ae2846e16f81f57fc235fddef6f2a0bc3a5d65138dab42d1",
+        "same_current_result": true,
+        "report_turn_count": 1,
+        "full_bodies_preserved": 56,
+        "selected_count": 56,
+        "delivered_count": 56,
+        "cited_refs": 33,
+        "pages": 9,
+        "warnings": [],
+        "original_unchanged": true
+      },
+      {
+        "provider": "codex",
+        "product_family": "microwave",
+        "run": "O_CODEX_C61M_MW",
+        "input_export_sha256": "2124c4a40942a22aeaf07d464e5741b9b6769ce2565b6536482de1bc09273f92",
+        "current_html_sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5",
+        "view_data_sha256": "827b67dbc7e6f780711334dd1122851feeb46073fb9f6566658381ac6a72f526",
+        "same_current_result": true,
+        "report_turn_count": 1,
+        "full_bodies_preserved": 82,
+        "selected_count": 82,
+        "delivered_count": 82,
+        "cited_refs": 24,
+        "pages": 9,
+        "warnings": [],
+        "original_unchanged": true
+      },
+      {
+        "provider": "codex",
+        "product_family": "dishwasher",
+        "run": "O_CODEX_C61M_DW",
+        "input_export_sha256": "d93c788778161e773ebbeed7154c96cc6d7fb3fc80c110eedd0f44367d9d8189",
+        "current_html_sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5",
+        "view_data_sha256": "e4f8fa5a1158d47c3dd408150cb3467ff7b6ca301dca3fde8c9beb8fe19d65bc",
+        "same_current_result": true,
+        "report_turn_count": 1,
+        "full_bodies_preserved": 81,
+        "selected_count": 81,
+        "delivered_count": 81,
+        "cited_refs": 35,
+        "pages": 9,
+        "warnings": [],
+        "original_unchanged": true
+      },
+      {
+        "provider": "claude",
+        "product_family": "refrigerator",
+        "run": "O_CLAUDE_OM_FR",
+        "input_export_sha256": "93fbbd6a57ef7ef5e113e4433d6f9eb9219fd33b29049dafe49f8865b91f656f",
+        "current_html_sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5",
+        "view_data_sha256": "42a6bcbc175c98675225d4467258f2254e03618edef096affe1c3aefc18d56b5",
+        "same_current_result": true,
+        "report_turn_count": 1,
+        "full_bodies_preserved": 56,
+        "selected_count": 56,
+        "delivered_count": 56,
+        "cited_refs": 28,
+        "pages": 9,
+        "warnings": [],
+        "original_unchanged": true
+      },
+      {
+        "provider": "claude",
+        "product_family": "microwave",
+        "run": "O_CLAUDE_OM_MW",
+        "input_export_sha256": "6031db6220ff3539e0fdcb9320f5754d4b94087a2a574e2b89e94ab23c79e0a9",
+        "current_html_sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5",
+        "view_data_sha256": "0e038710f3b65b1bbc03eca2a49c326359f9da7f044fc9172cb056e6ed031234",
+        "same_current_result": true,
+        "report_turn_count": 1,
+        "full_bodies_preserved": 82,
+        "selected_count": 82,
+        "delivered_count": 82,
+        "cited_refs": 31,
+        "pages": 9,
+        "warnings": [],
+        "original_unchanged": true
+      },
+      {
+        "provider": "claude",
+        "product_family": "dishwasher",
+        "run": "O_CLAUDE_OM_DW",
+        "input_export_sha256": "6de290e562475a8556aa5704f6e7f7a740011377a7a2f6a989af20e7874b8255",
+        "current_html_sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5",
+        "view_data_sha256": "d21450139c8735508e65f64250a6885a8988130674c121b68231d8c29455bc1d",
+        "same_current_result": true,
+        "report_turn_count": 1,
+        "full_bodies_preserved": 81,
+        "selected_count": 81,
+        "delivered_count": 81,
+        "cited_refs": 27,
+        "pages": 9,
+        "warnings": [],
+        "original_unchanged": true
+      }
+    ],
+    "case_count": 6,
+    "native_business_regression_this_turn": "not_run",
+    "browser_visual_review": "blocked",
+    "new_business_model_calls": 0
+  },
+  "actual_loader_and_pure_transforms": [
+    {
+      "run": "O_CLAUDE_OM_DW",
+      "loader_accepted": true,
+      "report_snapshot": true,
+      "source_pages": 9,
+      "planning_pages": 5
+    },
+    {
+      "run": "O_CLAUDE_OM_FR",
+      "loader_accepted": true,
+      "report_snapshot": true,
+      "source_pages": 9,
+      "planning_pages": 5
+    },
+    {
+      "run": "O_CLAUDE_OM_MW",
+      "loader_accepted": true,
+      "report_snapshot": true,
+      "source_pages": 9,
+      "planning_pages": 5
+    },
+    {
+      "run": "O_CODEX_C61M_DW",
+      "loader_accepted": true,
+      "report_snapshot": true,
+      "source_pages": 9,
+      "planning_pages": 5
+    },
+    {
+      "run": "O_CODEX_C61M_FR",
+      "loader_accepted": true,
+      "report_snapshot": true,
+      "source_pages": 9,
+      "planning_pages": 5
+    },
+    {
+      "run": "O_CODEX_C61M_MW",
+      "loader_accepted": true,
+      "report_snapshot": true,
+      "source_pages": 9,
+      "planning_pages": 5
+    }
+  ],
+  "generic_category_contract": {
+    "test_methods": 3,
+    "new_category_subcases": 2,
+    "families": [
+      "coffee_machine",
+      "new-kitchen.category-2026"
+    ],
+    "unregistered_category_enters_research": true,
+    "new_real_category_research": "not_run"
+  },
+  "product_package": {
+    "judge_files": 205,
+    "source_files": 128,
+    "judge_readme_equal": true,
+    "assets": {
+      "lg-ax-judge-product-v0.16.3.zip": "6c62c06f9448e7d3d5d5d2b8719ff8e9019a745137b56edcde1f8456e07be9eb",
+      "lg-ax-product-product-v0.16.3.zip": "9de5ef1250bf8d4fe4cdd8c1580b6d48aeaa827a0154020ce1db4b48374e1e12",
+      "SHA256SUMS.txt": "fec9ff6596d07cfb2da2fa5cbccd5c76987321a7e88c2e7638533ba73df6a5b3"
+    },
+    "source_manifest_sha256": "0026b6cb8c138e7664a6397e8389f99207a2bbd2b0c04d17e34312845194f119",
+    "snapshot_parents": 0
+  },
+  "distribution_guard": {
+    "repository": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+    "private": true,
+    "development_repository_private": true,
+    "refs": [
+      "28b4cb02c1716d2339c90d02bd23aa972dc99ba8\trefs/heads/main",
+      "58b7ba00f1703eab72470ad306aaa4494b01aadd\trefs/tags/installer-v0.1.0",
+      "971530562da3fe8e2f24d5da915715bb20fb4137\trefs/tags/installer-v0.1.0^{}",
+      "428371bb3f48e1d2af629a15c7a40093a86a77de\trefs/tags/installer-v0.1.1",
+      "24730072d32dc7be9796e9c8a2af4f202e883c65\trefs/tags/installer-v0.1.1^{}",
+      "323fc5f8c5f0226db6811e4787c52b3f228e8235\trefs/tags/installer-v0.1.2",
+      "28b4cb02c1716d2339c90d02bd23aa972dc99ba8\trefs/tags/installer-v0.1.2^{}",
+      "22f2cd2c3b8a76af70a7aa8dbbb2a9163bbca9ed\trefs/tags/product-v0.16.1",
+      "702e551f86ff4e056c476d8003aa8b7ec77a2410\trefs/tags/product-v0.16.1^{}",
+      "34cd67d6113906a4a8f0319e05f2541784615a03\trefs/tags/product-v0.16.2",
+      "960237d9a019c43f545c034492d5c12d2ac601d3\trefs/tags/product-v0.16.2^{}",
+      "2f7e4b19f7e944026bbedc53ea64dc70d2d57242\trefs/tags/product-v0.16.3",
+      "edd81326ce215e47e266a95667b9b35952ba6562\trefs/tags/product-v0.16.3^{}"
+    ],
+    "main_files": {
+      "README.md": "2f5e0804dac7265d56fc3b2108bb8b743430772f7014d0e8f336ce4f28d749d4",
+      "agent.md": "8ffbfb13b6e7393f1948732be8e375964cae88921f0650f97b2aa66e80e36f09",
+      "install.py": "e1650c3878f38c0bf9700f2e51312207307481bf36784969b4a720ce3805b2ac",
+      "install.ps1": "49c34a3d50d7abd3df93dce6a22d8c4fdb57d601bf1eebf3c43feae296735c29",
+      "install.sh": "dcac5e21e393445bf4c18849fa935d68afb41cee27245f82da026746cdfeab0e"
+    },
+    "releases": {
+      "product-v0.16.1": {
+        "lg-ax-judge-product-v0.16.1.zip": {
+          "sha256": "24e9d5db062545e43e0d5a975eb73f7b728fe034982db6caf6a808ff36537b6f",
+          "size": 2407457
+        },
+        "lg-ax-product-product-v0.16.1.zip": {
+          "sha256": "0f9614ef4e9d660d90322602f2b0645c660716463c24c9348ef514e9d8ee8e15",
+          "size": 1251566
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "d67acda391866e7ddbb2f551ef851c7d50a137ee567eae6f0c37ef40279ccd98",
+          "size": 198
+        }
+      },
+      "installer-v0.1.0": {
+        "agent.md": {
+          "sha256": "0c88a3f9b681fc5232bf605f45e10fa56ebd71ce692551fbfbeafec13ce3b69f",
+          "size": 3510
+        },
+        "install.ps1": {
+          "sha256": "d7e9c70326850e7d3287a533433712799981be5531d097fc1ddc22adcc24620e",
+          "size": 3339
+        },
+        "install.py": {
+          "sha256": "716599e7921665036f77ec2858eaa654bfb982c6093c607ab1208805e4d57cdc",
+          "size": 9097
+        },
+        "install.sh": {
+          "sha256": "63e7569919437cd8924561584124a04c34edf89e77c101f93a74a17d66d5436c",
+          "size": 2464
+        },
+        "README.md": {
+          "sha256": "0427797525d3b6499dbc504eeea473fcbddbc37b96e5815a6666a0aeedb1523e",
+          "size": 6814
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "97d52108b29f6bee2bd64c7d6965b48da10a71e59ea915fa7139fa84f80d384c",
+          "size": 388
+        }
+      },
+      "product-v0.16.2": {
+        "lg-ax-judge-product-v0.16.2.zip": {
+          "sha256": "69e49f00127dd1a09c9f24f7b58362814439e14f5ce186dc8d0ede1988f90c6f",
+          "size": 2416409
+        },
+        "lg-ax-product-product-v0.16.2.zip": {
+          "sha256": "f6f72b8595ad5c2c3e3ae7959da99580e7e002042b124f62710eea88aca28be1",
+          "size": 1255913
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "0d793624ef303eca06c942f5bc1d5dba70c3b297cebbf22a5ebbb1f8722af5c7",
+          "size": 200
+        }
+      },
+      "installer-v0.1.1": {
+        "agent.md": {
+          "sha256": "fb9570d106d49d6814f3d8776ff85e19c8d0364e6868af774d8b11b160e9163d",
+          "size": 3510
+        },
+        "install.ps1": {
+          "sha256": "4f1d147d354beb7cf975b500b974598ddec23b1f8721297631ffe0c3d59ff889",
+          "size": 3339
+        },
+        "install.py": {
+          "sha256": "54a0e30d2b1ced99894782b083e7745421f8a717c1223b89a8ae5e39dda85dd7",
+          "size": 9097
+        },
+        "install.sh": {
+          "sha256": "a79a40c0231791b4899abb245d7f39169c1e32a5b5f5f3032263e676c4313abb",
+          "size": 2464
+        },
+        "README.md": {
+          "sha256": "9e97be125a681e2fb15b2c92539b8863343e1294b326142e94fa4c616638a54a",
+          "size": 6814
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "ef8eaa6fb4213aaecf6f5204f1f81e53d33dd082fc19db8fd4376e99a12668b5",
+          "size": 388
+        }
+      },
+      "product-v0.16.3": {
+        "lg-ax-judge-product-v0.16.3.zip": {
+          "sha256": "6c62c06f9448e7d3d5d5d2b8719ff8e9019a745137b56edcde1f8456e07be9eb",
+          "size": 2416381
+        },
+        "lg-ax-product-product-v0.16.3.zip": {
+          "sha256": "9de5ef1250bf8d4fe4cdd8c1580b6d48aeaa827a0154020ce1db4b48374e1e12",
+          "size": 1255903
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "fec9ff6596d07cfb2da2fa5cbccd5c76987321a7e88c2e7638533ba73df6a5b3",
+          "size": 200
+        }
+      },
+      "installer-v0.1.2": {
+        "agent.md": {
+          "sha256": "8ffbfb13b6e7393f1948732be8e375964cae88921f0650f97b2aa66e80e36f09",
+          "size": 3510
+        },
+        "install.ps1": {
+          "sha256": "49c34a3d50d7abd3df93dce6a22d8c4fdb57d601bf1eebf3c43feae296735c29",
+          "size": 3339
+        },
+        "install.py": {
+          "sha256": "e1650c3878f38c0bf9700f2e51312207307481bf36784969b4a720ce3805b2ac",
+          "size": 9097
+        },
+        "install.sh": {
+          "sha256": "dcac5e21e393445bf4c18849fa935d68afb41cee27245f82da026746cdfeab0e",
+          "size": 2464
+        },
+        "README.md": {
+          "sha256": "2f5e0804dac7265d56fc3b2108bb8b743430772f7014d0e8f336ce4f28d749d4",
+          "size": 6814
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "2c6374dc0075aa52ce8fda2ee965991e1685dfcf338ea130fe54a16306688157",
+          "size": 388
+        }
+      }
+    },
+    "new_remote_assets_equal": true,
+    "new_automatic_source_files_raw_equal": 128,
+    "product_snapshot": "edd81326ce215e47e266a95667b9b35952ba6562",
+    "snapshot_parents": 0,
+    "prior_product_assets_unchanged": true
+  },
+  "platform_setup": {
+    "windows": [
+      {
+        "name": "ps51-codex",
+        "exit_code": 0,
+        "seconds": 7.093,
+        "stdout_sha256": "87593c2e295a04b6167dd6ebef0c490ded6fa44f79f70b1ab777fae490bb3263",
+        "stderr_sha256": "fcad109be3c44baf0ab85051848aa155a2e6a1d6cdc663990d9f192d34ef3242"
+      },
+      {
+        "name": "bundle-codex",
+        "exit_code": 0,
+        "seconds": 0.204,
+        "stdout_sha256": "60f884eae1249652dc54e5ef1f00dda8925f6322b522f7d4d9af10718109ec5b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "ps51-claude",
+        "exit_code": 0,
+        "seconds": 6.093,
+        "stdout_sha256": "22f9f761f1fccb03727bd43c4c6b66e5a049b26dff822555e033183914f9f60c",
+        "stderr_sha256": "bc87b51e5df1a5e7d63de9577b24ffca410d4b6d423b6914a2c4ed8ba5663265"
+      },
+      {
+        "name": "bundle-claude",
+        "exit_code": 0,
+        "seconds": 0.172,
+        "stdout_sha256": "60f884eae1249652dc54e5ef1f00dda8925f6322b522f7d4d9af10718109ec5b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "ubuntu": [
+      {
+        "name": "ubuntu-codex",
+        "exit_code": 0,
+        "seconds": 7.688,
+        "stdout_sha256": "618ec2f85f2eeb4324b7f5e4bb55ca28c75b432cce4338e174d89138241b0365",
+        "stderr_sha256": "88bb401949460bf7503f3e84899415beaa8d79b98a29ddb66a00cac82f25a984"
+      },
+      {
+        "name": "bundle-codex",
+        "exit_code": 0,
+        "seconds": 0.156,
+        "stdout_sha256": "36800d0e92452bcbe207841d0933da5536d37004018dc42e4b52c81f9ff7adc1",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "ubuntu-claude",
+        "exit_code": 0,
+        "seconds": 4.125,
+        "stdout_sha256": "ea95da8fc673129ef9541fac0386ba46421834843048c3ed34a879ca9192f191",
+        "stderr_sha256": "239afd489435e230e6231ac591722753e65ee3048a848cf1fbef530c83a178ed"
+      },
+      {
+        "name": "bundle-claude",
+        "exit_code": 0,
+        "seconds": 0.156,
+        "stdout_sha256": "36800d0e92452bcbe207841d0933da5536d37004018dc42e4b52c81f9ff7adc1",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "published_readme_entrypoints": [
+    {
+      "name": "powershell-readme",
+      "exit_code": 0,
+      "seconds": 6.938,
+      "stdout_sha256": "714c688000c6d6de69d37c59ca5390bffb7201517fc8f93a96800ab34b8cbed6",
+      "stderr_sha256": "54d699d900f609f165717b4b45d40c064fd4aac08c305198efcf7cb4b56cb94d",
+      "prepared": true,
+      "verified_files": 205
+    },
+    {
+      "name": "ubuntu-readme",
+      "exit_code": 0,
+      "seconds": 4.828,
+      "stdout_sha256": "4a2c8c511fa25383076baf24ae432e8c07a76c0409e4e2cf99b408a87ec6cfb4",
+      "stderr_sha256": "359871b76fe0e1a884be2bbca752d1f192c6f1528a1d7451676add4eb1e5b176",
+      "prepared": true,
+      "verified_files": 205
+    }
+  ],
+  "independent_review": {
+    "agent": "/root/deadline_lookup",
+    "status": "accepted code and actual scoped receipts",
+    "unresolved_p1_p2": 0
+  },
+  "fix_history": [
+    {
+      "version": "product-v0.16.2",
+      "problem": "Normal table chip cells named type were mistaken for block discriminators; six real views were rejected.",
+      "resolution": "Fixed shared shape guard in v0.16.3; immutable prior assets retained."
+    },
+    {
+      "receipt": "ec6a243899e04d23b85d8cd4f09f5fd5",
+      "problem": "New regression assertion ran before state module declaration.",
+      "resolution": "Test ordering fixed; fresh final suite4e63... passes155."
+    },
+    {
+      "receipt": "e7556be8a7b441789db76a6c84508c65",
+      "problem": "Parent setup checker targeted packaging staging rather than extracted ZIP root.",
+      "resolution": "Fresh ZIP extraction and both-engine setup pass; product launcher unchanged."
+    }
+  ],
+  "visual_review": {
+    "status": "blocked by existing Browser Use URL policy; not attempted through alternate route",
+    "screenshots": 0,
+    "clicks": 0,
+    "browser_rendering": "not_run",
+    "GPU_test": "not_run"
+  },
+  "usage": {
+    "new_business_model_calls": 0,
+    "development_delegation": true,
+    "development_tokens": "unknown",
+    "UI_model_calls_added": 0
+  },
+  "remaining": [
+    "Actual browser keyboard/visual check of result/dashboard/report and graphics fallback",
+    "Final three-product native filming on selected final package",
+    "Detailed deck with embedded videos and separate575+25s live cut/rehearsal",
+    "Actual macOS run and new real category research remain outside verified scope"
+  ],
+  "weaknesses": [
+    "External websites and authentication can still delay or prevent new evidence collection",
+    "Other categories have a generic structural contract test, not equivalent real research-quality validation",
+    "Six preserved native outputs verify new UI/data compatibility; they are not new native business-quality runs",
+    "No actual browser/GPU/macOS visual acceptance in this task"
+  ]
+}
