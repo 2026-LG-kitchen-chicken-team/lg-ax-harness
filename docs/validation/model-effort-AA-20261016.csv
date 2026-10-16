@@ -1,0 +1,15 @@
+case_id,profile_id,provider,model_requested,effort_requested,family,selected_source_count,external_total_seconds,score_internal_not_official,material_finding_count,policy_runtime_stop,parent_full_body_with_only_LF_to_space_diagnostic_count,full_original_metadata_verified_count,citation_reference10_identified_field_union_count,protocol_case_pass
+AA_FR_CSL,CSL,codex,gpt-6.1-sol,low,refrigerator,56,420.453,96,0,False,56,56,56,True
+AA_FR_CSM,CSM,codex,gpt-6.1-sol,medium,refrigerator,56,691.562,96,0,False,56,56,56,True
+AA_FR_CAL,CAL,codex,gpt-6-astra,low,refrigerator,56,737.875,97,0,False,56,56,56,True
+AA_FR_COL,COL,claude,claude-opus-5-5,low,refrigerator,56,355.156,85,1,False,56,0,1,False
+AA_FR_COM,COM,claude,claude-opus-5-5,medium,refrigerator,56,578.187,96,0,False,56,0,1,False
+AA_FR_CSN,CSN,claude,claude-sonnet-5-5,medium,refrigerator,56,632.469,91,1,False,56,1,56,False
+AA_DW_CSL,CSL,codex,gpt-6.1-sol,low,dishwasher,81,,,,False,,,,
+AA_DW_CSM,CSM,codex,gpt-6.1-sol,medium,dishwasher,81,912.047,97,0,True,81,81,81,False
+AA_DW_CAL,CAL,codex,gpt-6-astra,low,dishwasher,81,749.5,97,0,False,81,81,81,True
+AA_DW_COL,COL,claude,claude-opus-5-5,low,dishwasher,81,342.157,86,1,False,81,0,0,False
+AA_DW_COM,COM,claude,claude-opus-5-5,medium,dishwasher,81,763.89,96,0,False,81,0,1,False
+AA_DW_CSN,CSN,claude,claude-sonnet-5-5,medium,dishwasher,81,573.172,95,0,False,73,0,1,False
+AA_MW_SELECTED_CODEX,,codex,,,microwave,82,,,,False,,,,
+AA_MW_SELECTED_CLAUDE,,claude,,,microwave,82,,,,False,,,,
