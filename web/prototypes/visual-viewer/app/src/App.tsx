@@ -10,8 +10,9 @@ import { reportVoice, voiceView } from './lib/voice'
 import { prunedTarget, pruneForPlanning } from './lib/prune'
 import { plainView } from './lib/plain'
 import { recolorView } from './lib/ktone'
+import { fragmentId, pageTarget, reportSnapshot } from './lib/viewState'
 
-const hashId = () => decodeURIComponent(location.hash.replace(/^#/, ''))
+const hashId = () => fragmentId(location.hash)
 const read = (k: string) => { try { return localStorage.getItem(k) } catch { return null } }
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } catch { /* storage unavailable */ } }
 
@@ -23,13 +24,13 @@ export default function App() {
     setToasts((t) => [...t, { id, msg }])
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2400)
   }, [])
-  const { view, live, reload, openFile, inline } = useView(toast)
+  const { view, identity, phase, busy, lastReadAt, live, reload, openFile, inline, fromFile } = useView(toast)
   const [current, setCurrent] = useState<string | null>(null)
   const [big, setBig] = useState(() => read('lgax-text-big') === '1')
   const [searchOpen, setSearchOpen] = useState(false)
   const openSearch = useCallback(() => setSearchOpen(true), [])
-  const [reportOpen, setReportOpen] = useState(false)
-  const closeReport = useCallback(() => setReportOpen(false), [])
+  const [openedReport, setOpenedReport] = useState<ReturnType<typeof reportSnapshot>>(null)
+  const closeReport = useCallback(() => setOpenedReport(null), [])
   const lastFocus = useRef<string | null>(null)
 
   // Page choice: keep the current page across refreshes; follow the builder's focus when it changes (new export).
@@ -56,12 +57,14 @@ export default function App() {
   // planning work needs (lib/prune.ts), reads in report style (lib/voice.ts), leaves field names out of the visible text
   // (lib/plain.ts) and uses one hue (lib/ktone.ts). build_view.py's data itself is unchanged. The export kept for
   // "보고서로 보기" is set aside first, so none of these touch its saved text.
-  const report = view?.report
+  const report = useMemo(() => view ? reportSnapshot(view) : null, [view])
   const shownView = useMemo(() => {
     const pagesOnly = view && view.report ? { ...view, report: undefined } : view
-    return recolorView(plainView(voiceView(pruneForPlanning(mergeEvidencePages(pagesOnly)))))
+    const shaped = recolorView(plainView(voiceView(pruneForPlanning(mergeEvidencePages(pagesOnly)))))
+    // A partial manual view may contain only a page normally merged/pruned from a complete builder view.
+    return shaped?.pages.length ? shaped : pagesOnly
   }, [view])
-  const target = (id: string | null) => prunedTarget(mergedTarget(id))
+  const target = (id: string | null) => pageTarget(shownView, id, prunedTarget(mergedTarget(id)))
   const page = view?.pages.find((p) => p.id === current) || null
   const shownPage = shownView?.pages.find((p) => p.id === target(current)) || null
   useEffect(() => {
@@ -91,9 +94,12 @@ export default function App() {
       <DashApp view={shownView} page={shownPage}
         go={(id) => go(target(id) || id)} pick={pick} copy={copy} live={live} reload={reload}
         openFile={openFile} inline={inline} big={big} toggleBig={toggleBig}
+        phase={phase} busy={busy} lastReadAt={lastReadAt} fromFile={fromFile}
         searchOpen={searchOpen} openSearch={openSearch} closeSearch={() => setSearchOpen(false)}
-        openReport={report ? () => setReportOpen(true) : undefined} />
-      {reportOpen && report && <ReportView source={report} close={closeReport} />}
+        openReport={report ? () => setOpenedReport(report) : undefined} />
+      {openedReport && <ReportView key={openedReport.identity} source={openedReport.source} close={closeReport}
+        outdated={openedReport.identity !== identity && openedReport.sourceIdentity !== report?.sourceIdentity}
+        latest={report ? () => setOpenedReport(report) : undefined} />}
       <div className="no-print pointer-events-none fixed right-4 top-20 z-[70] flex flex-col items-end gap-2">
         {toasts.map((t) => <div key={t.id} role="status" className="rounded-full bg-zinc-900 px-4 py-2 text-sm text-white shadow-lg">{reportVoice(t.msg)}</div>)}
       </div>
