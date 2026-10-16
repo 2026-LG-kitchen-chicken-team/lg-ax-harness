@@ -1,0 +1,300 @@
+{
+  "format": "lgax-result-delivery-Z-v1",
+  "observed_at_utc": "2026-10-16T10:07:02.019614+00:00",
+  "native_source_commit": "5d34c8a9bdf8ff9fec801a055387758d89607748",
+  "native_manifest_sha256": "a008cc510e8a368cdfda95f0edde5f3f88cdf142b6fbee3a3967667cd6471835",
+  "release_source_commit": "93feec8a9085c353ef0722d76d35c533cfd56163",
+  "release_manifest_sha256": "96cbaa4eb5c3c5e7a1c09077cb0f3f976cdb1fa12abd5fab859282abdafb85ec",
+  "post_native_delta": "manual recovery documents3 + regenerated manifest; manifest generator includes the same observer modules; runtime/Agent/Skill/model bytes unchanged",
+  "product_structure": {
+    "main": 1,
+    "business_skills": 6,
+    "optional_roles": 3,
+    "development_roles_are_separate": true
+  },
+  "parent_inputs": {
+    "maximum": 6,
+    "actual": 6,
+    "diagnostic": 1,
+    "initial_business": 4,
+    "corrective_new_business": 1,
+    "automatic_redispatch": 0,
+    "readiness_failures_without_model_inputs": 2
+  },
+  "unique_registered_corpus": {
+    "refrigerator": 56,
+    "microwave": 82,
+    "dishwasher": 81,
+    "total": 219,
+    "new_online_research": false,
+    "unique_customer_count_certified": false,
+    "representativeness_certified": false
+  },
+  "local_ci": {
+    "status": "passed",
+    "stages": 21,
+    "tests_run": 926,
+    "passed": 925,
+    "platform_skip": 1,
+    "seconds": 291.344,
+    "receipt": ".harness/checks/2a369dc4c66544fe882b626c911b9bb9/receipt.json",
+    "receipt_sha256": "26a2e41ded801c48829068458560f09b979462d68d94fa3ee19f99e3b1771867",
+    "source_changes": []
+  },
+  "native_cases": [
+    {
+      "case": "Z_N01_CODEX_CLI_FR",
+      "environment": "Codex CLI",
+      "family": "refrigerator",
+      "registered_sources": 56,
+      "elapsed_seconds": 458.8125,
+      "time_basis": "native process start to terminal exit",
+      "native_exit": 0,
+      "delivery": "automatic current web/report/completion binding; OS open request",
+      "semantic": "no new P1/P2 in independent sampled original review",
+      "usage": {
+        "input_tokens": 3055664,
+        "cached_input_tokens": 2842240,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 18028,
+        "reasoning_output_tokens": 1092
+      }
+    },
+    {
+      "case": "Z_N02_CODEX_GUI_MW",
+      "environment": "Codex GUI first attempt",
+      "family": "microwave",
+      "registered_sources": 82,
+      "elapsed_seconds": 68.992,
+      "time_basis": "user input to final response",
+      "delivery": "failed invalid_input; no new workflow/turn/export",
+      "semantic": "correctly reported failure; previous FR result excluded",
+      "usage": {
+        "input_tokens": 1284075,
+        "cached_input_tokens": 1058304,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2320,
+        "reasoning_output_tokens": 1259,
+        "total_tokens": 1286395
+      }
+    },
+    {
+      "case": "Z_N03_CLAUDE_CLI_DW",
+      "environment": "Claude CLI",
+      "family": "dishwasher",
+      "registered_sources": 81,
+      "elapsed_seconds": 641.869,
+      "time_basis": "native process start to terminal exit",
+      "native_exit": 0,
+      "delivery": "native automatic delivery failed; deterministic operator repair subsequently matched current81/web/report; original failure preserved",
+      "semantic": "P2 one conditional existing-feature summary",
+      "usage_terminal": {
+        "input_tokens": 12,
+        "cache_creation_input_tokens": 21024,
+        "cache_read_input_tokens": 1397602,
+        "output_tokens": 11355,
+        "output_tokens_details": {
+          "thinking_tokens": 278
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 21024,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "global",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 5866,
+            "cache_read_input_tokens": 238990,
+            "cache_creation_input_tokens": 5792,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 5792
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "usage_model_usage_separate_not_added": {
+        "claude-opus-5-5": {
+          "inputTokens": 80,
+          "outputTokens": 67871,
+          "cacheReadInputTokens": 4840895,
+          "cacheCreationInputTokens": 317897,
+          "webSearchRequests": 0,
+          "costUSD": 4.602833,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 13922,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "reported_list_cost_USD_not_bill": 4.602833,
+      "billed_cost": null
+    },
+    {
+      "case": "Z_N04_CLAUDE_GUI_FR",
+      "environment": "Claude GUI",
+      "family": "refrigerator",
+      "registered_sources": 56,
+      "elapsed_seconds": 600.409,
+      "time_basis": "user input to final end_turn",
+      "delivery": "automatic current v3/web/report/OS open request; Korean completion exact suffix with English prefix",
+      "semantic": "P2 one temporal-attribution summary",
+      "parent_usage": {
+        "input_tokens": 68,
+        "output_tokens": 51721,
+        "cache_creation_input_tokens": 199360,
+        "cache_read_input_tokens": 5677959
+      },
+      "child_usage_scope": "separate10message IDs; do not add handback totals as another model bill",
+      "billed_cost": null
+    },
+    {
+      "case": "Z_N05_CODEX_GUI_MW_NEW",
+      "environment": "Codex GUI corrective new business",
+      "family": "microwave",
+      "registered_sources": 82,
+      "elapsed_seconds": 783.501,
+      "time_basis": "user input to final response",
+      "native_task_duration_seconds": 784.639,
+      "delivery": "automatic current v1/web/report/OS open request; completion exact prefix followed by matching artifact links",
+      "semantic": "no new P1/P2 in independent original review",
+      "usage": {
+        "input_tokens": 10214774,
+        "cached_input_tokens": 10049536,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 29694,
+        "reasoning_output_tokens": 8922,
+        "total_tokens": 10244468
+      },
+      "usage_scope": "Main turn-reported cumulative usage only. Child and backend billed totals remain unknown."
+    }
+  ],
+  "all_four_first_attempt_automatic_deliveries_passed": false,
+  "package": {
+    "release": "product-v0.17.0",
+    "snapshot_commit": "1784fc0a49e8e2050909da2b2db174424194dd54",
+    "parent_count": 0,
+    "source_files": 130,
+    "judge_files": 209,
+    "artifacts": [
+      {
+        "archive": "lg-ax-harness-product-v0.17.0.zip",
+        "sha256": "b67bcf5b396b6ffe8c7d0cd028ec9e1522355b7418cbb1b5c2603c4859ea8fa2",
+        "files": 130,
+        "purpose": "submission_source_rehearsal_not_final_submission"
+      },
+      {
+        "archive": "lg-ax-judge-product-v0.17.0.zip",
+        "sha256": "780087faaeccadbb2614b60f58100cea5c2159b6f3432d814c3118b7f779012d",
+        "files": 209,
+        "release": "product-v0.17.0",
+        "engines": {
+          "codex": {
+            "files": 99,
+            "skills": [
+              "evidence-retrieval",
+              "web-evidence-collection",
+              "needs-structuring",
+              "feature-comparison",
+              "concept-writing",
+              "review-and-revise"
+            ],
+            "native_agents": [
+              "product_evidence_reviewer",
+              "product_official_researcher",
+              "product_review_researcher"
+            ],
+            "source_manifest_sha256": "96cbaa4eb5c3c5e7a1c09077cb0f3f976cdb1fa12abd5fab859282abdafb85ec"
+          },
+          "claude": {
+            "files": 99,
+            "skills": [
+              "evidence-retrieval",
+              "web-evidence-collection",
+              "needs-structuring",
+              "feature-comparison",
+              "concept-writing",
+              "review-and-revise"
+            ],
+            "native_agents": [
+              "product-evidence-reviewer",
+              "product-official-researcher",
+              "product-review-researcher"
+            ],
+            "source_manifest_sha256": "96cbaa4eb5c3c5e7a1c09077cb0f3f976cdb1fa12abd5fab859282abdafb85ec"
+          }
+        }
+      }
+    ],
+    "manual_byte_equal": true,
+    "empty_catalog": true,
+    "all_manifest_bytes_equal": true,
+    "zip_only_commands": [
+      {
+        "argv": [
+          "check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "setup",
+          "--engine",
+          "codex"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "setup",
+          "--engine",
+          "claude"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "check"
+        ],
+        "exit_code": 0
+      }
+    ]
+  },
+  "evidence_sha256": {
+    "evaluation-v2/cli-closure.json": "362b78dbfef98f112fe979a991803cf35466baa82ef60e74b55d58d667ab8143",
+    "evaluation-v2/runs/Z_N01_CODEX_CLI_FR/artifact-receipt.json": "05fd358844638aca32ae9385dab6e7c563244d456714481c6977185f6ed6f316",
+    "evaluation-v2/runs/Z_N03_CLAUDE_CLI_DW/artifact-receipt.json": "332d9acb74feb7c6214892753987d01a08e10dec4b6034848fe1944d292cae2b",
+    "evaluation-v2/runs/Z_N03_CLAUDE_CLI_DW/cause-and-role-audit.json": "db52f14ca924f0a154e21d2f7fbba2b97670138484c0d561915e6c963abc4716",
+    "evaluation-v2/runs/Z_N03_CLAUDE_CLI_DW/operator-repair/receipt.json": "993c0b7869241a9cbc448499c070e9d17d37dcd492038e93159d20c6f49dd789",
+    "evaluation-v2/runs/Z_N03_CLAUDE_CLI_DW/operator-repair/semantic-review.json": "7815626eae21422f7ee41cc5a207c63b90760f0d6c7348eccb8bb35bbae474e0",
+    "gui-audit/claude-gui-fr-receipt-final.json": "7324cc0b6596f2c2468fa30acc123e038d78e1333e010f3d3e0cc5f7114aeba1",
+    "gui-audit/codex-gui-first-failure-receipt-final.json": "9f62c27f33de30cd7274170124e93df798510253aacfd0577dd7e8b66a77c34f",
+    "gui-audit/codex-gui-mw-new-receipt-final.json": "6d2856c1942887bd54071f3d2afee28a8a70f9e7e94c528b0a4eb9100ad7db26",
+    "gui-audit/codex-gui-mw-new-native-addendum.json": "2ae995496877a2b40373e0a202a070695ba0dea0791c2e8a6f561b07fec5c219",
+    "reviews/codex-gui-audit.json": "7d3f4f92e5ba81fe929f08c115729aa6fd31ebdc80605c64a565f172f651a3b5",
+    "reviews/claude-gui-fr.json": "781625f21615b8986ec7e54e084b5ad82ff98ce4ddef2b3bef1fb1784c955ee2",
+    "reviews/release-final-r2.json": "dcdb10e73ed66a3bff7eda1ac6e834e7eb7e7c6e627e9f13a61d954a71b7ed3d",
+    "release-final-r2/integrity.json": "d1539d5066a849ac34642518602ceb76a026169d8b61973808bc44d555f828a8"
+  },
+  "visual_browser_acceptance": "not_run: automatic approval review denied local browser/file access; OS open request is not render proof",
+  "macos_linux_native_acceptance": "not_run on this Windows host",
+  "filming": 0,
+  "remaining": [
+    "two narrow conditional/temporal attribution P2 findings",
+    "browser visual acceptance after frontend team redesign",
+    "physical macOS/Linux native testing",
+    "presentation/video production; no shooting in this work"
+  ],
+  "billing_and_model_speed_comparison": "unknown backend coverage; cache/reasoning subsets not double-counted; distinct tasks/history/role counts are not a fair ranking"
+}
