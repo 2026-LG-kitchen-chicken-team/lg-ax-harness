@@ -75,6 +75,14 @@ class LocalCITests(unittest.TestCase):
         self.assertEqual(len(ci.skip_details(log, windows=True)["unexpected_skips"]), 2)
         self.assertFalse(ci.skip_details("Ran 3 tests in 0s\nOK (skipped=1)", windows=False)["skip_reasons_complete"])
 
+    def test_windows_symlink_skip_is_specific_to_the_optional_link_case(self):
+        case = "test_outside_path_and_symlink_are_rejected (test_result_observer.ObserverTests.test_outside_path_and_symlink_are_rejected)"
+        line = case + " ... skipped 'OS does not allow symlink creation'\nRan 1 test in 0.0s\nOK (skipped=1)\n"
+        self.assertEqual(ci.skip_details(line, windows=True)["unexpected_skips"], [])
+        self.assertEqual(len(ci.skip_details(line, windows=False)["unexpected_skips"]), 1)
+        other = line.replace(case, "test_other (fixture.Other)")
+        self.assertEqual(len(ci.skip_details(other, windows=True)["unexpected_skips"]), 1)
+
     def test_nested_unittest_receipt_detects_missing_dependency_skip(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
