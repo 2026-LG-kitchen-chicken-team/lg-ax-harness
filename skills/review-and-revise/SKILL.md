@@ -74,6 +74,8 @@ bundle의 candidate_template을 실제 판단으로 채운다. result_limits를 
 
 planning_quality_diagnostics는 structural_only/blocking=false의 누락 안내다. 누락만으로 전체 기획을 거절하지 않고 필드 존재로 의미·측정·품질을 인증하지 않는다.
 
+의미 보존 점검은 요약·pains·existing_features·remaining_pains·concepts·requirements/assumptions·decision_notes 전체에 적용한다. 사건 순서·부정 범위와 기능/안내의 대상·모드·설정·환경·분기 조건을 각 원문과 대조한다. 다른 섹션의 조건/면책 문구로 이 섹션의 단정을 보완했다고 보지 않는다. 전문가 발언도 귀속된 설명인지 실제 확인/조치·효과의 증거인지 나누어 판단한다. 애매한 경우에만 [일반 반례와 대조 기준](references/meaning-preservation.md)을 읽는다.
+
 저장 크기를 조정한 뒤에는 바뀐 문장마다 각 절의 술어·정확 모델·조건·시점이 현재 연결 source_ids의 원문으로 지지되는지 다시 대조한다. 술어를 남기고 그 근거만 삭제하지 않는다.
 
 여러 출처를 묶은 문장은 출처별로 나누거나 필요한 직접 근거를 모두 유지한다. 집계/제외/인과는 원문 직접사실과 구분해 AI 판단으로 표시한다.
@@ -83,6 +85,8 @@ planning_quality_diagnostics는 structural_only/blocking=false의 누락 안내�
 최종 절별 귀속 점검: 사실 문구를 쓰기 전에 연결 원문에서 각 절의 주어·술어·대상·조건·비교·시점·매체를 확인한다. 원문에 없는 속성은 사실에서 빼고 기획 가정으로 옮긴다. 다른 절·다른 후기의 조건을 전이하지 않고 장부·assessment·저장·최종 답변에 같은 귀속을 유지한다. 문의/반품 감소 같은 대리 지표와 실제 과업 완료품질·오판·실패 탐지를 구분하여 검증 계획을 작성한다. 기존 동등 안내의 존재만으로 노출 불편을 새로 확정하지 않는다.
 
 ## 완료: 저장과 최종 전달
+
+최종 답변을 내기 전 현재 저장 버전과 completion_summary.text의 사건 순서·부정 범위·적용 조건을 대조한다. 저장된 의미 오류를 최종 문장만 바꿔 숨기지 않는다. 같은 turn의 남은 수정 한도 안에서 저장을 고치거나 핵심 전제의 불확실성을 보류하고, 해당 영향 밖의 기획까지 자동 실패로 넓히지 않는다.
 
 일반 업무는 기존6필드의 save_and_export(report:false)로 저장/export와 웹 정형 데이터 전달을 수행한다. web_ready/web_result.path/sha256/binding을 확인한다.
 

@@ -31,6 +31,8 @@ save_reviewed_result 입력은6필수 필드와 선택 response_mode다. 일반 
 
 validation_plan에는 선택 `condition_controls:["시험 전 고정할 모델/버전·과업·환경·초기 상태·완료 품질"]`(1~10개, 항목1~1000자), `guardrail_metrics:[{metric:"오안내/품질 비퇴행 지표",method:"같은 조건에서 실패 포함 비교",non_regression_criterion:"악화가 없어야 할 기준"}]`(1~8개, 각3필드1~1000자)를 추가할 수 있다. 빈 배열·잘못된 타입·측정값/인증 필드는 허용하지 않으며 status는 기존 planned_not_measured만 허용한다. 실제 의미·시도 분모·실패/중단/미응답·미확인 처리는 AI가 판단하고 미정은 정직하게 설명한다. 기존 계획과 과거 결과는 새 필드 없이 호환한다. 반환 `planning_quality_diagnostics:{scope:"structural_only",blocking:false,concepts:[{concept_id,missing_optional_fields}],note}`는 선택 필드 존재 진단이며 전체 기획 실패나 의미·측정·계획 충족 인증이 아니다.
 
+각 claim.text와 decision_notes 자체에 판단을 바꾸는 조건을 남기고 사건 순서·부정 범위를 원문과 맞춘다. existing_features의 조건을 concepts.assumptions에만 옮기거나 이전 미수행을 이후 수행에도 적용하지 않는다. 검토 신고/refs/SHA는 이 의미 보존의 인증이 아니다.
+
 각 주장/노트 절의 대상·조건·시점·매체를 같은 연결 source 원문과 대조하고 명시없는 속성·장소·인과는 AI 해석/미확인으로 둔다. 현재 completion JSON은 저장된 전체 decision_notes/basis/refs를 보존하며 text에는 관련 판단·URL/위치를 전달한다. source_fact는 AI 신고 분류이고 전체 조회 catalog는 사용한 출처 수가 아니다. 장황한 원문·receipt를 최종 답변에 반복하지 않는다.
 
 expected_result_version은 응답 turn.result_version(첫0, 다음1, 다음2)이다. result.revisions는 최초0/수정1/2다. 같은 후보 재전송은 같은 result_key와 원문/assessment를 유지한다. accepted=false도 저장되고 한도를 소비한다. 응답 turn이 다음 저장과 최종 상태의 기준이며 accepted/status/valid를 반드시 확인한다. 실패/취소/수정 소진을 새 turn으로 우회하지 않는다. export_session 입력은 `{session_id:"값"}`이고 큰 export를 다시 읽지 않는다.

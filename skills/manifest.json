@@ -38,7 +38,7 @@
         },
         {
           "path": "skills/evidence-retrieval/SKILL.md",
-          "sha256": "e81cf65b86b6685cc586e4e80cf5df4f0d13c464f8e580c61228a42affbfdca9"
+          "sha256": "edc4a9e07523242e67a7dc84dec474d93accd7f982349e58c2458201957b408c"
         }
       ]
     },
@@ -81,7 +81,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "9350ef7828fb50c8d5c82ee02a285bba778d661f46e2ea9bce8f3d064a7829e2"
+          "sha256": "737e9283cb5786331262f11df1d1caf79665022a78722c8364d13ffdb011d892"
         }
       ]
     },
@@ -102,7 +102,7 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "c80e044b73d02d01ae9d4c457d81e7e0a7e2ed8579fe3ab9d5eb0eb8d1cdb32c"
+          "sha256": "b1b4b4a815d5201a144890575047f5f097452276162ee5684123750b6d6911b1"
         }
       ]
     },
@@ -122,7 +122,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "883bd57a0e2154f1f303a7229e81f262a985702006cac98030028d3cc2e06c23"
+          "sha256": "756c485db6af9b58b35f662b762f21c70e6ed4a3d617bfbbb3d3ee1cc2de602b"
         }
       ]
     },
@@ -153,8 +153,12 @@
       ],
       "files": [
         {
+          "path": "skills/review-and-revise/references/meaning-preservation.md",
+          "sha256": "1db384311282ca7e746ed59b42a58945ac67d1f4c5bbcb230f9361133ca8cc97"
+        },
+        {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "b3e71ffb1832eb63740b52160afbbf2df83d4c012c9beae8fa8b05d0b38c9059"
+          "sha256": "983711265ab5d26fdbd4b3d6412b3833eca48a50c908f3f77dd1329fed915484"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -166,7 +170,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "63a1f8ad1a9572658e2f3265d13fb19efbd800639b26ba27cd502a40e063d913"
+          "sha256": "92100eb9a09bdeb7d63c57c07657313a5918e5369e98424901f2e1fa5b38dd7e"
         }
       ]
     }
@@ -174,11 +178,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "571392348c3b0279a0231b6d4043028dbace858d656f56540ee55d094192ca35"
+      "sha256": "f260e64cc7ad5755f89dd4dbb7a633330d6ee077886b739fe63ed4072e2ef33d"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
-      "sha256": "915cea2768fe60df0289b1f0af1bb9e685a81861156784aeae2679cfa44a8a81"
+      "sha256": "92bf0a4641f3fd3e4a9c2ebbbc533a42db76a93478b687b0b6fa3309a9b112a2"
     },
     {
       "path": "agents/product-official-researcher.md",
@@ -190,7 +194,7 @@
     },
     {
       "path": "product-tools/cli.py",
-      "sha256": "09426f2b346c6ff3a733821440a48922a85aa2b717e8573085a8174eed982012"
+      "sha256": "d3dfa562640127709e2116ab6c3222016456f4a74ec992fda632d07e9e901019"
     },
     {
       "path": "product-tools/product_tools/__init__.py",
@@ -210,7 +214,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "3543c7311a8229f181e084d18cbfd324506e84b7e7209056ac376d992867f058"
+      "sha256": "adb342a7f929b65a0da0a0a7f79309baffdf5832f96c949019127805e298fc35"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -227,6 +231,10 @@
     {
       "path": "product-tools/product_tools/evidence_coverage.py",
       "sha256": "fbbedf0cf207e3dc3d312912bcce8f7d33300079d97c1aa0744e67def8eaf5fe"
+    },
+    {
+      "path": "product-tools/product_tools/execution_context.py",
+      "sha256": "46058022f7de95539d48174d6e55c5f49e0aa447d659feb3b439622560dc8b63"
     },
     {
       "path": "product-tools/product_tools/instructions.py",
@@ -258,11 +266,11 @@
     },
     {
       "path": "product-tools/product_tools/selection.py",
-      "sha256": "4e79dec309d736b3413cb8489830b08f2f40b46553d4ad408323acf3d697086f"
+      "sha256": "3db2371be274e958ba848fc20ea108d6fb3f588e4609a64abeaf92725e01401e"
     },
     {
       "path": "product-tools/product_tools/state.py",
-      "sha256": "1ecf2341a2f7646eb92bc30b0dca568d92beb51818b4d7f2f9b5040242ccbaaf"
+      "sha256": "733d1e7fe5d292b40a363a0fbea3d66128b336d974d241c7b12fb239648375ee"
     },
     {
       "path": "product-tools/product_tools/tools.py",
@@ -282,7 +290,7 @@
     },
     {
       "path": "docs/contracts/common-tools.md",
-      "sha256": "b195f914827d36d9fc5d124a27a6034e2f5e10928d6f148daa1841449e8c6998"
+      "sha256": "ce0295a4f73033343aee6a3f6d5b3d39588d1a7432644fc35a32aa2efd18291f"
     },
     {
       "path": "docs/contracts/product-planning.md",
@@ -302,7 +310,7 @@
     },
     {
       "path": "docs/contracts/product-workflow.md",
-      "sha256": "ce4d3c54ed0d505ae093f596eee3d273b8d43e44b05225047104f596a99d7765"
+      "sha256": "c44118375742a421e1021ceae9121eaec8caad01d27c1556fc173a1fb0219db9"
     },
     {
       "path": "docs/contracts/instruction-loading.md",

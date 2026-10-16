@@ -53,7 +53,7 @@ class SelectionPolicy:
             from .web_evidence import model_token
             model = original.get("model_id")
             prior_policy = None
-            if original.get("prior_turn_id") and not model:
+            if original.get("prior_turn_id") and original.get("prior_scope", "inherit") == "inherit" and not model:
                 prior = self.db.execute("SELECT request_key FROM conversation_requests WHERE session_id=? AND turn_id=?", (session, original["prior_turn_id"])).fetchall()
                 turn = self.db.execute("SELECT input_json FROM turns WHERE session_id=? AND turn_id=?", (session, original["prior_turn_id"])).fetchone()
                 if len(prior) == 1 and turn:

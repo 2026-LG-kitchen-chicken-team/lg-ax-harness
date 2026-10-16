@@ -24,7 +24,9 @@ user-invocable: true
 
 ## 입력과 시작 경로
 
-제품명에서 새 실제 조사를 시작할 때는 open_product_workflow를 사용하고 같은 요청의 record_workflow_event/workflow_status로 전체 예산·출처 이력·종료·분석 범위를 보존한다. 실행기 active-workflow.json이 있으면 원래 요청을 재사용한다.
+제품명에서 새 실제 조사를 시작할 때는 open_product_workflow를 사용하고 같은 요청의 record_workflow_event/workflow_status로 전체 예산·출처 이력·종료·분석 범위를 보존한다. 실행기 active-workflow.json이 같은 원래 업무를 가리키면 그 요청을 재사용한다.
+
+새 질문은 제품군·모델·목표·제약을 이전 질문과 대조한다. 이전 이력만 참고하는 새 범위는 실제 prior_turn_id와 prior_scope:"reference_only", 현재 model_id 또는 product_family/scope_mode·필요한 버전·constraints를 명시한다. 같은 범위의 실제 후속만 기본 prior_scope:"inherit"를 사용한다. 범위 해석은 AI가 하며 복구 때문에 새 요청을 만들지 않는다.
 
 상세 필드는 프로젝트 루트 docs/contracts/product-workflow.md다. 반환 bundle은 전체 조사원문이 아니며 turn결속 read_evidence_batch의 offset/next_offset로 등록본문을 순회한다.
 

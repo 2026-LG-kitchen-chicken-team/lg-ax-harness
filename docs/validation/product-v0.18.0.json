@@ -1,0 +1,153 @@
+{
+  "version": "product-v0.18.0",
+  "source_commit": "46ddc2d512e19284da1d683f4a149dccdce5a26c",
+  "snapshot_commit": "f599731b8d740b32d43d84de2b1589311696a88a",
+  "source_files": 133,
+  "judge_files": 215,
+  "engines": {
+    "codex": {
+      "files": 102,
+      "skills": [
+        "evidence-retrieval",
+        "web-evidence-collection",
+        "needs-structuring",
+        "feature-comparison",
+        "concept-writing",
+        "review-and-revise"
+      ],
+      "native_agents": [
+        "product_evidence_reviewer",
+        "product_official_researcher",
+        "product_review_researcher"
+      ],
+      "source_manifest_sha256": "0a9bc57888b18b40e0286aac9b3bcd949a438e448273764d8572b8f6e77b2f97"
+    },
+    "claude": {
+      "files": 102,
+      "skills": [
+        "evidence-retrieval",
+        "web-evidence-collection",
+        "needs-structuring",
+        "feature-comparison",
+        "concept-writing",
+        "review-and-revise"
+      ],
+      "native_agents": [
+        "product-evidence-reviewer",
+        "product-official-researcher",
+        "product-review-researcher"
+      ],
+      "source_manifest_sha256": "0a9bc57888b18b40e0286aac9b3bcd949a438e448273764d8572b8f6e77b2f97"
+    }
+  },
+  "manifest_sha256": "0a9bc57888b18b40e0286aac9b3bcd949a438e448273764d8572b8f6e77b2f97",
+  "repositories": [
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-harness",
+      "private": true,
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.18.0",
+      "tag": "f599731b8d740b32d43d84de2b1589311696a88a",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "lg-ax-harness-product-v0.18.0.zip",
+          "sha256": "cf3de542ee807ebb6dd915037e81298795c391c83fd9ed16c1937b9c309e438f",
+          "bytes": 1280191,
+          "github_digest_equal": true
+        },
+        {
+          "name": "lg-ax-judge-product-v0.18.0.zip",
+          "sha256": "070e984fdaa891886611151b947c222af165063743151f02eb2368d81a5f73c1",
+          "bytes": 2466533,
+          "github_digest_equal": true
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "sha256": "91106ed22cc89ccb6e1cdb1382e8314e495717b7a427c938e8e2b77b888e43f6",
+          "bytes": 200,
+          "github_digest_equal": true
+        }
+      ],
+      "raw_source_files": 133,
+      "raw_source_exact_bytes": true,
+      "previous_release_tag_and_assets_preserved": true
+    },
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+      "private": true,
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.18.0",
+      "tag": "f599731b8d740b32d43d84de2b1589311696a88a",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "lg-ax-harness-product-v0.18.0.zip",
+          "sha256": "cf3de542ee807ebb6dd915037e81298795c391c83fd9ed16c1937b9c309e438f",
+          "bytes": 1280191,
+          "github_digest_equal": true
+        },
+        {
+          "name": "lg-ax-judge-product-v0.18.0.zip",
+          "sha256": "070e984fdaa891886611151b947c222af165063743151f02eb2368d81a5f73c1",
+          "bytes": 2466533,
+          "github_digest_equal": true
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "sha256": "91106ed22cc89ccb6e1cdb1382e8314e495717b7a427c938e8e2b77b888e43f6",
+          "bytes": 200,
+          "github_digest_equal": true
+        }
+      ],
+      "raw_source_files": 133,
+      "raw_source_exact_bytes": true,
+      "previous_release_tag_and_assets_preserved": true
+    }
+  ],
+  "widget_in_product": false,
+  "filming": false,
+  "new_native_model_inputs": 0,
+  "zip_only_commands": [
+    {
+      "argv": [
+        "check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "setup",
+        "--engine",
+        "codex"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "setup",
+        "--engine",
+        "claude"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "independent_zip_audit_sha256": "848ab54c8ec4dd11cbfa4e6cab0ca142a7cfeb02941aaf71fa4b404aadb961cb",
+  "product_docs_commit": "73ec4b1",
+  "one_touch_windows": {
+    "transport": "gh",
+    "installer_version": "installer-v0.1.2",
+    "explicit_version": "product-v0.18.0",
+    "verified_files": 215,
+    "prepared": true,
+    "exit_code": 0,
+    "native_readiness": "local_only",
+    "new_native_inputs": 0,
+    "private_receipt_sha256": "bd8bd721487867c23ab2824af9e9062d1032f7752804419987d2738a745f2c01"
+  },
+  "gui_native_retested_by_distribution_checks": false
+}

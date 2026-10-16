@@ -1,5 +1,7 @@
 # 같은 제품명 요청의 실제 조사와 전달
 
+2026-10-16 실행 범위 보완: `open_product_workflow`는 `open_request`와 동일한 선택 필드 `model_id`, `product_family`, `scope_mode`, `model_version`, `document_version`, `constraints`, `runtime`, `prior_turn_id`, `prior_scope`를 허용한다. 범위·목표·제약의 해석은 native AI가 한다. 실제 같은 업무의 후속은 `prior_scope:"inherit"`(기본값)로 이전 선택·정확 버전·제약·선택 정책을 상속한다. 이전 결과를 역사적으로만 참고하는 새 업무는 `prior_scope:"reference_only"`와 현재 범위를 명시하여 이전 범위를 상속하지 않는다. `prior_turn_id`는 두 경우 모두 같은 session의 실제 turn이어야 한다. 코드가 질문 키워드·제품군 목록으로 새 업무를 추정하지 않는다. 실패 복구에 새 request/시계를 만드는 용도로 사용하지 않는다.
+
 명시된 새 사용자 후속 업무의 timed 입력은 `{question:실제새원문,user_submitted:true,session_id:같은업무세션,request_key:새키,prior_turn_id:이전실제turn,budget_seconds?:300~1800}`다. prior_turn_id는 선택 ID이며 같은 session에 있는 실제 turn이어야 한다. 이를 기존 open_request lineage로 전달해 새 turn/research_id/시계를 만들고, 이전 결과는 역사적 참조로 보존한다. 완료된 원 업무의 결과/수정 횟수/finished_at은 바꾸지 않으며 이전 valid 여부는 새 문맥의 재사용 규칙과 별개다. CLI·evidence-retrieval wrapper는 동일 JSON을 전달한다. 단순 현재 업무 재개·실패/timeout·전달 복구에는 원래 request/turn/clock을 유지하고 새 입력/키로 한도를 초기화하지 않는다. user_submitted는 호출자 신고이며 코드가 새 사용자 의도를 의미적으로 인증하지 않는다.
 
 2026-10-13 최신: 웹팀의 작업 화면·보고서 HTML에 현재 정형결과/원문/근거/검토·조사이력을 전달한다. 기본 save_and_export(report:false)의 web_ready/web_result를 확인하고 prepare_web_result로 같은 버전 복구한다. PDF/DOCX 생성·이미지검수는 기본 필수가 아니며 아래 파일규칙은 명시 report:true 호환 경로다. [웹 데이터 계약](web-result.md)을 우선한다. 신규기본1800초는 성능목표가 아닌 안전상한이고 natural-completion-v1 정책으로 전량전달/신고검토와 최종90초예약을 유지한다. 과거300/600초요청/이력은 변경하지 않는다.

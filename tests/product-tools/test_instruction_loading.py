@@ -166,6 +166,7 @@ class InstalledInstructionTests(unittest.TestCase):
         source.mkdir()
         old = json.loads((ROOT / "skills/manifest.json").read_text(encoding="utf-8"))
         names = {x["path"] for x in old["shared_files"]} | {x["path"] for s in old["skills"] for x in s["files"]}
+        names.add("skills/review-and-revise/references/meaning-preservation.md")
         names.update(("product-tools/product_tools/instructions.py", "docs/contracts/instruction-loading.md", "THIRD_PARTY_NOTICES.md", "vendor/codex-harness/LICENSE", "vendor/codex-harness/NOTICE"))
         for relative in names:
             target = source / relative; target.parent.mkdir(parents=True, exist_ok=True)
@@ -200,6 +201,55 @@ class InstalledInstructionTests(unittest.TestCase):
                 self.assertEqual(item["body"].encode(), (target / item["returned_path"]).read_bytes())
                 self.assertNotEqual(item["source_sha256"], item["returned_body_sha256"])
                 self.assertIn("python " + prefix + "skills/", item["body"])
+
+    def test_meaning_guards_arrive_in_selected_main_stage_and_payload_bodies(self):
+        # These are delivery/contract checks, not a semantic model evaluation.
+        expected = {
+            "main": ("의미 보존:", "사건 순서·부정 범위", "existing_features", "최종 답변"),
+            "needs-structuring": ("사건 순서·부정 범위", "이전의 미수행", "전문가 발언"),
+            "feature-comparison": ("조건 축약 점검:", "existing_features의 text 자체", "분기"),
+            "concept-writing": ("제안의 text에도 핵심 적용 조건", "사건 순서·부정 범위"),
+            "review-and-revise": ("의미 보존 점검", "사건 순서·부정 범위", "최종 문장만 바꿔"),
+            "payload": ("각 claim.text와 decision_notes 자체", "사건 순서·부정 범위"),
+        }
+        for target in (self.codex, self.claude):
+            loader = InstructionLoader(target)
+            for instruction_id, guards in expected.items():
+                with self.subTest(engine=target.name, instruction=instruction_id):
+                    response = loader.get_work_instructions({"context_key": "meaning-current",
+                                                           "instruction_ids": [instruction_id]})
+                    self.assertEqual(response["receipt"]["body_instruction_ids"], [instruction_id])
+                    body = response["instructions"][0]["body"]
+                    for guard in guards:
+                        self.assertIn(guard, body)
+                    self.assertLessEqual(len(canonical({"ok": True, "result": response}).encode()), MAX_BYTES)
+
+    def test_optional_meaning_reference_is_installed_without_eager_loading(self):
+        relative = "skills/review-and-revise/references/meaning-preservation.md"
+        original = (ROOT / relative).read_bytes()
+        for target, prefix in ((self.codex, ".agents/"), (self.claude, ".claude/")):
+            with self.subTest(engine=target.name):
+                record = json.loads((target / "product-install.json").read_text(encoding="utf-8"))
+                entry = next(x for x in record["files"] if x["path"] == prefix + relative)
+                self.assertEqual(entry["sha256"], digest(original))
+                self.assertEqual((target / entry["path"]).read_bytes(), original)
+                response = InstructionLoader(target).get_work_instructions({
+                    "context_key": "meaning-current", "instruction_ids": ["main"]})
+                body = response["instructions"][0]["body"]
+                self.assertIn("meaning-preservation.md", body)
+                self.assertNotIn("## 일반 반례", body)
+                self.assertEqual(response["receipt"]["body_instruction_ids"], ["main"])
+
+    def test_scope_choice_guards_are_delivered_without_question_keyword_routing(self):
+        for target in (self.codex, self.claude):
+            for instruction_id in ("main", "evidence-retrieval"):
+                with self.subTest(engine=target.name, instruction=instruction_id):
+                    response = InstructionLoader(target).get_work_instructions({
+                        "context_key": "new-business", "instruction_ids": [instruction_id]})
+                    body = response["instructions"][0]["body"]
+                    for token in ('prior_scope:"reference_only"', 'prior_scope:"inherit"', "목표·제약"):
+                        self.assertIn(token, body)
+                    self.assertIn("복구", body)
 
     def test_mutated_native_body_even_with_changed_install_hash_is_rejected(self):
         with tempfile.TemporaryDirectory(prefix="lg-instruction-tamper-") as temporary:

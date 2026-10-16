@@ -1,5 +1,7 @@
 # 공통 자료·입출력·상태 도구
 
+2026-10-16 실행 문맥 보완: CLI `export_session`에서만 `--data`를 생략한 경우, 그 session의 최신 실제 turn에 저장한 workspace 내부 상대 catalog 경로를 사용한다. 경로와 기존 data/code 지문을 다시 확인하며 다른 catalog·전역 최신 자료를 선택하지 않는다. 명시한 `--data`는 그대로 적용한다. 과거 turn에 경로 결속이 없거나 파일이 이동/변경된 경우에는 정확한 `--data`를 지정하도록 안내하고 실패를 보존한다. 경로 결속은 내부 SQLite 메타데이터이며 export에 개인 절대 경로를 추가하지 않는다. 새 요청 시작·자료 import·다른 operation의 기본 자료 선택은 바꾸지 않는다. 새 범위와 실제 후속의 `prior_scope` 계약은 [workflow](product-workflow.md)를 따른다.
+
 2026-10-14 보완: `save_and_export`는 현재 검토 저장 결과에서 일반 코드로 만든 `completion_summary`를 함께 반환한다. 별도 `get_completion_summary({session_id,turn_id,expected_result_version})`로 같은 현재 버전의 텍스트·불변 파일/SHA를 재조회할 수 있다. 새로운 사실을 생성하거나 전체 원문을 다시 모델에 넣지 않는다. 응답 크기 때문에 text가 생략되면 text_omitted/detail_operation을 확인한다. 기본 최종 답변은 이 text의 기획·조건 범위를 유지한다. 코드는 네이티브 최종 자유문장을 가로채지는 않으며 실제 최종 전달은 별도 대조한다.
 
 접근 실패는 코드가 만든 access_failures로 간단히 알리고, 사용자에게 진단 파일 방문을 요구하지 않는다. free-form reason에서 HTTP코드나 파일 링크를 추정하지 않는다. 원래 실패 원문/사건은 내부 이력에 보존한다. 이후 같은 URL을 관측한 경우 ‘아직 접근 못한 자료’로 표시하지 않는다. validation_plan의 선택 evaluation_protocol:{unit,failed_or_stopped,unknown}은 실물 시험 준비를 돕는 항목이며 없다는 이유만으로 유효한 조건부 기획을 모두 실패 처리하지 않는다. 실측 효과나 수치 개선율을 주장하기 전에는 전체 시도·실패·중단·미확인 처리까지 확인한다.
