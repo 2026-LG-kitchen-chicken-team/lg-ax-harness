@@ -237,6 +237,40 @@ class LedgerChecks(TempCase):
         with self.assertRaisesRegex(ValueError, "receipt"):
             checked_result(self.root, "result.json")
 
+    def test_optional_nonpass_receipts_keep_original_status(self):
+        self.plan()
+        start_task(self.root, "run-one", "first", "fixture-agent-a")
+        output = self.root / "outputs/first"
+        output.parent.mkdir()
+        output.write_text("actual fixture artifact", encoding="utf-8")
+        binding = task_binding("run-one", task_info(self.root, "run-one", "first"))
+        _, required = self.execute("print('required check')", binding=binding)
+        attempts = [
+            self.execute("import time; time.sleep(5)", timeout=0.1, binding=binding),
+            self.execute("print('x' * 10000)", max_output_bytes=128, binding=binding),
+            run_check(self.root, [str(self.root / "missing-executable")],
+                      inputs=["input.txt"], binding=binding),
+        ]
+        self.assertEqual([value[0]["status"] for value in attempts],
+                         ["timeout", "output_limit", "not_run"])
+        for observed, receipt in attempts:
+            with self.subTest(receipt_status=observed["status"]):
+                value = {"run_id": "run-one", "task_id": "first", "status": "completed",
+                         "summary": "Required check passed; optional check incomplete",
+                         "artifacts": ["outputs/first"], "issues": [], "checks": [
+                             {"name": "required", "receipt": required, "required": True},
+                             {"name": "optional", "receipt": receipt, "required": False}]}
+                write_json(self.root / "optional-result.json", value)
+                accepted = json.loads(checked_result(self.root, "optional-result.json").read_text(encoding="utf-8"))
+                optional = accepted["checks"][1]
+                self.assertEqual(optional["receipt_status"], observed["status"])
+                self.assertNotEqual(optional["status"], "passed")
+                self.assertIn("status=" + observed["status"], optional["evidence"])
+                value["checks"][1]["required"] = True
+                write_json(self.root / "required-result.json", value)
+                with self.assertRaises(ValueError):
+                    checked_result(self.root, "required-result.json")
+
     def test_dependencies_failure_propagates(self):
         self.plan()
         start_task(self.root, "run-one", "first", "fixture-agent-a")

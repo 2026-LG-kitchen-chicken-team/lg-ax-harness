@@ -72,9 +72,11 @@ def checked_result(root: Path, relative: str) -> Path:
                 raise ValueError("Receipt does not belong to this task attempt")
             if not verified["inputs"]:
                 raise ValueError("Completed task check must fingerprint its relevant code/input files")
-            check.update(status="passed" if verified["status"] == "passed" else "failed",
+            receipt_status = verified["status"]
+            check.update(status=receipt_status if receipt_status in {"passed", "not_run"} else "failed",
+                         receipt_status=receipt_status,
                          command=verified["argv"], exit_code=verified["exit_code"],
-                         evidence=f"{receipt}; exit={verified['exit_code']}; logs+inputs verified")
+                         evidence=f"{receipt}; status={receipt_status}; exit={verified['exit_code']}; logs+inputs verified")
     target = safe_path(root, ".harness/validated-results/" + hashlib.sha256(path.read_bytes()).hexdigest() + ".json")
     write_json(target, data)
     return target
