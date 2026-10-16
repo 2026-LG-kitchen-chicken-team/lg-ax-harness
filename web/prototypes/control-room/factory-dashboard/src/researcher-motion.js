@@ -17,6 +17,7 @@ export function advanceResearcherClock(time,{working=false,reducedMotion=false,d
 export function previewActiveNodes(elapsed,mode='parallel2'){
   const step=Math.floor(Math.max(0,elapsed)/30);
   if(mode==='all')return RESEARCHER_ROLES.slice(1);
+  if(mode==='parallel4')return RESEARCHER_ROLES.slice(1,5);
   if(mode==='parallel3')return [['retrieve','structure','compare'],['concept','validate','structure']][step%2];
   if(mode==='parallel2')return [['structure','compare'],['concept','validate'],['retrieve','structure']][step%3];
   return [RESEARCHER_ROLES[step%RESEARCHER_ROLES.length]];

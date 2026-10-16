@@ -3,17 +3,35 @@ import assert from 'node:assert/strict';
 import {ZONE_IDS,ZONE_FLOOR,PLANNER_FLOOR,factoryLayout,fitFactory,worldToField,fieldToWorld,popScale,patrolPosition,transitionFactory} from '../src/factory-layout.js';
 import {advanceResearcherClock,researcherPose,previewActiveNodes} from '../src/researcher-motion.js';
 const screens=[[390,844,0],[320,568,0],[844,390,0],[1280,800,0],[1920,1080,0],[1280,800,470],[800,600,330]];
-const groups=[[],['retrieve'],['compare'],['structure'],['overview'],['retrieve','structure'],['concept','validate'],ZONE_IDS.slice(1),ZONE_IDS];
+const groups=[[],['retrieve'],['compare'],['structure'],['overview'],['retrieve','structure'],['concept','validate'],['retrieve','structure','compare'],['retrieve','structure','compare','concept'],['overview','retrieve'],['overview','structure','compare'],ZONE_IDS.slice(1),ZONE_IDS];
+const allGroups=Array.from({length:1<<ZONE_IDS.length},(_,mask)=>ZONE_IDS.filter((_,i)=>mask&(1<<i)));
 const floor=z=>z.id==='overview'?PLANNER_FLOOR:ZONE_FLOOR;
 function separated(zones){const list=Object.values(zones).filter(z=>z.visible!==false);for(let a=0;a<list.length;a++)for(let b=a+1;b<list.length;b++){const one=list[a],two=list[b],af=floor(one),bf=floor(two);assert.ok(Math.abs(one.x-two.x)>=af.halfX*one.scale+bf.halfX*two.scale-.001||Math.abs(one.z-two.z)>=af.halfZ*one.scale+bf.halfZ*two.scale-.001,JSON.stringify({a:one.id,b:two.id,one,two}));}}
 
 test('Skill activation changes scale at its existing address for every viewport',()=>{
  for(const [width,height,panelWidth] of screens){
   const initial=factoryLayout({width,height,panelWidth}).zones;
-  for(const activeIds of groups){const current=factoryLayout({width,height,panelWidth,activeIds}).zones;for(const id of ZONE_IDS){assert.equal(current[id].x,initial[id].x);assert.equal(current[id].z,initial[id].z);}separated(current);}
+  for(const activeIds of allGroups){const current=factoryLayout({width,height,panelWidth,activeIds}).zones;for(const id of ZONE_IDS){assert.equal(current[id].x,initial[id].x);assert.equal(current[id].z,initial[id].z);}separated(current);}
  }
  const focused=factoryLayout({activeIds:['compare']}).zones;
  assert.ok(focused.compare.scale/focused.retrieve.scale>=2.9);
+});
+
+test('each concurrent Skill count gets a distinct size without counting the planner or duplicate reports',()=>{
+ const skills=ZONE_IDS.slice(1);
+ for(const [width,height,panelWidth] of screens){
+  const idle=factoryLayout({width,height,panelWidth}).zones.retrieve.scale;let previous=Infinity;
+  for(let count=1;count<=skills.length;count++){
+   const activeIds=skills.slice(0,count),layout=factoryLayout({width,height,panelWidth,activeIds});
+   assert.equal(layout.activeSkillCount,count);const size=layout.zones.retrieve.scale;
+   assert.ok(size<previous,'more parallel Skills share the field with a smaller room size');
+   assert.ok(size>idle,'every running room remains enlarged compared with its idle size');
+   for(const id of activeIds)assert.equal(layout.zones[id].scale,size);
+   const noisy=factoryLayout({width,height,panelWidth,activeIds:[...activeIds,'overview','retrieve','unknown']});
+   assert.equal(noisy.activeSkillCount,count);assert.equal(noisy.zones.retrieve.scale,size);
+   separated(noisy.zones);previous=size;
+  }
+ }
 });
 
 test('camera fits actual rectangular floors and models with compact margins',()=>{
@@ -22,9 +40,9 @@ test('camera fits actual rectangular floors and models with compact margins',()=
 });
 
 test('normal Skill transitions stay visible and in place, without intersecting room floors',()=>{
- for(const [width,height,panelWidth] of screens)for(const fromIds of groups)for(const toIds of groups){
+ for(const [width,height,panelWidth] of screens)for(const fromIds of allGroups)for(const toIds of allGroups){
   const from=factoryLayout({width,height,panelWidth,activeIds:fromIds}).zones,to=factoryLayout({width,height,panelWidth,activeIds:toIds}).zones;
-  for(let age=0;age<1.5;age+=.04){const frame=transitionFactory(from,to,age);separated(frame);for(const id of ZONE_IDS){assert.equal(frame[id].x,from[id].x);assert.equal(frame[id].z,from[id].z);assert.equal(frame[id].visible,true);}}
+  for(const age of [0,.08,.16,.24,.32,.5,.9,1.3]){const frame=transitionFactory(from,to,age);separated(frame);for(const id of ZONE_IDS){assert.equal(frame[id].x,from[id].x);assert.equal(frame[id].z,from[id].z);assert.equal(frame[id].visible,true);}}
  }
 });
 
@@ -55,5 +73,5 @@ test('camera basis round trips and the spring enlarges a room with an overshoot'
 });
 
 test('explicit concurrent motion fixtures remain separate from execution state',()=>{
- assert.deepEqual(previewActiveNodes(0,'parallel2'),['structure','compare']);assert.deepEqual(previewActiveNodes(24,'parallel2'),['structure','compare']);assert.equal(previewActiveNodes(0,'parallel3').length,3);assert.deepEqual(previewActiveNodes(0,'all'),ZONE_IDS.slice(1));
+ assert.deepEqual(previewActiveNodes(0,'parallel2'),['structure','compare']);assert.deepEqual(previewActiveNodes(24,'parallel2'),['structure','compare']);assert.equal(previewActiveNodes(0,'parallel3').length,3);assert.equal(previewActiveNodes(0,'parallel4').length,4);assert.deepEqual(previewActiveNodes(0,'all'),ZONE_IDS.slice(1));
 });
