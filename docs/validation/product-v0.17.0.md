@@ -12,7 +12,7 @@
 
 새 ZIP 단독 check→Codex setup→Claude setup→check 네 명령 exit0, 로컬 CI21/21단계 및 native/의미 품질의 실제 범위는 [Z 실행 인수](result-delivery-Z-20261016.md)를 따른다. 코드 검사925통과·1조건skip을 네 native 환경의 첫 시도 전부 성공으로 설명하지 않는다.
 
-배포 저장소의 README와 agent.md는78b2223c56a7ac2e8aa187d3b9675a9e0ef846d0에서 현재 제품 버전을 명시하도록 갱신했다. installer-v0.1.2의 고정 코드·지문·과거 기본값은 바꾸지 않았다. 실제 README의 PowerShell 한 줄 명령을 `-Version product-v0.17.0`과 새 대상 폴더로 실행해 인증 다운로드·209파일 지문 확인·Codex 준비 완료(`prepared:true`)를 확인했다. 모델 입력0, 기존 파일 덮어쓰기0, 실행 정책 변경0이다. 다운로드한 `.ps1`을 직접 `-File`로 실행한 최초 진단은 Windows 실행 정책으로 막혔고, 그 실패는 보존했다. 안내된 인라인 명령과 파일 실행을 같은 결과로 취급하지 않는다.
+배포 저장소의 README와 agent.md는87653badd4d5ebe584895d2ef2cb3c8594d6b96f에서 현재 제품 버전을 명시하도록 갱신했다. installer-v0.1.2의 고정 코드·지문·과거 기본값은 바꾸지 않았다. 실제 README의 PowerShell 한 줄 명령을 `-Version product-v0.17.0`과 새 대상 폴더로 실행해 인증 다운로드·209파일 지문 확인·Codex 준비 완료(`prepared:true`)를 확인했다. 모델 입력0, 기존 파일 덮어쓰기0, 실행 정책 변경0이다. 다운로드한 `.ps1`을 직접 `-File`로 실행한 최초 진단은 Windows 실행 정책으로 막혔고, 그 실패는 보존했다. 안내된 인라인 명령과 파일 실행을 같은 결과로 취급하지 않는다.
 
 현재 PR의 GitHub Actions Windows job은 steps0에서 실패했다. 실제 annotation은 계정 결제 실패 또는 사용한도 상향 필요라는 내용이었다(run38885157728/job116921006601). 설정이나 계정 한도를 바꾸지 않고 로컬 CI의 실제 결과를 사용했다. 이 Windows 시험으로 macOS/Linux의 실제 native 실행이나 브라우저 육안 검수를 인증하지 않는다.
 

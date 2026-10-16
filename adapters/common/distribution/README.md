@@ -49,7 +49,7 @@ Claude는 `--engine claude`로 바꾸고, 새 폴더는 `--target "$HOME/LGAX/ne
 3. 본인 AI 계정 로그인·작업 폴더 신뢰·필요 권한을 승인합니다. 설치기는 로그인하거나 업무 질문을 보내지 않습니다.
 4. 첫 질문 뒤 진행 대시보드, 결과 저장 뒤 기획자 웹·보고서를 확인합니다. 화면이 열리는 조건과 수동 복구는 설치된 사용설명서에 있습니다.
 
-기본 설치 위치는 명령을 실행한 폴더의 `LG-AX-product-v0.16.3-codex` 또는 `...-claude`입니다. AI 작업 폴더는 그 안의 `codex/` 또는 `claude/`입니다.
+위 명령의 기본 설치 위치는 명령을 실행한 폴더의 `LG-AX-product-v0.17.0-codex` 또는 `...-claude`입니다. 버전을 바꾸면 폴더명도 그 버전을 따릅니다. AI 작업 폴더는 그 안의 `codex/` 또는 `claude/`입니다.
 
 ## 업데이트·실패·보관
 
@@ -69,16 +69,16 @@ Claude는 `--engine claude`로 바꾸고, 새 폴더는 `--target "$HOME/LGAX/ne
 Windows:
 
 ```powershell
-& ([scriptblock]::Create((Invoke-RestMethod 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.2/install.ps1'))) -Transport public -Engine codex
+& ([scriptblock]::Create((Invoke-RestMethod 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.2/install.ps1'))) -Transport public -Engine codex -Version product-v0.17.0
 ```
 
 macOS/Linux:
 
 ```bash
-curl -fsSL 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.2/install.sh' | bash -s -- --transport public --engine codex
+curl -fsSL 'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/download/installer-v0.1.2/install.sh' | bash -s -- --transport public --engine codex --version product-v0.17.0
 ```
 
-공개 시점은 제출 마감 확인 후 그 다음 날로 예약합니다. 정확한 마감이 확인되지 않은 상태에서는 공개하지 않습니다.
+공개 전환 일정과 실제 공개 여부는 별도로 확인합니다. 위 공개 경로는 실제 전환이 끝난 뒤에만 사용하세요.
 
 ## 배포 구성
 

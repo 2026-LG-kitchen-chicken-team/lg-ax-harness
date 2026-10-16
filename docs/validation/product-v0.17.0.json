@@ -81,7 +81,7 @@
   "visibility_change": false,
   "old_assets_overwritten": false,
   "filming": 0,
-  "distribution_docs_commit": "78b2223c56a7ac2e8aa187d3b9675a9e0ef846d0",
+  "distribution_docs_commit": "87653badd4d5ebe584895d2ef2cb3c8594d6b96f",
   "prior_file_execution_diagnostic": {
     "exit_code": 1,
     "reason": "Windows script file execution disabled",
@@ -94,5 +94,6 @@
     "conclusion": "failure",
     "annotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased."
   },
-  "distribution_docs_raw_equal": true
+  "distribution_docs_raw_equal": true,
+  "future_public_path_live_tested": false
 }
