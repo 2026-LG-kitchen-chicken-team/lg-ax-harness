@@ -1,0 +1,9 @@
+name = "product_official_researcher"
+description = "정확 제품의 공식 사양·설명서·현 기능·사용 조건 조사/대조"
+# Permissions inherit from the parent session; no independent read-only sandbox.
+web_search = "live"
+developer_instructions = """
+{{instructions}}
+"""
+[agents]
+enabled = false
