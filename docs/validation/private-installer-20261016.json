@@ -1,0 +1,213 @@
+{
+  "distribution_repo": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+  "private": true,
+  "development_repo_private": true,
+  "anonymous_HTTP": 404,
+  "unauthenticated_gh_exit": 4,
+  "platforms": {
+    "windows": [
+      {
+        "name": "ps51-codex",
+        "exit_code": 0,
+        "seconds": 6.219,
+        "stdout_sha256": "be9213379683fe3c06c3da6cbb704560f2cec61e4216678da1b7245e0bde22a3",
+        "stderr_sha256": "bd2c818c3113785c385eec49a35b8172f7fdce82641c67718359e19eb252ac1d"
+      },
+      {
+        "name": "bundle-codex",
+        "exit_code": 0,
+        "seconds": 0.188,
+        "stdout_sha256": "95c5b0ac29c5ce59af7d159ddb835d0c7f22dc2d4da413e0ab66195e2367b8e3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "ps51-claude",
+        "exit_code": 0,
+        "seconds": 6.672,
+        "stdout_sha256": "776b50264e11149b2acccae900ef83a677ecc6060c66d63b4a093b70936566f4",
+        "stderr_sha256": "d56bc7c00918c213ece510b9747e8521cdf0aa4599c3c3d152ede3f20dbb4072"
+      },
+      {
+        "name": "bundle-claude",
+        "exit_code": 0,
+        "seconds": 0.171,
+        "stdout_sha256": "95c5b0ac29c5ce59af7d159ddb835d0c7f22dc2d4da413e0ab66195e2367b8e3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "ubuntu": [
+      {
+        "name": "ubuntu-codex",
+        "exit_code": 0,
+        "seconds": 7.813,
+        "stdout_sha256": "bee5dc7e87e9324f20ddb75e4b4f7ffcc97a36fd9348c8ce20c44f3d22f03b2a",
+        "stderr_sha256": "b4b93f2171d081cb3df83aa2ec7d871759ab6bbb217a94f12098d517566a8fb5"
+      },
+      {
+        "name": "bundle-codex",
+        "exit_code": 0,
+        "seconds": 0.14,
+        "stdout_sha256": "b9d5fc0623d9a7cc8c5c786cfbf95234b65a1f26b0dca665faac4bc95812182a",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "ubuntu-claude",
+        "exit_code": 0,
+        "seconds": 3.594,
+        "stdout_sha256": "b625c0da572344c9460deea04ccc725b36d98bbf90fbd25c67604e140842083f",
+        "stderr_sha256": "9825d20519823ae3592e7167145015385a10b9d170b8bdf9f7341ae81c810e7e"
+      },
+      {
+        "name": "bundle-claude",
+        "exit_code": 0,
+        "seconds": 0.125,
+        "stdout_sha256": "b9d5fc0623d9a7cc8c5c786cfbf95234b65a1f26b0dca665faac4bc95812182a",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "unit_tests": 14,
+  "product_version": "product-v0.16.1",
+  "product_assets_equal": {
+    "lg-ax-judge-product-v0.16.1.zip": "24e9d5db062545e43e0d5a975eb73f7b728fe034982db6caf6a808ff36537b6f",
+    "lg-ax-product-product-v0.16.1.zip": "0f9614ef4e9d660d90322602f2b0645c660716463c24c9348ef514e9d8ee8e15",
+    "SHA256SUMS.txt": "d67acda391866e7ddbb2f551ef851c7d50a137ee567eae6f0c37ef40279ccd98"
+  },
+  "automatic_source_raw_equal": 128,
+  "installer_files": {
+    "README.md": "0427797525d3b6499dbc504eeea473fcbddbc37b96e5815a6666a0aeedb1523e",
+    "agent.md": "0c88a3f9b681fc5232bf605f45e10fa56ebd71ce692551fbfbeafec13ce3b69f",
+    "install.py": "716599e7921665036f77ec2858eaa654bfb982c6093c607ab1208805e4d57cdc",
+    "install.ps1": "d7e9c70326850e7d3287a533433712799981be5531d097fc1ddc22adcc24620e",
+    "install.sh": "63e7569919437cd8924561584124a04c34edf89e77c101f93a74a17d66d5436c"
+  },
+  "prior_windows_failure": "Get-FileHash missing in PS5.1 environment; fixed with .NET SHA256 and both engines rerun successfully",
+  "macos_native": "not_run",
+  "public_transport": "unit mock verified; anonymous production access intentionally denied while private",
+  "new_model_calls": 0,
+  "GUI_opened": false,
+  "deadline": {
+    "at": "2026-10-20T18:00:00+09:00",
+    "basis": "User-provided 2026-10-14 operations summary; original organizer email not independently found",
+    "attachment_sha256": "b497231728c07bcacb430ba34ced7da21dde174ff588277ac2046bcd562eb6d9"
+  },
+  "scheduled_publication": {
+    "automation_id": "lg-ax",
+    "status": "ACTIVE",
+    "at": "2026-10-21T09:00:00+09:00",
+    "single_execution": true,
+    "target": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+    "development_repo_visibility_change": false,
+    "visibility_changed_now": false
+  },
+  "published_installer": {
+    "repo": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+    "main_commit": "971530562da3fe8e2f24d5da915715bb20fb4137",
+    "refs": [
+      "971530562da3fe8e2f24d5da915715bb20fb4137\trefs/heads/main",
+      "58b7ba00f1703eab72470ad306aaa4494b01aadd\trefs/tags/installer-v0.1.0",
+      "971530562da3fe8e2f24d5da915715bb20fb4137\trefs/tags/installer-v0.1.0^{}",
+      "22f2cd2c3b8a76af70a7aa8dbbb2a9163bbca9ed\trefs/tags/product-v0.16.1",
+      "702e551f86ff4e056c476d8003aa8b7ec77a2410\trefs/tags/product-v0.16.1^{}"
+    ],
+    "installer_url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/installer-v0.1.0",
+    "installer_published_at": "2026-10-16T04:34:51Z",
+    "assets": [
+      {
+        "name": "agent.md",
+        "digest": "sha256:0c88a3f9b681fc5232bf605f45e10fa56ebd71ce692551fbfbeafec13ce3b69f",
+        "size": 3510
+      },
+      {
+        "name": "install.ps1",
+        "digest": "sha256:d7e9c70326850e7d3287a533433712799981be5531d097fc1ddc22adcc24620e",
+        "size": 3339
+      },
+      {
+        "name": "install.py",
+        "digest": "sha256:716599e7921665036f77ec2858eaa654bfb982c6093c607ab1208805e4d57cdc",
+        "size": 9097
+      },
+      {
+        "name": "install.sh",
+        "digest": "sha256:63e7569919437cd8924561584124a04c34edf89e77c101f93a74a17d66d5436c",
+        "size": 2464
+      },
+      {
+        "name": "README.md",
+        "digest": "sha256:0427797525d3b6499dbc504eeea473fcbddbc37b96e5815a6666a0aeedb1523e",
+        "size": 6814
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "digest": "sha256:97d52108b29f6bee2bd64c7d6965b48da10a71e59ea915fa7139fa84f80d384c",
+        "size": 388
+      }
+    ],
+    "source_entrypoints_match": true,
+    "remote_assets_raw_equal": true,
+    "private": true
+  },
+  "readme_entrypoint_checks": [
+    {
+      "name": "powershell-readme",
+      "exit_code": 0,
+      "seconds": 5.937,
+      "stdout_sha256": "e666881b0144825e1edcf9d47295a9e72e8c18d7420f2752143a6667ca74426c",
+      "stderr_sha256": "34042f0fc3c57804df6c1c9c81cb9af338faef8cbdb6f1da1a0430380f2d42bc",
+      "prepared": true,
+      "verified_files": 205
+    },
+    {
+      "name": "ubuntu-readme",
+      "exit_code": 0,
+      "seconds": 4.704,
+      "stdout_sha256": "84cb44e51c98a8b53cc249caaa8a624e06cb340d16ea17d653bb0dd7238d69cb",
+      "stderr_sha256": "9558a53bff6d2532e45c13396cdfef498685bcf142386a1c803e5dbff8e6dc55",
+      "prepared": true,
+      "verified_files": 205
+    }
+  ],
+  "receipts": [
+    {
+      "id": "2bb22c11506746cb8f1f1e8ac896d218",
+      "argv": [
+        ".harness/ci-T-v016/venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-p",
+        "test_distribution_install.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "0c34f9f955aba193fe0a1798c689ddf9eb70b1ece243666a878cd014c7ed6a61"
+    },
+    {
+      "id": "03253896f98446f58fed9f469496cb30",
+      "argv": [
+        ".harness/ci-T-v016/venv/Scripts/python.exe",
+        ".harness/V-audit-installer.py"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "cae3d317c7e6bb13ba0d919f46deac45c13dae9646e836809899133b6550d655"
+    },
+    {
+      "id": "0f16e78c48004bda9a12b2762a197f82",
+      "argv": [
+        ".harness/ci-T-v016/venv/Scripts/python.exe",
+        ".harness/V-entrypoints.py"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "d6735eceed41c18c7a5245b8c118f9c93a1ddccdb6520e157984cf96e2156cec"
+    }
+  ],
+  "independent_review": {
+    "agent": "/root/judge_setup_audit",
+    "status": "accepted",
+    "unresolved_p1_p2": 0,
+    "scope": "Code plus Windows and Ubuntu setup; final published entrypoints separately verified by parent"
+  }
+}
