@@ -199,7 +199,9 @@ function SaveCard({ view, reload, openFile, inline, className, lastReadAt, fromF
 }) {
   const ctx = view?.context || {}
   return (
-    <div className={className}>
+    <details className={className} open={!view || undefined}>
+      <summary className="cursor-pointer text-xs font-medium text-zinc-500">저장 결과 관리</summary>
+      <div className="mt-3">
       <div className="text-xs font-semibold opacity-80">{fromFile ? '직접 연 화면 자료' : '최근 저장 결과'}</div>
       {lastReadAt && <div className="mt-1 text-[11px] text-zinc-500">{fromFile ? '열어 본 시각' : '확인 시각'}: {new Date(lastReadAt).toLocaleTimeString('ko-KR')}</div>}
       <div className="mt-2.5 flex flex-wrap gap-1.5">{(ctx.status || [{ text: '데이터 없음' }]).map((s, k) => <Badge key={k} chip={s} />)}</div>
@@ -220,7 +222,8 @@ function SaveCard({ view, reload, openFile, inline, className, lastReadAt, fromF
           <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) openFile(f); e.target.value = '' }} />
         </label>
       )}
-    </div>
+      </div>
+    </details>
   )
 }
 
