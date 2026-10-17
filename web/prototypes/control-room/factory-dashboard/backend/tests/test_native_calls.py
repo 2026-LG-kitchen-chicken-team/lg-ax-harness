@@ -36,18 +36,38 @@ class NativeCallTests(unittest.TestCase):
         self.assertEqual((call['skill'], call['operation'], call['status']), ('evidence-retrieval', 'retrieve_reviews', 'running'))
         self.assertNotIn('input.json', json.dumps(call))
 
+    def test_cancelled_command_receipt_preserves_cancellation_with_or_without_exit_code(self):
+        for code in (None,130):
+            with self.subTest(exit_code=code):
+                receipt=row('event_msg',{'type':'item_completed','item':{'type':'CommandExecution','id':'cancelled-command','command':CMD,'cwd':str(self.workspace),'status':'cancelled','exit_code':code}}, END)
+                call,=self.project([start(),receipt])
+                self.assertEqual(call['status'],'cancelled')
+                self.assertEqual(call['ended_at'],END)
+
     def test_instruction_is_distinct_from_work(self):
         call, = self.project([start(CMD.replace('retrieve_reviews', 'get_work_instructions'))])
         self.assertEqual(call['category'], 'instruction')
 
     def test_read_print_search_python_inline_and_shell_branches_do_not_execute_skill(self):
         for command in ('echo '+CMD, 'Get-Content '+CMD, 'rg "'+CMD+'" .', 'python -c "'+CMD+'"',
-                        'false && '+CMD, CMD+'; echo private', CMD.replace('retrieve_reviews', 'invented_op')):
+                        'false && '+CMD, CMD+'; echo private', CMD+' & echo done', CMD+' && echo done',
+                        CMD+' &'+CMD, CMD.replace('retrieve_reviews', 'invented_op')):
             self.assertIsNone(command_skill(command, None, self.workspace), command)
 
     def test_scope_and_traversal_are_not_a_current_product_call(self):
         self.assertIsNone(command_skill(CMD, self.workspace.parent, self.workspace))
         self.assertIsNone(command_skill(CMD.replace('skills/', '../skills/'), self.workspace, self.workspace))
+
+    def test_native_file_uri_cwd_is_local_and_scope_checked(self):
+        self.assertEqual(command_skill(CMD, self.workspace.as_uri(), self.workspace)['skill'], 'evidence-retrieval')
+        self.assertIsNone(command_skill(CMD, 'file://remote-host/private', self.workspace))
+        self.assertIsNone(command_skill(CMD, self.workspace.as_uri()+'?secret=1', self.workspace))
+        self.assertIsNone(command_skill(CMD, self.workspace.parent.as_uri(), self.workspace))
+
+    def test_file_uri_completion_closes_the_same_started_command(self):
+        calls=self.project([start(),row('event_msg',{'type':'item_completed','item':{'type':'CommandExecution','id':'exec-1','command':CMD,'cwd':self.workspace.as_uri(),'status':'completed','exit_code':0}})])
+        self.assertEqual(len(calls),1)
+        self.assertEqual(calls[0]['status'],'completed')
 
     def test_quoted_interpreter_and_windows_shell_argv(self):
         command='& "C:/Program Files/Python/python.exe" "skills/feature-comparison/scripts/run.py" match_product_scope --input x.json'

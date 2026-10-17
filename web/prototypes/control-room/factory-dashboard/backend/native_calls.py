@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+from urllib.parse import urlsplit, unquote
 
 OPERATIONS = json.loads((Path(__file__).resolve().parents[1] / 'shared/skill-operations.json').read_text(encoding='utf-8'))
 SKILLS = frozenset(('evidence-retrieval', 'needs-structuring', 'feature-comparison',
@@ -139,6 +140,21 @@ def command_body(command):
     return command if isinstance(command, str) else ''
 
 
+def native_cwd(value):
+    """Decode the local file URI used by current Windows native command events."""
+    if not isinstance(value, str) or not value.lower().startswith('file:'):
+        return value
+    parsed = urlsplit(value)
+    if parsed.scheme.lower() != 'file' or parsed.netloc not in ('', 'localhost') or parsed.query or parsed.fragment:
+        raise ValueError('nonlocal cwd')
+    path = unquote(parsed.path, errors='strict')
+    if '\x00' in path:
+        raise ValueError('invalid cwd')
+    if re.match(r'^/[A-Za-z]:/', path):
+        path = path[1:]
+    return path
+
+
 def command_skill(command, cwd, workspace):
     """Recognize the executed entry point, not a path embedded in other code."""
     command = command_body(command)
@@ -148,6 +164,10 @@ def command_skill(command, cwd, workspace):
         tokens = [_unquote(x) for x in shlex.split(command, posix=False)]
         if tokens and tokens[0] == '&':
             tokens.pop(0)
+        # A leading PowerShell invocation operator is supported; a later shell
+        # background/conditional operator cannot prove the Skill's own exit.
+        if any('&' in token for token in tokens):
+            return None
         def program(value):
             return value.replace('\\', '/').rsplit('/', 1)[-1].lower()
         if tokens and program(tokens[0]) in ('uv', 'uv.exe'):
@@ -163,7 +183,7 @@ def command_skill(command, cwd, workspace):
         script, operation = tokens[:2]
         if operation not in OPERATIONS:
             return None
-        folder = Path(cwd or workspace)
+        folder = Path(native_cwd(cwd) or workspace)
         if not folder.is_absolute():
             return None
         target = Path(script.replace('\\', '/'))
@@ -242,7 +262,11 @@ def project_calls(rows, workspace):
             item = payload.get('item', {})
             if not isinstance(item, dict) or item.get('type') != 'CommandExecution':
                 continue
-            body, cwd = command_body(item.get('command')), item.get('cwd') or str(workspace)
+            body = command_body(item.get('command'))
+            try:
+                cwd = native_cwd(item.get('cwd')) or str(workspace)
+            except (ValueError, UnicodeError):
+                continue
             matches = [c for c, command, directory in pending if c['status'] == 'running' and body.strip() == command.strip() and os.path.normcase(os.path.abspath(directory)) == os.path.normcase(os.path.abspath(cwd))]
             call = matches[0] if matches else processes.get(str(item.get('process_id')))
             spec = command_skill(body, cwd, workspace)
@@ -265,8 +289,10 @@ def project_calls(rows, workspace):
                 if ptype == 'item_completed':
                     status = item.get('status')
                     code = item.get('exit_code')
-                    if isinstance(code, int):
-                        call.update(status='failed' if code != 0 or status in ('failed', 'cancelled') else 'completed', ended_at=ts)
+                    if status in ('cancelled', 'stopped'):
+                        call.update(status='cancelled', ended_at=ts)
+                    elif isinstance(code, int):
+                        call.update(status='failed' if code != 0 or status == 'failed' else 'completed', ended_at=ts)
                         try:
                             result = json.loads(item.get('aggregated_output') or item.get('stdout') or '{}')
                             if isinstance(result, dict) and result.get('ok') is False:
