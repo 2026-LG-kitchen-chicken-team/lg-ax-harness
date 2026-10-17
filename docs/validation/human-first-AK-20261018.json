@@ -1,0 +1,412 @@
+{
+  "date": "2026-10-18",
+  "run_id": "human-first-AK",
+  "task_id": "integrate",
+  "scope": "User-authorized items1-5: planner business usefulness, Skill authoring, web/report, progress dashboard, current completion linkage",
+  "status": "completed_with_recorded_validation_scope",
+  "baseline": "ef334c57676d0440d350d2e39f529df78a86fd7e",
+  "tested_source_commit": "52c6fd6a4b792dea80f33c8693a1f640383ec6eb",
+  "native": {
+    "engine": "Codex CLI",
+    "model": "gpt-6.1-sol",
+    "effort": "medium",
+    "source_commit": "9425978",
+    "display_source_commit": "5ae52a2b3f6afd919f4af136e6fdf729a3f5ee5a",
+    "new_runs": 1,
+    "product_family": "refrigerator",
+    "elapsed_seconds": 341.658,
+    "exit_code": 0,
+    "question_resends": 0,
+    "data": {
+      "objects": 56,
+      "reviews": 23,
+      "product_facts": 33,
+      "new_online_collection": false,
+      "scope": "All56 existing AF registered objects, not unique customers or representative market sample"
+    },
+    "status": "completed",
+    "result_version": 1,
+    "concepts": 2,
+    "selected_concepts": 1,
+    "actual_draft_rows": 8,
+    "protected_files": 107,
+    "source_and_data_unchanged": true,
+    "binding_verified": "verified_binding",
+    "result_sha256": "e99b245b1bf0cb04072e230d404b7d168303745ea56f6f781f35ce16cb5d6747",
+    "export_sha256": "0b85e23993b3d34400d88cf96ffae9a815097e462a1d354ae521bbf1a7f6902a",
+    "auto_open": {
+      "status": "ready",
+      "binding": "verified_binding",
+      "native_end_observed": true,
+      "open_requested": true,
+      "open_status": "requested",
+      "display_verified": false
+    },
+    "usage": {
+      "input_tokens": 2448251,
+      "cached_input_tokens": 2291072,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 19180,
+      "reasoning_output_tokens": 1831
+    },
+    "usage_scope": "terminal parent snapshot; backend billing/child overlap unknown",
+    "limitations": [
+      "One run is not a model comparison or average duration",
+      "Some ordinary commands failed and recovered; not an error-free first attempt",
+      "Final rendering source differs from actual native source"
+    ]
+  },
+  "browser": {
+    "verified": [
+      "Actual native ongoing factory header without automatically opened CLI detail panels",
+      "Current native completion changes actual dashboard to ready and exposes bound result link",
+      "Choice comparison, selected concept, eight-row actual work draft and conditional alternative",
+      "Web to same current report and back",
+      "Copy action shows success acknowledgement",
+      "Previous AF dishwasher report and microwave web remain readable",
+      "After owned QA server stops, loaded actual result remains and friendly retry notice appears"
+    ],
+    "scope": "local desktop-sized IAB; separate from OS default-browser rendering proof",
+    "previous_results": "Previous actual AF dishwasher and microwave compatibility replays, not new native runs",
+    "standalone_file": "preview/fresh/result.html",
+    "standalone_sha256": "a6c3182ea90c666cd140564e292987e0576f9241d0d6f0ac86d530501705c937",
+    "evidence_manifest_sha256": "dd3f03b9b6beef780b4581b4e85e9c608a9506d61553e55dbe248a39eb7621a2",
+    "screenshots": [
+      {
+        "file": "01-live-progress.jpg",
+        "sha256": "a757ff26f6a4f122baa128838a02378bf82f54eff8921ebaab81ab01ed7ae755",
+        "bytes": 87845
+      },
+      {
+        "file": "02-dishwasher-report.jpg",
+        "sha256": "69d118b9ccc1e99e6b48f9ae10291ca9b0cae93b0fa982019e133e8da37dbc16",
+        "bytes": 108444
+      },
+      {
+        "file": "03-copy-feedback.jpg",
+        "sha256": "b4b4a01c4d097c92e33228df4cac351244baa78b9458d898536c0779babac80b",
+        "bytes": 86769
+      },
+      {
+        "file": "04-current-ready.jpg",
+        "sha256": "196fcf28acfcf3fed3f0967f0339f1ebb0ee89922ca743c4831ac673f0cccfe3",
+        "bytes": 87277
+      },
+      {
+        "file": "05-new-planning.jpg",
+        "sha256": "9572090b6b401d38ce646b222dcfe60dfe59c8cb51581840e9827377211c2f2c",
+        "bytes": 102826
+      },
+      {
+        "file": "06-actual-draft.jpg",
+        "sha256": "966efb8d5a6ec3a79f67c691d21a4cd563968fac39db58808e0dbb772cb48696",
+        "bytes": 106941
+      },
+      {
+        "file": "07-draft-first.jpg",
+        "sha256": "ddb024dbc193d1a34c4850cedadf1605b52401dcbbb91de74829528db4a28495",
+        "bytes": 86148
+      },
+      {
+        "file": "08-selected-draft.jpg",
+        "sha256": "b6f237d15a17df929bcbbf6f865a56efee3d0186f303a7d32f14ca25ca3d16ad",
+        "bytes": 100209
+      },
+      {
+        "file": "09-fresh-report.jpg",
+        "sha256": "4f17c1ab54ac78c083f74f1a327304e0152ac1595781a06aa213cb50a3d4365a",
+        "bytes": 118260
+      },
+      {
+        "file": "10-final-report.jpg",
+        "sha256": "f216d142a8b3192033c23c1bbc202fe34dfaaf5eb896ecaabf3033689c7f1b8e",
+        "bytes": 116395
+      },
+      {
+        "file": "11-result-retained.jpg",
+        "sha256": "1dd4ee7601531c480f56bcaf3fbff2bf3829c31faee2db275eca7d54f8a8c655",
+        "bytes": 98293
+      },
+      {
+        "file": "12-report-open.jpg",
+        "sha256": "d73e1986a6ca3008eeea22685c2f6f2c771ffcec0f03405c9bc20bd551f31d03",
+        "bytes": 108819
+      }
+    ],
+    "cleanup": "Owned QA browser tabs, loopback-only QA server and native observer stopped after successful native process exit"
+  },
+  "checks": [
+    {
+      "name": "product tools and installation",
+      "receipt": ".harness/checks/a586edfcefb94d5ea5f27917cd7e8651/receipt.json",
+      "receipt_sha256": "10c0edc785ef7ca852c6f40f432e3ed50ded0177f8daef87f1178ae50806bdf2",
+      "status": "passed",
+      "exit_code": 0,
+      "ran": 539,
+      "passed": 538,
+      "skipped": 1,
+      "duration_seconds": 123.11,
+      "argv": [
+        ".harness/AK/final-ci/venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/product-tools",
+        "-q"
+      ],
+      "inputs": {
+        "product-tools/product_tools/contracts.py": "b83aef796a230b0368911415baf95e9626b37bd1411c2a91589f6ee568250d2a",
+        "skills/manifest.json": "a48021b55ad3f37f69ee7460cb2898408d7d9b2d0b817737ad34f2ca29f57865",
+        "tests/product-tools/test_instruction_loading.py": "11234420d12e53c72ad018e408662ddb41dd69a450eadeb316e54d2e1d8fd205",
+        "tests/product-tools/test_planning_drafts.py": "1df2de35b8ac1de7163cc92f4a62b6a61a514bf7cf000a0d728b5b27e207fd8e"
+      },
+      "logs": {
+        "stdout.log": {
+          "path": ".harness/checks/a586edfcefb94d5ea5f27917cd7e8651/stdout.log",
+          "sha256": "cf51376362f37a2b94dd88512e9e416677d0c8091355e59d808be61be8d186d3",
+          "original_bytes": 1830,
+          "truncated": false
+        },
+        "stderr.log": {
+          "path": ".harness/checks/a586edfcefb94d5ea5f27917cd7e8651/stderr.log",
+          "sha256": "9764757f3ae14717dfcb2b9e9967ff024f80c6d96a662c76ea1dfbd71e271256",
+          "original_bytes": 117,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "name": "web report and observer",
+      "receipt": ".harness/checks/bf731d12432f40f0800c9a84b7b1c3a5/receipt.json",
+      "receipt_sha256": "2af530b1e3d48aea9de36131a0555126bf9d3a9706592b9ff0022ef46fb4de54",
+      "status": "passed",
+      "exit_code": 0,
+      "ran": 197,
+      "passed": 196,
+      "skipped": 1,
+      "duration_seconds": 126.328,
+      "argv": [
+        ".harness/AK/final-ci/venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/web",
+        "-q"
+      ],
+      "inputs": {
+        "tests/web/test_agent_office.py": "29b700565333b374d7a948288c8cbbae3b9e94e6a687d09060e81f947a700674",
+        "tests/web/test_result_observer.py": "9fcbbd1a041a92758a86363a661459c62eba70c347070dbf61ab257d862ca13e",
+        "tests/web/test_visual_viewer.py": "3517cc08dd2db92d579977d564e48c2dd72ff05ce6383ce9eab7569e733b0fe7",
+        "web/prototypes/visual-viewer/app/scripts/planner-report.mjs": "9a786bf6c1c3e55a54488127c4e86f8f8c1816a7a4225421d5323e829d4862bf",
+        "web/prototypes/visual-viewer/app/src/components/story.tsx": "abb2889e7d6856e2c480f16a8126d4c7fcf2cf0f8513b3f823798561b38e2c6a",
+        "web/prototypes/visual-viewer/build_view.py": "f64b2c85e1b8b4dbf2ac0faf862ceb81d2449db369981234859ed65051f26fbf",
+        "web/prototypes/visual-viewer/delivery.py": "6a60a6fbc3855f755506501f6bf38296fe74b431eb774d7e0e9901ac56b08bd2",
+        "web/prototypes/visual-viewer/watch.py": "3a88e564bf1f9e991ce9ce2a6111cd331d8c4efc38557f9e7db3894be6739adc"
+      },
+      "logs": {
+        "stdout.log": {
+          "path": ".harness/checks/bf731d12432f40f0800c9a84b7b1c3a5/stdout.log",
+          "sha256": "7a88d2c0e6ee7d599bbb454d6b4116eb84122743fe513f52f5e5f7c6f433e1fd",
+          "original_bytes": 3492,
+          "truncated": false
+        },
+        "stderr.log": {
+          "path": ".harness/checks/bf731d12432f40f0800c9a84b7b1c3a5/stderr.log",
+          "sha256": "e3b68443f600582b7abe9f2cd3fe2f53f28ca6f67b10dd122c47ab65bb5da332",
+          "original_bytes": 568,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "name": "dashboard JavaScript",
+      "receipt": ".harness/checks/dc01067a43ed480aa58ce1f04b049bab/receipt.json",
+      "receipt_sha256": "04b357b82f8538327e42af31a5d2c96eda9ad8f77979c7d388e0f12f4f5a5f66",
+      "status": "passed",
+      "exit_code": 0,
+      "ran": 174,
+      "passed": 174,
+      "skipped": 0,
+      "duration_seconds": 7.4786,
+      "argv": [
+        "npm.cmd",
+        "test"
+      ],
+      "inputs": {
+        "web/prototypes/control-room/factory-dashboard/src/ReleaseDashboard.jsx": "9c4db08c26d221539941c7b6ab85c90972141ee6f60d0ab6a6bfe5c78537c93a",
+        "web/prototypes/control-room/factory-dashboard/src/planner-status.js": "3d2996a4b9ce919335922fdbe035925c13f74b9c17fef7e876fc8e7b964cee9c",
+        "web/prototypes/control-room/factory-dashboard/tests/plannerStatus.test.mjs": "102d3a8302bfc3436512c782b9d6af61c274add3516c5e08833685c2e181e685"
+      },
+      "logs": {
+        "stdout.log": {
+          "path": ".harness/checks/dc01067a43ed480aa58ce1f04b049bab/stdout.log",
+          "sha256": "1425e018c59e53ec39e477c20fe129895a4aa463553091884a2671476cecfe8c",
+          "original_bytes": 41578,
+          "truncated": false
+        },
+        "stderr.log": {
+          "path": ".harness/checks/dc01067a43ed480aa58ce1f04b049bab/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "original_bytes": 0,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "name": "viewer typecheck and production build",
+      "receipt": ".harness/checks/483e7b3659b542b5b77ad162fcab1503/receipt.json",
+      "receipt_sha256": "72e6015becf873c2fde0757728472fdbf89ee20eb62013d35e0e1153838d401f",
+      "status": "passed",
+      "exit_code": 0,
+      "ran": null,
+      "passed": null,
+      "skipped": null,
+      "duration_seconds": 2.671,
+      "argv": [
+        "npm.cmd",
+        "run",
+        "build"
+      ],
+      "inputs": {
+        "web/prototypes/visual-viewer/app/scripts/planner-report.mjs": "9a786bf6c1c3e55a54488127c4e86f8f8c1816a7a4225421d5323e829d4862bf",
+        "web/prototypes/visual-viewer/app/src/components/story.tsx": "abb2889e7d6856e2c480f16a8126d4c7fcf2cf0f8513b3f823798561b38e2c6a",
+        "web/prototypes/visual-viewer/app/src/dash/DashApp.tsx": "9ea1ee840dc3988950bc28a1ddbd1c82758d88abcdcbc7b332e8196b6f111248",
+        "web/prototypes/visual-viewer/app/src/lib/planner.ts": "ee0c01b5cdc1a3da2e597b634963dd6159856de4d79ee1fbf501429a7f040c5e"
+      },
+      "logs": {
+        "stdout.log": {
+          "path": ".harness/checks/483e7b3659b542b5b77ad162fcab1503/stdout.log",
+          "sha256": "842ba6edcede22c4779b29d96996c97d40f9328fb5366f8339aee21acc3be040",
+          "original_bytes": 573,
+          "truncated": false
+        },
+        "stderr.log": {
+          "path": ".harness/checks/483e7b3659b542b5b77ad162fcab1503/stderr.log",
+          "sha256": "0618bd3ca1e2b8509bfceda667e642dcba2f095bfb0f5f2a6fb4cc1aed9a13d1",
+          "original_bytes": 547,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "name": "dashboard production build",
+      "receipt": ".harness/checks/a1863efdaea444d9a153b8beb276faed/receipt.json",
+      "receipt_sha256": "5005bd371b4be57f285993227a6ab095646a4527c249f58e0286cfc8c7563bb8",
+      "status": "passed",
+      "exit_code": 0,
+      "ran": null,
+      "passed": null,
+      "skipped": null,
+      "duration_seconds": 7.187,
+      "argv": [
+        "npm.cmd",
+        "run",
+        "build:office"
+      ],
+      "inputs": {
+        "web/prototypes/control-room/factory-dashboard/src/ReleaseDashboard.jsx": "9c4db08c26d221539941c7b6ab85c90972141ee6f60d0ab6a6bfe5c78537c93a",
+        "web/prototypes/control-room/factory-dashboard/src/office-records.js": "aa8074dd348985b666e8eb1575a88c53afd22386bfabae28e5387387a369a110",
+        "web/prototypes/control-room/factory-dashboard/src/planner-status.js": "3d2996a4b9ce919335922fdbe035925c13f74b9c17fef7e876fc8e7b964cee9c"
+      },
+      "logs": {
+        "stdout.log": {
+          "path": ".harness/checks/a1863efdaea444d9a153b8beb276faed/stdout.log",
+          "sha256": "faa0dac32d5935f9cd1639f11cca8d71322aa5f796510a619c4c9c3dea9a2cef",
+          "original_bytes": 622,
+          "truncated": false
+        },
+        "stderr.log": {
+          "path": ".harness/checks/a1863efdaea444d9a153b8beb276faed/stderr.log",
+          "sha256": "961f2e8388b50eebe04de8e17e23a8bb41ee2d79ffb4d4d8e1b00a88d6a60ee2",
+          "original_bytes": 334,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "name": "product asset manifest",
+      "receipt": ".harness/checks/88f7e617b736459ea80911aec8877577/receipt.json",
+      "receipt_sha256": "db1748cd4c0e1ba1961ebe512a47963b42d00a75d5c70f2adc68081551b05984",
+      "status": "passed",
+      "exit_code": 0,
+      "ran": null,
+      "passed": null,
+      "skipped": null,
+      "duration_seconds": 0.141,
+      "argv": [
+        ".harness/AK/final-ci/venv/Scripts/python.exe",
+        "scripts/check-product-assets.py"
+      ],
+      "inputs": {
+        "skills/manifest.json": "a48021b55ad3f37f69ee7460cb2898408d7d9b2d0b817737ad34f2ca29f57865",
+        "web/prototypes/agent-office/factory.html": "0caa075050070d65ed3fb4014a82f120537dd95ceb34a87ba0ee1aad3eed6ab2",
+        "web/prototypes/visual-viewer/index.html": "38835c2a0318a544ee22fc219d016a735dc436f11c5a58a160a665a08ff88480"
+      },
+      "logs": {
+        "stdout.log": {
+          "path": ".harness/checks/88f7e617b736459ea80911aec8877577/stdout.log",
+          "sha256": "0bd15dfc7e568dcd86fdf8552ef3c10ada039b09d3831e6e6ca9310664ab1f72",
+          "original_bytes": 243,
+          "truncated": false
+        },
+        "stderr.log": {
+          "path": ".harness/checks/88f7e617b736459ea80911aec8877577/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "original_bytes": 0,
+          "truncated": false
+        }
+      }
+    }
+  ],
+  "independent_review": {
+    "native_agents": [
+      "/root/planner_improvement_adversary_ah",
+      "/root/dashboard_observer_review",
+      "/root/planner_human_readability_ai"
+    ],
+    "final_reviewed_paths": 40,
+    "generated_paths_build_checked": 2,
+    "pending_paths": 0,
+    "unresolved_P1_P2": 0,
+    "fixed": [
+      "Mandatory implementation and validation writing retained",
+      "Single-concept reasoning retained",
+      "Cancelled/incomplete endings cannot appear ready",
+      "Child stop does not imply parent reflection",
+      "Clipboard promise timeout has selectable text fallback"
+    ]
+  },
+  "initial_failures_preserved": [
+    {
+      "receipt": ".harness/checks/033b5931c04847d98370ac5e4ee01ba0/receipt.json",
+      "cause": "Full CI while source/manifest were changing; not reclassified as a passing full CI"
+    },
+    {
+      "receipt": ".harness/checks/41a389c670f349c5ad6535e4f27af100/receipt.json",
+      "cause": "Old false hardware default expected by one web test; updated expectation and current full web suite passed"
+    },
+    {
+      "receipt": ".harness/checks/eb45c320ef3641f382cf1b5b7b7ff271/receipt.json",
+      "cause": "Old result-button label expectation; updated intentional UI expectation"
+    },
+    {
+      "receipt": ".harness/checks/93bbed8eea1a471da313c52ed0d21018/receipt.json",
+      "cause": "Initial system Python3.14 dependency/version mismatch; full receipt prefix retained locally, final suites use isolated Python3.12"
+    }
+  ],
+  "remaining_scope": [
+    "Final Codex/Claude GUI/CLI environment matrix and model recommendations",
+    "Judge ZIP/manual/release update",
+    "Filming not started"
+  ],
+  "no_new_renderer_model_calls": true,
+  "private_material_not_in_git": [
+    "Raw source corpus",
+    "Native raw logs",
+    "Business DB",
+    "Credentials",
+    "Personal paths"
+  ]
+}
