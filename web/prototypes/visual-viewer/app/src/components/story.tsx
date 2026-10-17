@@ -196,13 +196,12 @@ function Solutions({ b }: P) {
       {b.planner && items.length > 1 && <section aria-label="제안별 비교" className="rounded-lg border bg-white p-4">
         <h2 className="text-[15px] font-semibold text-zinc-700">제안별 비교</h2>
         <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[560px] text-left text-[13px] leading-relaxed">
-          <thead><tr className="border-b text-zinc-500"><th className="w-1/4 px-2 py-2 font-medium">제안</th><th className="px-2 py-2 font-medium">핵심 내용</th>{hasReasons && <th className="px-2 py-2 font-medium">선택 이유</th>}{hasTradeoffs && <th className="px-2 py-2 font-medium">고려할 점</th>}<th className="px-2 py-2 font-medium">다음 행동</th></tr></thead>
+          <thead><tr className="border-b text-zinc-500"><th className="w-1/4 px-2 py-2 font-medium">제안</th><th className="px-2 py-2 font-medium">핵심 내용</th>{hasReasons && <th className="px-2 py-2 font-medium">선택 이유</th>}{hasTradeoffs && <th className="px-2 py-2 font-medium">고려할 점</th>}</tr></thead>
           <tbody>{items.map((s, i) => <tr key={i} className="border-b last:border-0">
             <th className="px-2 py-3 align-top font-medium"><a className="text-[#2f7d4f] underline" href={`#planner-proposal-${i + 1}`}>{heading(s, i)}</a></th>
             <td className="px-2 py-3 align-top"><Md text={s.summary || s.text || ''} /></td>
             {hasReasons && <td className="px-2 py-3 align-top"><Md text={comparison(s)?.reason || ''} /></td>}
             {hasTradeoffs && <td className="px-2 py-3 align-top"><Md text={comparison(s)?.tradeoff || ''} /></td>}
-            <td className="px-2 py-3 align-top"><Md text={s.steps?.[0] || ''} /></td>
           </tr>)}</tbody>
         </table></div>
       </section>}

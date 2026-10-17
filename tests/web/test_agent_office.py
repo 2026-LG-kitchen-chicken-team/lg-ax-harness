@@ -963,7 +963,7 @@ for (const file of ['catalog', 'labels', 'model', 'state']) {
         artwork = ROOT / "web/prototypes/control-room/factory-dashboard/public/workshops/approved-researchers-original-v1.png"
         self.assertIn("data:image/png;base64," + base64.b64encode(artwork.read_bytes()).decode("ascii"), html)
         for text in ("LGAX_OFFICE_LIVE", "live.js", "../visual-viewer/view-data.js", "../visual-viewer/index.html",
-                     "기록 재생", "실시간", "기록 파일 열기", "결과 화면 열기", "분석 구간"):
+                     "기록 재생", "실시간", "기록 파일 열기", "기획안 보기", "분석 구간"):
             self.assertIn(text, html)
 
 
