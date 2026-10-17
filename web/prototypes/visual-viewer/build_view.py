@@ -277,6 +277,14 @@ def current_export_turn(export: dict) -> dict:
     return (export.get("turns") or [{}])[-1]
 
 
+def cited_reference_matches(ref: dict, full: dict) -> bool:
+    """A stored citation can be an exact excerpt; its source identity/hash still names the full body."""
+    return (isinstance(ref, dict) and isinstance(full, dict) and set(ref) == set(full)
+            and all(ref[k] == full[k] for k in full if k != "quote")
+            and isinstance(ref.get("quote"), str) and bool(ref["quote"])
+            and isinstance(full.get("quote"), str) and ref["quote"] in full["quote"])
+
+
 def load_web_result(export: dict, export_path: Path, web_result_path: Path | None = None,
                     web_result_sha256: str | None = None, file_metadata: dict | None = None) -> tuple[dict, str]:
     """Join immutable bytes to the latest export snapshot; never use mtime as a binding."""
@@ -334,7 +342,9 @@ def load_web_result(export: dict, export_path: Path, web_result_path: Path | Non
                    or hashlib.sha256(str(r.get("quote", "")).encode("utf-8")).hexdigest() != r.get("sha256") for r in refs):
                 mismatch = True
                 continue
-            if any(r not in refs for r in result.get("evidence_refs") or []):
+            full_refs = {r["source_id"]: r for r in refs}
+            if any(not cited_reference_matches(r, full_refs.get(r.get("source_id")))
+                   for r in result.get("evidence_refs") or []):
                 mismatch = True
                 continue
             if file_metadata is not None:

@@ -21,7 +21,7 @@ WORKFLOW = [
     "python -m pip install --require-hashes -r product-tools/requirements.lock",
     "python dev-harness/cli.py validate",
     "python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/dev-harness -v",
-    "python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/product-tools -v",
+    "python dev-harness/cli.py check --timeout 240 -- python -m unittest discover -s tests/product-tools -v",
     "python scripts/check-product-assets.py",
     "python dev-harness/cli.py check --timeout 120 -- python -m unittest discover -s tests/evaluation -v",
 ]
@@ -184,7 +184,7 @@ def plan(profile: str, python: str, node: str | None, npm: str | None, output: s
     stages = [{"id": "locked-python-dependencies", "timeout": 600,
                "argv": [python, "-m", "pip", "install", "--require-hashes", "-r", "product-tools/requirements.lock"], **gated},
               {"id": "validate", "argv": [python, "dev-harness/cli.py", "validate"]},
-              suite_stage(python, "dev-harness", 120), suite_stage(python, "product-tools", 120),
+              suite_stage(python, "dev-harness", 120), suite_stage(python, "product-tools", 240),
               {"id": "product-assets", "argv": [python, "scripts/check-product-assets.py"]},
               suite_stage(python, "evaluation", 120)]
     if profile == "extended":

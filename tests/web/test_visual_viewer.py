@@ -939,6 +939,36 @@ def web_body(key: str) -> dict:
 
 
 class WebResultTests(TempCase):
+    def test_reviewed_exact_excerpts_bind_without_losing_full_registered_bodies(self):
+        g = Gen(self.h.root, "data/business/lg-kitchen-v4")
+        self.generators.append(g)
+        b = g.bundle("원문 일부를 정확히 인용한 기획", model_id=M)
+        value = g.author(b["candidate_template"], b["turn"]["input"]["model_scope"][0], RID, FID)
+        for ref in value['result']['evidence_refs']:
+            ref['quote'] = ref['quote'][:12]
+        saved = g.conv.save_and_export(value)
+        self.assertTrue(saved['save']['accepted'])
+        export = g.work / saved['export']['path']
+        summary = build_view.generate(export, None, 'auto', out_dir=self.h.out)
+        self.assertEqual(summary['web_delivery'], 'verified_binding')
+        view = read_view(self.h.out)
+        self.assertEqual(view['report']['export']['turns'][0]['state']['latest_result']['evidence_refs'], value['result']['evidence_refs'])
+        sources = view['report']['plan']['appendix']['sources']
+        self.assertTrue(all(any(s['source_id'] == r['source_id'] and r['quote'] in s['text']
+                                and len(s['text']) > len(r['quote']) for s in sources)
+                            for r in value['result']['evidence_refs']))
+
+    def test_excerpt_matching_rejects_changed_identity_empty_or_fabricated_quote(self):
+        original = web_body('microwave')['source_references'][0]
+        short = {**original, 'quote':original['quote'][:12]}
+        self.assertTrue(build_view.cited_reference_matches(short, original))
+        for key in original:
+            changed = {**short, key: ('not an original quotation' if key == 'quote' else None)}
+            with self.subTest(key=key):
+                self.assertFalse(build_view.cited_reference_matches(changed, original))
+        self.assertFalse(build_view.cited_reference_matches({**short, 'quote':''}, original))
+        self.assertFalse(build_view.cited_reference_matches({**short, 'extra':'unbound'}, original))
+
     def test_registered_source_table_keeps_the_end_of_a_long_selected_text(self):
         text = f"{SYNTH} " + "등록 원문 " * 200 + "본문 마지막 표식"
         context = mock.Mock(web={"sources": [{"source_id": "long-source", "kind": "review", "text": text}],
