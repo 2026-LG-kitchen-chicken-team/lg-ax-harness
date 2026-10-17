@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {officeSnapshot,parseRecordFile,prepareEvents,projectEvent,safeDb,selectedNative,sessionsOf,busyIntervals,quietUntil,observerStatus,resultMetadata} from '../src/office-records.js';
 import {deriveReleaseView,normalizeReleaseSnapshot} from '../src/release.js';
-import {OfficeStore,stripModel,readHash} from '../src/office-store.js';
+import {OfficeStore,initialObservationSource,stripModel,readHash} from '../src/office-store.js';
 
 // agent-office observe.py lines (synthetic): only ids, names, times and host names, as the hook writes them.
 const BASE=Date.parse('2026-10-16T12:00:00Z'),iso=t=>new Date(t).toISOString();
@@ -32,19 +32,41 @@ function microwaveRun(){
 }
 const at=(events,sec,c={})=>{const t=BASE+sec*1000,snap=officeSnapshot({events,db:db(),release:'product-v0.16.4',origin:'office_replay',session:'native-1',at:t,...c});return deriveReleaseView(snap,{status:'connected',lastReceivedAt:iso(t)},t);};
 
-test('a new question keeps session history without inheriting earlier skill or role completion',()=>{
-  const events=[ask(1),...op(5,'review-and-revise','save_and_export','old-save'),
-    line(9,{hook:'SubagentStart',kind:'subagent',actor:'product_evidence_reviewer',node:'product_evidence_reviewer',agent_id:'old-child',phase:'start'}),
-    line(11,{hook:'SubagentStop',kind:'subagent',actor:'product_evidence_reviewer',node:'product_evidence_reviewer',agent_id:'old-child',phase:'end'}),
-    stop(12),ask(20,{prompt_id:'new-question'})];
-  const before=at(events,15,{db:null}), next=at(events,21,{db:null});
-  assert.equal(before.nodes.validate.statusLabel,'Skill 명령 완료');
-  assert.equal(before.roles[0].status,'completed');
-  assert.equal(next.nodes.validate.statusLabel,'실행 기록 없음');
-  assert.equal(next.usedSkills?.find(s=>s.id==='review-and-revise')?.operationObserved ?? next.skills?.find(s=>s.id==='review-and-revise')?.operationObserved,false);
-  assert.deepEqual(next.roles,[]);
-  assert.equal(next.header.state,'active');
-  assert.equal(next.counts.events,before.counts.events+1,'The old request remains in the session history');
+test('default installed office selects its file observer and reads live records without a connection form',()=>{
+  let liveReads=0;
+  const fileStore=new OfficeStore({pollFiles:true,clock:()=>BASE+20000,setTimer:()=>1,clearTimer:()=>{},
+    liveTransport:ok=>{liveReads++;ok({kind:'lgax-agent-office-live',written_at:iso(BASE+19000),events:[ask(1),...op(10,'evidence-retrieval','resolve_request_bundle','auto-read')],db:null});return()=>{};},
+    resultTransport:(_ok,fail)=>{fail('unavailable');return()=>{};}});
+  const manualStore=new OfficeStore({pollFiles:false});
+  const serverStore={start(){assert.fail('installed office must not wait for the HTTP server');}};
+  assert.equal(initialObservationSource(manualStore),'server');
+  assert.equal(initialObservationSource(manualStore,{startWithRecords:true}),'file');
+  const source=initialObservationSource(fileStore),selected=source==='file'?fileStore:serverStore;
+  assert.equal(source,'file');selected.start();
+  assert.equal(liveReads,1);
+  assert.equal(selected.getSnapshot().connection.status,'connected');
+  assert.equal(selected.getSnapshot().office.read.status,'ready');
+  assert.equal(selected.getSnapshot().office.sessions.length,1);
+  assert.equal(selected.getSnapshot().office.sessions[0].id,'native-1');
+  selected.stop();
+});
+
+test('manual record view never polls neighboring executable files and still replays an opened record',async()=>{
+  let liveReads=0,resultReads=0;
+  const store=new OfficeStore({pollFiles:false,clock:()=>BASE+20000,setTimer:()=>1,clearTimer:()=>{},
+    liveTransport:()=>{liveReads++;return()=>{};},resultTransport:()=>{resultReads++;return()=>{};}});
+  store.start();await store.refresh();
+  assert.equal(liveReads,0);assert.equal(resultReads,0);
+  assert.equal(store.getSnapshot().connection.status,'disconnected');
+  const records=[ask(1),stop(10)];
+  assert.equal(store.openFile(records.map(x=>JSON.stringify(x)).join('\n'),'test-records.jsonl'),true);
+  assert.equal(store.getSnapshot().office.mode,'replay');
+  assert.equal(store.getSnapshot().office.sessions.length,1);
+  store.setSpeed(64);store.seek(BASE+5000);
+  assert.equal(store.getSnapshot().office.speed,64);
+  assert.equal(store.getSnapshot().office.at,BASE+5000);
+  await store.refresh();store.stop();
+  assert.equal(liveReads,0);assert.equal(resultReads,0);
 });
 
 test('observer lines become release events with only allow-listed fields, unknown lines are counted not read',()=>{
@@ -78,7 +100,7 @@ test('the three analysis workshops follow research stop, review hand-off and the
   assert.equal(draft.nodes.structure.statusLabel,'초안 확인');assert.equal(draft.nodes.structure.basis,'review_handoff');
   const saved=at(events,400);
   assert.equal(saved.nodes.structure.task,'저장된 후보 v1: 불편 6건');assert.equal(saved.nodes.compare.task,'저장된 후보 v1: 기존 기능 8건 · 남은 불편 3건');assert.equal(saved.nodes.concept.task,'저장된 후보 v1: 콘셉트 2건');
-  assert.equal(saved.nodes.validate.statusLabel,'결과 저장 확인');assert.match(saved.nodes.retrieve.evidence.map(e=>e.label).join('|'),/출처 스캔 기록 1건 · 사이트 1곳 · 후기 10건/);
+  assert.equal(saved.nodes.validate.statusLabel,'결과 저장 확인');assert.match(saved.nodes.web.evidence.map(e=>e.label).join('|'),/출처 스캔 기록 1건 · 사이트 1곳 · 후기 10건/);
   assert.doesNotMatch(JSON.stringify(saved),/PRIVATE/);
 });
 
@@ -153,4 +175,47 @@ test('before the first hook writes live.js the file view waits for records inste
   assert.equal(state.view.header.state,'waiting');assert.match(state.view.header.text,/실제 기록 대기/);assert.match(state.view.nextAction,/Claude Code로 질문/);
   assert.equal(state.view.counts.events,0);assert.deepEqual(state.view.activeNodes,[]);
   store.stop();
+});
+
+
+test('a stale child handback or unverified notification never binds the newest request in file or server views',()=>{
+  for(const [kind,detail] of [['handback_delivered',{from_agent_id:'child-a'}],['notification',{}]]){
+    const events=[ask(1,{prompt_id:'a'}),line(2,{kind:'delegate',prompt_id:'a',detail:{launched_agent_id:'child-a'}}),
+      ask(3,{prompt_id:'b'}),stop(4,{prompt_id:'b'}),line(5,{kind,prompt_id:'late-a',detail}),
+      line(6,{kind:'shell',prompt_id:'late-a',detail:{business_binding:TRIPLE}})];
+    const clean=prepareEvents(events).events;
+    assert.deepEqual([...selectedNative(clean).prompts],['b']);
+    const file=at(events,10);assert.equal(file.promptId,'b');assert.equal(file.bindingState,'unmatched');
+    assert.equal(file.counts.concepts,null);assert.equal(file.mainActive,false);
+    const snapshot=officeSnapshot({events,now:BASE+10000});
+    snapshot.db={...db(),binding_status:'matched',latest_export:{available:true,created_at:iso(BASE+301000)}}; // Also reject a server that sends a stale matched DB.
+    const server=deriveReleaseView(snapshot,{status:'connected',lastReceivedAt:iso(BASE+10000)},BASE+10000);
+    assert.equal(server.bindingState,'unmatched');assert.equal(server.database,null);assert.equal(server.counts.concepts,null);
+  }
+});
+
+test('non-string release metadata becomes unknown in a record and is rejected in an external snapshot',()=>{
+  for(const release of [['product-v0.16.4'],{},42,true]){
+    const snapshot=officeSnapshot({events:[ask(1)],release,now:BASE+5000});
+    assert.equal(snapshot.source.release,null);
+    assert.doesNotThrow(()=>deriveReleaseView(snapshot,{status:'connected',lastReceivedAt:iso(BASE+5000)},BASE+5000));
+    snapshot.source.release=release;
+    assert.throws(()=>normalizeReleaseSnapshot(snapshot));
+  }
+});
+
+
+test('a missing prompt id never proves an old SubagentStart belongs to the new request',()=>{
+  const events=[ask(1,{prompt_id:'a'}),line(2,{kind:'delegate',prompt_id:'a',detail:{launched_agent_id:'child-a'}}),
+    ask(3,{prompt_id:null}),stop(4,{prompt_id:null}),
+    line(5,{kind:'subagent',phase:'start',actor:'product_evidence_reviewer',node:'product_evidence_reviewer',agent_id:'child-a',prompt_id:null}),
+    line(6,{kind:'handback_delivered',prompt_id:'late-a',detail:{from_agent_id:'child-a'}}),
+    line(7,{kind:'shell',prompt_id:'late-a',detail:{business_binding:TRIPLE}})];
+  const selection=selectedNative(prepareEvents(events).events);
+  assert.deepEqual([...selection.prompts],[null]);assert.deepEqual([...selection.children],[]);
+  const projected=at(events,10);assert.equal(projected.bindingState,'unmatched');assert.equal(projected.mainActive,false);
+  const snapshot=officeSnapshot({events,now:BASE+10000});snapshot.db={...db(),binding_status:'matched',latest_export:null};
+  const view=deriveReleaseView(snapshot,{status:'connected',lastReceivedAt:iso(BASE+10000)},BASE+10000);
+  assert.equal(view.bindingState,'unmatched');assert.equal(view.counts.concepts,null);
+  assert.ok(view.roles.every(role=>!role.active));assert.deepEqual(view.activeNodes,[]);
 });

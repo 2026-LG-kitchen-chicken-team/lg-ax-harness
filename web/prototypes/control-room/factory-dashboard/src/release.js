@@ -1,22 +1,14 @@
 /** Installed product observations (any product-vX.Y.Z). Product text and native logs are data, not code. */
-import {normalizeActivity,activityPresentation} from './releaseActivity.js';
-import {CONTINUATIONS,RELEASE_PATTERN} from './office-records.js';
-export const RELEASE_SKILLS = Object.freeze([
-  { id: 'evidence-retrieval', label: '자료 조회', node: 'retrieve' },
-  { id: 'web-evidence-collection', label: '웹 근거 수집', node: 'retrieve' },
-  { id: 'needs-structuring', label: '니즈 구조화', node: 'structure' },
-  { id: 'feature-comparison', label: '기능 대조', node: 'compare' },
-  { id: 'concept-writing', label: '콘셉트 작성', node: 'concept' },
-  { id: 'review-and-revise', label: '검토·수정', node: 'validate' },
-].map(Object.freeze));
-export const RELEASE_ROLES = Object.freeze([
-  { id: 'product_official_researcher', label: '공식 자료 조사자' },
-  { id: 'product_review_researcher', label: '후기 조사·분석자' },
-  { id: 'product_evidence_reviewer', label: '근거 검토자' },
-].map(Object.freeze));
+import {normalizeActivity,activityPresentation,nativeSkillEvents} from './releaseActivity.js';
+import {skillOperation} from './skill-operations.js';
+import {CONTINUATIONS,RELEASE_PATTERN,selectedNative} from './office-records.js';
+import {PRODUCT_SKILLS,PRODUCT_ROLES} from './skill-catalog.js';
+import {instructionSkills,instructionLookup,instructionOnly,skillWorkEvent,workSkills,currentAgentInstances} from './skill-semantics.js';
+export const RELEASE_SKILLS = PRODUCT_SKILLS;
+export const RELEASE_ROLES = PRODUCT_ROLES;
 const SKILLS = new Map(RELEASE_SKILLS.map(skill => [skill.id, skill]));
 const ROLES = new Map(RELEASE_ROLES.map(role => [role.id, role]));
-const NODES = { retrieve: '자료 업무', structure: '니즈 구조화', compare: '기능 대조', concept: '콘셉트 작성', validate: '검토·수정' };
+const NODES = Object.fromEntries(RELEASE_SKILLS.map(s=>[s.node,s.label]));
 const ACTORS = new Set(['main', ...ROLES.keys(), 'other_subagent', 'unknown_subagent']);
 const EVENT_NODES = new Set([...ACTORS, ...SKILLS.keys(), 'unknown_skill']);
 const KINDS = new Set(['lifecycle', 'tool', 'delegate', 'handback', 'handback_delivered', 'notification', 'request', 'subagent', 'skill_op', 'skill_load', 'shell', 'file', 'web', 'turn_cancelled', 'turn_end', 'session']);
@@ -112,7 +104,7 @@ function database(value) {
 
 export function normalizeReleaseSnapshot(input) {
   const raw = object(input, 'snapshot'), source = object(raw.source, 'source');
-  if (raw.schema_version !== 1 || source.kind !== 'lgax_release_observer' || source.release != null && !RELEASE_PATTERN.test(source.release)) invalid('source/version');
+  if (raw.schema_version !== 1 || source.kind !== 'lgax_release_observer' || source.release != null && (typeof source.release !== 'string' || !RELEASE_PATTERN.test(source.release))) invalid('source/version');
   const seen = new Map();
   const events = array(raw.events, 'events', 1500).flatMap(value => {
     const item = object(value, 'event'); if (item.v !== 1) invalid('event.v');
@@ -137,8 +129,8 @@ const mainEvent = event => event.actor === 'main' && !event.agent_id;
 const callKey = event => [event.src, event.session, event.prompt_id || '', event.agent_id || 'main', event.call || `unpaired:${event.id}`].join('|');
 function labelFor(event) {
   const skill = SKILLS.get(event.node), role = ROLES.get(event.node) || ROLES.get(event.actor);
-  if (event.kind === 'skill_load') return `${skill?.label || '미확인 Skill'} 지침 읽기 관측`;
-  if (event.kind === 'skill_op') return `${skill.label} · ${event.op || '작업 이름 미제공'} · 명령 경로 관측`;
+  if (instructionOnly(event)) return event.kind==='skill_load' ? `${skill?.label || '미확인 Skill'} 지침 파일 조회 관측` : '작업 설명서 조회 · 조회한 본문은 기록에 미제공';
+  if (event.kind === 'skill_op') return workSkills(event).map(id=>SKILLS.get(id).label).join(' · ')+' · '+(skillOperation(event.op)?.label||'작업 명령')+' · '+(event.detail.reason==='native_result_unconfirmed'?'종료 결과 확인 필요':event.detail.interrupted?'취소':{start:'호출 중',end:'완료',fail:'실패'}[event.phase]||'관측');
   if (event.kind === 'delegate') return `${role?.label || '기타 역할'} 위임 호출 관측${event.detail.background ? ' · 비동기 시작 응답' : ''}`;
   if (event.kind === 'subagent') return `${role?.label || '기타 하위 에이전트'} ${event.phase === 'start' ? '시작' : '종료'} 관측`;
   if (event.kind === 'turn_cancelled') return '네이티브 turn 취소 관측 · Tool 종료 결과는 별도 확인';
@@ -166,6 +158,7 @@ function spansFor(events) {
       }
       continue;
     }
+    if(event.kind==='subagent'&&['end','fail'].includes(event.phase)&&event.agent_id){for(const span of pending.values())if(span.status==='open'&&span.start.kind!=='subagent'&&span.start.agent_id===event.agent_id){span.status='unknown';span.endedAt=event.ts;span.closedBy=event.id;span.resultKnown=false;}}
     if (!['start', 'end', 'fail'].includes(event.phase) || event.kind === 'session') continue;
     const key = event.kind === 'subagent' ? `role|${event.session}|${event.agent_id || `unpaired:${event.id}`}` : callKey(event);
     if (event.phase === 'start') {
@@ -177,8 +170,8 @@ function spansFor(events) {
       const cancelledBeforeEnd = cancelledAt != null && (!span || Date.parse(span.start.ts) <= cancelledAt);
       if (span) {
         if (span.status === 'cancelled' || cancelledBeforeEnd) { span.lateEnd = event; continue; }
-        span.end = event; span.endedAt = event.ts; span.status = event.phase === 'fail' ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed'; span.resultKnown = true;
-      } else { const early = { id: event.id, key, start: event, end: event, status: cancelledBeforeEnd ? 'cancelled' : event.phase === 'fail' ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed', resultKnown: !cancelledBeforeEnd, endedAt: event.ts, startUnobserved: true }; spans.push(early); if (event.call) endedFirst.set(key, early); }
+        span.end = event; span.endedAt = event.ts; span.status = event.detail.reason==='native_result_unconfirmed'?'unknown':event.detail.interrupted?'cancelled':event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed'; span.resultKnown = !['unknown','cancelled'].includes(span.status);
+      } else { const early = { id: event.id, key, start: event, end: event, status: cancelledBeforeEnd||event.detail.interrupted ? 'cancelled' : event.detail.reason==='native_result_unconfirmed'?'unknown':event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed', resultKnown: !cancelledBeforeEnd&&!event.detail.interrupted&&event.detail.reason!=='native_result_unconfirmed', endedAt: event.ts, startUnobserved: true }; spans.push(early); if (event.call) endedFirst.set(key, early); }
     }
   }
   return spans;
@@ -212,7 +205,8 @@ function stageEvidence(current, spans, db, open) {
     else if (draft) out[node] = { status: 'completed', statusLabel: '초안 확인', task: '검토 단계가 이 단계의 결과가 담긴 6필드 후보 초안을 받았습니다. 이 단계만의 시작·끝 시각은 따로 기록되지 않습니다.', evidence, basis: 'review_handoff' };
     else if (starts.length) out[node] = { status: 'analysis', statusLabel: open ? '분석 구간' : '분석 구간 기록', task: '조사를 마친 뒤 결과를 저장하기 전 구간입니다. 니즈 구조화·기능 대조·콘셉트 작성은 별도 명령 없이 메인 기획자가 이어서 작성하므로 지금 어느 단계인지는 구분하지 않습니다.', evidence, basis: 'analysis_window' };
   }
-  out.retrieve = { evidence: [plan && { time: plan.observed_at, label: '하네스 조사 계획 기록', basis: 'db_workflow' }, scans.length && { time: scans.at(-1).observed_at, label: `출처 스캔 기록 ${scans.length}건 · 사이트 ${new Set(scans.map(scan => scan.host).filter(Boolean)).size}곳 · 후기 ${scans.reduce((sum, scan) => sum + (scan.reviews || 0), 0)}건`, basis: 'db_workflow' }, stopLine].filter(Boolean) };
+  out.web = { evidence: [plan && { time: plan.observed_at, label: '하네스 조사 계획 기록', basis: 'db_workflow' }, scans.length && { time: scans.at(-1).observed_at, label: `출처 스캔 기록 ${scans.length}건 · 사이트 ${new Set(scans.map(scan => scan.host).filter(Boolean)).size}곳 · 후기 ${scans.reduce((sum, scan) => sum + (scan.reviews || 0), 0)}건`, basis: 'db_workflow' }, stopLine].filter(Boolean) };
+  out.retrieve={evidence:[bundle&&{time:bundle.event.ts,label:'저장 자료 조회 명령 확인',basis:'command_based_mapping'}].filter(Boolean)};
   out.validate = { evidence: [draftLine, savedLine, finish && { time: finish.observed_at, label: '하네스 업무 종료(finish) 기록', basis: 'db_workflow' }, db?.latest_export?.created_at && { time: db.latest_export.created_at, label: '세션 기록 내보내기 파일 확인', basis: 'db_export' }].filter(Boolean), candidate };
   return out;
 }
@@ -224,7 +218,14 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   let connectionStatus = connection.status || 'disconnected';
   if (['connected', 'error', 'stale'].includes(connectionStatus) && data && (received === null || received >= (connection.staleAfterMs ?? DEFAULTS.staleMs) || observed === null || observed >= (connection.staleAfterMs ?? DEFAULTS.staleMs) || observed < -5000)) connectionStatus = 'stale';
   const connected = connectionStatus === 'connected';
-  const engineEvents = (data?.events || []).filter(event => event.src === data.source.engine).sort(byTime);
+  const originalEvents=(data?.events||[]).map(event=>{
+    const receipt=event.session===data?.activity?.session_id&&event.prompt_id===data?.activity?.prompt_id?data.activity.calls?.find(c=>c.observer_call_id&&c.observer_call_id===event.call):null;
+    // Older observers match a Skill path anywhere in shell text, including an
+    // echo/read example. A verified native command projection takes precedence.
+    return event.kind==='skill_op'&&receipt&&!['skill','instruction'].includes(receipt.category)?{...event,kind:'shell',node:event.actor,op:null,ops:[],basis:'observed'}:event;
+  });
+  const projected=data?.source.engine==='codex'?nativeSkillEvents(data.activity,originalEvents):[];
+  const engineEvents = [...originalEvents,...projected].filter(event => event.src === data.source.engine).sort(byTime);
   const main = engineEvents.filter(event => mainEvent(event) && event.session);
   const anchors = main.filter(event => event.kind === 'request' || event.kind === 'session' && event.phase === 'start');
   const anchor = anchors.at(-1), sessionId = anchor?.session || main.at(-1)?.session || null;
@@ -233,65 +234,71 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   const sessionMain = sessionEvents.slice(Math.max(0, sessionStart)).filter(mainEvent);
   const latestRequest = sessionMain.filter(event => event.kind === 'request').at(-1);
   const promptId = latestRequest ? latestRequest.prompt_id : sessionStart >= 0 ? null : anchor?.prompt_id || null;
-  // A background role's result or a task notice arrives as a new prompt id of the same request (see office-records.js).
-  const promptIds = new Set([promptId]);
-  if (latestRequest) for (const event of sessionMain.slice(sessionMain.indexOf(latestRequest))) if (CONTINUATIONS.has(event.kind)) promptIds.add(event.prompt_id);
-  const floor = latestRequest ? sessionEvents.indexOf(latestRequest) : Math.max(0, sessionStart);
+  // The file and server views share the same verified request/child continuation boundary.
+  const native = selectedNative(sessionEvents);
+  const promptIds = latestRequest ? native.prompts : new Set([promptId]);
+  const floor = latestRequest ? native.floor : Math.max(0, sessionStart);
   const eligibleMain = sessionEvents.slice(floor).filter(event => mainEvent(event) && promptIds.has(event.prompt_id));
-  const linkedChildren = new Set(eligibleMain.filter(event => event.kind === 'delegate').map(event => event.detail.launched_agent_id).filter(Boolean));
+  const linkedChildren = native.children || new Set();
   const currentEvents = anchor ? sessionEvents.slice(floor).filter(event => mainEvent(event) ? promptIds.has(event.prompt_id) : Boolean(event.agent_id) && (linkedChildren.has(event.agent_id) || Boolean(promptId) && promptIds.has(event.prompt_id))) : [];
   const turnMarker = anchor ? eligibleMain.filter(event => ['request', 'turn_end', 'turn_cancelled'].includes(event.kind) || CONTINUATIONS.has(event.kind)).at(-1) : null;
   const events = [...sessionEvents].sort(byTime);
   const spans = spansFor(events), lastEventAt = events.at(-1)?.ts || null;
-  // Keep the full session in the history, but workshop/role status belongs to
-  // the current user request (including its explicit role-result continuation).
-  const turnEvents = [...currentEvents].sort(byTime), turnSpans = spansFor(turnEvents);
   const currentEventAt = currentEvents.at(-1)?.ts || null;
   const eventAge = currentEventAt ? Math.max(0, nowMs - Date.parse(currentEventAt)) : null;
   const observationFresh = connected && data?.source.observer_status === 'observing' && eventAge !== null && eventAge < (connection.sourceStaleAfterMs ?? DEFAULTS.sourceStaleMs) && Date.parse(currentEventAt) <= nowMs + 5000;
   const latestMainCancelled = turnMarker?.kind === 'turn_cancelled';
   const currentIds = new Set(currentEvents.map(event => event.id));
-  const activeSpans = observationFresh && !latestMainCancelled ? turnSpans.filter(span => span.status === 'open' && currentIds.has(span.start.id) && span.start.kind !== 'skill_load') : [];
-  const activeSkills = [...new Set(activeSpans.filter(span => span.start.kind === 'skill_op').map(span => span.start.node))];
+  const activeSpans = observationFresh && !latestMainCancelled ? spans.filter(span => span.status === 'open' && currentIds.has(span.start.id) && span.start.kind !== 'skill_load') : [];
+  const activeSkills = [...new Set(activeSpans.filter(span => skillWorkEvent(span.start)).flatMap(span=>workSkills(span.start)))];
   const activeNodes = [...new Set(activeSkills.map(skill => SKILLS.get(skill).node))];
-  const activity=activityPresentation(data?.activity,sessionId,promptId,connected,nowMs);
+  const nativeTerminal=['turn_cancelled','turn_end'].includes(turnMarker?.kind);
+  const activityInput=nativeTerminal&&data?.activity?{...data.activity,state:turnMarker.kind==='turn_cancelled'?'cancelled':'finished',reported_stage:null,last_event_at:turnMarker.ts}:data?.activity;
+  const activity=activityPresentation(activityInput,sessionId,promptId,connected,nowMs);
   // UserPromptSubmit (or a delivered role result) until Stop: the main planner is answering, with or without a tool.
   const turnOpen = Boolean(observationFresh && !latestMainCancelled && turnMarker && turnMarker.kind !== 'turn_end');
-  if(activity?.working&&!activeNodes.length)activeNodes.push(activity.reported_stage||'overview');
+  if(activity?.working&&!activeNodes.length)activeNodes.push('overview');
   let boundDb = null, bindingState = data?.db?.available ? 'unmatched' : 'unavailable';
   if (data?.db?.binding_status === 'matched' && data.db.binding && currentEvents.some(event => mainEvent(event) && sameBinding(event.detail.business_binding, data.db.binding))) { bindingState = 'matched'; boundDb = data.db; }
   const candidate = boundDb?.candidates?.findLast(item => item.result_version === boundDb.turn?.result_version) || null;
-  const counts = { events: events.length, skills: new Set(events.filter(event => ['skill_op', 'skill_load'].includes(event.kind) && SKILLS.has(event.node)).map(event => event.node)).size, toolCalls: spans.filter(span => span.start.kind !== 'subagent').length, openCalls: spans.filter(span => span.status === 'open').length, results: boundDb?.results ?? null, evidenceDelivered: boundDb?.evidence_delivered ?? null, evidenceReviews: boundDb?.evidence_reviews ?? null, pains: candidate?.counts.pains ?? null, existingFeatures: candidate?.counts.existing_features ?? null, remainingPains: candidate?.counts.remaining_pains ?? null, concepts: candidate?.counts.concepts ?? null };
+  const counts = { events: events.length, skills: new Set(currentEvents.flatMap(workSkills)).size, instructions: new Set(currentEvents.flatMap(instructionSkills)).size+spans.filter(s=>currentIds.has(s.start.id)&&instructionLookup(s.start)).length, toolCalls: spans.filter(span => span.start.kind !== 'subagent').length, openCalls: spans.filter(span => currentIds.has(span.start.id)&&span.status === 'open').length, results: boundDb?.results ?? null, evidenceDelivered: boundDb?.evidence_delivered ?? null, evidenceReviews: boundDb?.evidence_reviews ?? null, pains: candidate?.counts.pains ?? null, existingFeatures: candidate?.counts.existing_features ?? null, remainingPains: candidate?.counts.remaining_pains ?? null, concepts: candidate?.counts.concepts ?? null };
   const usedSkills = RELEASE_SKILLS.map(skill => {
-    const related = turnEvents.filter(event => event.node === skill.id && ['skill_load', 'skill_op'].includes(event.kind));
-    const operations = related.filter(event => event.kind === 'skill_op'), relevantSpans = turnSpans.filter(span => span.start.node === skill.id && span.start.kind === 'skill_op');
-    const latest = relevantSpans.at(-1), active = activeSkills.includes(skill.id), loaded = related.some(event => event.kind === 'skill_load')||Boolean(activity?.skill_reads.some(r=>r.id===skill.id));
-    const status = active ? 'running' : latest?.status === 'failed' ? 'failed' : latest?.status === 'rejected' ? 'review' : latest?.status === 'cancelled' ? 'cancelled' : latest?.status === 'completed' ? 'completed' : operations.length ? 'unknown' : loaded ? 'loaded' : 'idle';
-    const statusLabel = { running: 'Skill 명령 진행', failed: 'Skill 명령 실패', review: '저장 확인 필요', cancelled: '취소 · 종료 결과 미확인', completed: 'Skill 명령 완료', unknown: '명령 종료 미확인', loaded: '지침 조회 확인', idle: '실행 기록 없음' }[status];
+    const related = currentEvents.filter(event => instructionSkills(event).includes(skill.id)||workSkills(event).includes(skill.id));
+    const operations = related.filter(event => workSkills(event).includes(skill.id)), relevantSpans = spans.filter(span => currentIds.has(span.start.id)&&workSkills(span.start).includes(skill.id));
+    const instructionSpans=spans.filter(span=>currentIds.has(span.start.id)&&instructionSkills(span.start).includes(skill.id)),lastInstruction=instructionSpans.at(-1);
+    const latest = relevantSpans.at(-1), active = activeSkills.includes(skill.id), loaded = instructionSpans.some(span=>span.status==='completed')||related.some(event=>instructionSkills(event).includes(skill.id)&&event.phase==='point')||Boolean(activity?.skill_reads.some(r=>r.id===skill.id));
+    const status = active ? 'running' : latest?.status === 'failed' ? 'failed' : latest?.status === 'rejected' ? 'review' : latest?.status === 'cancelled' ? 'cancelled' : latest?.status === 'completed' ? 'completed' : operations.length ? 'unknown' : lastInstruction?.status==='open'?'reading':lastInstruction?.status==='failed'?'instruction_error':loaded ? 'loaded' : 'idle';
+    const statusLabel = { running: 'Skill 명령 진행', failed: 'Skill 명령 실패', review: '저장 확인 필요', cancelled: '취소 · 종료 결과 미확인', completed: 'Skill 명령 완료', unknown: '명령 종료 미확인', loaded: '지침 조회 확인', reading:'지침 확인 중', instruction_error:'지침 조회 실패', idle: '실행 기록 없음' }[status];
     const read=activity?.skill_reads.find(r=>r.id===skill.id);
     const displayEvents=read&&!related.some(e=>e.kind==='skill_load')?[...related,{id:'read-'+skill.id,ts:read.time,time:read.time,kind:'skill_load',node:skill.id,actor:'main',phase:'end',basis:'command_result',message:skill.label+' 지침 조회 명령 완료'}]:related;
     return { ...skill, used: related.length > 0||loaded, instructionLoaded: loaded, operationObserved: operations.length > 0, status, statusLabel, active, events: displayEvents, lastEventAt: displayEvents.at(-1)?.ts || null, basis: operations.length ? 'command_based_mapping' : loaded ? 'instruction_loaded' : null, task: related.length ? labelFor(related.at(-1)) : loaded?'지침 조회 명령 확인 · Skill 업무 실행 대기':'실제 Skill 실행 기록이 아직 없습니다.' };
   });
-  const stages = stageEvidence(currentEvents, turnSpans, bindingState === 'matched' ? boundDb : null, turnOpen);
+  const stages = stageEvidence(currentEvents, spans, bindingState === 'matched' ? boundDb : null, turnOpen);
   const nodes = Object.fromEntries(Object.entries(NODES).map(([node, label]) => {
-    const skills = usedSkills.filter(skill => skill.node === node), related = [...turnEvents.filter(event => SKILLS.get(event.node)?.node === node),...skills.flatMap(skill=>skill.events.filter(event=>event.basis==='command_result'))].sort(byTime);
-    const active = activeNodes.includes(node), latest = related.at(-1), lastSkill = latest ? skills.find(skill => skill.id === latest.node) : skills.find(skill=>skill.instructionLoaded);
+    const skills = usedSkills.filter(skill => skill.node === node), related = [...currentEvents.filter(event => workSkills(event).some(id=>SKILLS.get(id)?.node===node)||instructionSkills(event).some(id=>SKILLS.get(id)?.node===node)),...skills.flatMap(skill=>skill.events.filter(event=>event.basis==='command_result'))].sort(byTime);
+    const active = activeNodes.includes(node), latest = related.at(-1), lastSkill = latest ? skills.find(skill => workSkills(latest).includes(skill.id)||instructionSkills(latest).includes(skill.id)) : skills.find(skill=>skill.instructionLoaded);
     const status = active ? 'running' : lastSkill?.status || 'idle';
     const flow = stages[node], quiet = !active && ['idle', 'loaded'].includes(status), saved = node === 'validate' && flow?.candidate && !active && !['running', 'failed'].includes(status);
-    const base = { id: node, label, status, statusLabel: active ? (activeSkills.some(id=>SKILLS.get(id).node===node)?'Skill 명령 진행':'CLI 진행 보고') : lastSkill?.statusLabel || '실행 기록 없음', task: active&&activity?.reported_stage===node?activity.text:latest ? labelFor(latest) : lastSkill?.instructionLoaded?'Skill 지침 조회 확인 · 업무 실행 대기':'이 공간의 Skill 실행 기록이 아직 없습니다.', skills, actor: latest?.actor || null, actors: [...new Set(related.map(event => event.actor))], events: related, activity: latest ? { eventId: latest.id, time: latest.ts, message: labelFor(latest), basis: latest.basis } : null, active, grouped: node === 'retrieve', evidence: flow?.evidence || [], basis: null };
+    const base = { id: node, label, status, statusLabel: active ? (activeSkills.some(id=>SKILLS.get(id).node===node)?'Skill 명령 진행':'CLI 진행 보고') : lastSkill?.statusLabel || '실행 기록 없음', task: active&&activity?.reported_stage===node?activity.text:latest ? labelFor(latest) : lastSkill?.instructionLoaded?'Skill 지침 조회 확인 · 업무 실행 대기':'이 공간의 Skill 실행 기록이 아직 없습니다.', skills, actor: latest?.actor || null, actors: [...new Set(related.map(event => event.actor))], events: related, activity: latest ? { eventId: latest.id, time: latest.ts, message: labelFor(latest), basis: latest.basis } : null, active, grouped: false, evidence: flow?.evidence || [], basis: null };
     if (quiet && flow?.status) Object.assign(base, { status: flow.status, statusLabel: flow.statusLabel, task: flow.task, basis: flow.basis });
     else if (quiet && node === 'retrieve' && flow.evidence.length) Object.assign(base, { statusLabel: '조사 기록 확인', task: flow.evidence.at(-1).label, basis: 'db_workflow' });
     else if (saved) Object.assign(base, { status: 'completed', statusLabel: flow.candidate.status === 'held' ? '보류 결과 저장' : '결과 저장 확인', task: `후보 v${flow.candidate.result_version ?? '?'} 저장 · 계약 검사 ${flow.candidate.contract_valid === true ? '통과' : flow.candidate.contract_valid === false ? '미통과' : '미기록'} · 의미 검토 ${flow.candidate.semantic_status || '미기록'}`, basis: 'db_saved_result' });
     return [node, base];
   }));
-  const roles = RELEASE_ROLES.flatMap(role => {
-    const related = turnEvents.filter(event => event.node === role.id || event.actor === role.id);
-    if (!related.length) return [];
-    const nativeStarts = related.filter(event => event.kind === 'subagent' && event.phase === 'start' && event.agent_id);
-    const roleSpans = turnSpans.filter(span => span.start.kind === 'subagent' && span.start.node === role.id && span.start.agent_id);
-    const active = roleSpans.some(span => activeSpans.includes(span));
-    const last = related.at(-1), returned = roleSpans.at(-1)?.status === 'completed';
-    return [{ ...role, used: true, active, status: active ? 'running' : returned ? 'completed' : nativeStarts.length ? 'unknown' : 'requested', statusLabel: active ? '네이티브 역할 시작 관측 · 종료 미관측' : returned ? '네이티브 역할 종료 관측' : nativeStarts.length ? '네이티브 역할 시작 관측 · 현재 종료 결과 미확인' : '위임 요청 관측 · 실행/종료 미확인', agentIds: [...new Set(related.map(event => event.agent_id || event.detail.launched_agent_id).filter(Boolean))], events: related, task: labelFor(last), lastEventAt: last.ts }];
+  const currentSpans=spans.filter(span=>currentIds.has(span.start.id));
+  const agents=currentAgentInstances(currentEvents,currentSpans,{fresh:observationFresh,cancelled:latestMainCancelled});
+  const currentAgentIds=new Set(agents.map(a=>a.id)),mainPrompts=new Set(sessionMain.map(e=>e.prompt_id).filter(Boolean));
+  // v0.18 Codex child starts have no parent prompt; the spawn result ID is absent.
+  // Keep these as session history. Neither timestamp proximity nor a child turn proves parentage.
+  const unboundAgents=currentAgentInstances(events,spans).filter(a=>!currentAgentIds.has(a.id)&&a.nativeStart&&a.events.some(e=>e.kind==='subagent'&&e.phase==='start'&&(!e.prompt_id||!mainPrompts.has(e.prompt_id)))).map(a=>({...a,binding:'unverified',active:false,activeSkills:[],statusLabel:a.status==='completed'?'도우미 종료 기록':a.status==='failed'?'도우미 오류 기록':'도우미 시작 기록 · 현재 상태 미확인'}));
+  const lookupSpans=currentSpans.filter(s=>instructionLookup(s.start)),lookup=lookupSpans.at(-1);
+  const instructionQuery=lookup?{status:lookup.status==='open'?'reading':lookup.status==='failed'?'failed':lookup.status==='completed'?'completed':'unknown',label:lookup.status==='open'?'작업 설명서를 가져오고 있어요':lookup.status==='failed'?'작업 설명서를 가져오지 못했어요':lookup.status==='completed'?'작업 설명서 조회가 끝났어요':'작업 설명서 조회 결과 확인 중',detail:'이 명령은 여러 설명서 중 필요한 것을 고를 수 있어요. 어떤 본문이 전달됐는지는 현재 기록에 없어요.',eventId:lookup.start.id}:null;
+  const roleIds=[...new Set([...agents.map(a=>a.role),...currentEvents.filter(e=>e.kind==='delegate'&&ROLES.has(e.node)).map(e=>e.node)])];
+  const roles=roleIds.map(roleId=>{
+    const definition=ROLES.get(roleId)||{id:roleId,label:'역할 미확인 도우미'};
+    const related=currentEvents.filter(e=>e.node===roleId||e.actor===roleId),instances=agents.filter(a=>a.role===roleId),running=instances.filter(a=>a.active);
+    const last=related.at(-1),status=running.length?'running':instances.at(-1)?.status||'requested';
+    return {...definition,used:true,active:running.length>0,status,statusLabel:running.length?'도우미 작업 중':instances.at(-1)?.statusLabel||'위임 요청 · 시작 미확인',agentIds:instances.map(a=>a.id),agents:instances,events:related,task:last?labelFor(last):'실제 위임 기록을 확인하고 있어요.',lastEventAt:last?.ts||null};
   });
   const product = boundDb?.workflow_events?.filter(event => event.kind === 'research_plan' && event.product).at(-1)?.product || null;
   const latestActive = activeSpans.at(-1)?.start;
@@ -307,7 +314,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   else if (latestActive) header = { state: 'active', text: labelFor(latestActive), detail: latestActive.kind === 'skill_op' ? '명령 경로에 따른 Tool 관찰입니다. Skill의 의미 판단이나 성공을 자동 인증하지 않습니다.' : '네이티브 사건을 관측한 범위이며 모델 내부 상태를 뜻하지 않습니다.' };
   else if (turnMarker?.kind === 'turn_end') header = { state: 'recorded', text: '메인 최종 응답 종료 관측', detail: '데이터 저장·원문 의미 승인·전체 프로세스 종료와 구분합니다.' };
   else header = { state: 'recorded', text: '릴리즈 연결됨 · 마지막 관측 기록', detail: spans.some(span => span.status === 'open') ? '열린 호출의 종료 결과를 아직 관측하지 못했습니다. 현재 실행 여부를 단정하지 않습니다.' : '기록된 사건을 표시합니다. 현재 실행 여부는 추가 관측이 필요합니다.' };
-  if(activity&&connected){header={state:activity.working?'active':activity.state==='cancelled'?'cancelled':'recorded',text:activity.text,detail:activity.reported?'CLI의 공개 진행 보고입니다. 실제 Skill 명령 호출 기록과 구분합니다.':'선택한 네이티브 요청의 시작·완료와 명령 결과를 표시합니다.'};}
+  if(activity&&connected){header={state:activity.working?'active':activity.state==='cancelled'?'cancelled':'recorded',text:activity.text,detail:activity.current?'네이티브 Tool 호출의 시작과 종료 기록입니다. Skill 명령은 실제 실행 경로와 작업 이름을 대조합니다.':activity.reported?'CLI의 공개 진행 보고입니다. 실제 Skill 명령 호출 기록과 구분합니다.':'선택한 네이티브 요청의 시작·완료와 명령 결과를 표시합니다.'};}
   nextAction = connectionStatus === 'disconnected' || connectionStatus === 'error' ? '로컬 관찰 읽기 서버 주소와 Bearer 키로 연결하세요.' : connectionStatus === 'stale' ? '읽기 연결을 확인하고 상태를 다시 읽으세요.' : !events.length ? '관찰기가 설치 제품의 실제 네이티브 세션을 기록할 때까지 기다리세요.' : 'Skill·역할의 실제 기록과 현재 버전의 저장 결과를 확인하세요.';
   if(activity&&connected)nextAction=activity.next;
   // The file view reads observer files beside the page; it has no release server to connect to.
@@ -319,7 +326,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
     if (['disconnected', 'error', 'stale'].includes(connectionStatus)) nextAction = '이 화면이 하네스의 runtime-data/agent-office 폴더에서 열렸는지, 옆에 live.js가 있는지 확인하세요. 자동으로 다시 읽습니다.';
     else if (!events.length) nextAction = replay ? '다른 세션이나 기록 파일을 고르세요.' : '이 하네스 폴더에서 Claude Code로 질문하거나, Codex는 관찰 창을 켠 뒤 질문하세요. 기록이 생기면 바로 표시합니다.';
   }
-  return freeze({ readonly: true, sourceMode: 'release', origin, release: data?.source.release || null, activity, mainActive:Boolean(activity?.working)||turnOpen, header, nextAction, connectionStatus, nodes, activeNodes, activeSkills, skills: usedSkills, roles, actors: [...new Set(events.map(event => event.actor))].filter(actor => actor === 'main' || ROLES.has(actor)), recentEvents:activity?activity.actions.filter(a=>a.code!=='local_command').slice(-3).reverse():recentEvents, events, spans, sessionId, promptId, promptIds: [...promptIds], product, bindingState, binding: boundDb?.binding || null, database: boundDb, counts, lastEventAt, sourceAgeSeconds: data?.source.source_updated_at ? Math.max(0, (nowMs - Date.parse(data.source.source_updated_at)) / 1000) : null, observationFresh: Boolean(observationFresh), notices: data?.notices || [] });
+  return freeze({ readonly: true, sourceMode: 'release', origin, release: data?.source.release || null, activity, mainActive:Boolean(connected&&observationFresh&&!latestMainCancelled&&(activity?activity.working:turnOpen)), header, nextAction, connectionStatus, nodes, activeNodes, activeSkills, skills: usedSkills, roles, agents, unboundAgents, instructionQuery, currentEvents, actors: [...new Set(currentEvents.map(event => event.actor))].filter(actor => actor === 'main' || ROLES.has(actor)), recentEvents:activity?activity.actions.slice(-3).reverse():recentEvents, events, spans, sessionId, promptId, promptIds: [...promptIds], product, bindingState, binding: boundDb?.binding || null, database: boundDb, counts, lastEventAt, sourceAgeSeconds: data?.source.source_updated_at ? Math.max(0, (nowMs - Date.parse(data.source.source_updated_at)) / 1000) : null, observationFresh: Boolean(observationFresh), notices: data?.notices || [] });
 }
 
 function endpointFor(value) {

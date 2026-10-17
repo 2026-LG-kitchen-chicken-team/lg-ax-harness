@@ -268,9 +268,10 @@ class InstalledVersionTests(Fixture):
 
     def test_a_delivered_role_result_continues_the_same_request(self):
         ask = event("ask", prompt="prompt-a")
-        handback = event("handback", kind="handback_delivered", prompt="prompt-b")
+        delegate = event("delegate", kind="delegate", prompt="prompt-a", detail={"launched_agent_id": "current-child"})
+        handback = event("handback", kind="handback_delivered", prompt="prompt-b", detail={"from_agent_id": "current-child"})
         bound = event("save", kind="shell", prompt="prompt-b", detail={"business_binding": BUSINESS})
-        self.lines([ask, handback, bound])
+        self.lines([ask, delegate, handback, bound])
         self.db(product_snapshot())
         result = self.reader.snapshot()
         self.assertEqual("matched", result["db"]["binding_status"])
@@ -278,8 +279,38 @@ class InstalledVersionTests(Fixture):
         self.assertEqual(("native-session", {"prompt-a", "prompt-b"}),
                          module.selected_native(result["events"])[:2])
         other = event("other", prompt="prompt-c", ts="2026-10-16T04:00:01Z")
-        self.lines([ask, handback, bound, {**other, "kind": "request"}])
+        self.lines([ask, delegate, handback, bound, {**other, "kind": "request"}])
         self.assertEqual("unmatched", self.reader.snapshot()["db"]["binding_status"])
+
+    def test_late_old_child_and_unverified_notification_cannot_bind_new_request(self):
+        for continuation, detail in [("handback_delivered", {"from_agent_id": "child-a"}), ("notification", {})]:
+            with self.subTest(continuation=continuation):
+                self.lines([
+                    event("request-a", prompt="a"),
+                    event("delegate-a", kind="delegate", prompt="a", detail={"launched_agent_id": "child-a"}),
+                    event("request-b", prompt="b", ts="2026-10-16T04:00:01Z"),
+                    event("late-a", kind=continuation, prompt="late-a", ts="2026-10-16T04:00:02Z", detail=detail),
+                    event("save-a", kind="shell", prompt="late-a", ts="2026-10-16T04:00:03Z", detail={"business_binding": BUSINESS}),
+                ])
+                self.db(product_snapshot())
+                snapshot = self.reader.snapshot()
+                self.assertEqual(("native-session", {"b"}), module.selected_native(snapshot["events"])[:2])
+                self.assertEqual("unmatched", snapshot["db"]["binding_status"])
+                self.assertNotIn("candidates", snapshot["db"])
+
+    def test_null_prompt_is_not_proof_of_old_subagent_parentage(self):
+        child = {**event("late-child", kind="subagent", phase="start", prompt=None, ts="2026-10-16T04:00:03Z"),
+                 "agent_id": "child-a", "actor": "product_evidence_reviewer", "node": "product_evidence_reviewer"}
+        self.lines([event("request-a", prompt="a"),
+                    event("delegate-a", kind="delegate", prompt="a", detail={"launched_agent_id": "child-a"}),
+                    event("request-b", prompt=None, ts="2026-10-16T04:00:01Z"), child,
+                    event("late-a", kind="handback_delivered", prompt="late-a", ts="2026-10-16T04:00:04Z", detail={"from_agent_id": "child-a"}),
+                    event("save-a", kind="shell", prompt="late-a", ts="2026-10-16T04:00:05Z", detail={"business_binding": BUSINESS})])
+        self.db(product_snapshot())
+        snapshot = self.reader.snapshot()
+        self.assertEqual(("native-session", {None}), module.selected_native(snapshot["events"])[:2])
+        self.assertEqual("unmatched", snapshot["db"]["binding_status"])
+        self.assertNotIn("candidates", snapshot["db"])
 
 
 class HTTPTests(Fixture):
@@ -381,11 +412,39 @@ class HTTPTests(Fixture):
         self.assertEqual(405, self.request("/api/harness/snapshot", token=TOKEN, method="POST")[0])
 
     def test_only_known_index_view_query_is_allowed(self):
-        self.assertEqual(200, self.request("/?view=harness")[0])
-        self.assertEqual(200, self.request("/?view=team")[0])
+        for view in ("harness", "team", "motion", "records", "demo"):
+            self.assertEqual(200, self.request("/?view=" + view)[0])
         self.assertEqual(400, self.request("/?view=unknown")[0])
         self.assertEqual(400, self.request("/?view=harness&path=private")[0])
         self.assertEqual(400, self.request("/api/harness/snapshot?view=harness", token=TOKEN)[0])
+
+    def test_factory_artwork_and_motion_are_served_from_the_explicit_ui_dist(self):
+        for folder, name, mime in (("characters", "researcher.png", "image/png"),
+                                   ("environment", "wall.png", "image/png"),
+                                   ("workshops", "rooms.png", "image/png"),
+                                   ("media", "motion.mp4", "video/mp4")):
+            with self.subTest(folder=folder):
+                path = self.dist / folder / name
+                path.parent.mkdir(exist_ok=True)
+                path.write_bytes(b"synthetic artwork")
+                status, body, headers = self.request("/" + folder + "/" + name)
+                self.assertEqual((200, b"synthetic artwork"), (status, body))
+                self.assertEqual(mime, headers["Content-Type"])
+                self.assertIsNone(headers.get("Access-Control-Allow-Origin"))
+                self.assertEqual("same-origin", headers["Cross-Origin-Resource-Policy"])
+                self.assertEqual(403, self.request("/" + folder + "/" + name, origin="https://approved.example")[0])
+
+    def test_artwork_paths_do_not_expose_other_types_nested_files_or_traversal(self):
+        for relative in ("characters/private.json", "environment/code.js", "workshops/debug.map",
+                         "media/private.txt", "workshops/nested/room.png"):
+            path = self.dist / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"PRIVATE_CONTENT")
+            status, body, _ = self.request("/" + relative)
+            self.assertEqual(404, status)
+            self.assertNotIn(b"PRIVATE_CONTENT", body)
+        for path in ("/workshops/%2e%2e/product-install.json", "/characters/../index.html"):
+            self.assertIn(self.request(path)[0], (400, 404))
 
     def test_bootstrap_json_cannot_close_script_tag(self):
         prior = self.server._token

@@ -176,7 +176,7 @@ def selected_native(events):
 
     Returns (session, prompts, floor). Claude Code delivers a background role's result (and task notices) as a new
     prompt id; those prompts continue the selected request instead of starting another one."""
-    main = [(index, e) for index, e in enumerate(events) if e["actor"] == "main"]
+    main = [(index, e) for index, e in enumerate(events) if e["actor"] == "main" and not e.get("agent_id")]
     anchors = [(index, e) for index, e in main if e["kind"] == "request" or (e["kind"] == "session" and e["phase"] == "start")]
     if not main or not anchors:
         return None, set(), len(events)
@@ -187,7 +187,21 @@ def selected_native(events):
     requests = [(i, e) for i, e in main if i >= floor and e["session"] == session and e["kind"] == "request"]
     if requests:
         index, request = requests[-1]
-        prompts = {request["prompt_id"]} | {e["prompt_id"] for i, e in main if i > index and e["session"] == session and e["kind"] in CONTINUATIONS}
+        prompts, children = {request["prompt_id"]}, set()
+        # A late old child must not introduce a continuation into this request. Unknown parentage stays unbound.
+        for current in events[index:]:
+            if current["session"] != session:
+                continue
+            detail = current.get("detail") or {}
+            is_main = current["actor"] == "main" and not current.get("agent_id")
+            if is_main and current["kind"] in CONTINUATIONS and current["prompt_id"] and detail.get("from_agent_id") in children:
+                prompts.add(current["prompt_id"])
+            if (not current["prompt_id"] or current["prompt_id"] not in prompts) and current.get("agent_id") not in children:
+                continue
+            if current["kind"] == "delegate" and detail.get("launched_agent_id"):
+                children.add(detail["launched_agent_id"])
+            if current["kind"] == "subagent" and current["phase"] == "start" and current.get("agent_id"):
+                children.add(current["agent_id"])
         return session, prompts, index
     # A resumed session with no new request is not the old turn's completion.
     prompt = None if starts else anchor["prompt_id"]

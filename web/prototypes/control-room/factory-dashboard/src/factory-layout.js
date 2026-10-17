@@ -1,38 +1,45 @@
 export const ZONE_IDS=['overview','retrieve','structure','compare','concept','validate'];
+export const ALL_ZONE_IDS=[...ZONE_IDS,'web'];
 export const ZONE_FLOOR={halfX:2.8,halfZ:2.4,y:.49};
 export const PLANNER_FLOOR={halfX:1.5,halfZ:1.35,y:.49};
 // A Skill keeps its own address. Activating it changes size, never its slot.
-const BASE={overview:[0,1.8],retrieve:[-7.8,-.2],structure:[-4.4,-7.7],compare:[5.6,-7],concept:[7.4,3],validate:[-2.5,8]};
+export const ROOM_ORDER=['retrieve','structure','compare','concept','validate','web'];
 const horizontal=Math.hypot(13,18),length=Math.hypot(13,17,18);
 export const VIEW={rx:18/horizontal,rz:-13/horizontal,dx:17/length*13/horizontal,dz:17/length*18/horizontal,uy:horizontal/length};
 export function worldToField(x,y,z){return {u:VIEW.rx*x+VIEW.rz*z,v:VIEW.dx*x+VIEW.dz*z-VIEW.uy*y};}
 export function fieldToWorld(u,v){const d=VIEW.rx*VIEW.dz-VIEW.rz*VIEW.dx;return {x:(u*VIEW.dz-VIEW.rz*v)/d,z:(VIEW.rx*v-VIEW.dx*u)/d};}
 // Share the available field between concurrently running Skills. The planner
 // connects their work and is not counted as an extra Skill.
-const ROOM_SCALES={wide:[1.05,2,1.48,1.36,1.25,1.16],compact:[.96,1.25,1.18,1.12,1.08,1.04]};
-export function factoryLayout({width=1280,height=800,panelWidth=0,activeIds=[]}={}){
- const available=Math.max(240,width-Math.max(0,panelWidth)),active=ZONE_IDS.filter(id=>activeIds.includes(id)),compact=available<650,short=compact&&height<540&&available/height>1.22;
+const ROOM_SCALES={wide:[1.05,2,1.48,1.36,1.25,1.16,1.10],compact:[.96,1.25,1.18,1.12,1.08,1.04,1.00]};
+export function factoryLayout({width=1280,height=800,panelWidth=0,activeIds=[],roomIds=ZONE_IDS.slice(1)}={}){
+ const available=Math.max(240,width-Math.max(0,panelWidth)),zoneIds=['overview',...ALL_ZONE_IDS.filter(id=>id!=='overview'&&roomIds.includes(id))],active=zoneIds.filter(id=>activeIds.includes(id)),compact=available<650,short=compact&&height<540&&available/height>1.22;
  const activeSkillCount=active.filter(id=>id!=='overview').length,roomScale=ROOM_SCALES[compact?'compact':'wide'][activeSkillCount];
  const idleScale=compact?(activeSkillCount>1?.60:activeSkillCount?.72:.96):(activeSkillCount>1?.52:activeSkillCount?.66:1.05);
  const plannerScale=active.includes('overview')?(activeSkillCount?.72:compact?1.22:1.65):(compact?.85:.82);
- const zones=Object.fromEntries(ZONE_IDS.map(id=>[id,{id,x:BASE[id][0],z:BASE[id][1],active:active.includes(id),scale:id==='overview'?plannerScale:active.includes(id)?roomScale:idleScale}]));
- if(compact){
-   const order=short?['retrieve','structure','compare','validate','overview','concept']:['retrieve','structure','overview','compare','validate','concept'],columns=short?3:2,rows=Math.ceil(order.length/columns);
-   order.forEach((id,i)=>Object.assign(zones[id],fieldToWorld((i%columns-(columns-1)/2)*9.8,(Math.floor(i/columns)-(rows-1)/2)*7.2)));
- }
- return {zones,compact,short,active,activeSkillCount};
+ const columns=compact&&!short?2:3;
+ const zones=Object.fromEntries(zoneIds.map(id=>{
+   const index=ROOM_ORDER.indexOf(id),u=id==='overview'?0:(index%columns-(columns-1)/2)*13;
+   const v=id==='overview'?0:(Math.floor(index/columns)-(columns===3?.5:1))*(columns===3?12.5:12);
+   return [id,{id,...fieldToWorld(u,v),active:active.includes(id),scale:id==='overview'?plannerScale:active.includes(id)?roomScale:idleScale}];
+ }));
+ return {zones,compact,short,columns,active,activeSkillCount};
 }
-export function fitFactory(zones,{width,height,panelWidth=0,top=76,bottom=72}={}){
+export function fitFactory(zones,{width,height,panelWidth=0,top=76,bottom=72,artwork=false}={}){
  const availableWidth=Math.max(180,width-panelWidth-24),availableHeight=Math.max(140,height-top-bottom);
  let minU=Infinity,maxU=-Infinity,minV=Infinity,maxV=-Infinity;
  for(const zone of Object.values(zones)){
+   if(artwork&&zone.id!=='overview'){
+     const p=worldToField(zone.x,0,zone.z),s=zone.scale;
+     minU=Math.min(minU,p.u-4.6*s);maxU=Math.max(maxU,p.u+4.6*s);
+     minV=Math.min(minV,p.v-6.5*s);maxV=Math.max(maxV,p.v+2.2*s);
+   }
    const f=zone.id==='overview'?PLANNER_FLOOR:ZONE_FLOOR;
    const points=[];
    // Fit occupied geometry rather than an empty tall box over the whole floor.
    for(const x of [-f.halfX,f.halfX])for(const z of [-f.halfZ,f.halfZ])points.push([x,0,z]);
    const small=zone.id==='overview';
    for(const x of small?[-.8,.8]:[-1.6,1.6])points.push([x,small?2.2:2.85,small?0:-1.1]);
-   points.push([0,small?3.4:4.1,0]);
+   points.push([0,small?3.4:artwork?5.2:4.1,0]);
    for(const x of small?[-1.03,1.03]:[-2.1,2.1])for(const z of small?[-.97,.97]:[-1.75,1.75])points.push([x,small?2.65:2.7,z]);
    for(const [x,y,z] of points){
      const p=worldToField(zone.x+x*zone.scale,y*zone.scale,zone.z+z*zone.scale);

@@ -1,0 +1,688 @@
+{
+  "PRs": [
+    27,
+    28
+  ],
+  "baseline_main": "ae291fa3c899d23866c28ffaba83a59190ba021a",
+  "original_heads": {
+    "27": "f3b2614295615f7bccdaa89dacd4fb78cf9a60c9",
+    "28": "dc06ac43cf0cfb7701c9a38e39fa9de1052f473a"
+  },
+  "changed_PR_union": 78,
+  "reviewed": 78,
+  "excluded": 0,
+  "pending": 0,
+  "reviewed_paths": [
+    {
+      "path": "skills/manifest.json",
+      "sha256": "e32807715666854964effc474b8d8e124c661b12b40c9e952501fe1249e29a3e",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "tests/web/test_agent_office.py",
+      "sha256": "80c56ef52d1db6faf7bd4f95f808330676648eba993c58897daded9910182407",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/agent-office/factory.html",
+      "sha256": "70f83d849399098ecd27a9c0a75edb393b9178ef4ea80b4460c63fb02b229143",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "generated build bytes, asset manifest, standalone build and web regression; file:// interaction not newly tested"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/APPROVED-UI-IMAGE-SOURCES.md",
+      "sha256": "9e40c53f51286e756abf5dd7ea7f4dc4e618e3455e83a074621721db07ac4842",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/FACTORY-UI-20261017.json",
+      "sha256": "bc69f9b06c1f6bf17fad41c8580507474c6e541772c9da0525ebb2293aa297d2",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "upstream historical approval/snapshot record, not current full regression evidence"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/README.md",
+      "sha256": "178621d29f5a5846644effed538a89b48d97fef6255866288936f1ec615395dd",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/RESEARCHER-SEATED-ASSET.md",
+      "sha256": "4ce842f4f86e0d2bdd7a8209fe0087dd390756e6ce4dcbcc0a5759be8c02be08",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/WARM-LAB-IMAGE-ASSET.md",
+      "sha256": "c70fcbe271fbed924aeddf11f9fcb248319f43c66e7fdb62b23cc178f2df0009",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/backend/native_calls.py",
+      "sha256": "4217b037ab2bdafea7cf3484055356b425946e03112bc9072f367ba4d969b7ff",
+      "status": "reviewed",
+      "owner": "observer-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/backend/release_activity.py",
+      "sha256": "9b20f7fa92be3f3e77cced22c9f42bceebb208b052a2d02e1b4e630157445204",
+      "status": "reviewed",
+      "owner": "observer-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/backend/release_reader.py",
+      "sha256": "b77d46e785a74c5c20686f1c841ae6e330483f7dbe952a5e3368ad522133b04e",
+      "status": "reviewed",
+      "owner": "observer-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/backend/release_server.py",
+      "sha256": "8e03bf228a6a140e4a1f676cb9954846f93135ef728f9eb6c56ede0c9a088f1d",
+      "status": "reviewed",
+      "owner": "observer-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/backend/tests/test_native_calls.py",
+      "sha256": "396238b27f9e412095a5c36c36031ac9805f4b0242df1dc0b7e367d5fd003376",
+      "status": "reviewed",
+      "owner": "observer-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/backend/tests/test_release_reader.py",
+      "sha256": "1608cf41ab6cc1c9cf212b22ef86cb1f1a05a3de1a45cc0326d680f07f1e26ad",
+      "status": "reviewed",
+      "owner": "observer-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/docs/CLI-LEFT-PANEL.md",
+      "sha256": "bdd5efd50c53eca99fdc27a9d7b8bf84e947f72259fa2b45e429260493e03354",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/docs/CLI-TESTING.md",
+      "sha256": "9ce171b95394f1d2b59a12a12a38d9427088e3a13239c4b333b7c7efa4bf1939",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/docs/RELEASE-CONNECTION.md",
+      "sha256": "b7aec8d6ae44c052b9295db2f5b76ae278f2d5ceb3abbeee4821458c8d387512",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/docs/SKILL-AND-AGENT.md",
+      "sha256": "b1d62b8900091b2872d1420404675a7db9d2240313c9dc04f5c9a707876de759",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/docs/SKILL-OBSERVATION-20261017.md",
+      "sha256": "5c3ef459fd33582337c92dc42afb3cf8f344f9e1ba5285d624c2454e425c3e4e",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/docs/VALIDATION-20261017.md",
+      "sha256": "abb55323dd59df4188ca908470a9a264510a80ada3b9161d57505598497ea9e7",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "source/document/asset integration"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/public/characters/researcher-seated-v1.png",
+      "sha256": "31fe9d75109c7cb6254c21c758d395629ecd7263ba30a0deb40766142390a55b",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "PNG signature/CRC/pixel-stream validation, dimensions, author source/approval note, asset/build tests; actual UI observed only where used",
+      "image": {
+        "format": "PNG",
+        "size": [
+          1536,
+          1024
+        ],
+        "bit_depth": 8,
+        "colour_type": 6,
+        "chunk_CRC_and_pixel_stream_valid": true
+      }
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/public/environment/ivory-sage-wall-v2.png",
+      "sha256": "0312fdcdbf31eb770a7a17b95b231117b3e78274b3c54f91b25c8b805dd43343",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "PNG signature/CRC/pixel-stream validation, dimensions, author source/approval note, asset/build tests; actual UI observed only where used",
+      "image": {
+        "format": "PNG",
+        "size": [
+          2172,
+          724
+        ],
+        "bit_depth": 8,
+        "colour_type": 2,
+        "chunk_CRC_and_pixel_stream_valid": true
+      }
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/public/environment/warm-research-wall-v1.png",
+      "sha256": "62819bda2ecb62e74ea23598cbf49991c25d16ad431e9de290b393d9ccfac54e",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "PNG signature/CRC/pixel-stream validation, dimensions, author source/approval note, asset/build tests; actual UI observed only where used",
+      "image": {
+        "format": "PNG",
+        "size": [
+          2172,
+          724
+        ],
+        "bit_depth": 8,
+        "colour_type": 2,
+        "chunk_CRC_and_pixel_stream_valid": true
+      }
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/public/workshops/approved-researchers-original-v1.png",
+      "sha256": "2afa9bbf0965b93a05e8b3f70e5afc4f538eeb15ad21b49ea040c6412daac1af",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "PNG signature/CRC/pixel-stream validation, dimensions, author source/approval note, asset/build tests; actual UI observed only where used",
+      "image": {
+        "format": "PNG",
+        "size": [
+          697,
+          387
+        ],
+        "bit_depth": 8,
+        "colour_type": 6,
+        "chunk_CRC_and_pixel_stream_valid": true
+      }
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/public/workshops/ivory-sage-empty-v1.png",
+      "sha256": "030b615f234e98548afea4a4cc85ffaf44fb91e81de39479b01e0ab81f438545",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "PNG signature/CRC/pixel-stream validation, dimensions, author source/approval note, asset/build tests; actual UI observed only where used",
+      "image": {
+        "format": "PNG",
+        "size": [
+          1536,
+          1024
+        ],
+        "bit_depth": 8,
+        "colour_type": 6,
+        "chunk_CRC_and_pixel_stream_valid": true
+      }
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/public/workshops/ivory-sage-idle-v1.png",
+      "sha256": "41e35d95fc5e242ef4195043d110ac2cd9540890960a11a47c761c9bbbeb157a",
+      "status": "reviewed",
+      "owner": "parent",
+      "scope": "PNG signature/CRC/pixel-stream validation, dimensions, author source/approval note, asset/build tests; actual UI observed only where used",
+      "image": {
+        "format": "PNG",
+        "size": [
+          1536,
+          1024
+        ],
+        "bit_depth": 8,
+        "colour_type": 6,
+        "chunk_CRC_and_pixel_stream_valid": true
+      }
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/shared/skill-operations.json",
+      "sha256": "0e88f203013190bec50f6beb71302cec23aedf04225002a96b6f9c51b2999710",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/CliActivityPanel.jsx",
+      "sha256": "9f99feb902f57969e5547fffbe12874cb71f24bab209a380a59ef9d06df34ec9",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/CurrentWorkDock.jsx",
+      "sha256": "0eac2aec4e24c67e427cb72fc989b0f96533a0adab6b918df4a7b4657d36294c",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/FactoryScene.jsx",
+      "sha256": "1fc704e7a7714e84fc29ebfeb52de3ab2cfd5b31196de99299807cf9f9998e0b",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/OfficeControls.jsx",
+      "sha256": "7837bbc2e679f9ddacf91ee787063f5e9b8a3537007e997d2d0a5aa231da18a5",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/OfficeReplayBar.jsx",
+      "sha256": "49575974769356af5ebfe86b9b61b4a87d3f09086b739875c9f562756642e2c2",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/ReleaseDashboard.jsx",
+      "sha256": "fd756a9851f08d4d2b88cc644bc05ad9b7ee218cb5d6bc15ffacbc0252604e6f",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/ResearcherCharacters.js",
+      "sha256": "2cfbdcc0f81eb59d59dccc851ff4b9877111d6d9cb82760abf75a4fd3e654692",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/ResearcherPreview.jsx",
+      "sha256": "8dcdc1ae9be4844ca3ce092c12cac09bc28588d9c65f890ab8091d99a06383b0",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/WorkMeaning.jsx",
+      "sha256": "4bf112ce3ae54ebde0b7e47f56c8ed9920f6f43d944b9a21e09e931d72e703f0",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/WorkshopArtwork.js",
+      "sha256": "5ce99a4657d2461b250019c7143d215405943f0ecca0cc46c350aa487151838c",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/approved-workshops.css",
+      "sha256": "c4e2b65445b24313190320d6ec115d88b8b31c5ccaf748b487ff637c1d7f1850",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/cli-activity.css",
+      "sha256": "2eded108284211cbaa43558a5abbfeeeecacf12de6f9c75b4c66534cf503505b",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/cli-activity.js",
+      "sha256": "00d721b2b52dc2a863d1ab867b7d50887af7509e7ea34e8cd9f8a83dbaa09278",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/current-work-dock.css",
+      "sha256": "8e8b0f84b96317ed4210b41e2d0ae5171736e27517c97489f5509f882d97a4bf",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/current-work-summary.js",
+      "sha256": "05c834fe2ef9a6bfc867f767328674ebbe689ee480238e34be0bc97e8f2b3c83",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/factory-label-layout.js",
+      "sha256": "0e60bea05487853d7903ed61d98461a3f51390e14da7894a047497a325eea5f3",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/factory-layout.js",
+      "sha256": "db6459cdb47b420a98771fd10f13375757e36c9cc3555284f80ed04e3c0699c0",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/factory-routing.js",
+      "sha256": "82323c9688fa6648a97544838ba7d06ae5107e12aca527e082a59389989bc077",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/factory-work-view.js",
+      "sha256": "2e157c39cf20ca55a385656ff2c95579460368227a7a4087ab6bf8365dace41b",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/factory-workshop.js",
+      "sha256": "4afecc8dd2761aae2c967a200d0267aa3bdeb2d83cd3a4424cfab8b681b46e03",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/lab-environment.js",
+      "sha256": "30a1185f262ae2917bee41b9b104e9a673971c8d0c2e4067bd241d8e239d48bc",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/main.jsx",
+      "sha256": "ff65cca4f385ed56c16519600624985ac364431089242db06290c81b1409cf55",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/office-records.js",
+      "sha256": "6ba10dbd05127bca22ddbcd0dbbd70cddaed16f9effb9b31ac90ea5e7e87206e",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/office-store.js",
+      "sha256": "e502c671c9b46d25f8a756316a74bbfdb996d6d2acf56ff54523d3ef84ed833b",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/office.css",
+      "sha256": "40c69f97e327ece5b75b22207da19f44a15423f175bb50cbecd6b40cab88ddea",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/premium-lab.js",
+      "sha256": "5d8201d46df29f79c49ae25a934da50a85d38074dab7a28b831e1d76da4c5b03",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/release.js",
+      "sha256": "cdb4a6308826712b70abda8fd7d23f0bf9b74b5d221b98581af1f8680e564c7d",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/releaseActivity.js",
+      "sha256": "a49a80429c349de78f2e0dc080ef78a5a7a0c2c347d50cf77a88b56717182717",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/researcher-motion.js",
+      "sha256": "5ae8d081a145598121bc4ec8680b268b0bc79b4bdff755e2346dce1eea668253",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/researcher-presence.js",
+      "sha256": "af84fffe72e86852f3377e358625336715c82e6ae7b7780b4a7342a8dc0cec1c",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/skill-catalog.js",
+      "sha256": "0ccf0651501ba275b9b05313064bbae56b1ac8e6489a91a7556893f23e014a3b",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/skill-choreography.js",
+      "sha256": "95546eab0103b1e872b2cf113aa30bccd6c06165b4daa454af99e9d0bcfd5f81",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/skill-operations.js",
+      "sha256": "0dfc4c564477a7d85e26df0e41153c0f6b747a2b787363d5c2dd5b06ee214449",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/skill-researcher-route.js",
+      "sha256": "1642a44b21967e671bc820482a596c0c616a9e939004ca40a8d006b866238984",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/skill-semantics.js",
+      "sha256": "51771bf65a6449ed9a771ad1723eac1a0d08fa90267f42b65c97cf99d84a17e7",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/skill-work-animations.js",
+      "sha256": "9262c21a6785148ca4377ec877e8a113f576f9beba5b64473a9746a55de0b8b2",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/work-meaning.css",
+      "sha256": "67753c6b1a1852ff8ef9d1b7b04155598af2e1d6282bb554054152325b6151bc",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/workshop-actions.js",
+      "sha256": "b787b961e8d49327d76a98894153e0a609ac865663f2343d40ef6e80878c4372",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/workshop-composition.js",
+      "sha256": "e407b376d681b32e13f28fc8b916303c153ecc727f8685ffc032a20541427c2c",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/src/workshop.css",
+      "sha256": "4ac8fffe9abc2b2888565ebe31fd4ad352f53624db9948ca5b47210ca6ee4065",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/cliActivity.test.mjs",
+      "sha256": "a137965efe39d877691e80bc39b8ab2ecdfcbdb1c0b3dd62ad43eed87f7c6391",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/current-work-dock.test.mjs",
+      "sha256": "c9b7f1bc4f9d05876e7f581238ea9025eea0138e9d5927407076c8dd102006ad",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/factory-labels.test.mjs",
+      "sha256": "4effd40d78768e16422ebdfecb76b3812a5bb96b5dfd1b5abac7726b9c15c612",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/factory-routing.test.mjs",
+      "sha256": "96f79adb543c5729e2af8beb328bf1be11e4115f944cffdd2fc0fadafd4e7aac",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/nativeSkillFlow.test.mjs",
+      "sha256": "7a8efd394b5b629bcc24ad26237e6e9392ef170b88a7104da212f60bb83e9dcc",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/office.test.mjs",
+      "sha256": "5254a02a5147347fd3cda92e9ce0180b4de0371426857e95ab5272bb915aff9c",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/ordered-grid.test.mjs",
+      "sha256": "d3307f97ecf55af4f3a6c77b1cffa56b4d00f28ff22487b44ce50f191fd17439",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/release.test.mjs",
+      "sha256": "90eda321a3fba658852381f315d4640cc92c5d34af2caed8aec03a3542a876fa",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/skill-meaning.test.mjs",
+      "sha256": "319e449efe99a4668aabb92bf18821df8b194b171dcd3dfd754cd81bf6d263ed",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/tests/workshop-composition.test.mjs",
+      "sha256": "942fd9a76891d15a880ab370c163015c663ad3cbdde35e8609ce48dfccfece67",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    },
+    {
+      "path": "web/prototypes/control-room/factory-dashboard/vite.config.js",
+      "sha256": "f0c9b5052db1ee309d41b61bb5b06bb13d1599aa1362aae8ada532db112866c7",
+      "status": "reviewed",
+      "owner": "frontend-reviewer",
+      "scope": "code/diff/tests"
+    }
+  ],
+  "integration_conflicts_resolved": 7,
+  "local_ci": {
+    "status": "passed",
+    "stages": 24,
+    "python_tests": 952,
+    "python_passed": 951,
+    "platform_skipped": 1,
+    "source_changes_during_CI": 0,
+    "report_sha256": "8da25e83d865a216489cfb8fd266d97a068824a4609c0d71f2f34daa542958aa"
+  },
+  "frontend_tests": {
+    "run": 167,
+    "passed": 167,
+    "failed": 0
+  },
+  "backend_tests_separate_from_CI": {
+    "run": 111,
+    "passed": 110,
+    "Windows_symlink_skipped": 1,
+    "failed": 0
+  },
+  "repair_red_cases_preserved": true,
+  "repairs": [
+    "preserve PR27 shell/session/end guards",
+    "add PR28 file URI normalization and CLI panel",
+    "retain explicit native cancellation",
+    "never describe cancelled CLI operations as success",
+    "do not map background shell chains to confirmed Skill completion"
+  ],
+  "browser": {
+    "served_dist_desktop": true,
+    "image_loading": true,
+    "CLI_panel_fold_unfold": true,
+    "room_select_and_close": true,
+    "menu_and_Skill_Agent_guide": true,
+    "new_file_mode_browser_test": false,
+    "new_mobile_test": false,
+    "actual_new_model_driven_motion_test": false
+  },
+  "native_metadata_replay": {
+    "kind": "existing_actual_native_metadata_replay",
+    "native_id": "01a14914-f0e2-73f1-ae6f-b599b8acafa7",
+    "new_model_calls": 0,
+    "calls": 33,
+    "categories": {
+      "tool": 8,
+      "shell": 25
+    },
+    "statuses": {
+      "completed": 31,
+      "failed": 2
+    },
+    "skill_operations": {},
+    "raw_commands_or_text_exported": false
+  },
+  "remote_CI": {
+    "steps_executed": 0,
+    "status": "account_billing_blocked",
+    "marked_passed": false
+  },
+  "release_ZIP_changed": false,
+  "public_Site_published": false,
+  "new_model_calls": 0,
+  "filming": false,
+  "post_merge_main_verification": "will be recorded separately in merge receipt"
+}

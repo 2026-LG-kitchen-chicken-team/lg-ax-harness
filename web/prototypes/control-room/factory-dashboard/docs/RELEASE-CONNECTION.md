@@ -8,7 +8,7 @@
 
 ## 연결 대상
 
-이 연결은 정이량이 배포한 `2026-LG-kitchen-chicken-team/lg-ax-harness`의 **product-v0.15.0** 제품용입니다. 기존 `lg-ax-2026` 팀 개발 Controller·작업 대기열 DB와 다른 제품입니다. `backend/harness_reader.py`의 개발 대기열 연결을 이 제품의 업무 상태로 사용하지 않습니다.
+이 연결은 정이량이 배포한 `2026-LG-kitchen-chicken-team/lg-ax-harness` 제품의 설치 기록을 확인합니다. 아래 **product-v0.15.0**은 최초 연결 시 검증한 보존 사례입니다. 현재 지원 형식은 위 ‘버전 고정 해제’를 따릅니다. 기존 `lg-ax-2026` 팀 개발 Controller·작업 대기열 DB와 다른 제품입니다. `backend/harness_reader.py`의 개발 대기열 연결을 이 제품의 업무 상태로 사용하지 않습니다.
 
 공식 심사용 ZIP은 `lg-ax-judge-product-v0.15.0.zip`, 원본 SHA-256은 다음과 같습니다.
 
@@ -16,7 +16,7 @@
 ccf2386fb70f6f73692eb3b9f1cffd2ac7bba9e50c9276b9729513b30b16deb8
 ```
 
-제품 소스 commit은 `3cf62939689aa21564b162ab8d2f855c30d32a66`입니다. 브리지는 선택한 폴더의 `product-install.json` SHA와 그 manifest가 선언한 제품 파일 SHA를 읽어 v0.15.0 사본을 확인합니다. 설치·실행 준비와 실제 AI 업무 완료는 별개입니다. 배포본 확인만으로 로그인·모델 이용권·권한·native 실행 성공을 주장하지 않습니다.
+제품 소스 commit은 `3cf62939689aa21564b162ab8d2f855c30d32a66`입니다. 브리지는 선택한 폴더의 `product-install.json` SHA와 그 manifest가 선언한 제품 파일 SHA를 읽어 선택된 설치 사본을 확인합니다. 설치·실행 준비와 실제 AI 업무 완료는 별개입니다. 배포본 확인만으로 로그인·모델 이용권·권한·native 실행 성공을 주장하지 않습니다.
 
 ## 조회 서버 인터페이스
 
@@ -121,7 +121,7 @@ review-and-revise
 
 `source_updated_at`은 원 관측 파일에 기록된 갱신·사건·DB 요약 읽기 시각의 최댓값입니다. 이번 조회 시각으로 덮어쓰지 않습니다. `observing`은 현재 native 요청에 최근 120초 이내 열린 사건이 있다는 뜻이며 Observer 프로세스 생존 확인이나 모델 성공이 아닙니다. 종료·취소됐거나 오래된 사건은 `recorded`입니다. 프런트엔드도 연결이 끊기거나 원 사건이 오래되면 활성 연출을 해제해야 합니다.
 
-현재 native 문맥은 최신 main의 request/session-start로 고정합니다. 같은 세션의 앞선 요청 A가 늦게 종료·취소돼도 현재 요청 B로 돌아가거나 B의 열린 작업을 닫지 않습니다. native prompt가 null이어도 다른 prompt 전체를 허용하는 와일드카드로 쓰지 않습니다.
+현재 native 문맥은 최신 main의 request/session-start로 고정합니다. 후속 prompt는 현재 요청에 기록된 launched_agent_id 또는 같은 prompt의 SubagentStart ID와 from_agent_id가 맞을 때만 합칩니다. 출처가 확인되지 않은 알림이나 이전 요청의 늦은 하위 역할 결과는 제외합니다. 같은 세션의 앞선 요청 A가 늦게 종료·취소돼도 현재 요청 B로 돌아가거나 B의 열린 작업을 닫지 않습니다. native prompt가 null이어도 다른 prompt 전체를 허용하는 와일드카드로 쓰지 않습니다.
 
 DB 요약을 native 업무와 합치려면 현재 선택 native 세션·prompt의 사건에 기록된 `detail.business_binding`의 **session_id·turn_id·request_key 세 값이 모두** DB `binding`과 일치해야 합니다. 결속되면 `db.binding_status: matched`와 허용된 상태·개수·검사 flag만 반환합니다. 불일치하면 `unmatched`와 최소 메타데이터만 반환하고 다른 세션의 후보 수·결과·상태를 현재 업무에 섞지 않습니다. 단순 최신 파일·시간 겹침·전역 최신 DB라는 이유로 합치지 않습니다.
 

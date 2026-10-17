@@ -22,7 +22,7 @@ export default function OfficeReplayBar({office,store,onFollow,following}){
   const track=useRef(null),drag=useRef(false),live=office.mode==='live';
   const start=office.start,end=office.end??start,at=live?Date.now():office.at;
   const seekAt=useCallback(clientX=>{const rect=track.current?.getBoundingClientRect();if(!rect||start==null)return;store.seek(start+Math.min(1,Math.max(0,(clientX-rect.left)/rect.width))*Math.max(1,end-start));},[store,start,end]);
-  if(start==null)return <div className="office-replay office-replay-empty" role="status"><Radio size={14}/>{live?`실제 실행 기록을 기다립니다${office.missing?' (아직 live.js 없음)':''}. 이 하네스 폴더에서 Claude Code로 질문하거나, Codex는 관찰 창을 켠 뒤 질문하면 기록이 도착하는 대로 표시합니다.`:'재생할 실제 기록이 없습니다.'}</div>;
+  if(start==null)return <div className="office-replay office-replay-empty" role="status"><Radio size={14}/>{'기록 파일을 열면 지난 작업을 재생할 수 있습니다. 지금 실행 중인 작업은 실시간 연결에서 확인하세요.'}</div>;
   const frac=Math.min(1,Math.max(0,(at-start)/Math.max(1,end-start))),read=office.read,lastEvent=office.sessions.at(-1)?.end;
   return <div className="office-replay" aria-label={live?'실시간 실행 기록':'실행 기록 재생'}>
     <div className="office-replay-controls">
