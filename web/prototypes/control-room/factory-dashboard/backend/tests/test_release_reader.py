@@ -412,11 +412,39 @@ class HTTPTests(Fixture):
         self.assertEqual(405, self.request("/api/harness/snapshot", token=TOKEN, method="POST")[0])
 
     def test_only_known_index_view_query_is_allowed(self):
-        self.assertEqual(200, self.request("/?view=harness")[0])
-        self.assertEqual(200, self.request("/?view=team")[0])
+        for view in ("harness", "team", "motion", "records", "demo"):
+            self.assertEqual(200, self.request("/?view=" + view)[0])
         self.assertEqual(400, self.request("/?view=unknown")[0])
         self.assertEqual(400, self.request("/?view=harness&path=private")[0])
         self.assertEqual(400, self.request("/api/harness/snapshot?view=harness", token=TOKEN)[0])
+
+    def test_factory_artwork_and_motion_are_served_from_the_explicit_ui_dist(self):
+        for folder, name, mime in (("characters", "researcher.png", "image/png"),
+                                   ("environment", "wall.png", "image/png"),
+                                   ("workshops", "rooms.png", "image/png"),
+                                   ("media", "motion.mp4", "video/mp4")):
+            with self.subTest(folder=folder):
+                path = self.dist / folder / name
+                path.parent.mkdir(exist_ok=True)
+                path.write_bytes(b"synthetic artwork")
+                status, body, headers = self.request("/" + folder + "/" + name)
+                self.assertEqual((200, b"synthetic artwork"), (status, body))
+                self.assertEqual(mime, headers["Content-Type"])
+                self.assertIsNone(headers.get("Access-Control-Allow-Origin"))
+                self.assertEqual("same-origin", headers["Cross-Origin-Resource-Policy"])
+                self.assertEqual(403, self.request("/" + folder + "/" + name, origin="https://approved.example")[0])
+
+    def test_artwork_paths_do_not_expose_other_types_nested_files_or_traversal(self):
+        for relative in ("characters/private.json", "environment/code.js", "workshops/debug.map",
+                         "media/private.txt", "workshops/nested/room.png"):
+            path = self.dist / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"PRIVATE_CONTENT")
+            status, body, _ = self.request("/" + relative)
+            self.assertEqual(404, status)
+            self.assertNotIn(b"PRIVATE_CONTENT", body)
+        for path in ("/workshops/%2e%2e/product-install.json", "/characters/../index.html"):
+            self.assertIn(self.request(path)[0], (400, 404))
 
     def test_bootstrap_json_cannot_close_script_tag(self):
         prior = self.server._token

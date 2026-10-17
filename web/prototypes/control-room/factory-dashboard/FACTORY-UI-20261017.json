@@ -89,8 +89,9 @@
     },
     {
       "path": "backend/release_server.py",
-      "bytes": 8288,
-      "sha256": "2b98641dab33785e430402019d950a5da925a4dc1912fcbd400d5e9654e16e88"
+      "bytes": 8672,
+      "sha256": "3713adf02adb25ff48487f92e44d6acb6813919f6b517437caaf23dc39d8387c",
+      "approved_snapshot_sha256": "2b98641dab33785e430402019d950a5da925a4dc1912fcbd400d5e9654e16e88"
     },
     {
       "path": "backend/repository.py",
@@ -119,8 +120,9 @@
     },
     {
       "path": "backend/tests/test_release_reader.py",
-      "bytes": 24925,
-      "sha256": "c4d854771288f9f72fc1dbad1b6fba6be3d74f200dfb8db4b7aa92433666bb45"
+      "bytes": 26755,
+      "sha256": "15695ecdeca21e036476c174518eea4c4757774bb882917f48714996833c2653",
+      "approved_snapshot_sha256": "c4d854771288f9f72fc1dbad1b6fba6be3d74f200dfb8db4b7aa92433666bb45"
     },
     {
       "path": "docs/HARNESS-CONNECTION.md",
@@ -620,6 +622,13 @@
         "tests/web/test_agent_office.py"
       ],
       "reason": "Refresh the generated factory asset hash, repair the pre-existing codex_follow.py hash inconsistency without changing its code, and update the inline-image regression check for the approved artwork."
+    },
+    {
+      "paths": [
+        "backend/release_server.py",
+        "backend/tests/test_release_reader.py"
+      ],
+      "reason": "Local HTTP acceptance found artwork 404s. Serve only direct PNG files in characters/environment/workshops and direct MP4 files in media under the explicit UI dist, preserve existing origin/path/symlink guards, and allow all five known client views. Add HTTP regressions."
     }
   ],
   "shared_asset_hash_changes": [
@@ -639,5 +648,9 @@
     "base_commit": "ae291fa3c899d23866c28ffaba83a59190ba021a",
     "base_blob_sha256": "d316a16ca45c1866d6e05f7489083b4a246fb73652a4e30fba3b9ca80a90af63",
     "code_unchanged": true
+  },
+  "local_http_visual_acceptance": {
+    "status": "passed",
+    "scope": "Desktop local HTTP approved seated researcher artwork, six workrooms and background; actual new CLI business work and file:// acceptance remain not_run."
   }
 }

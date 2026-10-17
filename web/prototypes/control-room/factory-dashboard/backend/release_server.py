@@ -76,7 +76,9 @@ class ReleaseHandler(HarnessHandler):
             return self.local_error(404, "not_found")
         if not self.static_origin_allowed():
             return self.local_error(403, "origin_denied")
-        allowed_view = (parsed.path in ("/", "/index.html") and urllib.parse.parse_qsl(parsed.query, keep_blank_values=True) in ([('view', 'harness')], [('view', 'team')]))
+        query_pairs = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+        allowed_view = (parsed.path in ("/", "/index.html") and len(query_pairs) == 1
+                        and query_pairs[0][0] == "view" and query_pairs[0][1] in ("harness", "team", "motion", "records", "demo"))
         if (parsed.query and not allowed_view) or parsed.fragment:
             return self.local_error(400, "invalid_request")
         try:
@@ -85,7 +87,10 @@ class ReleaseHandler(HarnessHandler):
             parts = PurePosixPath(relative)
             if not relative or "\\" in relative or ":" in relative or "\x00" in relative or parts.is_absolute() or ".." in parts.parts or parts.as_posix() != relative:
                 return self.local_error(400, "invalid_request")
-            if relative != "index.html" and not relative.startswith("assets/") and relative not in ("favicon.svg", "favicon.ico"):
+            public_artwork = len(parts.parts) == 2 and (
+                parts.parts[0] in ("characters", "environment", "workshops") and parts.suffix == ".png"
+                or parts.parts[0] == "media" and parts.suffix == ".mp4")
+            if relative != "index.html" and not relative.startswith("assets/") and not public_artwork and relative not in ("favicon.svg", "favicon.ico"):
                 return self.local_error(404, "not_found")
             path = self.server.ui_dist
             for component in parts.parts:
