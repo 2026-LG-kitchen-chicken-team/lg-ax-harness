@@ -339,7 +339,8 @@ class Thread:
         if kind == "event_msg" and ptype == "task_started":
             self.turn = ob.short(payload.get("turn_id"), 80)
             self.finished = False
-            return []
+            return ([self.event(f"prompt:{self.turn}", "UserPromptSubmit", "request", ts, node="main")]
+                    if not self.child and self.turn else [])
         if kind == "event_msg" and ptype in ("task_complete", "turn_aborted"):
             if self.child:
                 self.finished = True
@@ -383,7 +384,10 @@ class Thread:
         if itype == "UserMessage":
             if self.child:
                 return []
-            return [self.event(key, "UserPromptSubmit", "request", t0, node="main")]
+            # Modern Desktop rollouts may omit this item; task_started is the
+            # primary request marker. A stable turn key deduplicates both forms.
+            return [self.event(f"prompt:{self.turn}" if self.turn else key,
+                               "UserPromptSubmit", "request", t0, node="main")]
         if itype == "CommandExecution":
             found = classify_command(item, self.cwd)
             tool = found.pop("tool", "shell")
@@ -463,7 +467,11 @@ def save_state(main_id: str, threads: dict, seen: list):
 
 
 def write(events: list[dict], seen: set, order: list):
-    fresh = [e for e in events if e["id"] not in seen]
+    fresh, batch_seen = [], set()
+    for event in events:
+        if event["id"] not in seen and event["id"] not in batch_seen:
+            fresh.append(event)
+            batch_seen.add(event["id"])
     if not fresh:
         return []
     with ob.Lock(ob.LOCK, wait=10):

@@ -17,7 +17,12 @@ export function plannerStatus(view,work,office=null){
   currentCandidate?.contract_valid===true&&currentCandidate?.structural_valid===true&&
   delivery?.display_ready===true&&sameBinding(view.binding,delivery.binding)&&
   db.turn.result_version===delivery.binding.result_version);
- const laterChild=marker&&events.slice(events.lastIndexOf(marker)+1).some(e=>e.kind==='subagent'&&['end','fail'].includes(e.phase));
+ const children=new Set();let laterChild=false;
+ for(const [i,e]of events.entries()){
+  if(e.kind==='delegate'&&e.detail?.launched_agent_id)children.add(e.detail.launched_agent_id);
+  if(e.kind==='subagent'&&e.phase==='start'&&e.agent_id)children.add(e.agent_id);
+  if(marker&&i>events.lastIndexOf(marker)&&e.kind==='subagent'&&['end','fail'].includes(e.phase)&&children.has(e.agent_id))laterChild=true;
+ }
  const ended=marker?.kind==='turn_end'&&!laterChild&&!view.mainActive&&!(view.agents||[]).some(a=>a.active)&&
   !(view.spans||[]).some(s=>s.status==='open'&&events.some(e=>e.id===s.start?.id));
  const nativeStatus=marker?.detail?.response_status||marker?.detail?.turn_status;

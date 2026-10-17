@@ -71,8 +71,15 @@ test('incomplete, cancelled and interrupted native endings cannot announce a rea
   assert.equal(status.current,false);assert.equal(status.state,state);
  }
  const childEnd={id:'child-end',kind:'subagent',phase:'end',actor:'product_evidence_reviewer',agent_id:'child-one',detail:{}};
- assert.equal(plannerStatus({...ready,currentEvents:[...ready.currentEvents,childEnd]},work,office).current,false);
- assert.equal(plannerStatus({...ready,currentEvents:[...ready.currentEvents,childEnd,event('turn_end')]},work,office).current,true);
+ const childStart={...childEnd,id:'child-start',phase:'start'};
+ const linked=[ready.currentEvents[0],childStart,ready.currentEvents[1],childEnd];
+ assert.equal(plannerStatus({...ready,currentEvents:linked},work,office).current,false);
+ assert.equal(plannerStatus({...ready,currentEvents:[...linked,event('turn_end')]},work,office).current,true);
+ const dispatch={...event('delegate',{launched_agent_id:'child-one'}),id:'dispatch'};
+ assert.equal(plannerStatus({...ready,currentEvents:[ready.currentEvents[0],dispatch,ready.currentEvents[1],childEnd]},work,office).current,false);
+ // A lifecycle tail alone does not prove a child was dispatched for this request.
+ assert.equal(plannerStatus({...ready,currentEvents:[...ready.currentEvents,childEnd]},work,office).current,true);
+ assert.equal(plannerStatus({...ready,currentEvents:[...ready.currentEvents,{...childEnd,phase:'fail'}]},work,office).state,'ready');
 });
 
 test('a screen read failure keeps the recent plan available without declaring work failed or completed',()=>{

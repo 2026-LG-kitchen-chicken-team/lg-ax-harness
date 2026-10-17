@@ -109,6 +109,14 @@ class ObserverTests(unittest.TestCase):
         path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
         self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "native_completed")
 
+    def test_orphan_child_tail_does_not_invent_a_parent_continuation(self):
+        self.h.add("microwave")
+        path, events = self.native_events()
+        events.append({**events[0], "kind":"subagent", "actor":"other_subagent", "agent_id":"unlinked-tail",
+                       "phase":"end", "detail":{"agent_type":None}})
+        path.write_text("".join(json.dumps(e)+"\n" for e in events), encoding='utf-8')
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "native_completed")
+
     def settle(self, observer):
         first = observer.tick()
         return observer.tick() if first["status"] == "stabilizing" else first

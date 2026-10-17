@@ -322,6 +322,11 @@ def native_completion(paths, body):
             detail = event.get("detail") or {}
             if not isinstance(detail, dict):
                 continue
+            if (event.get("kind") == "subagent" and event.get("phase") in ("end", "fail")
+                    and event.get("agent_id") not in children):
+                # A lifecycle tail without an observed dispatch/start cannot
+                # establish a continuation of this request merely by sharing its prompt id.
+                continue
             if (main(event) and event.get("kind") in ("handback_delivered", "notification")
                     and detail.get("from_agent_id") in children):
                 prompts.add(event.get("prompt_id"))
