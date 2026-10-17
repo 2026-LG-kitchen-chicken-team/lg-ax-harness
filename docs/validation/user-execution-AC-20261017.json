@@ -1,0 +1,328 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-17",
+  "product_release": "product-v0.19.0",
+  "product_source_commit": "1db850235d9a29124f53a4c5fa7205f1a9d837e3",
+  "manifest_sha256": "75a952a7e19ce01f5a749378b4f6284dee86afd4c8a9c27dcf3c4b99ba9159be",
+  "source_code_changed": false,
+  "previews": [
+    {
+      "family": "냉장고",
+      "sha256": "a5fda8b2d09751ab4f516ad89f38fb81819ca513351f46adeb5365f98b05327d",
+      "bytes": 2207475,
+      "source_records": 56,
+      "export_sha256": "99f6b065e5387c1ddb7026bc5f295337bae4c31b99b2bebc1a0c7eab6c10972f",
+      "web_result_sha256": "e0a144ac9ffbb2c63da521ca5ef44dae93f502cfab9a743855ffed97cd50b2e0",
+      "same_stored_result": true,
+      "standalone_data_embedded": true,
+      "model_inputs_added": 0
+    },
+    {
+      "family": "식기세척기",
+      "sha256": "54d07be08f80e389f0b6e5aa1dccdf5123d641677ebfa936812eeb04d405992e",
+      "bytes": 2921898,
+      "source_records": 81,
+      "export_sha256": "1cf653ccd35a7db3a3c598edb5408b8d814359e2547b65a6e82b5726cb35cb8c",
+      "web_result_sha256": "444bb849f6c68d9fb954699c9c60a3b5d7c32c1c80d1f59998cca1e2c34617c6",
+      "same_stored_result": true,
+      "standalone_data_embedded": true,
+      "model_inputs_added": 0
+    },
+    {
+      "family": "전자레인지",
+      "sha256": "86c33f3572f7fe3b542e9ad68f4cfc996960a552f228636ed60491c29a339059",
+      "bytes": 2600069,
+      "source_records": 82,
+      "export_sha256": "9ca2c6a1cf21711aefb847e81cd40e1fe5c4407350b54c3ff9d60e307bdfff70",
+      "web_result_sha256": "68e22b6b9d84781d28c932a61785dcb5c140df9caad8dabb50baaa9e3c56408f",
+      "same_stored_result": true,
+      "standalone_data_embedded": true,
+      "model_inputs_added": 0
+    }
+  ],
+  "new_model_calls_for_previews": 0,
+  "source_objects_preserved": 219,
+  "fresh_install": {
+    "uv_version": "0.12.2",
+    "uv_download_sha256": "01442d8ce5c7124151a73e697c836d252c6da853c18c73206d3cc4c2378a91d2",
+    "uv_github_digest_equal": true,
+    "fresh_python_download": true,
+    "fresh_dependency_cache": true,
+    "global_install_or_profile_change": false,
+    "registry_write_requested": false,
+    "judge_zip_sha256": "8dde5df749acd0406ad47cae3421250da1efe6ec33b59ca1ec6e9dd56cb9a0fa",
+    "checks": [
+      {
+        "id": "uv-version",
+        "exit_code": 0,
+        "seconds": 1.766
+      },
+      {
+        "id": "python-download",
+        "exit_code": 0,
+        "seconds": 3.703
+      },
+      {
+        "id": "judge-0",
+        "args": [
+          "check"
+        ],
+        "exit_code": 0,
+        "seconds": 4.219
+      },
+      {
+        "id": "judge-1",
+        "args": [
+          "setup",
+          "--engine",
+          "codex"
+        ],
+        "exit_code": 0,
+        "seconds": 7.062
+      },
+      {
+        "id": "judge-2",
+        "args": [
+          "setup",
+          "--engine",
+          "claude"
+        ],
+        "exit_code": 0,
+        "seconds": 2.594
+      },
+      {
+        "id": "judge-3",
+        "args": [
+          "check"
+        ],
+        "exit_code": 0,
+        "seconds": 0.281
+      }
+    ]
+  },
+  "fresh_AI_app_install_tested": false,
+  "fresh_uv_missing_interactive_bootstrap_tested": false,
+  "sandbox": {
+    "required_product_venv_and_SQLite_exit_code": 0,
+    "seconds": 3.0,
+    "optional_uv_external_cache_exit_code": 2,
+    "optional_uv_error": "external cache access denied, OS error5",
+    "network_tested": false
+  },
+  "fixed_corpus": {
+    "registered_records": 219,
+    "registered_models": 9,
+    "assigned_refrigerator_records": 56,
+    "assigned_refrigerator_reviews": 23,
+    "assigned_refrigerator_facts": 33,
+    "new_online_research": false,
+    "registered_is_not_read_by_denied_CLI": true
+  },
+  "runtime_cases": [
+    {
+      "engine": "codex",
+      "surface": "CLI",
+      "native_id": "01a148f9-f619-7501-a772-369367104314",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "permission_mode": "workspace-write/on-request/MXC",
+      "permission_mode_changed_by_operator": false,
+      "business_inputs": 1,
+      "resend": 0,
+      "status": "completed_with_recovered_errors",
+      "elapsed_seconds": 418.25,
+      "time_basis": "owned native CLI invocation to process exit; includes CLI startup",
+      "exit_code": 0,
+      "usage": {
+        "input_tokens": 2631598,
+        "cached_input_tokens": 2484736,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 20308,
+        "reasoning_output_tokens": 2565
+      },
+      "usage_scope": "parent terminal only; child/backend overlap unknown; not billing",
+      "recovered_tool_input_errors": 2,
+      "job": {
+        "source_unchanged": true,
+        "corpus_unchanged": true,
+        "export_files": 2,
+        "web_results": 1,
+        "web_source_counts": [
+          56
+        ],
+        "stored_turn_statuses": [
+          "completed"
+        ],
+        "stored_semantic_statuses": [
+          "unverified"
+        ],
+        "stored_valid": true,
+        "tool_input_error_receipts": 2
+      }
+    },
+    {
+      "engine": "claude",
+      "surface": "CLI noninteractive",
+      "native_id": "ea8574d0-7f7a-45a7-8583-fd1fefab01e3",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "permission_mode": "default/prompts none;69 narrow session rules",
+      "permission_mode_changed_after_denial": false,
+      "business_inputs": 1,
+      "resend": 0,
+      "process_attempts_including_no_native_startup_failure": 2,
+      "actual_native_sessions": 1,
+      "status": "permission_denied_no_approval_surface",
+      "elapsed_seconds": 6.109,
+      "time_basis": "owned CLI invocation to stopped process; not a business completion time",
+      "exit_code": 1,
+      "unique_denied_tools": 1,
+      "first_observed_denial_seconds": 5.593,
+      "complete_terminal_usage": null,
+      "rate_limit_statuses": [
+        "allowed"
+      ],
+      "job": {
+        "source_unchanged": true,
+        "corpus_unchanged": true,
+        "export_files": 0,
+        "web_results": 0,
+        "web_source_counts": [],
+        "stored_turn_statuses": [],
+        "stored_semantic_statuses": [],
+        "stored_valid": false,
+        "tool_input_error_receipts": 0
+      }
+    },
+    {
+      "engine": "claude",
+      "surface": "Desktop Code Local",
+      "native_id": "6972739c-d646-4586-9478-1e7520e92634",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "permission_mode": "existing Auto",
+      "permission_mode_changed_by_operator": false,
+      "business_inputs": 1,
+      "resend": 0,
+      "status": "completed_with_recovered_errors",
+      "elapsed_seconds": 508.402,
+      "time_basis": "native user to actual end_turn",
+      "native_end_observed": true,
+      "usage": {
+        "input_tokens": 66,
+        "cache_creation_input_tokens": 230036,
+        "cache_read_input_tokens": 5547226,
+        "output_tokens": 56216,
+        "input_tokens_including_cache": 5777328
+      },
+      "usage_message_ids": 33,
+      "usage_scope": "Visible parent messages, last usage per message id; no billing or complete backend/child usage certification",
+      "recovered_tool_input_errors": 2,
+      "recovered_path_errors": 1,
+      "recovered_shell_quote_errors": 1,
+      "earlier_wrap_up_ack_seconds_before_end_turn": 40.128,
+      "UI_14_5k_is_not_terminal_usage": true,
+      "job": {
+        "source_unchanged": true,
+        "corpus_unchanged": true,
+        "export_files": 1,
+        "web_results": 1,
+        "web_source_counts": [
+          56
+        ],
+        "stored_turn_statuses": [
+          "completed"
+        ],
+        "stored_semantic_statuses": [
+          "unverified"
+        ],
+        "stored_valid": true,
+        "tool_input_error_receipts": 2
+      }
+    },
+    {
+      "engine": "codex",
+      "surface": "Desktop GUI",
+      "native_id": "01a14914-f0e2-73f1-ae6f-b599b8acafa7",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "permission_mode": "existing Full Access",
+      "permission_mode_changed_by_operator": false,
+      "business_inputs": 1,
+      "resend": 0,
+      "status": "completed_with_recovered_errors",
+      "elapsed_seconds": 248.676,
+      "time_basis": "native user to task_complete",
+      "native_end_observed": true,
+      "nonzero_command_observations": 2,
+      "usage": {
+        "input_tokens": 1847235,
+        "cached_input_tokens": 1713280,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 14288,
+        "reasoning_output_tokens": 1020,
+        "total_tokens": 1861523
+      },
+      "usage_scope": "Visible parent cumulative token_count only; reasoning is an output subset; no billing or complete child/backend certification",
+      "job": {
+        "source_unchanged": true,
+        "corpus_unchanged": true,
+        "export_files": 1,
+        "web_results": 1,
+        "web_source_counts": [
+          56
+        ],
+        "stored_turn_statuses": [
+          "completed"
+        ],
+        "stored_semantic_statuses": [
+          "unverified"
+        ],
+        "stored_valid": true,
+        "tool_input_error_receipts": 1
+      }
+    }
+  ],
+  "actual_native_parent_inputs": 4,
+  "all_four_surfaces_attempted": true,
+  "completed_native_business_cases": 3,
+  "blocked_native_cases": 1,
+  "four_environment_success": false,
+  "all_execution_error_free": false,
+  "protected_files_per_job": 102,
+  "corpus_files_per_job": 3,
+  "all_four_source_and_data_unchanged": true,
+  "browser_visual_acceptance": false,
+  "codex_gui_incidental_browser_first_viewport_loaded": true,
+  "report_inline_binding": "same current saved result; report.html not required",
+  "same_permission_performance_comparison": false,
+  "not_certified": [
+    "online acquisition in this AC trial",
+    "all questions and model families",
+    "raw source semantic full audit",
+    "native macOS/Linux installation",
+    "browser layout/click/print acceptance",
+    "complete backend billing and child usage",
+    "interactive Claude CLI approval workflow"
+  ],
+  "private_evidence_sha256": {
+    "preview-receipt.json": "df8feba2701171f9f180503d9df8d8fa31391c93e01f719ac62b4845c0b8943f",
+    "fresh-install.json": "a86b64cfe67681bbb05482ac96431606f08fd34f387280818da2623b3a94a625",
+    "sandbox-readiness.json": "113184b05879a01d6aea5174549dd2df78d886fa3009f7dccda81d635b52dda7",
+    "runtime-audit.json": "5f52d4625d10ae7c50b2aeef1a9f4e737552467473e94055524b187672f38bf5",
+    "acceptance-check.json": "709e3086bc98941321fb603c07d22ead9c86c437ea8771f1a43131ce7596e462",
+    "codex-gui-addendum.json": "f09aa3d8d6d352adfc981bb8156b488f1a234f5d6a67fb6dcd6fed1051b85d91",
+    "codex-gui-job.json": "69d6b9c63e659f57b7b4e5a666ae7016a513ca2fe9ba7ea95cc3d627fdd73dda",
+    "codex-gui-observation.json": "05272388ca5031a4ec76db908287a5b3c9cba05482d769144bd5bc849deb3180",
+    "native-codex/result.json": "f16a0dd730e6f7623f0bd84e3a877dc35bd964db53ff1084de6bdc3e56c2c315",
+    "native-codex/native.jsonl": "c03b91ec94c1202acbf375bf462ccd6d38732613856cf38123453fba55111994",
+    "native-claude/result.json": "134e52ac1e9d653be16ab56b0ab0c68bd9a0263924c96cf12532d77c09e40446",
+    "native-claude/stderr.txt": "77103ca6fb78ab10791da81cd113bd610298d7a7406a0a302540aad55f9c3c9d",
+    "native-claude-attempt2/result.json": "44909ae21e93409c8689924b4a0bced5db1bfb217cee49fd45d687fbfec8cd45",
+    "native-claude-attempt2/native.jsonl": "34a3dfea2b4c06fe162cea5504b36fc4d625c789d2289a90286507830bd420b2",
+    "native-claude-gui/result.json": "a7a482ffb45ad3db3b2f129eb5a90a5b9f8f8e21cfb4c3810c9adbdc4d0c260c",
+    "native-claude-gui/6972739c-d646-4586-9478-1e7520e92634.jsonl": "4093e68c9225b770cb44c7e92501f7f0e921d89f8fbb00e6f098b1396f049a62",
+    "native-codex-gui/result.json": "903b91c716ee5a54776d4b1b5b72d7f0e845ec175653987f4f466ed2de469640",
+    "native-codex-gui/01a14914-f0e2-73f1-ae6f-b599b8acafa7.jsonl": "5edf00c1ae96f383557525266d7b7e63303c9afbf6882e660b35da23bae4479b"
+  }
+}
