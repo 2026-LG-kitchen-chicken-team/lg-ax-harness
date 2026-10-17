@@ -370,7 +370,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
-      "sha256": "cf3766d5fa44e59609a34df41c5d7b7dd80b07f86a086602990d6e2bdfdccb46"
+      "sha256": "4b5303761ff656bbf1e8ea39e46933dc3931f3f6c5f926d19fd41d58f55a2150"
     },
     {
       "path": "web/prototypes/visual-viewer/watch.py",

@@ -315,6 +315,7 @@ def native_completion(paths, body):
         chosen = events[anchors[-1]]
         session = chosen.get("session")
         prompts, children, selected = {chosen.get("prompt_id")}, set(), []
+        open_children = set()
         for event in events[anchors[-1]:]:
             if event.get("session") != session:
                 continue
@@ -329,8 +330,14 @@ def native_completion(paths, body):
                 continue
             if event.get("kind") == "delegate" and detail.get("launched_agent_id"):
                 children.add(detail["launched_agent_id"])
+                open_children.add(detail["launched_agent_id"])
             if event.get("kind") == "subagent" and event.get("phase") == "start" and event.get("agent_id"):
                 children.add(event["agent_id"])
+                open_children.add(event["agent_id"])
+            if event.get("kind") == "subagent" and event.get("phase") in ("end", "fail"):
+                open_children.discard(event.get("agent_id"))
+            if event.get("kind") in ("handback", "handback_delivered", "notification"):
+                open_children.discard(detail.get("from_agent_id"))
             selected.append(event)
         current = (body.get("turns") or [{}])[-1]
         expected = current.get("web_binding") or {}
@@ -345,6 +352,8 @@ def native_completion(paths, body):
         if any(e.get("kind") == "turn_cancelled" for e in terminal):
             return {"status": "native_cancelled"}
         if not terminal or terminal[-1].get("kind") != "turn_end":
+            return {"status": "waiting_native_completion"}
+        if open_children:
             return {"status": "waiting_native_completion"}
         final_index = max(i for i,e in enumerate(selected) if e is terminal[-1])
         if any(main(e) and e.get("kind") in ("request", "handback_delivered", "notification")

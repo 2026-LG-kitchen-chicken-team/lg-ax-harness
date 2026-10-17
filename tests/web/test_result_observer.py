@@ -96,6 +96,16 @@ class ObserverTests(unittest.TestCase):
         path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
         self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
 
+    def test_parent_end_with_open_child_waits_for_child_return(self):
+        self.h.add("microwave")
+        path, events = self.native_events()
+        events.insert(2, {**events[0], "kind": "delegate", "detail": {"launched_agent_id": "child-one"}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
+        events.append({**events[0], "kind": "subagent", "actor": "product_evidence_reviewer", "agent_id": "child-one", "phase": "end", "detail": {}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "native_completed")
+
     def settle(self, observer):
         first = observer.tick()
         return observer.tick() if first["status"] == "stabilizing" else first
