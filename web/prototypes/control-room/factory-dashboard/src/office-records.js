@@ -154,11 +154,18 @@ export function parseRecordFile(text){
   for(const line of trimmed.split(/\r?\n/)){if(!line.trim())continue;try{const value=JSON.parse(line);if(value&&typeof value==='object'&&typeof value.ts==='string')events.push(value);else skipped++;}catch{skipped++;}}
   return {events,live:null,skipped};
 }
-/** Only the result viewer fields this page shows: kind, build time, export name and status chips. */
+/** Only display metadata and the result viewer's verified current-delivery identity.
+ * A timestamp or a legacy file name alone never establishes current-request completion. */
 export function resultMetadata(raw){
   if(!raw||raw.kind!=='lgax-view'||!Array.isArray(raw.pages)||!raw.pages.length)return null;
   const name=raw.context?.file?.name,status=Array.isArray(raw.context?.status)?raw.context.status.filter(s=>s&&typeof s.text==='string').slice(0,4).map(s=>String(s.text).slice(0,80)):[];
-  return {generated_at:typeof raw.generated_at==='string'?raw.generated_at:null,export_name:typeof name==='string'?name.slice(0,120):null,status};
+  const metadata={generated_at:typeof raw.generated_at==='string'?raw.generated_at:null,export_name:typeof name==='string'?name.slice(0,120):null,status};
+  const delivery=raw.delivery,joined=binding(delivery?.binding),version=count(delivery?.binding?.result_version);
+  if(joined&&version!=null&&version>=1&&version<=3&&['completed','held','needs_input'].includes(delivery.business_status)){
+    metadata.delivery={binding:{...joined,result_version:version},business_status:delivery.business_status,
+      display_ready:delivery.display_ready===true,report_data_ready:delivery.report_data_ready===true};
+  }
+  return metadata;
 }
 
 /** Projected, de-duplicated records in time order; `dropped` counts unknown or conflicting lines. */

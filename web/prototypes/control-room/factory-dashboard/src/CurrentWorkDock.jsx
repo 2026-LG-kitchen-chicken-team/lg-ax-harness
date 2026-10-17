@@ -14,11 +14,10 @@ export default function CurrentWorkDock({summary,rooms,selected='overview',listO
    <p className="dock-basis"><i className={summary.active?'running':''}/>{summary.basis}</p>
    <h2>{summary.title}</h2>
    <div className="dock-work-rows">{summary.rooms.map(r=><button className={'dock-work-row '+(r.helperActive&&!r.confirmed?'is-helper':'')} key={r.node} onClick={()=>onSelect(r.node)}><span><Wrench size={12}/>{r.no} {r.label}<em>{r.statusLabel}</em></span><strong>{r.detailLine||r.description}</strong><small><UserRound size={11}/>{r.actor}</small><small>{r.progress}</small></button>)}</div>
-   {!summary.rooms.length&&<p className="dock-empty">{summary.live?'현재 사용 중인 Skill 명령은 확인되지 않았어요.':'하네스를 연결하면 실제 작업이 여기에 나타나요.'}</p>}
    {summary.recent.length>0&&<section className="dock-recent"><h3>방금 한 일</h3>{summary.recent.map(e=><p key={e.id}><time>{time(e.time)}</time>{e.text}</p>)}</section>}
    <section className="dock-next"><h3>다음 행동</h3><p>{summary.next}</p></section>
    {!summary.preview&&<div className="dock-buttons"><button onClick={onDetails}>전체 작업 기록</button>{!summary.live&&<button onClick={onConnect}><Link2 size={12}/>실제 연결</button>}</div>}
    {!summary.preview&&<details className="dock-raw"><summary>수신한 CLI 기록 펼치기</summary><p>관측기가 보낸 원문 필드예요. 명령 본문과 LLM 내부 생각은 전송되지 않아요.</p>{summary.raw.length?<pre>{summary.raw.map(e=>JSON.stringify(e,null,2)).join('\n')}</pre>:<p>아직 수신한 CLI 기록이 없어요.</p>}</details>}
-  </aside>:<button className="current-work-opener" onClick={onOpen}><Activity size={14}/>{summary.active?'작업 보기':'지금 하는 일'}</button>}
+  </aside>:<button className="current-work-opener" onClick={onOpen}><Activity size={14}/>작업 상세</button>}
  </>;
 }
