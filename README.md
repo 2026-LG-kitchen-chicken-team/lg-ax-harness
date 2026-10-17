@@ -4,6 +4,8 @@
 
 **현재 시작 방법은 심사위원 ZIP 다운로드입니다.** 터미널 한 줄 다운로드·AI 원터치 설치 안내는 2026-10-17 사용자 결정으로 잠정 중단했습니다. ZIP의 시작 파일과 uv/Python 준비는 유지합니다. [ZIP 사용 안내](adapters/common/distribution/README.md) · [원터치 안내 중단·기획 화면 원칙](docs/decisions/planner-first-20261017.md). 제품 저장소의 기존 공개 예약과 개발 저장소 비공개 범위는 변경하지 않았습니다.
 
+개발 후보 [PR30](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/pull/30)은 짧은 제안명·요약의 실제 저장 연결, 후보 비교, 구체적인 다음 행동과 후속 질문, 웹·보고서의 핵심/부록 구분을 보완합니다. 새 실제 세 제품군 기획과 최종 화면·복구 확인은 [AF 검증 기록](docs/validation/planner-decision-AF-20261018.md)을 따릅니다. 아래 배포 ZIP은 이 개발 후보로 자동 교체하지 않았습니다.
+
 현재 시험판: [product-v0.19.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.19.0). **사용자는 `lg-ax-judge-product-v0.19.0.zip` 하나만 다운로드**합니다. 기획 본문·근거 부록·고급 진단을 분리하고 공장형 관제를 통합했습니다. 전체 원문과 중요 조건은 보존하며 원터치 다운로드 안내는 잠정 중단했습니다. 메인1·업무 Skill6·선택 역할3과 모델 기본값은 유지합니다. [실행·검사 인수](docs/validation/planner-first-AB-20261017.md) · [제품 ZIP·원격 바이트](docs/validation/product-v0.19.0.md).
 
 발표·영상 전용 [Token Lens](presentation-tools/token-widget/README.md)는 실제 Codex/Claude 로그의 사용량을 별도 로컬 창에 표시합니다. 제품 ZIP에는 포함하지 않으며 모델을 호출하거나 업무 프롬프트를 추가하지 않습니다. [제작 인수](docs/plans/presentation-token-widget-AA-20261016.md) · [동일 자료 모델/추론 비교 계약](docs/validation/execution-quality-AA-method-20261016.md). 촬영은 수행하지 않았습니다.

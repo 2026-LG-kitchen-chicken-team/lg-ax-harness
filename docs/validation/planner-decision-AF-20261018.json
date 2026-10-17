@@ -1,0 +1,304 @@
+{
+  "date": "2026-10-18",
+  "baseline_commit": "5b34cb33d18400dd09574df1caa6efd931694cbe",
+  "native_source_commit": "4a6ecd8eb4155a557ab85dcb6d8a11bb1be96506",
+  "final_code_commit": "0fbbd1eaaa9d0714e07576d6492ead682b4db593",
+  "version_scope": "3 fresh AI planning runs from 4a6ecd8; actual saved results rendered and browser-tested using final 0fbbd1e. Final instruction condensation is code-tested, not a repeated fresh native run.",
+  "new_online_research": false,
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "execution": "Codex CLI",
+  "parallel_single_trial_each": true,
+  "runs": [
+    {
+      "case": "fridge",
+      "native_id": "01a14b0b-7564-7bf2-892e-99d8a0043b53",
+      "elapsed_seconds": 383.578,
+      "process_exit_code": 0,
+      "parent_inputs": 1,
+      "resend": 0,
+      "selected_registered_source_objects": 56,
+      "reviews": 23,
+      "product_materials": 33,
+      "source_bytes_unchanged": true,
+      "corpus_bytes_unchanged": true,
+      "concept_titles": [
+        "소음 상담 약속 이어보기",
+        "냉동 보관 요구 먼저 확인"
+      ],
+      "observed_command_count": 26,
+      "observed_nonzero_command_exits": 4,
+      "usage": {
+        "input_tokens": 2436848,
+        "cached_input_tokens": 2284800,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 21053,
+        "reasoning_output_tokens": 2400
+      }
+    },
+    {
+      "case": "dishwasher",
+      "native_id": "01a14b0b-755d-7e23-9922-ac15639bb42f",
+      "elapsed_seconds": 353.875,
+      "process_exit_code": 0,
+      "parent_inputs": 1,
+      "resend": 0,
+      "selected_registered_source_objects": 81,
+      "reviews": 38,
+      "product_materials": 43,
+      "source_bytes_unchanged": true,
+      "corpus_bytes_unchanged": true,
+      "concept_titles": [
+        "세척 후 결과 점검",
+        "내 식기 배치 연습"
+      ],
+      "observed_command_count": 29,
+      "observed_nonzero_command_exits": 2,
+      "usage": {
+        "input_tokens": 3156376,
+        "cached_input_tokens": 2989440,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 16932,
+        "reasoning_output_tokens": 1244
+      }
+    },
+    {
+      "case": "microwave",
+      "native_id": "01a14b0b-757e-7050-8e4a-3e15258eaab2",
+      "elapsed_seconds": 410.375,
+      "process_exit_code": 0,
+      "parent_inputs": 1,
+      "resend": 0,
+      "selected_registered_source_objects": 82,
+      "reviews": 26,
+      "product_materials": 56,
+      "source_bytes_unchanged": true,
+      "corpus_bytes_unchanged": true,
+      "concept_titles": [
+        "시간설정 경로 확인",
+        "디자인과 비용의 선택 확인"
+      ],
+      "observed_command_count": 36,
+      "observed_nonzero_command_exits": 3,
+      "usage": {
+        "input_tokens": 3550147,
+        "cached_input_tokens": 3388544,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 18794,
+        "reasoning_output_tokens": 1700
+      }
+    }
+  ],
+  "checks": {
+    "product": {
+      "receipt": ".harness/checks/aa1576bdd0504556a715d506e1e56ffb/receipt.json",
+      "receipt_sha256": "cdadfebd7bf406f3b64c5c9752de6306f2961487bea568c11d3104cf10f9de69",
+      "exit_code": 0,
+      "input_files": 25,
+      "input_bytes_current": true,
+      "logs_verified": true,
+      "duration_seconds": 111.329,
+      "total": 525,
+      "passed": 524,
+      "skipped": 1,
+      "failed": 0
+    },
+    "web": {
+      "receipt": ".harness/checks/4268543a35064241ae708c8af6e62773/receipt.json",
+      "receipt_sha256": "ce51f12bb5a0d653cfe67dad9e1447db6d71af137283acf1aca6ef334b73d6af",
+      "exit_code": 0,
+      "input_files": 25,
+      "input_bytes_current": true,
+      "logs_verified": true,
+      "duration_seconds": 108.688,
+      "total": 193,
+      "passed": 192,
+      "skipped": 1,
+      "failed": 0
+    },
+    "evaluation": {
+      "receipt": ".harness/checks/357e72eba4c54646a2f407ae6bc7b17a/receipt.json",
+      "receipt_sha256": "3edcb5c18576c9a1cab69b38505e7d2476ffac9035bfaeaee8a69fe89b41ff09",
+      "exit_code": 0,
+      "input_files": 25,
+      "input_bytes_current": true,
+      "logs_verified": true,
+      "duration_seconds": 12.719,
+      "total": 146,
+      "passed": 146,
+      "skipped": 0,
+      "failed": 0
+    },
+    "build": {
+      "receipt": ".harness/checks/5587ed2dd47e43c3be073ea8edd099d6/receipt.json",
+      "receipt_sha256": "4411bfbb36e6fb16e8b0a57ded8d5ff85502c716391de894174c9463de1e3fdf",
+      "exit_code": 0,
+      "input_files": 45,
+      "input_bytes_current": true,
+      "logs_verified": true,
+      "duration_seconds": 1.828
+    }
+  },
+  "test_totals": {
+    "total": 864,
+    "passed": 862,
+    "skipped": 2,
+    "failed": 0
+  },
+  "skip_reasons": [
+    "Optional locked dependency installation test requires local uv/Python environment variables",
+    "Windows symlink creation unavailable"
+  ],
+  "build": {
+    "app_source_files_byte_bound": 44,
+    "viewer_sha256": "5e7a5d6df91a1427a2da8cffa34711a0f3a290b8c66ca912ebbcb99384b78095",
+    "new_dependency_install": false
+  },
+  "browser": {
+    "method": "Desktop CUA browser against a new loopback read-only build QA server",
+    "viewer_sha256": "5e7a5d6df91a1427a2da8cffa34711a0f3a290b8c66ca912ebbcb99384b78095",
+    "normal_page_error_warn": [],
+    "observations": [
+      "three_family_short_titles_summaries_background_next_action",
+      "comparison_link_to_second_proposal",
+      "web_evidence_disclosure_with_registered_text_and_URL",
+      "three_family_web_to_same_result_report",
+      "report_citation_11_opens_appendix_and_scrolls_to_matching_source",
+      "manual_follow_up_text_with_current_result_identity_and_translate_no",
+      "waiting_and_loading_distinct",
+      "first_read_failure_friendly_recovery",
+      "last_good_result_retained_on_read_failure",
+      "recovery_clears_failure_banner",
+      "open_report_outdated_notice_and_latest_report_switch"
+    ],
+    "controlled_fixtures": [
+      "waiting",
+      "delayed_read",
+      "HTTP503",
+      "old_and_new_saved_result_switch"
+    ],
+    "clipboard": {
+      "success_toast": true,
+      "manual_text_available": true,
+      "external_app_paste": "not_run: virtual clipboard did not expose navigator clipboard write"
+    },
+    "screenshots": [
+      {
+        "file": "01-report-legacy.jpg",
+        "sha256": "3cf13f4624ba0739fe41832aca9cb69ae7ce2161eda36a6e3704d0d6ba02420a",
+        "bytes": 73345
+      },
+      {
+        "file": "02-fridge-fresh.jpg",
+        "sha256": "809b3dfec50752c0ad3699721b7189573c4605285574938bc72a4efdbe36ea8c",
+        "bytes": 67973
+      },
+      {
+        "file": "03-comparison-target.jpg",
+        "sha256": "4560fa0ebf0d357054077e0577605ccfd0e23c27e8c154390dcb8fb0b5f86915",
+        "bytes": 70969
+      },
+      {
+        "file": "04-dishwasher-fresh.jpg",
+        "sha256": "266dcba948227c71819bc7718ce6d8da7d86db562d66ff55170717a52647985a",
+        "bytes": 66335
+      },
+      {
+        "file": "05-dishwasher-report.jpg",
+        "sha256": "98a03dad7c3a72a6df3457dbbf495b0d9593d10633d9a0b9dc33c177fff1c880",
+        "bytes": 90423
+      },
+      {
+        "file": "06-report-source.jpg",
+        "sha256": "32b150e2f97b7e03ded8a181ee3c61900976493f0c7f12319efaa8d8fc4860d7",
+        "bytes": 123380
+      },
+      {
+        "file": "07-microwave-fresh.jpg",
+        "sha256": "b7db7328c2050fa196f5e6e161aa2e703ef727349d6deb16b8ccd8b03550732c",
+        "bytes": 68121
+      },
+      {
+        "file": "08-microwave-report.jpg",
+        "sha256": "26ef497ac209d4b9e2360acd45d5e1f323f6551bffe829ef72c9817b812675df",
+        "bytes": 91722
+      },
+      {
+        "file": "09-first-result-wait.jpg",
+        "sha256": "80b4a1e80b68d2a80abacbce5855782f9b5be6e05400985d54cc07b545f5d91f",
+        "bytes": 29664
+      },
+      {
+        "file": "10-loading.jpg",
+        "sha256": "3d4cf6bc9b7aea6b3533391e511a38c9d74bbd0caa262ba337fd7417eef23a99",
+        "bytes": 28035
+      },
+      {
+        "file": "11-read-failure.jpg",
+        "sha256": "a0d4a8f1d403d1d9eef8d8acf7770a346c0cb0f945404a6f38b1fb3050e667dd",
+        "bytes": 29127
+      },
+      {
+        "file": "12-retain-last-result.jpg",
+        "sha256": "1c078d8718f9655fceace8037d0671b57fded31d2f98eabec8336df9dbc3c694",
+        "bytes": 79121
+      },
+      {
+        "file": "13-new-result-notice.jpg",
+        "sha256": "f5b97951247ff21877a6b5f5a02a4c35c20fb7a8577734b28dca147e5c92ce44",
+        "bytes": 71563
+      },
+      {
+        "file": "14-latest-report.jpg",
+        "sha256": "723a4b7cff4721793fb2d033473828e7bd4ce435b90e182d5df06d8a19e40724",
+        "bytes": 96606
+      }
+    ],
+    "screenshots_scope": "01 legacy report,03 pre-final comparison; remaining current final build except already observed intermediate captures where noted",
+    "mobile": "not_run",
+    "print_pagination": "not_run",
+    "new_native_GUI": "not_run"
+  },
+  "standalone_actual_HTML_count": 3,
+  "usage": {
+    "scope": "terminal parent snapshots; backend billing/child overlap unknown",
+    "totals": {
+      "input_tokens": 9143371,
+      "cached_input_tokens": 8662784,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 56779,
+      "reasoning_output_tokens": 5344
+    },
+    "uncached_input_tokens": 480587,
+    "cache_is_part_of_input": true,
+    "reasoning_is_part_of_output": true,
+    "renderer_model_calls": 0,
+    "baseline_saving_rate": "not_measured"
+  },
+  "independent_review": {
+    "reviewed_code_paths": 25,
+    "excluded": 0,
+    "pending": 0,
+    "blocking_findings": 0,
+    "cited_registered_full_source_objects_reviewed": 20,
+    "additional_product_fact_objects_reviewed": 1,
+    "all_219_objects_semantically_certified": false
+  },
+  "evidence_files": {
+    "native-summary.json": "2ac678008eae74c0861612a8d37b30db474d92cc6b88706bc9592b361001d9cb",
+    "jobs-manifest.json": "9f45a8cdab0bad03d987551940080ad3082f707b211bfff1b4312eef985dd617",
+    "preview-fresh.json": "675e94632c3d1e0564f7d9cd2090b363f629a00de417fa5ef372a1bd6bde0a67",
+    "build-binding.json": "3e9c72d15504bdd6fa7a261ecab419228241e1f81c4192fcffb14c8df964cfa0",
+    "browser-validation.json": "659ec70d1d5330eaee9993aa86c4d07e46dbc69fc67cd0ffc62e583c376a868e"
+  },
+  "Claude_fresh_native": "not_run",
+  "OS_auto_open": "not_run",
+  "planner_task_time_study": "not_run",
+  "release_published": false,
+  "main_changed": false,
+  "remaining": [
+    "Planner user acceptance for choosing a proposal, finding its evidence and giving a refinement request",
+    "Integrated judge ZIP build and release after PR30 integration",
+    "Some AI summaries retain an audit tone; no claim of proven product effect or completed internal-service duplication research"
+  ]
+}
