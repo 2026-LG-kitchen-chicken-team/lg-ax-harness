@@ -26,4 +26,5 @@ def candidate_template(turn):
                        'remaining_pains': [], 'concepts': [], 'assumptions': [],
                        'evidence_refs': [], 'decision_notes': [], 'validation_findings': [],
                        'revisions': version, 'usage_summary': {'status': 'unknown'}},
-            'assessment': {'claim_checks': [], 'feature_matches': [], 'concept_links': []}}
+            'assessment': {'claim_checks': [], 'feature_matches': [], 'concept_links': []},
+            'planner_insights': {'concept_titles': {}, 'summaries': {}}}

@@ -30,6 +30,10 @@ id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links�
 
 각 concept에 implementation_steps(실행 주체/프로토타입/확인 순서)와 validation_plan을 추가한다. validation_plan 필드는 metric/baseline/method/success_criterion/business_value/status이고 status는 planned_not_measured만 허용한다.
 
+같은 작성 턴에서 저장 후보와 함께 `planner_insights:{concept_titles:{콘셉트ID:"짧은 제안명"},summaries:{항목ID:"한 문장 요약"}}`를 작성한다. 제안명은 기능 나열·순위·검증되지 않은 효과 대신 제안의 구별점을 짧게 쓴다. 각 콘셉트 요약은 누구의 어떤 사용 상황에서 무엇을 바꾸려는지와 조건부 가치를 한 문장으로 적고, 남은 불편 ID의 요약은 사용 상황→직접 지지되는 문제 순서로 쓴다. 기존 기능·안내의 존재와 미확인·부정·사건 순서를 요약에서도 보존한다. 새 근거·효과를 요약에 추가하지 않는다.
+
+`implementation_steps[0]`은 바로 시작할 작업의 담당 역할·필요 입력·완료 산출물이 자연스럽게 드러나는 실행 문장으로 쓴다. 확정되지 않은 담당자 이름이나 측정 성과는 만들지 않는다. 제목·요약·다음 행동은 같은 모델 판단에서 작성하며 화면용 별도 모델 호출을 추가하지 않는다. `planner_insights`는 result 안에 넣지 않고 같은 후보의 save_and_export 선택 입력으로 전달한다. binding은 코드가 현재 저장 결과에서 붙인다.
+
 기존 작업 대비 무엇을 측정할지, 같은 과업·완료 품질로 어떻게 비교할지 적는다. 숫자 목표는 가설로 명시하고 미측정 절감률을 실적처럼 쓰지 않는다.
 
 제안서 예시에 없는 실제 불편도 처리하며 다른 제품군의 근거를 대신 쓰지 않는다.

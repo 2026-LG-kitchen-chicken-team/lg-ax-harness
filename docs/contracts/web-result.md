@@ -10,6 +10,12 @@
 
 save_and_export의 기존6필드에 report:false(기본값)를 사용한다. 저장/export가 현재 버전으로 유효하면 web_result와 web_ready를 반환한다. 명시 report:true는 기존 파일 생성/복구 경로이며 기본 필수가 아니다. prepare_web_result 입력은 {session_id,turn_id,expected_result_version}. 같은 현재 버전의 지문이 같은 파일을 재사용한다.
 
+기본 웹 전달에는 선택 `planner_insights:{concept_titles:{concept_id:문자열},summaries:{현재항목ID:문자열}}`를 같은 후보와 함께 전달할 수 있다. prepare_web_result에도 같은 선택 입력을 허용한다. 코드가 현재 session/turn 및 전체 binding을 삽입하며 caller가 이 값을 제공하면 완전 일치해야 한다. concept_titles는 현재 콘셉트 ID만, summaries는 현재 pain/feature/remaining_pain/concept ID만 허용한다. 값 상한은 각각120/1000자, 작성 표현 전체32KiB다. 새로운 업무 정답·효과·근거를 코드가 생성하거나 의미 승인하지 않는다.
+
+표현은 현재 turn/result_version/result SHA에 묶어 별도로 보존하고 `runtime-data/visual-viewer/insights-<binding지문>.json`을 원자적으로 쓴다. 같은 binding의 다른 표현·변조 파일은 덮어쓰지 않으며 과거 result_version 표현은 승계하지 않는다. 같은 결과에서 조사 audit이 바뀌면 보존된 표현에 새 현재 binding을 붙여 준비한다. sidecar 생성 후 현재 export를 갱신하므로 기존 watcher의 자동 선택 경로를 사용한다. 재생성·finish·export는 새 모델 호출이나 업무 수정이 아니다.
+
+`web_result.planner_insights`는 별도 ready/status/path/sha256/binding/reused와 필요한 error를 반환한다. not_provided는 기존 입력 호환이다. sidecar/표현 검증 실패가 accepted/delivery_ready/web_ready를 뒤집지 않는다. sidecar 뒤 export 갱신 실패는 planner_insights.export_error로 구분하고 export_session으로 복구한다. 정형 웹 JSON·원문·refs·현재 result는 이 표시 표현으로 변경하지 않는다. ready는 binding·파일 준비이며 원문 의미·HTML 렌더·OS 열기 인수가 아니다.
+
 작은receipt의 ready/path/sha256/bytes/binding/source_count/status/workflow_audit_hash/reused를 확인한다. path는 runtime-data/web-deliveries/web-SHA.json이다. 웹팀 코드가 파일SHA와 현재binding을 대조한 뒤 읽는다. 개인 로그·인증·다른 workspace 파일을 함께 업로드하지 않는다.
 
 파일 contract_version:product-web-result-v1에 binding/input/status/result/validation/sources/source_references/coverage/evidence_history/investigation/investigation_events/usage_summary를 보존한다.

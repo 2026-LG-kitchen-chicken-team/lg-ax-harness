@@ -78,6 +78,19 @@ class ReviewerPacketTests(unittest.TestCase):
         other = self.prepare("review-1")
         self.assertNotEqual(other["candidate_sha256"], prepared["candidate_sha256"])
 
+    def test_optional_display_text_is_preserved_as_interpretation_in_immutable_packet(self):
+        self.candidate['planner_insights'] = {'concept_titles': {'c1': '검토할 제안명'}, 'summaries': {'r1': '검토할 해석'}}
+        self.write()
+        prepared = self.prepare()
+        packet = strict_json((self.root / prepared['packet_path']).read_text(encoding='utf-8'))
+        self.assertEqual(packet['candidate']['planner_insights'], self.candidate['planner_insights'])
+        self.assertIn('not source evidence', packet['review_scope'])
+        self.assertTrue(self.verify(prepared)['ready'])
+        self.candidate['planner_insights']['concept_titles']['c1'] = '바뀐 제목'
+        self.write()
+        self.assertTrue(self.verify(prepared)['ready'])
+        self.error('packet_conflict', self.prepare)
+
     def test_packet_hash_and_immutable_candidate_tampering_are_rejected(self):
         prepared = self.prepare()
         path = self.root / prepared["packet_path"]

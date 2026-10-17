@@ -17,7 +17,7 @@ class WebDelivery:
             PRIMARY KEY(turn_id,result_version,payload_hash))""")
 
     def prepare_web_result(self, payload):
-        obj(payload, ("session_id", "turn_id", "expected_result_version"))
+        obj(payload, ("session_id", "turn_id", "expected_result_version"), ("planner_insights",))
         session = identifier(payload["session_id"], "session_id")
         turn = identifier(payload["turn_id"], "turn_id")
         version = integer(payload["expected_result_version"], "expected_result_version", 1)
@@ -89,4 +89,7 @@ class WebDelivery:
                         "ui_ready": False, "html_rendered": False, "layout_review": "not_run"}
             self.store.db.execute("INSERT OR IGNORE INTO web_deliveries VALUES(?,?,?,?)",
                                   (turn, version, digest, canonical(response)))
+            from .planner_insights import MISSING, PlannerInsights
+            response["planner_insights"] = PlannerInsights(self.store, self.workspace).prepare(
+                binding, current["latest_result"], payload.get("planner_insights", MISSING))
             return {**response, "reused": reused}

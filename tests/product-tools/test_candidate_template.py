@@ -43,6 +43,9 @@ class CandidateTemplate(unittest.TestCase):
         template['result'].update(status='held', validation_findings=['실제 미확인 조건'])
         saved = self.conv.save_and_export(template)
         self.assertTrue(saved['delivery_ready'])
+        self.assertEqual(template['planner_insights'], {'concept_titles': {}, 'summaries': {}})
+        self.assertEqual(saved['web_result']['planner_insights']['status'], 'not_provided')
+        self.assertFalse((self.root/'runtime-data/visual-viewer').exists())
         self.assertEqual(saved['export']['usage_summary']['status'], 'unknown')
         self.assertLess(len(canonical(value).encode()), 63001)
 

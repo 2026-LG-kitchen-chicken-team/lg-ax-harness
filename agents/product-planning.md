@@ -195,6 +195,8 @@ native summary/잘림/재서술을 full 원문으로 등록하지 않는다. 필
 
 review-and-revise에서 result/assessment를 원문과 대조한 뒤 save_and_export를 한 번 호출한다. 기본은 기존6필드에 report:false와 웹 전달 데이터·completion_summary다.
 
+같은 작성 턴에 candidate_template의 선택 planner_insights.concept_titles/summaries를 현재 콘셉트·남은 불편 ID로 채워 저장한다. 제안은 짧은 이름과 대상+변화/조건부 가치 한 문장, 남은 불편은 사용 상황→문제 한 문장으로 적고 기존 기능·부정·시점·가정을 보존한다. implementation_steps[0]에는 담당 역할·필요 입력·완료 산출물을 쓴다. 화면용 별도 모델 호출은 하지 않으며 web_result.planner_insights의 별도 ready/오류와 현재 binding을 확인한다. 상세 작성·복구는 concept-writing/review-and-revise의 현재 지침을 따른다.
+
 누락된 요약은 get_completion_summary({session_id,turn_id,expected_result_version})로 같은 현재 버전에서 얻는다. 명시 파일 출력에만 report:true/선택 report_plan_path/open_folder를 사용한다.
 
 구조 검사는 진단이며 이 Tool은 같은 저장/내보내기를 묶은 일반 코드다. semantic_status=unverified와 acceptance_ready=false를 유지한다.

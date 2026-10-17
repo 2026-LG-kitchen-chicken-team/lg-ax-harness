@@ -58,6 +58,8 @@ packet ready는 원문 의미/후보 valid/save 승인 인증이 아니다. 수�
 
 bundle의 candidate_template을 실제 판단으로 채운다. result_limits를 확인하고 Python json으로 파일 작성 뒤 save_and_export를 실행한다. 기본 report:false의 delivery_ready/web_ready와 현재 web_result 파일/SHA/binding을 확인한다. 양식·파일 생성은 의미 승인이나 HTML 연결을 인증하지 않는다.
 
+같은 후보에 `planner_insights.concept_titles`의 짧은 제안명과 `summaries`의 콘셉트·남은 불편 한 문장 요약을 작성해 save_and_export의 선택 입력으로 함께 보낸다. 현재 result 항목 ID만 사용하고 제목·요약도 연결 원문의 조건·부정·사건 순서 및 기존 기능 대조와 일치하는지 검토한다. 콘셉트 요약은 대상+바꾸려는 과업/가치, 남은 불편 요약은 사용 상황→문제로 적는다. `implementation_steps[0]`에는 담당 역할·필요 입력·완료 산출물을 남긴다. 저장 후보 수정 시 이 표현도 함께 고치며 별도 화면용 모델 호출은 하지 않는다.
+
 ## 검토: 출처·검증 계획·수정 범위
 
 보류의 판단 근거도 decision_notes에 원문 사실·AI 해석·미확인으로 구분하고 정확 refs에 연결한다. 원문 직접 인용은 support_quote의 연속 구간이며 요약/판단은 공식 발언으로 표시하지 않는다.
@@ -89,6 +91,8 @@ planning_quality_diagnostics는 structural_only/blocking=false의 누락 안내�
 최종 답변을 내기 전 현재 저장 버전과 completion_summary.text의 사건 순서·부정 범위·적용 조건을 대조한다. 저장된 의미 오류를 최종 문장만 바꿔 숨기지 않는다. 같은 turn의 남은 수정 한도 안에서 저장을 고치거나 핵심 전제의 불확실성을 보류하고, 해당 영향 밖의 기획까지 자동 실패로 넓히지 않는다.
 
 일반 업무는 기존6필드의 save_and_export(report:false)로 저장/export와 웹 정형 데이터 전달을 수행한다. web_ready/web_result.path/sha256/binding을 확인한다.
+
+선택 제목·요약 전달은 별도 `web_result.planner_insights.ready/path/sha256/binding`으로 확인한다. 실패해도 정형 결과 저장·웹 전달 성공을 뒤집거나, 웹 성공만으로 제목·요약도 전달됐다고 쓰지 않는다. 같은 현재 version의 prepare_web_result로 복구할 수 있으며 저장된 표현은 재사용된다. 다른 session/turn/binding·항목 ID는 거부되고 과거 버전 표현을 자동 승계하지 않는다. 상세 입력·복구는 [저장 양식](references/payload.md)을 따른다.
 
 데이터에는 현재 결과·전체 선택 원문·출처·검토/조사 이력이 있고 웹팀이 작업 화면/보고서HTML을 만든다. PDF/DOCX/XLSX 생성·이미지검수는 기본 필수가 아니다.
 
