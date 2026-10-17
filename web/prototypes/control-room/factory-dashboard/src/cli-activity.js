@@ -13,8 +13,10 @@ export function publicSentence(value){
 export function activityLine(event){
  const ops=event?.ops||[],op=event?.op||ops[0]?.op,action=actions[op];
  const phase=event?.phase||event?.status;
- const failed=event?.ok===false||['error','failed','failure'].includes(phase);
+ const failed=event?.ok===false||['error','failed','failure','fail'].includes(phase);
  const label=action||(event?.tool&&/web|search|browse/i.test(event.tool)?'웹 자료를 조회':'');
+ if(label&&event?.detail?.interrupted)return label+'하는 중 요청이 취소됐어요';
+ if(label&&(phase==='unknown'||event?.detail?.reason==='native_result_unconfirmed'))return label+'한 결과를 확인 중이에요';
  if(label)return label+(failed?'하지 못했어요':phase==='start'||phase==='running'?'하고 있어요':'했어요');
  if(/취소/.test(event?.message||''))return '요청이 취소됐어요. 마지막 기록을 보관해요';
  if(/호출 관측|네이티브|\bturn\b|\bTool\b/i.test(event?.message||''))return '작업 도구를 사용한 기록을 받았어요';
@@ -22,7 +24,9 @@ export function activityLine(event){
 }
 export function cliActivity(summary,view={}){
  const preview=Boolean(summary.preview),status=preview?'모의 실행':view.connectionStatus==='connected'?'실제 기록':view.connectionStatus==='stale'?'연결 지연':'연결 대기';
- const events=(view.recentEvents||[]).slice(0,20),seen=new Set(),recent=[];
+ const nativeCalls=view.activity?.calls||[],nativeIds=new Set(nativeCalls.map(c=>'call-'+c.id));
+ const calls=nativeCalls.map(c=>({id:'cli-'+c.id,op:c.operation,status:c.status,time:c.ended_at||c.started_at,message:c.category==='instruction'?'작업 설명서를 확인했어요':'작업 도구를 사용한 기록을 받았어요'}));
+ const events=[...calls,...(view.recentEvents||[]).filter(e=>!nativeIds.has(e.id))].sort((a,b)=>(Date.parse(b.time||b.ts||b.at)||0)-(Date.parse(a.time||a.ts||a.at)||0)).slice(0,20),seen=new Set(),recent=[];
  for(const event of events){const text=activityLine(event);if(seen.has(text))continue;seen.add(text);recent.push({id:event.id||recent.length,text,time:event.time||event.ts||event.at});if(recent.length===3)break;}
  const rooms=summary.rooms||[],skills=rooms.filter(r=>r.confirmed||preview).map(r=>({id:r.id||r.node,label:r.label||SKILL_BY_ID[r.id]?.label||'Skill'}));
  const title=summary.active&&rooms.length===1?rooms[0].detailLine||summary.title:summary.title;

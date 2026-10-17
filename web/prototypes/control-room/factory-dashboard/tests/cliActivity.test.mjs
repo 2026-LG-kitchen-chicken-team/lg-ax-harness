@@ -22,3 +22,11 @@ test('preview is labelled and cannot manufacture a CLI history',()=>{
  const model=cliActivity({preview:true,active:true,title:'동작 예시를 보고 있어요',rooms:[{id:'evidence-retrieval',label:'자료 조회'}]},{recentEvents:[{id:1,op:'save_and_export'}]});
  assert.equal(model.status,'모의 실행');assert.equal(model.recent.length,0);assert.equal(model.lastAt,null);assert.equal(model.skills[0].label,'자료 조회');
 });
+test('actual native Skill lifecycles feed the short history without command text',()=>{
+ const model=cliActivity({rooms:[],title:'자료를 확인해요'},{connectionStatus:'connected',activity:{calls:[{id:'a',operation:'retrieve_reviews',category:'skill',status:'completed',started_at:'2026-10-17T13:41:10Z',ended_at:'2026-10-17T13:41:13Z'},{id:'b',operation:'retrieve_product_facts',category:'skill',status:'running',started_at:'2026-10-17T13:41:15Z'}]}});
+ assert.equal(model.recent[0].text,'공식 제품 기능을 조회하고 있어요');
+ assert.equal(model.recent[1].text,'고객 후기를 조회했어요');
+ assert.equal(model.skills.length,0);
+ assert.match(activityLine({op:'retrieve_reviews',status:'unknown'}),/확인 중/);
+ assert.match(activityLine({op:'retrieve_reviews',phase:'fail'}),/못했어요/);
+});

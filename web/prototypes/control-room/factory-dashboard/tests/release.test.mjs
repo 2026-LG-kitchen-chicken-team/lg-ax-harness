@@ -27,9 +27,9 @@ test('actual native readiness results fill the factory while every Skill remains
  assert.deepEqual(view.activeNodes,[]);assert.equal(view.activity.ready,true);assert.match(view.header.text,/상품기획 요청 대기/);
  assert.ok(view.skills.every(s=>s.instructionLoaded&&!s.operationObserved&&!s.active));assert.equal(view.nodes.retrieve.events.length,1);assert.equal(view.nodes.web.events.length,1);assert.equal(view.mainActive,false);assert.equal(view.counts.concepts,null);
 });
-test('CLI stage reports select a workspace without manufacturing an active Skill',()=>{
+test('CLI stage reports keep the planner active without animating a Skill workspace',()=>{
  const view=viewFor([request('planning-request')],{activity:nativeActivity({intent:'planning',task_code:'compare_features',reported_stage:'compare'})});
- assert.deepEqual(view.activeNodes,['compare']);assert.deepEqual(view.activeSkills,[]);assert.equal(view.nodes.compare.statusLabel,'CLI 진행 보고');assert.equal(view.skills.find(s=>s.id==='feature-comparison').operationObserved,false);
+ assert.deepEqual(view.activeNodes,['overview']);assert.deepEqual(view.activeSkills,[]);assert.equal(view.nodes.compare.active,false);assert.equal(view.skills.find(s=>s.id==='feature-comparison').operationObserved,false);
 });
 const TRIPLE = { session_id: 'business-session', turn_id: 'business-turn', request_key: 'request-key' };
 function db(changes = {}) {

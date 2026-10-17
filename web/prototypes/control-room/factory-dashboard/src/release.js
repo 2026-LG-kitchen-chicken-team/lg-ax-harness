@@ -1,5 +1,6 @@
 /** Installed product observations (any product-vX.Y.Z). Product text and native logs are data, not code. */
-import {normalizeActivity,activityPresentation} from './releaseActivity.js';
+import {normalizeActivity,activityPresentation,nativeSkillEvents} from './releaseActivity.js';
+import {skillOperation} from './skill-operations.js';
 import {CONTINUATIONS,RELEASE_PATTERN,selectedNative} from './office-records.js';
 import {PRODUCT_SKILLS,PRODUCT_ROLES} from './skill-catalog.js';
 import {instructionSkills,instructionLookup,instructionOnly,skillWorkEvent,workSkills,currentAgentInstances} from './skill-semantics.js';
@@ -129,7 +130,7 @@ const callKey = event => [event.src, event.session, event.prompt_id || '', event
 function labelFor(event) {
   const skill = SKILLS.get(event.node), role = ROLES.get(event.node) || ROLES.get(event.actor);
   if (instructionOnly(event)) return event.kind==='skill_load' ? `${skill?.label || '미확인 Skill'} 지침 파일 조회 관측` : '작업 설명서 조회 · 조회한 본문은 기록에 미제공';
-  if (event.kind === 'skill_op') return workSkills(event).map(id=>SKILLS.get(id).label).join(' · ')+' · 작업 명령 관측';
+  if (event.kind === 'skill_op') return workSkills(event).map(id=>SKILLS.get(id).label).join(' · ')+' · '+(skillOperation(event.op)?.label||'작업 명령')+' · '+({start:'호출 중',end:'완료',fail:'실패'}[event.phase]||'관측');
   if (event.kind === 'delegate') return `${role?.label || '기타 역할'} 위임 호출 관측${event.detail.background ? ' · 비동기 시작 응답' : ''}`;
   if (event.kind === 'subagent') return `${role?.label || '기타 하위 에이전트'} ${event.phase === 'start' ? '시작' : '종료'} 관측`;
   if (event.kind === 'turn_cancelled') return '네이티브 turn 취소 관측 · Tool 종료 결과는 별도 확인';
@@ -169,8 +170,8 @@ function spansFor(events) {
       const cancelledBeforeEnd = cancelledAt != null && (!span || Date.parse(span.start.ts) <= cancelledAt);
       if (span) {
         if (span.status === 'cancelled' || cancelledBeforeEnd) { span.lateEnd = event; continue; }
-        span.end = event; span.endedAt = event.ts; span.status = event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed'; span.resultKnown = true;
-      } else { const early = { id: event.id, key, start: event, end: event, status: cancelledBeforeEnd ? 'cancelled' : event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed', resultKnown: !cancelledBeforeEnd, endedAt: event.ts, startUnobserved: true }; spans.push(early); if (event.call) endedFirst.set(key, early); }
+        span.end = event; span.endedAt = event.ts; span.status = event.detail.reason==='native_result_unconfirmed'?'unknown':event.detail.interrupted?'cancelled':event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed'; span.resultKnown = !['unknown','cancelled'].includes(span.status);
+      } else { const early = { id: event.id, key, start: event, end: event, status: cancelledBeforeEnd||event.detail.interrupted ? 'cancelled' : event.detail.reason==='native_result_unconfirmed'?'unknown':event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed', resultKnown: !cancelledBeforeEnd&&!event.detail.interrupted&&event.detail.reason!=='native_result_unconfirmed', endedAt: event.ts, startUnobserved: true }; spans.push(early); if (event.call) endedFirst.set(key, early); }
     }
   }
   return spans;
@@ -217,7 +218,14 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   let connectionStatus = connection.status || 'disconnected';
   if (['connected', 'error', 'stale'].includes(connectionStatus) && data && (received === null || received >= (connection.staleAfterMs ?? DEFAULTS.staleMs) || observed === null || observed >= (connection.staleAfterMs ?? DEFAULTS.staleMs) || observed < -5000)) connectionStatus = 'stale';
   const connected = connectionStatus === 'connected';
-  const engineEvents = (data?.events || []).filter(event => event.src === data.source.engine).sort(byTime);
+  const originalEvents=(data?.events||[]).map(event=>{
+    const receipt=data?.activity?.calls?.find(c=>c.observer_call_id&&c.observer_call_id===event.call);
+    // Older observers match a Skill path anywhere in shell text, including an
+    // echo/read example. A verified native command projection takes precedence.
+    return event.kind==='skill_op'&&receipt&&!['skill','instruction'].includes(receipt.category)?{...event,kind:'shell',node:event.actor,op:null,ops:[],basis:'observed'}:event;
+  });
+  const projected=data?.source.engine==='codex'?nativeSkillEvents(data.activity,originalEvents):[];
+  const engineEvents = [...originalEvents,...projected].filter(event => event.src === data.source.engine).sort(byTime);
   const main = engineEvents.filter(event => mainEvent(event) && event.session);
   const anchors = main.filter(event => event.kind === 'request' || event.kind === 'session' && event.phase === 'start');
   const anchor = anchors.at(-1), sessionId = anchor?.session || main.at(-1)?.session || null;
@@ -249,7 +257,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   const activity=activityPresentation(activityInput,sessionId,promptId,connected,nowMs);
   // UserPromptSubmit (or a delivered role result) until Stop: the main planner is answering, with or without a tool.
   const turnOpen = Boolean(observationFresh && !latestMainCancelled && turnMarker && turnMarker.kind !== 'turn_end');
-  if(activity?.working&&!activeNodes.length)activeNodes.push(activity.reported_stage||'overview');
+  if(activity?.working&&!activeNodes.length)activeNodes.push('overview');
   let boundDb = null, bindingState = data?.db?.available ? 'unmatched' : 'unavailable';
   if (data?.db?.binding_status === 'matched' && data.db.binding && currentEvents.some(event => mainEvent(event) && sameBinding(event.detail.business_binding, data.db.binding))) { bindingState = 'matched'; boundDb = data.db; }
   const candidate = boundDb?.candidates?.findLast(item => item.result_version === boundDb.turn?.result_version) || null;
@@ -306,7 +314,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   else if (latestActive) header = { state: 'active', text: labelFor(latestActive), detail: latestActive.kind === 'skill_op' ? '명령 경로에 따른 Tool 관찰입니다. Skill의 의미 판단이나 성공을 자동 인증하지 않습니다.' : '네이티브 사건을 관측한 범위이며 모델 내부 상태를 뜻하지 않습니다.' };
   else if (turnMarker?.kind === 'turn_end') header = { state: 'recorded', text: '메인 최종 응답 종료 관측', detail: '데이터 저장·원문 의미 승인·전체 프로세스 종료와 구분합니다.' };
   else header = { state: 'recorded', text: '릴리즈 연결됨 · 마지막 관측 기록', detail: spans.some(span => span.status === 'open') ? '열린 호출의 종료 결과를 아직 관측하지 못했습니다. 현재 실행 여부를 단정하지 않습니다.' : '기록된 사건을 표시합니다. 현재 실행 여부는 추가 관측이 필요합니다.' };
-  if(activity&&connected){header={state:activity.working?'active':activity.state==='cancelled'?'cancelled':'recorded',text:activity.text,detail:activity.reported?'CLI의 공개 진행 보고입니다. 실제 Skill 명령 호출 기록과 구분합니다.':'선택한 네이티브 요청의 시작·완료와 명령 결과를 표시합니다.'};}
+  if(activity&&connected){header={state:activity.working?'active':activity.state==='cancelled'?'cancelled':'recorded',text:activity.text,detail:activity.current?'네이티브 Tool 호출의 시작과 종료 기록입니다. Skill 명령은 실제 실행 경로와 작업 이름을 대조합니다.':activity.reported?'CLI의 공개 진행 보고입니다. 실제 Skill 명령 호출 기록과 구분합니다.':'선택한 네이티브 요청의 시작·완료와 명령 결과를 표시합니다.'};}
   nextAction = connectionStatus === 'disconnected' || connectionStatus === 'error' ? '로컬 관찰 읽기 서버 주소와 Bearer 키로 연결하세요.' : connectionStatus === 'stale' ? '읽기 연결을 확인하고 상태를 다시 읽으세요.' : !events.length ? '관찰기가 설치 제품의 실제 네이티브 세션을 기록할 때까지 기다리세요.' : 'Skill·역할의 실제 기록과 현재 버전의 저장 결과를 확인하세요.';
   if(activity&&connected)nextAction=activity.next;
   // The file view reads observer files beside the page; it has no release server to connect to.
@@ -318,7 +326,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
     if (['disconnected', 'error', 'stale'].includes(connectionStatus)) nextAction = '이 화면이 하네스의 runtime-data/agent-office 폴더에서 열렸는지, 옆에 live.js가 있는지 확인하세요. 자동으로 다시 읽습니다.';
     else if (!events.length) nextAction = replay ? '다른 세션이나 기록 파일을 고르세요.' : '이 하네스 폴더에서 Claude Code로 질문하거나, Codex는 관찰 창을 켠 뒤 질문하세요. 기록이 생기면 바로 표시합니다.';
   }
-  return freeze({ readonly: true, sourceMode: 'release', origin, release: data?.source.release || null, activity, mainActive:Boolean(connected&&observationFresh&&!latestMainCancelled&&(activity?activity.working:turnOpen)), header, nextAction, connectionStatus, nodes, activeNodes, activeSkills, skills: usedSkills, roles, agents, unboundAgents, instructionQuery, currentEvents, actors: [...new Set(currentEvents.map(event => event.actor))].filter(actor => actor === 'main' || ROLES.has(actor)), recentEvents:activity?activity.actions.filter(a=>a.code!=='local_command').slice(-3).reverse():recentEvents, events, spans, sessionId, promptId, promptIds: [...promptIds], product, bindingState, binding: boundDb?.binding || null, database: boundDb, counts, lastEventAt, sourceAgeSeconds: data?.source.source_updated_at ? Math.max(0, (nowMs - Date.parse(data.source.source_updated_at)) / 1000) : null, observationFresh: Boolean(observationFresh), notices: data?.notices || [] });
+  return freeze({ readonly: true, sourceMode: 'release', origin, release: data?.source.release || null, activity, mainActive:Boolean(connected&&observationFresh&&!latestMainCancelled&&(activity?activity.working:turnOpen)), header, nextAction, connectionStatus, nodes, activeNodes, activeSkills, skills: usedSkills, roles, agents, unboundAgents, instructionQuery, currentEvents, actors: [...new Set(currentEvents.map(event => event.actor))].filter(actor => actor === 'main' || ROLES.has(actor)), recentEvents:activity?activity.actions.slice(-3).reverse():recentEvents, events, spans, sessionId, promptId, promptIds: [...promptIds], product, bindingState, binding: boundDb?.binding || null, database: boundDb, counts, lastEventAt, sourceAgeSeconds: data?.source.source_updated_at ? Math.max(0, (nowMs - Date.parse(data.source.source_updated_at)) / 1000) : null, observationFresh: Boolean(observationFresh), notices: data?.notices || [] });
 }
 
 function endpointFor(value) {

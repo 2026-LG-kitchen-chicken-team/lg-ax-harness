@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import stat
+from .native_calls import project_calls
 
 SKILLS = ('evidence-retrieval', 'web-evidence-collection', 'needs-structuring',
           'feature-comparison', 'concept-writing', 'review-and-revise')
@@ -145,6 +146,7 @@ def project_activity(rows, workspace, session, prompt):
             action('turn-' + str(i), ts, 'readiness_finished' if out['intent'] == 'readiness' else 'turn_finished', out['state'])
     out['skill_reads'] = sorted(read.values(), key=lambda r: r['id'])
     out['actions'] = out['actions'][-12:]
+    out['calls'] = project_calls(current, workspace)
     return out
 
 
