@@ -12,6 +12,9 @@ FORBIDDEN = {'.git', '.harness', '.venv', 'node_modules', '__pycache__', 'runtim
              'evals', 'tests', 'dev-harness', 'adapters', 'auth.json', 'settings.local.json'}
 LAUNCHERS = tuple(f'start_{engine}_{ui}.{ext}' for engine in ('claude', 'codex') for ui in ('gui', 'cli')
                   for ext in ('cmd', 'sh'))
+# Each runtime folder must carry the observer and its pages: the run dashboard (factory) opens at the first question.
+OBSERVER_FILES = tuple('web/prototypes/agent-office/' + name for name in
+                       ('office.py', 'observe.py', 'codex_follow.py', 'factory.html', 'index.html'))
 
 def load(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -50,6 +53,9 @@ def build(staging, archive, version, source_commit, root=ROOT):
         expected = {e['path']: e['sha256'] for e in record['files']}
         if len(expected) != len(record['files']):
             raise ValueError('Duplicate installation entries')
+        missing = [name for name in OBSERVER_FILES if name not in expected]
+        if missing:
+            raise ValueError('Run dashboard/observer file missing from ' + engine + ' install: ' + ', '.join(missing))
         for relative, sha in expected.items():
             name = engine + '/' + relative
             safe_name(name)

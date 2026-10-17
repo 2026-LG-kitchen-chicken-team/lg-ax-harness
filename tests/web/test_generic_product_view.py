@@ -59,9 +59,10 @@ class GenericProductViewTests(unittest.TestCase):
                     self.assertNotIn('미지원', build_view.family_label(family))
                     self.assertIn(family.replace('_', ' ').replace('-', ' '), json.dumps(view, ensure_ascii=False))
                     web = json.loads((g.work / saved['web_result']['path']).read_text(encoding='utf-8'))
+                    self.assertEqual(report['plan']['appendix']['sources'], web['sources'])
                     text_blocks = [block.get('text') for section in report['plan']['sections'] for block in section['blocks']]
                     for source in web['sources']:
-                        self.assertIn(source['text'], text_blocks)
+                        self.assertNotIn(source['text'], text_blocks)
                     self.assertEqual(turn['state']['latest_result']['evidence_refs'], web['result']['evidence_refs'])
                     frozen = export.read_bytes()
                     followup = g.conv.open_request_bundle({

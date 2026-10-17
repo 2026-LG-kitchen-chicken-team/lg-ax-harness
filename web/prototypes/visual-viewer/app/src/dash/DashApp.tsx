@@ -60,7 +60,7 @@ export default function DashApp(p: Props) {
           </main>
         </div>
         <BackToTop />
-        <SearchDialog view={view} open={p.searchOpen} close={p.closeSearch} pick={pick} />
+        <SearchDialog view={view ? { ...view, pages: view.pages.filter(x => x.audience !== 'diagnostic' || page?.audience === 'diagnostic') } : null} open={p.searchOpen} close={p.closeSearch} pick={pick} />
       </div>
     </SkinContext.Provider>
   )
@@ -130,9 +130,10 @@ function Brand({ view, close }: { view: View | null; close: () => void }) {
 function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSearch, lastReadAt, fromFile, busy }: Props & { open: boolean; close: () => void }) {
   const pages = view?.pages || []
   const groups = [
-    { title: '발표', items: pages.filter((x) => STORY_IDS.has(x.id)) },
-    { title: '세부 화면', items: pages.filter((x) => !STORY_IDS.has(x.id)) },
+    { title: '기획', items: pages.filter((x) => x.audience === 'planning' || (!x.audience && STORY_IDS.has(x.id))) },
+    { title: '근거·부록', items: pages.filter((x) => x.audience === 'evidence' || (!x.audience && !STORY_IDS.has(x.id))) },
   ].filter((g) => g.items.length)
+  const diagnostics = pages.filter(x => x.audience === 'diagnostic')
   const ctx = view?.context || {}
   return (
     <>
@@ -168,6 +169,13 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
               </ul>
             </div>
           ))}
+          {diagnostics.length > 0 && <details className="mb-5" open={page?.audience === 'diagnostic' || undefined}>
+            <summary className="cursor-pointer px-2.5 py-2 text-xs text-zinc-500">고급 · 실행 및 진단 기록</summary>
+            <ul className={S.list}>{diagnostics.map(x => <li key={x.id}>
+              <button type="button" onClick={() => go(x.id)} aria-current={x.id === page?.id ? 'page' : undefined}
+                className={cn(S.item, x.id === page?.id ? S.on : S.off)}><FileText className="size-4 shrink-0" aria-hidden />{x.nav || x.title}</button>
+            </li>)}</ul>
+          </details>}
         </nav>
         <SaveCard view={view} reload={reload} openFile={openFile} inline={inline} lastReadAt={lastReadAt} fromFile={fromFile} busy={busy} className={cn(S.card, 'mt-auto')} />
         </div>

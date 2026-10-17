@@ -9,7 +9,8 @@ What it does, per hook call:
 - refreshes `runtime-data/agent-office/live.js` (recent events + a short read-only snapshot of product.sqlite) that the
   office page reloads.
 - only when `office.py install --open-on-prompt` turned it on (`runtime-data/agent-office/auto-open.json`): opens the
-  office page in the default browser at the first question of each session, once per session.
+  run dashboard (the factory page, or the 3D office page) in the default browser at the first question of each session,
+  once per session.
 
 What it never does: print to stdout or stderr, exit non-zero, block or change a tool call, call a model or a business
 tool, write to product.sqlite, or keep prompt text, command text, tool output, file contents or search queries.
@@ -45,6 +46,9 @@ MAX_STDIN = 4 * 1024 * 1024        # hook payloads with a large tool_response ar
 MAX_EVENTS_BYTES = 8 * 1024 * 1024  # events.jsonl rolls over to events-<time>.jsonl past this size
 LIVE_EVENTS = 1500                 # events kept in live.js for the page (about one long run)
 OPENED_KEEP = 50                   # sessions remembered in auto-open.json (the page opens once per session)
+# Pages beside the records that auto-open.json may name. A name, never a path: the hook opens only these files.
+PAGES = {"office": "index.html", "factory": "factory.html"}
+RELEASE = re.compile(r"product-v\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?")
 
 # product v0.10.0 inventory (agents/product-planning.md, docs/contracts/product-research-agents.md, skills/manifest.json).
 # Node ids match the teammate control room (web/prototypes/control-room/src/catalog.ts) so traces can be shared.
@@ -629,7 +633,7 @@ def refresh_live(event: dict):
     if snap is None and SNAPSHOT.is_file():
         snap = loads(SNAPSHOT.read_text(encoding="utf-8"))
     live = {"kind": "lgax-agent-office-live", "version": VERSION, "written_at": now(), "harness_version": harness_version(),
-            "events": recent_events(), "db": snap}
+            "harness_release": harness_release(), "events": recent_events(), "db": snap}
     write_text(LIVE, "/* agent-office observe.py writes this file; do not edit. */\nwindow.LGAX_OFFICE_LIVE = "
                + json.dumps(live, ensure_ascii=False) + ";\n")
 
@@ -642,30 +646,43 @@ def harness_version():
         return None
 
 
-def should_open(event: dict) -> bool:
-    """True once per session, at its first real question, when `office.py install --open-on-prompt` enabled it.
-    Called under the lock; it records the session before the page is opened."""
+def harness_release():
+    """The product release a judge ZIP setup recorded (runtime-data/judge-setup.json); None for other installs."""
+    try:
+        data = json.loads((HARNESS / "runtime-data" / "judge-setup.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    release = data.get("release") if isinstance(data, dict) else None
+    return release if isinstance(release, str) and RELEASE.fullmatch(release) else None
+
+
+def should_open(event: dict) -> str | None:
+    """The page to open, once per session at its first real question, when `office.py install --open-on-prompt`
+    enabled it. Called under the lock; it records the session before the page is opened. An auto-open.json without a
+    page name (written before the factory page existed) keeps opening the office page."""
     if event.get("kind") != "request" or event.get("actor") != "main" or event.get("agent_id") or not event.get("session"):
-        return False
+        return None
     setting_file = OUT / "auto-open.json"
     try:
         setting = json.loads(setting_file.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return False
-    if not isinstance(setting, dict) or setting.get("open_on_prompt") is not True or not (OUT / "index.html").is_file():
-        return False
+        return None
+    name = setting.get("page", "office") if isinstance(setting, dict) else None
+    page = PAGES.get(name) if isinstance(name, str) else None
+    if not isinstance(setting, dict) or setting.get("open_on_prompt") is not True or not page or not (OUT / page).is_file():
+        return None
     opened = [s for s in setting.get("opened", []) if isinstance(s, str)] if isinstance(setting.get("opened"), list) else []
     if event["session"] in opened:
-        return False
+        return None
     setting["opened"] = (opened + [event["session"]])[-OPENED_KEEP:]
     write_text(setting_file, json.dumps(setting, ensure_ascii=False))
-    return True
+    return page
 
 
-def open_page():
-    """The office page in the default browser. The opener gets no stdout: a UserPromptSubmit hook's output would reach
-    the model's context."""
-    uri = (OUT / "index.html").as_uri()
+def open_page(page=PAGES["office"]):
+    """A page beside the records in the default browser. The opener gets no stdout: a UserPromptSubmit hook's output
+    would reach the model's context."""
+    uri = (OUT / (page if page in PAGES.values() else PAGES["office"])).as_uri()
     if os.name == "nt":
         os.startfile(uri)
         return
@@ -713,7 +730,7 @@ def main(argv=None) -> int:
             refresh_live(event)
             launch = should_open(event)
         if launch:
-            open_page()
+            open_page(launch)
     except Exception as exc:  # the hook must never disturb the session
         try:
             if safe_dirs():

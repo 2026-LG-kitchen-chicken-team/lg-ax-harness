@@ -8,6 +8,7 @@ import { useView } from './lib/useView'
 import { mergedTarget, mergeEvidencePages } from './lib/merge'
 import { reportVoice, voiceView } from './lib/voice'
 import { prunedTarget, pruneForPlanning } from './lib/prune'
+import { plannerFirst } from './lib/planner'
 import { plainView } from './lib/plain'
 import { recolorView } from './lib/ktone'
 import { fragmentId, pageTarget, reportSnapshot } from './lib/viewState'
@@ -33,40 +34,38 @@ export default function App() {
   const closeReport = useCallback(() => setOpenedReport(null), [])
   const lastFocus = useRef<string | null>(null)
 
+  // Retain the full, current report binding before selecting the planner view.
+  const report = useMemo(() => view ? reportSnapshot(view) : null, [view])
+  const shownView = useMemo(() => {
+    const pagesOnly = view && view.report ? { ...view, report: undefined } : view
+    const shaped = recolorView(plainView(voiceView(plannerFirst(pruneForPlanning(mergeEvidencePages(pagesOnly))))))
+    return shaped?.pages.length ? shaped : pagesOnly
+  }, [view])
+
   // Page choice: keep the current page across refreshes; follow the builder's focus when it changes (new export).
   useEffect(() => {
-    if (!view) return
-    const has = (id?: string | null) => !!id && view.pages.some((p) => p.id === id)
+    if (!view || !shownView) return
+    const has = (id?: string | null) => !!id && shownView.pages.some((p) => p.id === id)
+    const resolve = (id: string | null) => pageTarget(shownView, id, prunedTarget(mergedTarget(id)))
     const focusChanged = !!view.focus && view.focus !== lastFocus.current
     const booting = lastFocus.current === null && current === null
     lastFocus.current = view.focus || ''
     let target = current
-    if (booting) target = has(hashId()) ? hashId() : view.focus || view.pages[0].id
-    else if (focusChanged) target = view.focus!
-    if (!has(target)) target = view.pages[0].id
+    if (booting) target = has(hashId()) ? hashId() : resolve(view.focus || null)
+    else if (focusChanged) target = resolve(view.focus || null)
+    if (!has(target)) target = shownView.pages[0].id
     if (target !== current) setCurrent(target)
-  }, [view]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, shownView]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const on = () => { const id = hashId(); if (view?.pages.some((p) => p.id === id)) setCurrent(id) }
+    const on = () => { const id = hashId(); if (shownView?.pages.some((p) => p.id === id)) setCurrent(id) }
     window.addEventListener('hashchange', on)
     return () => window.removeEventListener('hashchange', on)
-  }, [view])
+  }, [shownView])
 
-  // The evidence dashboard and the evidence text are drawn as one page (lib/merge.ts); the view keeps only what the
-  // planning work needs (lib/prune.ts), reads in report style (lib/voice.ts), leaves field names out of the visible text
-  // (lib/plain.ts) and uses one hue (lib/ktone.ts). build_view.py's data itself is unchanged. The export kept for
-  // "보고서로 보기" is set aside first, so none of these touch its saved text.
-  const report = useMemo(() => view ? reportSnapshot(view) : null, [view])
-  const shownView = useMemo(() => {
-    const pagesOnly = view && view.report ? { ...view, report: undefined } : view
-    const shaped = recolorView(plainView(voiceView(pruneForPlanning(mergeEvidencePages(pagesOnly)))))
-    // A partial manual view may contain only a page normally merged/pruned from a complete builder view.
-    return shaped?.pages.length ? shaped : pagesOnly
-  }, [view])
   const target = (id: string | null) => pageTarget(shownView, id, prunedTarget(mergedTarget(id)))
-  const page = view?.pages.find((p) => p.id === current) || null
   const shownPage = shownView?.pages.find((p) => p.id === target(current)) || null
+  const page = shownPage
   useEffect(() => {
     if (!page || !view) return
     try { if (hashId() !== page.id) history.replaceState(null, '', '#' + encodeURIComponent(page.id)) } catch { /* previews may block */ }

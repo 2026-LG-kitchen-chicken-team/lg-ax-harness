@@ -331,7 +331,7 @@ class ObserverTests(unittest.TestCase):
         observe = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(observe)
         opened = []
-        observe.open_page = lambda: opened.append(1)
+        observe.open_page = lambda page: opened.append(page)
 
         def send(payload):
             data = io.TextIOWrapper(io.BytesIO(json.dumps(payload).encode("utf-8")), encoding="utf-8")
@@ -362,6 +362,38 @@ class ObserverTests(unittest.TestCase):
         setting.write_text(json.dumps({"open_on_prompt": False, "opened": []}), encoding="utf-8")
         send({**ask, "session_id": "S3"})
         self.assertEqual(len(opened), 2)
+        self.assertEqual(opened, ["index.html", "index.html"])  # a setting without a page name keeps the office page
+
+    def test_first_question_opens_the_named_run_dashboard_and_never_a_path(self):
+        import contextlib
+        import io
+        from unittest import mock
+        spec = importlib.util.spec_from_file_location("observe_copy", self.h.root / "web/prototypes/agent-office/observe.py")
+        observe = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(observe)
+        opened = []
+        observe.open_page = lambda page: opened.append(page)
+
+        def send(session):
+            data = io.TextIOWrapper(io.BytesIO(json.dumps({"hook_event_name": "UserPromptSubmit", "session_id": session,
+                                                             "prompt": SECRET}).encode("utf-8")), encoding="utf-8")
+            with mock.patch.object(sys, "stdin", data), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(observe.main(), 0)
+
+        self.h.out.mkdir(parents=True, exist_ok=True)
+        setting = self.h.out / "auto-open.json"
+        setting.write_text(json.dumps({"open_on_prompt": True, "page": "factory", "opened": []}), encoding="utf-8")
+        send("S1")  # the factory page is not there yet
+        self.assertEqual(opened, [])
+        (self.h.out / "factory.html").write_text("<!doctype html>", encoding="utf-8")
+        send("S1")
+        send("S1")
+        self.assertEqual(opened, ["factory.html"])
+        for page in ("../../outside.html", "C:/Windows/notepad.exe", "index"):
+            setting.write_text(json.dumps({"open_on_prompt": True, "page": page, "opened": []}), encoding="utf-8")
+            send("S9")
+        self.assertEqual(opened, ["factory.html"])
+        self.assertNotIn(SECRET, self.h.all_text())
 
     def test_bad_input_never_disturbs_the_session(self):
         for raw in (b"", b"not json", b"[1,2]", b"\xff\xfe\x00", json.dumps({"hook_event_name": 5, "tool_input": "x"}).encode()):
@@ -390,12 +422,23 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual((snap["turn"]["status"], snap["turn"]["revision_count"], snap["results"], snap["evidence_delivered"]),
                          ("completed", 1, 1, 1))
         self.assertIsNone(snap["evidence_reviews"])  # table missing: unknown, not 0
+        self.assertIsNone(live["harness_release"])  # not a judge ZIP setup
         self.assertEqual(snap["candidates"], [{
             "result_version": 1, "created_at": "2026-10-13T12:05:01+00:00", "status": "held",
             "counts": {"pains": 2, "existing_features": 0, "remaining_pains": 1, "concepts": 1, "evidence_refs": 3},
             "contract_valid": True, "structural_valid": True, "acceptance_ready": False, "semantic_status": "unverified"}])
         self.assertEqual(len(live["events"]), 1)
         self.assertNotIn(SECRET, self.h.all_text())
+
+    def test_live_file_names_the_judge_release_only_when_well_formed(self):
+        mark = self.h.root / "runtime-data" / "judge-setup.json"
+        mark.parent.mkdir(parents=True, exist_ok=True)
+        for release, expected in (("product-v0.16.4", "product-v0.16.4"), ("product-v0.17.0-rc.1", "product-v0.17.0-rc.1"), ("<script>", None)):
+            mark.write_text(json.dumps({"release": release, "engine": "claude"}), encoding="utf-8")
+            self.h.run({"hook_event_name": "SessionStart", "session_id": "S1", "source": "startup"})
+            text = (self.h.out / "live.js").read_text(encoding="utf-8")
+            live = json.loads(text[text.index("window.LGAX_OFFICE_LIVE = ") + len("window.LGAX_OFFICE_LIVE = "):].rstrip().rstrip(";"))
+            self.assertEqual(live["harness_release"], expected)
 
     def test_missing_database_is_reported_not_created(self):
         self.h.run({"hook_event_name": "SessionStart", "session_id": "S1", "source": "startup"})
@@ -456,7 +499,20 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(page.read_bytes(), (APP / "index.html").read_bytes())
         self.assertTrue((self.root / "web/prototypes/agent-office/index.html").is_file())
         self.assertEqual(office.status(self.root)["page"], str(page))
-        self.assertEqual(office.open_page(self.root, launch=False), f"사무실 화면: {page.as_uri()}")
+        self.assertEqual(office.open_page(self.root, launch=False, page="office"), f"사무실 화면: {page.as_uri()}")
+
+    @unittest.skipUnless((APP / "factory.html").is_file(), "run dashboard not built (factory-dashboard: npm run build:office)")
+    def test_install_puts_the_run_dashboard_next_to_the_records_and_opens_it_by_default(self):
+        office.install(self.root)
+        dashboard = self.root / "runtime-data" / "agent-office" / "factory.html"
+        self.assertEqual(dashboard.read_bytes(), (APP / "factory.html").read_bytes())
+        self.assertEqual((self.root / "web/prototypes/agent-office/factory.html").read_bytes(), (APP / "factory.html").read_bytes())
+        self.assertEqual(office.status(self.root)["dashboard"], str(dashboard))
+        opened = []
+        self.assertEqual(office.open_page(self.root, opener=opened.append), f"실행 대시보드: {dashboard.as_uri()}")
+        self.assertEqual(opened, [dashboard.as_uri()])
+        with self.assertRaises(office.OfficeError):
+            office.install(self.root, open_on_prompt=True, page="../outside")
 
     def test_open_on_prompt_is_opt_in_and_cleared_by_reinstall_or_uninstall(self):
         setting = self.root / "runtime-data" / "agent-office" / "auto-open.json"
@@ -464,11 +520,16 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse(setting.exists())
         self.assertFalse(office.status(self.root)["open_on_prompt"])
         office.install(self.root, open_on_prompt=True)
-        if not (APP / "index.html").is_file():
-            self.assertFalse(setting.exists())  # nothing to open without the built page
+        if not (APP / "index.html").is_file() and not (APP / "factory.html").is_file():
+            self.assertFalse(setting.exists())  # nothing to open without a built page
             return
-        self.assertEqual(json.loads(setting.read_text(encoding="utf-8")), {"open_on_prompt": True, "opened": []})
+        default = "factory" if (APP / "factory.html").is_file() else "office"
+        self.assertEqual(json.loads(setting.read_text(encoding="utf-8")), {"open_on_prompt": True, "page": default, "opened": []})
         self.assertTrue(office.status(self.root)["open_on_prompt"])
+        self.assertEqual(office.status(self.root)["open_page"], default)
+        if (APP / "index.html").is_file():
+            office.install(self.root, open_on_prompt=True, page="office")
+            self.assertEqual(json.loads(setting.read_text(encoding="utf-8"))["page"], "office")
         office.install(self.root)
         self.assertFalse(setting.exists())
         office.install(self.root, open_on_prompt=True)
@@ -695,11 +756,12 @@ class CodexFollowTests(unittest.TestCase):
         buf = io.StringIO()
         written = office.codex(self.root, latest=True, once=True, out=buf, open_page_once=True, opener=opened.append)
         self.assertGreater(written, 1)
-        if not (APP / "index.html").is_file():
+        if not (APP / "index.html").is_file() and not (APP / "factory.html").is_file():
             return
-        page = self.root / "runtime-data" / "agent-office" / "index.html"
+        factory = (APP / "factory.html").is_file()
+        page = self.root / "runtime-data" / "agent-office" / ("factory.html" if factory else "index.html")
         self.assertEqual(opened, [page.as_uri()])
-        self.assertIn("사무실 화면: " + page.as_uri(), buf.getvalue())
+        self.assertIn(("실행 대시보드: " if factory else "사무실 화면: ") + page.as_uri(), buf.getvalue())
 
     def test_a_second_follower_on_the_same_harness_stops(self):
         self.write_logs(*codex_records(self.root))
@@ -884,6 +946,20 @@ for (const file of ['catalog', 'labels', 'model', 'state']) {
         self.assertNotIn('src="./assets/', html)
         self.assertIn("THIRD-PARTY NOTICES", html)
         for text in ("데모 화면", "실제 하네스가 한 일이 아닙니다", "명령 경로로 알아냄", "미측정"):
+            self.assertIn(text, html)
+
+    @unittest.skipUnless((APP / "factory.html").is_file(), "run dashboard not built (factory-dashboard: npm run build:office)")
+    def test_run_dashboard_is_one_file_that_reads_the_records_beside_it(self):
+        import re
+        html = (APP / "factory.html").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r'<script[^>]+src="([^"]+)"', html), [])  # live.js is read by the page itself
+        self.assertNotIn('src="./assets/', html)
+        self.assertNotIn("\r\n", html)
+        self.assertIn("Built from web/prototypes/control-room/factory-dashboard (npm run build:office)", html)
+        self.assertIn("THIRD-PARTY NOTICES", html)
+        self.assertEqual(html.count("data:image/png;base64,"), 3)  # researcher textures cannot be file:// images
+        for text in ("LGAX_OFFICE_LIVE", "live.js", "../visual-viewer/view-data.js", "../visual-viewer/index.html",
+                     "기록 재생", "실시간", "기록 파일 열기", "결과 화면 열기", "분석 구간"):
             self.assertIn(text, html)
 
 
