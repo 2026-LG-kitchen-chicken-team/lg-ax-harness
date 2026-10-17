@@ -17,14 +17,14 @@ export function plannerFirst(view: View | null): View | null {
   // its diagnostic chips/counts are replaced; the full request remains in overview.
   const main: Block[] = story.blocks.filter(b => b.type !== 'story' && b.type !== 'hero')
   if (header) main.unshift({ type: 'hero', planner: true,
-    title: overview?.title || '상품기획안',
+    title: overview?.title || '상품기획안', scope: header.scope,
     chips: (header.chips || []).slice(0, 1).map(({ text, tone }: { text: string; tone: string }) => ({ text, tone })) })
   if (solution) main.push({ ...solution, planner: true, label: '제안', title: '검토할 상품기획', text: undefined,
     blocks: (solution.blocks || []).map((b: Block) => b.type === 'solutions' ? { ...b, planner: true,
       items: (b.items || []).map((s: Block) => ({ ...s,
         background: (flow?.blocks || []).flatMap((f: Block) => f.type === 'flow' ? f.nodes || [] : [])
           .filter((n: Block) => n.column === 'remaining' && (s.links || []).some((l: Block) => l.text === n.id))
-          .map((n: Block) => n.text) })) } : b) })
+          .map((n: Block) => n.summary || n.text) })) } : b) })
   if (flow) main.push({ type: 'expander', title: '기획 배경 · 불편과 기존 기능 비교',
     blocks: (flow.blocks || []).map((b: Block) => b.type === 'flow' ? { ...b, note: undefined } : b) })
   if (conditions.length) main.push({ type: 'expander', title: '전체 기획의 조사 범위와 적용 조건', blocks: conditions.flatMap((b: Block) => b.blocks || []) })

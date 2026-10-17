@@ -29,6 +29,21 @@ assert.ok(!html.includes('첫 문장'));assert.equal(JSON.stringify(b),before);
 const noAssumptions={...b,items:[{...b.items[0],assumptions:[]}]};
 const minimal=renderToStaticMarkup(React.createElement(STORY_BLOCKS.solutions,{b:noAssumptions,copy(){}}));
 assert.ok(minimal.includes('하드웨어 필요'));assert.ok(minimal.includes('내부 치수 필요'));
+// Old results without editorial fields retain the actual solution in the default body.
+const legacy={planner:true,items:[{text:'Brief label. This is how the proposal actually works.',background:['A caveat. The actual customer inconvenience follows.']}]};
+const legacyHtml=renderToStaticMarkup(React.createElement(STORY_BLOCKS.solutions,{b:legacy,copy(){}}));
+assert.ok(legacyHtml.includes('This is how the proposal actually works.'));
+assert.ok(legacyHtml.includes('The actual customer inconvenience follows.'));
+assert.ok([...legacyHtml.matchAll(/<h3[^>]*>([^]*?)<\/h3>/g)].every(m=>!m[1].includes('This is how the proposal actually works.')));
+// Comparison and follow-up use stored wording without ranking or an extra model call.
+const prepared={planner:true,items:[{title:'First candidate',text:'Full proposal',summary:'Who benefits and what changes',steps:['Owner checks input and produces a comparison'],follow_up:'Continue this actual proposal <script>alert(1)</script>'},{title:'Second candidate',text:'Another full proposal',steps:['Another next action']}]};
+const preparedBefore=JSON.stringify(prepared),ready=renderToStaticMarkup(React.createElement(STORY_BLOCKS.solutions,{b:prepared,copy(){}}));
+assert.ok(ready.includes('제안별 비교'));
+assert.ok(ready.includes('Who benefits and what changes'));
+assert.ok(ready.includes('이 제안 이어서 질문하기'));
+assert.ok(ready.includes('aria-label="이 제안의 후속 질문"'));
+assert.ok(ready.includes('&lt;script&gt;'));assert.ok(!ready.includes('<script>'));
+assert.equal(JSON.stringify(prepared),preparedBefore);
 '''
         with tempfile.TemporaryDirectory(prefix='planner-cards-', dir=APP) as compiled:
             built = subprocess.run([node, str(APP/'node_modules/typescript/bin/tsc'), '--target', 'es2022',

@@ -504,8 +504,12 @@ function Chips({ b }: P) {
 
 // --- story page ---------------------------------------------------------------------------------------------------
 function Hero({ b }: P) {
-  if (b.planner) return <header className="flex flex-wrap items-center justify-between gap-3 py-2">
-    <h1 className="text-[24px] font-semibold leading-snug tracking-tight">{b.title}</h1><Badges items={b.chips} />
+  if (b.planner) return <header className="py-2">
+    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-[24px] font-semibold leading-snug tracking-tight">{b.title}</h1><Badges items={b.chips} /></div>
+    {b.scope && <details className="mt-2 text-[12px] text-zinc-500">
+      <summary className="cursor-pointer leading-relaxed">자료 범위 · {b.scope.models}개 모델 · 후기 {b.scope.reviews}건 · 제품자료 {b.scope.facts}건{b.scope.other > 0 && ` · 기타 ${b.scope.other}건`}{b.scope.as_of && ` · 관측 ${b.scope.as_of}`}</summary>
+      <p className="mt-2 leading-relaxed">이번 결과에 전달된 등록 자료의 범위예요. 제안별 ‘근거 확인’은 그중 해당 제안이 인용한 자료를 보여줘요. 자료 건수는 고객 수나 시장 비율과 달라요. <a className="underline" href="#dashboard">자료 전체 보기</a></p>
+    </details>}
   </header>
   return (
     <section className="@container flex min-w-0 flex-col gap-4">

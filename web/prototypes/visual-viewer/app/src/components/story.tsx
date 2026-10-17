@@ -2,10 +2,10 @@
 // renderers in dash/blocks.tsx draw the cover, sections and claims). build_view.py decides every item, count and link;
 // this file only lays them out. Connector lines in the flow are drawn only for links the builder passes.
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ArrowRight, ExternalLink, FileText, Quote } from 'lucide-react'
+import { ArrowRight, Copy, ExternalLink, FileText, Quote } from 'lucide-react'
 import { Badge, Badges, Card } from './ui'
 import { HoverNote, SourceNote } from './hovernote'
-import { firstSentence, Lead } from './lead'
+import { Lead } from './lead'
 import { useIdTip } from './idtip'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX } from '../lib/utils'
 import type { Block } from '../types'
@@ -137,11 +137,24 @@ function SourcesNote({ items }: { items: Block[] }) {
   )
 }
 
-function Solutions({ b }: P) {
+function Solutions({ b, copy }: P) {
+  const items: Block[] = b.items || []
+  const heading = (s: Block, i: number) => s.title || `제안 ${String(s.n || i + 1).padStart(2, '0')}`
   return (
     <div className="flex flex-col gap-4">
-      {(b.items || []).map((s: Block, i: number) => (
-        <Card key={i} className="overflow-hidden" >
+      {b.planner && items.length > 1 && <details className="rounded-lg border bg-white p-4">
+        <summary className="cursor-pointer text-[13px] font-semibold text-zinc-700">제안별 비교 · {items.length}개 후보</summary>
+        <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[560px] text-left text-[13px] leading-relaxed">
+          <thead><tr className="border-b text-zinc-500"><th className="w-1/4 px-2 py-2 font-medium">제안</th><th className="px-2 py-2 font-medium">핵심 내용</th><th className="w-1/3 px-2 py-2 font-medium">다음 행동</th></tr></thead>
+          <tbody>{items.map((s, i) => <tr key={i} className="border-b last:border-0">
+            <th className="px-2 py-3 align-top font-medium"><a className="text-[#2f7d4f] underline" href={`#planner-proposal-${i + 1}`}>{heading(s, i)}</a></th>
+            <td className="px-2 py-3 align-top"><Md text={s.summary || s.text || ''} /></td>
+            <td className="px-2 py-3 align-top"><Md text={s.steps?.[0] || '제안의 적용 조건부터 확인해 주세요.'} /></td>
+          </tr>)}</tbody>
+        </table></div>
+      </details>}
+      {items.map((s: Block, i: number) => (
+        <Card key={i} className="scroll-mt-20 overflow-hidden" id={`planner-proposal-${i + 1}`}>
           <div className="flex flex-col gap-4 p-5">
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -149,14 +162,18 @@ function Solutions({ b }: P) {
                 {!b.planner && <><Badge chip={{ text: s.id, tone: 'k4' }} /><Badges items={s.chips} /></>}
                 {b.planner && <Badges items={(s.chips || []).filter((c: Block) => c.text === '하드웨어 필요' || c.text === '내부 치수 필요')} />}
               </div>
-              {s.title && <h3 className="text-[19px] font-semibold leading-snug tracking-tight">{s.title}</h3>}
-              {b.planner && !s.title
-                ? <h3 className="text-[18px] font-semibold leading-relaxed tracking-tight text-zinc-900"><Lead text={s.text} summary={s.summary} quiet /></h3>
-                : <p className="text-[15px] leading-relaxed text-zinc-900"><Lead text={s.text} summary={s.summary} quiet={!!b.planner} /></p>}
+              {(s.title || b.planner) && <h3 className="text-[19px] font-semibold leading-snug tracking-tight">{heading(s, i)}</h3>}
+              <p className="text-[15px] leading-relaxed text-zinc-900">{b.planner && !s.summary
+                ? <Md text={s.text} />
+                : <Lead text={s.text} summary={s.summary} quiet={!!b.planner} />}</p>
               {!b.planner && s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
-              {s.background?.length > 0 && <div className="text-[13px] leading-relaxed text-zinc-600"><b className="text-zinc-800">기획 배경</b>{s.background.map((x: string, k: number) => <p key={k} className="mt-1">{firstSentence(x)}</p>)}</div>}
+              {s.background?.length > 0 && <div className="text-[13px] leading-relaxed text-zinc-600"><b className="text-zinc-800">기획 배경</b>{s.background.map((x: string, k: number) => <p key={k} className="mt-1"><Md text={x} /></p>)}</div>}
               {!b.planner && s.assumptions?.length > 0 && <MiniList title="추진 전에 확인할 조건" items={s.assumptions} />}
               {s.steps?.length > 0 && <div className="rounded-lg border border-[#dfe9dc] bg-[#f3f8f1] p-3 text-[13px]"><b className="text-[#2f7d4f]">다음 행동</b><p className="mt-1"><Md text={s.steps[0]} /></p></div>}
+              {b.planner && s.follow_up && <div className="no-print flex flex-wrap items-start gap-3 text-[12px]">
+                <button type="button" onClick={() => copy(s.follow_up)} className="inline-flex items-center gap-1.5 rounded-md border border-[#cbdcc8] bg-white px-3 py-2 font-medium text-[#2f7d4f] hover:bg-[#f3f8f1]"><Copy className="size-3.5" aria-hidden />이 제안 이어서 질문하기 · 복사</button>
+                <details className="min-w-0 flex-1 py-2"><summary className="cursor-pointer text-zinc-500">질문 내용 보기</summary><p className="mt-2 text-zinc-500">복사한 질문을 작업하던 Codex·Claude 대화에 붙여넣으세요.</p><textarea aria-label="이 제안의 후속 질문" readOnly value={s.follow_up} className="mt-2 min-h-28 w-full rounded border bg-white p-3 text-zinc-700" /></details>
+              </div>}
             </div>
             <details className="planner-detail rounded-lg border bg-muted/20 p-3">
               <summary className="cursor-pointer text-[13px] font-medium">{b.planner ? '추진 조건 · 요구사항 · 검증 방법' : '요구사항 · 적용 순서 · 검증 방법'}</summary>

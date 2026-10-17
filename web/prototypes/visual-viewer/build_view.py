@@ -549,6 +549,8 @@ def insights_shape_errors(ins) -> list[str]:
     for key in ("node_titles", "concept_titles", "feature_tags", "concept_channels"):
         if ins.get(key) is not None and not isinstance(ins[key], dict):
             errors.append(key)
+    if isinstance(ins.get("concept_titles"), dict) and not all(isinstance(v, str) for v in ins["concept_titles"].values()):
+        errors.append("concept_titles")
     if ins.get("captions") is not None and not (isinstance(ins["captions"], dict) and all(isinstance(v, dict) for v in ins["captions"].values())):
         errors.append("captions")
     if ins.get("summaries") is not None and not (isinstance(ins["summaries"], dict) and all(isinstance(v, str) for v in ins["summaries"].values())):
@@ -900,6 +902,49 @@ def summary_of(c: Ctx, item_id) -> str | None:
     return clip(s.strip(), 300) if isinstance(s, str) and s.strip() else None
 
 
+def planner_scope(c: Ctx) -> dict | None:
+    """Count selected registered material, not cited snippets or unique customers."""
+    sources = [s for s in c.web.get("sources", []) if isinstance(s, dict)]
+    if not sources:
+        return None
+    reviews = sum(s.get("kind") == "review" for s in sources)
+    facts = sum(s.get("kind") in {"product_fact", "manual", "spec", "part", "document"} for s in sources)
+    dates = sorted({d for s in sources if isinstance(s.get("origin"), dict)
+                    and isinstance((d := s["origin"].get("retrieved_date")), str)
+                    and re.fullmatch(r"\d{4}-\d{2}-\d{2}", d)})
+    return {"reviews": reviews, "facts": facts, "other": len(sources) - reviews - facts,
+            "models": len({s["model_id"] for s in sources if isinstance(s.get("model_id"), str) and s["model_id"]}),
+            "as_of": (dates[0] if len(dates) == 1 else f"{dates[0]} ~ {dates[-1]}") if dates else ""}
+
+
+def planner_follow_up(item: dict, number: int, title: str | None = None) -> str:
+    label = title or f"제안 {number:02}"
+    return (f"방금 저장한 상품기획의 ‘{label}’(제안 ID: {item.get('id') or number})을 이어서 다듬어줘. "
+            "연결된 후기·제품자료와 기존 기능 대조를 재사용하고, 적용 조건을 유지해줘. "
+            "기획 요구사항을 구체화하고 다음 행동의 담당자·필요 입력·완료 산출물을 정리해줘. "
+            "추가 조사는 필요한 근거가 없거나 오래된 부분에만 수행하고, 미측정 효과를 확정하지 마.")
+
+
+def planner_presentation(c: Ctx) -> dict:
+    """Reuse same-turn AI wording; display code never invents a recommendation."""
+    titles = c.ins.get("concept_titles") or {}
+    remaining = {p.get("id"): p for p in c.result.get("remaining_pains") or []}
+    links = {p.get("concept_id"): p for p in (c.validation.get("assessment") or {}).get("concept_links", [])}
+    concepts = {}
+    for i, cl in enumerate(c.result.get("concepts") or [], 1):
+        cid = cl.get("id")
+        title = titles.get(cid) if isinstance(titles.get(cid), str) else None
+        background = [summary_of(c, rid) or remaining[rid].get("text", "")
+                      for rid in links.get(cid, {}).get("remaining_pain_ids", []) if rid in remaining]
+        steps = cl.get("implementation_steps") or []
+        concepts[cid] = {"title": title, "summary": summary_of(c, cid), "background": background,
+                         "next_action": steps[0] if steps else "",
+                         "follow_up": planner_follow_up(cl, i, title)}
+    return {"title": f"{family_label(c.cur['family'])} 상품기획" if c.cur.get("family") else "상품기획",
+            "summary": [p["summary"] for p in concepts.values() if p["summary"]],
+            "concepts": concepts, "scope": planner_scope(c)}
+
+
 def claim_items(c: Ctx, claims: list[dict]) -> list[dict]:
     items = []
     for cl in claims:
@@ -926,7 +971,7 @@ def page_story(c: Ctx) -> list[dict]:
     hero = {"type": "hero", "eyebrow": eyebrow, "title": cur["question"] or "질문 원문 미기록",
             "subtitle": "하네스가 근거 자료에서 불편을 찾아 같은 모델의 기존 기능과 대조하고, 남은 불편에 연결한 제안을 저장했습니다."
                         + (" **합성 시험 자료**입니다." if c.synthetic else ""),
-            "chips": chips,
+            "chips": chips, "scope": planner_scope(c),
             "stats": [{"label": "근거", "value": len(c.evidence), "unit": "건", "tone": "blue"},
                       {"label": "현재 불편", "value": len(pains), "unit": "개", "tone": "red"},
                       {"label": "남은 불편", "value": len(remaining), "unit": "개", "tone": "orange"},
@@ -985,6 +1030,7 @@ def page_story(c: Ctx) -> list[dict]:
         plan = cl.get("validation_plan")
         sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""),
                     "summary": summary_of(c, cl.get("id")), "chips": chips_,
+                    "follow_up": planner_follow_up(cl, i, titles.get(cl.get("id"))),
                     "assumptions": cl.get("assumptions") or [],
                     "requirements": cl.get("requirements") or [], "steps": cl.get("implementation_steps") or [],
                     "plan": {"status": PLAN_STATUS.get(plan.get("status"), plan.get("status") or "상태 미기록"),
@@ -2117,6 +2163,7 @@ def report_source(c: Ctx) -> dict | None:
     # Never expose another turn's unchecked latest_result through the report's selector.
     report_export = {**c.export, "turns": [current]}
     plan = report_charts(c) or {"title": "", "summary": [], "sources": [], "sections": []}
+    plan["presentation"] = planner_presentation(c)
     # Charts describe the research, not a product decision. Keep the existing plan
     # schema and values, but mark them as optional supporting material.
     for section in plan["sections"]:
