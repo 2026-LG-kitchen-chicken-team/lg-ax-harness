@@ -128,6 +128,8 @@ const path=require('node:path');
  for(const text of ['Choose the direct customer task first','Direct problem fit','Internal owner still needed','착수 제안','Working draft &lt;script&gt;','Actual editable action'])assert.ok(authoredBody.includes(text),text);
  assert.ok(authoredBody.includes('&lt;img'));assert.ok(!authoredBody.includes('<img'));assert.ok(!authoredBody.includes('<script>'));
  assert.equal(JSON.stringify(authored),authoredBefore);
+ const single=JSON.parse(JSON.stringify(authored));single.export.turns[0].state.latest_result.concepts=single.export.turns[0].state.latest_result.concepts.slice(0,1);single.export.turns[0].state.latest_result.planning_decision.comparisons=single.export.turns[0].state.latest_result.planning_decision.comparisons.slice(0,1);
+ api.render(single);assert.ok(node('#result-body').innerHTML.includes('Direct problem fit'));assert.ok(node('#result-body').innerHTML.includes('Internal owner still needed'));
  const authoredNormalized=Adapter.normalize(authored);
  assert.equal(JSON.stringify(authoredNormalized.planningDecision),JSON.stringify(authored.export.turns[0].state.latest_result.planning_decision));
  assert.equal(JSON.stringify(authoredNormalized.concepts[0].workDraft),JSON.stringify(authored.export.turns[0].state.latest_result.concepts[0].work_draft));

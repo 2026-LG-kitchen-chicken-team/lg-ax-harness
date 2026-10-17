@@ -53,6 +53,9 @@ assert.ok(draftHtml.includes('&lt;img'));assert.ok(!draftHtml.includes('<img'));
 assert.equal((draftHtml.match(/착수 제안/g)||[]).length,1);
 assert.ok(!draftHtml.includes('미작성'));assert.ok(!legacyHtml.includes('미작성'));
 assert.equal(JSON.stringify(authored),authoredBefore);
+const single={...authored,items:[authored.items[1]],planning_decision:{...authored.planning_decision,comparisons:[authored.planning_decision.comparisons[1]]}};
+const singleHtml=renderToStaticMarkup(React.createElement(STORY_BLOCKS.solutions,{b:single,copy(){}}));
+assert.ok(singleHtml.includes('Ready for a working session'));assert.ok(singleHtml.includes('Keep the safety condition'));
 '''
         with tempfile.TemporaryDirectory(prefix='planner-cards-', dir=APP) as compiled:
             built = subprocess.run([node, str(APP/'node_modules/typescript/bin/tsc'), '--target', 'es2022',

@@ -126,7 +126,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "d971dbec3ec8b334ec6504be18f693fa71eb56e432d3fe9bf628c5b545f347da"
+          "sha256": "affe1fd798ac306d6f55c461937e3a5c8f1f24f5214aca8ba7c7168c75a9c661"
         }
       ]
     },
@@ -366,7 +366,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "24f720e87cfc924f461c7095af029754d8214cac9a82ec1e1a6e39afa4e58992"
+      "sha256": "b0ca1e2f8ccb2eca6afaa729c935a92f833c03c91b6ea582c77e9318a023e745"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",

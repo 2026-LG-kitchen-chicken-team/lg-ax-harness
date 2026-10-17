@@ -22,6 +22,8 @@ user-invocable: true
 
 새 요청은 하드웨어·서비스·UX를 함께 검토할 수 있다. 명시 hardware_allowed:false·제외조건·후속 상속은 지킨다. 치수/안전 근거 없이 실현성·물리 적합성을 단정하지 않는다. 외형 치수를 내부 치수로 쓰지 않는다.
 
+제안의 text에도 핵심 적용 조건을 남긴다. 사건 순서·부정 범위를 보존하고 중요한 조건을 assumptions에만 숨기지 않는다.
+
 ## 결과와 검토 연결
 
 concept의 id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 유지한다. 각 제안에 implementation_steps와 validation_plan을 작성하고, 첫 단계는 담당 역할·필요 입력·완료 산출물을 분명히 한다. 행동·완료/실패 기준을 requirements에 적고, 선택안의 실제 초안은 실행·시험 계획과 구별한다. 세부 작성 시 [구현·검증 계획](references/validation-plans.md)을 읽는다. 결과의 정확한 크기·구조는 프로젝트 루트 [업무 초안 계약](../../docs/contracts/planning-drafts.md), 저장 양식은 review-and-revise/references/payload.md를 따른다.

@@ -147,11 +147,15 @@ function CopyQuestion({ text }: { text: string }) {
     return () => window.clearTimeout(timer)
   }, [state])
   const copyQuestion = async () => {
+    let timer: ReturnType<typeof setTimeout> | undefined
     try {
       if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable')
-      await navigator.clipboard.writeText(text)
+      await Promise.race([navigator.clipboard.writeText(text), new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('clipboard timeout')), 1500)
+      })])
       setState('copied')
     } catch { setState('fallback') }
+    finally { clearTimeout(timer) }
   }
   return <div className="no-print text-[12px]">
     <button type="button" onClick={copyQuestion} className="inline-flex items-center gap-1.5 rounded-md border border-[#cbdcc8] bg-white px-3 py-2 font-medium text-[#2f7d4f] hover:bg-[#f3f8f1]"><Copy className="size-3.5" aria-hidden />수정 질문 복사</button>
@@ -185,6 +189,10 @@ function Solutions({ b }: P) {
   return (
     <div className="flex flex-col gap-4">
       {b.planner && decision?.summary && <p className="rounded-lg bg-[#edf5e9] p-4 text-[15px] leading-relaxed text-[#244d30]"><Md text={decision.summary} /></p>}
+      {b.planner && items.length === 1 && (hasReasons || hasTradeoffs) && <dl className="grid gap-2 rounded-lg border bg-white p-4 text-[13px] leading-relaxed">
+        {hasReasons && <div><dt className="font-semibold">선택 이유</dt><dd><Md text={comparison(items[0])?.reason || ''} /></dd></div>}
+        {hasTradeoffs && <div><dt className="font-semibold">고려할 점</dt><dd><Md text={comparison(items[0])?.tradeoff || ''} /></dd></div>}
+      </dl>}
       {b.planner && items.length > 1 && <section aria-label="제안별 비교" className="rounded-lg border bg-white p-4">
         <h2 className="text-[15px] font-semibold text-zinc-700">제안별 비교</h2>
         <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[560px] text-left text-[13px] leading-relaxed">
