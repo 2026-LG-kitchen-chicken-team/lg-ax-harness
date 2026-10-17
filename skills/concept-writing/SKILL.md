@@ -24,7 +24,7 @@ user-invocable: true
 
 ## 결과와 검토 연결
 
-concept의 id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 유지한다. 행동·완료/실패 기준을 requirements에 적고, 선택안의 실제 초안과 implementation_steps/validation_plan을 구별한다. 시험 계획을 작성할 때 [구현·검증 계획](references/validation-plans.md)을 읽는다. 결과의 정확한 크기·구조는 프로젝트 루트 [업무 초안 계약](../../docs/contracts/planning-drafts.md), 저장 양식은 review-and-revise/references/payload.md를 따른다.
+concept의 id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 유지한다. 각 제안에 implementation_steps와 validation_plan을 작성하고, 첫 단계는 담당 역할·필요 입력·완료 산출물을 분명히 한다. 행동·완료/실패 기준을 requirements에 적고, 선택안의 실제 초안은 실행·시험 계획과 구별한다. 세부 작성 시 [구현·검증 계획](references/validation-plans.md)을 읽는다. 결과의 정확한 크기·구조는 프로젝트 루트 [업무 초안 계약](../../docs/contracts/planning-drafts.md), 저장 양식은 review-and-revise/references/payload.md를 따른다.
 
 같은 턴에서 기존 선택 planner_insights:{concept_titles:{콘셉트ID:"짧은 이름"},summaries:{현재항목ID:"한 문장"}}를 작성한다. 제목은 구별점, 요약은 대상·상황·변화를 적고 원문의 부정·사건 순서·조건을 보존한다. 새 사실/효과를 추가하지 않는다. 실제 work_draft와 planning_decision은 result 내부에 넣어 검토·저장하고 planner_insights로 우회하지 않는다. 화면용 별도 모델 호출은 추가하지 않는다.
 

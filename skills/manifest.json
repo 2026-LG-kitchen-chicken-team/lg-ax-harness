@@ -81,7 +81,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "737e9283cb5786331262f11df1d1caf79665022a78722c8364d13ffdb011d892"
+          "sha256": "e23a8bfe141a35691368a566e3b982f004eea483ddf04fd8632f83939d5ed76a"
         }
       ]
     },
@@ -102,13 +102,13 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "b1b4b4a815d5201a144890575047f5f097452276162ee5684123750b6d6911b1"
+          "sha256": "ce4658b1e3bbe8c80b499e283e4a3ffa1eff59e5ee6612684ac100b28bbd9cf9"
         }
       ]
     },
     {
       "name": "concept-writing",
-      "description": "실제 근거와 기존 기능 대조로 확인된 남은 불편에 대해 조건을 지키는 상품기획 콘셉트를 작성할 때 사용한다.",
+      "description": "실제 불편과 기존 기능 대조를 종합해 후보의 차이·선택 이유·편집 가능한 상품기획 초안을 작성할 때 사용한다.",
       "path": "skills/concept-writing/SKILL.md",
       "operations": [
         "get_work_instructions",
@@ -117,12 +117,16 @@
       ],
       "files": [
         {
+          "path": "skills/concept-writing/references/validation-plans.md",
+          "sha256": "1f3957b4fb8cfb723b7c94593043ecea2bf4ccc1d511b135ea0b0afe3de55ebb"
+        },
+        {
           "path": "skills/concept-writing/scripts/run.py",
           "sha256": "a739f9e53c35c400cc9d27ab647488bd078d91ce3e062f942cb1646d2f9d498c"
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "36c87ee2051de8ea711499c3470d63e5d5a8aa50e2d7977b6979e29a772b7aff"
+          "sha256": "d971dbec3ec8b334ec6504be18f693fa71eb56e432d3fe9bf628c5b545f347da"
         }
       ]
     },
@@ -158,7 +162,7 @@
         },
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "48a0c0ee10edfa8073feab9b29a9412e8e77138fb1fa2663e4a0555b3968f98d"
+          "sha256": "4da12d437ca4a33637d56c197171449670e7d78c6a088381de7fab837cf84370"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -170,7 +174,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "f4fb89de92eb7f23b342efe9e13f3933f1c095e91bf4a7e7f42d8151133c680d"
+          "sha256": "9c667060aaa0120ca221dfe07143423cb95794d5eb536a5d339c4c78bafcc45c"
         }
       ]
     }
@@ -178,11 +182,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "4a8af3c0e95f13022a79053b4fd2746f38ec67173b23fb86e042beff7b8395f7"
+      "sha256": "12743ba6382e52ff666f8c34107d7037c3faa26d33223f58cc04f81771e24b5f"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
-      "sha256": "92bf0a4641f3fd3e4a9c2ebbbc533a42db76a93478b687b0b6fa3309a9b112a2"
+      "sha256": "1623a7a1a518a6bca7994ede90d867a40d8cd7b16c6f801f78941419e4df45d6"
     },
     {
       "path": "agents/product-official-researcher.md",
@@ -206,15 +210,15 @@
     },
     {
       "path": "product-tools/product_tools/completion.py",
-      "sha256": "66df6882371620b5455959a53779a4dfe3aa68fc51877e961841cd87ca90cfa9"
+      "sha256": "63e32427db6928474789c366876a6b63903a2008949c72c28d6c4700cdf9d90e"
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "463d9ea5e3c04b601727d596e92a0711cbc1d8fbd29142b122e7c433e0b595a2"
+      "sha256": "b83aef796a230b0368911415baf95e9626b37bd1411c2a91589f6ee568250d2a"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "8261963c0a1516491741ae5256de5e27064cd87b525a257d4fc4165d149a9a70"
+      "sha256": "8629278a193eaed87bd9050288bee40d99615006cee8f150ba7e9b66804c40fc"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -278,7 +282,7 @@
     },
     {
       "path": "product-tools/product_tools/tools.py",
-      "sha256": "2bdd0377b893b9b8e5e16d0d6a7fccb78bc42720b42904afd3c511dc9c026e32"
+      "sha256": "a99a304c3924c8a2625ca0f09bb73d52df590c28a73d1c93283f531a7370281e"
     },
     {
       "path": "product-tools/product_tools/web_delivery.py",
@@ -358,19 +362,19 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "8425e6c5165f2f66f0717e124a9f707c1654dd079e76c51d833a88b2316900c2"
+      "sha256": "f64b2c85e1b8b4dbf2ac0faf862ceb81d2449db369981234859ed65051f26fbf"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "5e7a5d6df91a1427a2da8cffa34711a0f3a290b8c66ca912ebbcb99384b78095"
+      "sha256": "24f720e87cfc924f461c7095af029754d8214cac9a82ec1e1a6e39afa4e58992"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
-      "sha256": "353fc871c0df58b8265c7a95fe1ee6a2bb09dc90fce2dd23ab66f3f730ed91c0"
+      "sha256": "cf3766d5fa44e59609a34df41c5d7b7dd80b07f86a086602990d6e2bdfdccb46"
     },
     {
       "path": "web/prototypes/visual-viewer/watch.py",
-      "sha256": "841f3ac7a7dfbea0f233eefd0d9c8106bef37b8ce96a2273cd3424ae33d8cf22"
+      "sha256": "0e07a348647e8fe666411fc0dfc9cea48a50c6a9c6ae1427c2768e17b08e802b"
     },
     {
       "path": "web/prototypes/agent-office/README.md",
@@ -394,11 +398,15 @@
     },
     {
       "path": "web/prototypes/agent-office/factory.html",
-      "sha256": "70f83d849399098ecd27a9c0a75edb393b9178ef4ea80b4460c63fb02b229143"
+      "sha256": "c9f364873812aead4094a516c2b36ea0b2a30bd8cd18b7d2205de32c76da5761"
     },
     {
       "path": "docs/contracts/judge-test.md",
       "sha256": "7d966d00ff537bce8e5939a6e08830d287e6fdc1e3703ef62d993e202b5f2648"
+    },
+    {
+      "path": "docs/contracts/planning-drafts.md",
+      "sha256": "b391115bfc5b27b19c5c7bccc801a515899ae16cdce13a24181b31179921b639"
     }
   ],
   "optional_agents": [
