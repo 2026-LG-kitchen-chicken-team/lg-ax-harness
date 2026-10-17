@@ -12,7 +12,8 @@ import CurrentWorkDock from './CurrentWorkDock.jsx';
 import {currentWorkSummary,workDockInsets} from './current-work-summary.js';
 import {WorkMeaning,FactoryGuide} from './WorkMeaning.jsx';
 
-const serverStore=createReleaseStore();
+// Short local commands can finish between the legacy two-second polls.
+const serverStore=createReleaseStore({pollMs:300});
 const defaultRecordStore=createOfficeStore({pollFiles:false});
 // The release follows the installed product (judge setup mark); an unknown release links to the release list.
 const releaseUrl=release=>release?'https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/'+release:VERIFIED_PRODUCT.url;

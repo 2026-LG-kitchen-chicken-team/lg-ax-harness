@@ -78,9 +78,16 @@
       "sha256": "0ce8348523a8a3d1368f5b2284027bc0e382a068420652ba477cd9c19124f452"
     },
     {
+      "path": "backend/native_calls.py",
+      "bytes": 14434,
+      "sha256": "3620708bcac864181b71cf3f64b94e1231f377746d7d4266ef00c7ec0860db2a",
+      "origin": "native-skill-observation-followup"
+    },
+    {
       "path": "backend/release_activity.py",
-      "bytes": 10617,
-      "sha256": "ca191618a9a273402ca535c3d2c21501eecbaf02803b05178dcedda848190fed"
+      "bytes": 10710,
+      "sha256": "a0e2961b452e99a97686edc4759e34db5dfe57cf9694bc1ccf6a30d16fe33567",
+      "approved_snapshot_sha256": "ca191618a9a273402ca535c3d2c21501eecbaf02803b05178dcedda848190fed"
     },
     {
       "path": "backend/release_reader.py",
@@ -114,6 +121,12 @@
       "sha256": "57b099ae863070ad90f98c45bc1a64673d04a8409eb3ae17a48bdac7cb02bf14"
     },
     {
+      "path": "backend/tests/test_native_calls.py",
+      "bytes": 7984,
+      "sha256": "0f86976bb803f277aeba60f9ad9b0f4e1f3f2736de73aa442460455c29da8809",
+      "origin": "native-skill-observation-followup"
+    },
+    {
       "path": "backend/tests/test_release_activity.py",
       "bytes": 5398,
       "sha256": "db2ea4cf5217d833fce9c03e0a2c6c46c6a396b7ff2317bf8142581719929287"
@@ -138,6 +151,12 @@
       "path": "docs/SKILL-AND-AGENT.md",
       "bytes": 8665,
       "sha256": "ccc2fa47560a47b1bb3a00d1f0489b76abb72f0a44ac2e0cb08cf9385dfa837c"
+    },
+    {
+      "path": "docs/SKILL-OBSERVATION-20261017.md",
+      "bytes": 3365,
+      "sha256": "86fc37d477c67a3b6ef6d30533ea5ef9a48d59a390873d721d30547624b4df59",
+      "origin": "native-skill-observation-followup"
     },
     {
       "path": "docs/factory-motion-validation.md",
@@ -235,6 +254,12 @@
       "sha256": "41e35d95fc5e242ef4195043d110ac2cd9540890960a11a47c761c9bbbeb157a"
     },
     {
+      "path": "shared/skill-operations.json",
+      "bytes": 6882,
+      "sha256": "87a5cf462c404171960f98e1cb6e0629a788fdaecb264db585c607d96c5566dc",
+      "origin": "native-skill-observation-followup"
+    },
+    {
       "path": "src/CurrentWorkDock.jsx",
       "bytes": 3223,
       "sha256": "60462159f1a84ac4189205e3b2409bae00884d58fd2075455e2041b031c3c5db"
@@ -266,8 +291,8 @@
     },
     {
       "path": "src/ReleaseDashboard.jsx",
-      "bytes": 26594,
-      "sha256": "a26c04a6fa5fa2d66591c9cd56e190b9cbdf638ed41f945922ae555a33edc004",
+      "bytes": 26678,
+      "sha256": "a09d02a494b98d320ebe6f9d7af79ee498b0a169f8e55c959c9eb47b0a041ae2",
       "approved_snapshot_sha256": "2435521c9d3521717205b0d7fda5cc2166f52fef5d78d62feee7e159860f5071"
     },
     {
@@ -353,8 +378,9 @@
     },
     {
       "path": "src/factory-work-view.js",
-      "bytes": 7094,
-      "sha256": "dafe9c9cfddf7a01068749a6ce0b078efa93efabfe140e68512eba35cf4537a7"
+      "bytes": 7435,
+      "sha256": "2fca8d80dc436f146fccf52a488fda166d3be4a1d6c4821b53e4c02abfea72eb",
+      "approved_snapshot_sha256": "dafe9c9cfddf7a01068749a6ce0b078efa93efabfe140e68512eba35cf4537a7"
     },
     {
       "path": "src/factory-workshop.js",
@@ -424,13 +450,15 @@
     },
     {
       "path": "src/release.js",
-      "bytes": 50446,
-      "sha256": "5bf9abd38d55a63d90c9bd2a08e3e27e268665b7be4dc5b063c576843965cf5f"
+      "bytes": 51844,
+      "sha256": "cdb4a6308826712b70abda8fd7d23f0bf9b74b5d221b98581af1f8680e564c7d",
+      "approved_snapshot_sha256": "5bf9abd38d55a63d90c9bd2a08e3e27e268665b7be4dc5b063c576843965cf5f"
     },
     {
       "path": "src/releaseActivity.js",
-      "bytes": 5387,
-      "sha256": "c854ba27138165cd1a0bce918ac305be05a6c525f40ee4d1bc21b9ef8263be1f"
+      "bytes": 9861,
+      "sha256": "a49a80429c349de78f2e0dc080ef78a5a7a0c2c347d50cf77a88b56717182717",
+      "approved_snapshot_sha256": "c854ba27138165cd1a0bce918ac305be05a6c525f40ee4d1bc21b9ef8263be1f"
     },
     {
       "path": "src/researcher-motion.js",
@@ -461,6 +489,12 @@
       "path": "src/skill-choreography.js",
       "bytes": 1895,
       "sha256": "eed1bd78e4b519c6febc2693d3ca7fabcbbbe7ba9f6010a036b8953abb52c808"
+    },
+    {
+      "path": "src/skill-operations.js",
+      "bytes": 489,
+      "sha256": "76c5b1e2b2acc20828a8809630247132a38815bfe6d405c86d799770a5fcb0a3",
+      "origin": "native-skill-observation-followup"
     },
     {
       "path": "src/skill-researcher-route.js",
@@ -538,6 +572,12 @@
       "sha256": "f7f0b02139c9bc7de0eeaeb9bdfac7d9b8eeb2f7ad09aeaf03f9855e48675e47"
     },
     {
+      "path": "tests/nativeSkillFlow.test.mjs",
+      "bytes": 7684,
+      "sha256": "7a8efd394b5b629bcc24ad26237e6e9392ef170b88a7104da212f60bb83e9dcc",
+      "origin": "native-skill-observation-followup"
+    },
+    {
       "path": "tests/office.test.mjs",
       "bytes": 19664,
       "sha256": "088311c51c0b4f106f51f1eb16404e0a8fd8b857f45fc2fdae6fdfd74a50839b",
@@ -560,8 +600,9 @@
     },
     {
       "path": "tests/release.test.mjs",
-      "bytes": 27673,
-      "sha256": "ae0c621739fdc036587d89564406ca6a13a235b9518268ccdcc73e9fe44336ff"
+      "bytes": 27658,
+      "sha256": "b81e947b900e4215fc9d575aea2fe578457c87fbece2ca30ec1dfed8eafe3061",
+      "approved_snapshot_sha256": "ae0c621739fdc036587d89564406ca6a13a235b9518268ccdcc73e9fe44336ff"
     },
     {
       "path": "tests/releaseActivity.test.mjs",
@@ -602,8 +643,8 @@
   ],
   "generated": {
     "path": "web/prototypes/agent-office/factory.html",
-    "bytes": 16892261,
-    "sha256": "906db8d902c4600b0c3a41ac29473f1843a24809bfd6505924ad52005c9286e4"
+    "bytes": 16903857,
+    "sha256": "ce356199694e7be1bb9be55e91d640ca8bd2d9cffaf3f834d04adff86c89ee1e"
   },
   "public_connection_wip_included": false,
   "actual_cli_business_run": "not_run",
@@ -637,6 +678,22 @@
         "src/current-work-dock.css"
       ],
       "reason": "User requested removing three header menu entries and preventing the menu from covering current-work controls. Measure floating-menu bounds, retain real observer state, and reserve dynamic clearance for the work opener and desktop/compact-landscape work panel."
+    },
+    {
+      "paths": [
+        "backend/release_activity.py",
+        "backend/native_calls.py",
+        "backend/tests/test_native_calls.py",
+        "src/ReleaseDashboard.jsx",
+        "src/factory-work-view.js",
+        "src/release.js",
+        "src/releaseActivity.js",
+        "src/skill-operations.js",
+        "shared/skill-operations.json",
+        "tests/nativeSkillFlow.test.mjs",
+        "tests/release.test.mjs"
+      ],
+      "reason": "User requested precise observed Skill/task labels and real call lifecycle-driven workroom motion while preserving design. Add a bounded native call projection, distinguish instruction/admin/general tools, close by actual receipts, deduplicate observer events, and poll the local server every300ms. Do not change installed product execution or fabricate unobserved Skills."
     }
   ],
   "shared_asset_hash_changes": [
@@ -648,7 +705,7 @@
     {
       "path": "web/prototypes/agent-office/factory.html",
       "previous_sha256": "ac07bac318d7e92756fbbabcdacc64791435fddfa199479b785a248490c984d8",
-      "sha256": "906db8d902c4600b0c3a41ac29473f1843a24809bfd6505924ad52005c9286e4"
+      "sha256": "ce356199694e7be1bb9be55e91d640ca8bd2d9cffaf3f834d04adff86c89ee1e"
     }
   ],
   "baseline_observer_audit": {
@@ -685,5 +742,22 @@
     "open_panel_and_folded_opener": "non-overlapping",
     "temporary_viewport_override": "reset",
     "related_existing_js_tests": 21
+  },
+  "native_skill_observation": {
+    "status": "implemented",
+    "python_related_checks": 73,
+    "python_skipped": 1,
+    "javascript_checks": 161,
+    "builds": [
+      "served-dist",
+      "single-file-office"
+    ],
+    "actual_cli_visual_acceptance": "deferred_by_user",
+    "raw_native_data_committed": false,
+    "doc": "docs/SKILL-OBSERVATION-20261017.md",
+    "review_repairs": [
+      "Verified shell executables before unwrapping argv command flags",
+      "Bound native receipt reconciliation to the same session and prompt"
+    ]
   }
 }
