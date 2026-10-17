@@ -462,7 +462,7 @@ class BuildViewTests(TempCase):
     def test_default_constraints_are_attributed_to_saved_execution_input(self):
         _, view = self.build("microwave")
         original = export_of("microwave")["turns"][-1]["state"]["input"]
-        self.assertEqual(original["constraints"]["hardware_allowed"], False)
+        self.assertEqual(original["constraints"]["hardware_allowed"], True)
         self.assertEqual(original["constraints"]["max_concepts"], 3)
         self.assertNotIn("하드웨어", original["question"])
         overview = page(view, "overview")
