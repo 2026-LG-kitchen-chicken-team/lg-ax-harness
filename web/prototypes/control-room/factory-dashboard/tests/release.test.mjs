@@ -25,7 +25,7 @@ test('actual native readiness results fill the factory while every Skill remains
  const activity=nativeActivity({state:'finished',checks:{installation:true,file:true,sqlite:true},skill_reads:RELEASE_SKILLS.map(s=>({id:s.id,time:iso(BASE-2000),basis:'read_command_output'}))});
  const view=viewFor([request('ready-request')],{activity});
  assert.deepEqual(view.activeNodes,[]);assert.equal(view.activity.ready,true);assert.match(view.header.text,/상품기획 요청 대기/);
- assert.ok(view.skills.every(s=>s.instructionLoaded&&!s.operationObserved&&!s.active));assert.equal(view.nodes.retrieve.events.length,2);assert.equal(view.counts.concepts,null);
+ assert.ok(view.skills.every(s=>s.instructionLoaded&&!s.operationObserved&&!s.active));assert.equal(view.nodes.retrieve.events.length,1);assert.equal(view.nodes.web.events.length,1);assert.equal(view.mainActive,false);assert.equal(view.counts.concepts,null);
 });
 test('CLI stage reports select a workspace without manufacturing an active Skill',()=>{
  const view=viewFor([request('planning-request')],{activity:nativeActivity({intent:'planning',task_code:'compare_features',reported_stage:'compare'})});
@@ -71,18 +71,18 @@ test('a verified installed release with no native events is connected and awaiti
   const view = viewFor([]);
   assert.equal(view.header.state, 'waiting'); assert.match(view.header.text, /릴리즈 연결됨 · Codex 세션 대기/);
   assert.equal(view.sessionId, null); assert.equal(view.observationFresh, false);
-  assert.deepEqual(view.activeNodes, []); assert.equal(view.nodes.retrieve.grouped, true);
-  assert.equal(Object.keys(view.nodes).length, 5);
-  assert.deepEqual(view.nodes.retrieve.skills.map(skill => skill.id), ['evidence-retrieval', 'web-evidence-collection']);
+  assert.deepEqual(view.activeNodes, []); assert.equal(view.nodes.retrieve.grouped, false);
+  assert.equal(Object.keys(view.nodes).length, 6);
+  assert.deepEqual(view.nodes.retrieve.skills.map(skill => skill.id), ['evidence-retrieval']);assert.deepEqual(view.nodes.web.skills.map(skill=>skill.id),['web-evidence-collection']);
   assert.equal(view.skills.length, 6); assert.equal(RELEASE_SKILLS.length, 6); assert.equal(RELEASE_ROLES.length, 3);
 });
 
 test('reading Skill instructions records use without claiming execution, progress or success', () => {
-  const view = viewFor([request('request'), event('load', { kind: 'skill_load', node: 'feature-comparison', basis: 'instruction_loaded' })]);
+  const view = viewFor([request('request'), event('load', { kind: 'skill_load', node: 'feature-comparison', basis: 'instruction_loaded', phase:'end' })]);
   const skill = view.nodes.compare.skills[0];
   assert.equal(skill.used, true); assert.equal(skill.instructionLoaded, true); assert.equal(skill.operationObserved, false);
   assert.equal(skill.status, 'loaded'); assert.equal(skill.active, false); assert.deepEqual(view.activeNodes, []);
-  assert.match(skill.statusLabel, /지침 조회/); assert.equal(view.counts.skills, 1);
+  assert.match(skill.statusLabel, /지침 조회/); assert.equal(view.counts.skills, 0);assert.equal(view.counts.instructions, 1);
 });
 
 test('generic helper with a business binding stays a shell tool, never a promoted Skill', () => {
@@ -189,8 +189,7 @@ test('old child activity cannot join the new request without a matching prompt o
   const role = 'product_official_researcher';
   const oldChild = event('old-child', { actor: role, agent_id: 'child-A', prompt_id: 'A', kind: 'subagent', node: role, basis: 'observed', ts: iso(BASE - 1000) });
   const view = viewFor([request('new-request', { prompt_id: 'B', ts: iso(BASE - 3000) }), oldChild]);
-  assert.equal(view.roles.length, 0); assert.deepEqual(view.activeNodes, []);
-  assert.ok(view.events.some(e=>e.id==='old-child'),'Previous request stays in session history, not current roles');
+  assert.equal(view.roles.length, 0);assert.equal(view.agents.length,0);assert.deepEqual(view.activeNodes, []);
   // The open request B is the main planner's own turn; the old child still lights nothing.
   assert.equal(view.header.state, 'active'); assert.match(view.header.text, /메인 기획자/); assert.equal(view.mainActive, true);
   const launched = viewFor([request('new-request', { prompt_id: 'B', ts: iso(BASE - 4000) }), event('launch', { prompt_id: 'B', kind: 'delegate', node: role, basis: 'observed', phase: 'end', ts: iso(BASE - 2000), detail: { launched_agent_id: 'child-A', background: true } }), oldChild]);

@@ -6,6 +6,10 @@ import {officeSnapshot,prepareEvents,parseRecordFile,validLiveFile,resultMetadat
 
 export const SPEEDS=[1,4,8,16,32,64];
 export const RESULT_VIEW_URL='../visual-viewer/index.html';
+// Installed office pages watch their neighboring live.js without a server connection form.
+export function initialObservationSource(recordStore,{startWithRecords=false}={}){
+  return startWithRecords||recordStore.getSnapshot().office?.pollFiles?'file':'server';
+}
 const ROLE_IDS=new Set(['product_official_researcher','product_review_researcher','product_evidence_reviewer']);
 const SKILL_IDS=new Set(['evidence-retrieval','web-evidence-collection','needs-structuring','feature-comparison','concept-writing','review-and-revise']);
 
@@ -63,15 +67,15 @@ export function readHash(hash){const params=new URLSearchParams(String(hash||'')
 export class OfficeStore{
   #state;#listeners=new Set();#options;#timers=new Map();#cancel={};#records={live:null,file:null};#prepared=new Map();#lastTick=0;#lastLivePublish=0;#busy=[];#started=false;
   constructor(options={}){
-    this.#options={pollMs:1000,resultMs:4000,tickMs:125,staleMs:20000,clock:()=>Date.now(),setTimer:(fn,ms)=>setTimeout(fn,ms),clearTimer:id=>clearTimeout(id),
+    this.#options={pollFiles:true,pollMs:1000,resultMs:4000,tickMs:125,staleMs:20000,clock:()=>Date.now(),setTimer:(fn,ms)=>setTimeout(fn,ms),clearTimer:id=>clearTimeout(id),
       liveTransport:scriptTransport('live.js','LGAX_OFFICE_LIVE',validLiveFile),resultTransport:scriptTransport('../visual-viewer/view-data.js','LGAX_VIEW',resultMetadata),hash:typeof location==='object'?location.hash:'',...options};
     const deep=readHash(this.#options.hash);
     this.#state={snapshot:null,connection:{status:'connecting',url:'live.js',lastReceivedAt:null,error:null},view:deriveReleaseView(null,{status:'connecting'},this.#options.clock()),
-      office:{mode:deep.mode==='replay'?'replay':'live',deep,read:{status:'waiting',lastSuccessAt:null,error:null},file:null,note:null,sessions:[],sessionId:null,at:null,start:null,end:null,playing:deep.play!=='0',speed:SPEEDS.includes(deep.speed)?deep.speed:8,skipQuiet:true,skipped:null,strip:{spans:[],points:[]},release:null,result:{value:null,error:null,lastSuccessAt:null}}};
+      office:{pollFiles:this.#options.pollFiles,mode:deep.mode==='replay'?'replay':'live',deep,read:{status:'waiting',lastSuccessAt:null,error:null},file:null,note:null,sessions:[],sessionId:null,at:null,start:null,end:null,playing:deep.play!=='0',speed:SPEEDS.includes(deep.speed)?deep.speed:8,skipQuiet:true,skipped:null,strip:{spans:[],points:[]},release:null,result:{value:null,error:null,lastSuccessAt:null}}};
     this.getSnapshot=()=>this.#state;
     this.subscribe=listener=>{this.#listeners.add(listener);return()=>this.#listeners.delete(listener);};
   }
-  start(){if(this.#started)return;this.#started=true;this.#readLive();this.#readResult();this.#tick();}
+  start(){if(this.#started)return;this.#started=true;if(this.#options.pollFiles){this.#readLive();this.#readResult();}this.#tick();}
   stop(){this.#started=false;for(const id of this.#timers.values())this.#options.clearTimer(id);this.#timers.clear();Object.values(this.#cancel).forEach(cancel=>cancel?.());this.#cancel={};}
   #later(name,fn,ms){if(this.#timers.has(name))this.#options.clearTimer(this.#timers.get(name));if(this.#started)this.#timers.set(name,this.#options.setTimer(()=>{this.#timers.delete(name);fn();},ms));}
   #source(){return this.#state.office.mode==='replay'&&this.#records.file?this.#records.file:this.#records.live;}
@@ -126,7 +130,7 @@ export class OfficeStore{
     const read=office.read,lastReceivedAt=office.mode==='replay'?(at!=null?new Date(at).toISOString():null):read.lastSuccessAt?new Date(read.lastSuccessAt).toISOString():null;
     // Before the first hook there is no live.js yet: that is an empty record set, not a broken page.
     const missing=office.mode==='live'&&!source&&read.error==='unavailable';
-    const status=office.mode==='replay'?(snapshot?'connected':'disconnected'):read.lastSuccessAt?(read.error&&now-read.lastSuccessAt>this.#options.staleMs?'error':'connected'):missing?'connected':read.error?'error':'connecting';
+    const status=!this.#options.pollFiles&&!source?'disconnected':office.mode==='replay'?(snapshot?'connected':'disconnected'):read.lastSuccessAt?(read.error&&now-read.lastSuccessAt>this.#options.staleMs?'error':'connected'):missing?'connected':read.error?'error':'connecting';
     const empty=missing?officeSnapshot({events:[],origin:'office_live',now}):null;
     const connection={status,origin:office.mode==='replay'?'office_replay':'office_live',url:source?.name||'live.js',lastReceivedAt:lastReceivedAt||(missing?new Date(now).toISOString():null),error:status==='error'?'관측 파일(live.js)을 읽지 못했습니다. 이 화면이 runtime-data/agent-office 폴더에 있는지 확인하세요.':null,staleAfterMs:office.mode==='replay'?Infinity:this.#options.staleMs,sourceStaleAfterMs:120000};
     let view;
@@ -135,7 +139,7 @@ export class OfficeStore{
     this.#state={snapshot:snapshot||empty,connection,view,office:{...office,missing,sessions,sessionId,at,start:session?.start??null,end:session?(office.mode==='live'?Math.max(session.end,now):session.end):null,strip,release:snapshot?.source.release??null,dropped:prepared.dropped}};
     this.#emit();
   }
-  refresh(){this.#readLive();return Promise.resolve(null);}
+  refresh(){if(this.#options.pollFiles)this.#readLive();else this.#publish();return Promise.resolve(null);}
   connect(){return Promise.reject(new Error('파일 보기에서는 읽기 서버에 연결하지 않습니다.'));}
   disconnect(){}
   goLive(){this.#records.file=null;this.#patchOffice({mode:'live',file:null,note:null,skipped:null});this.#publish();}

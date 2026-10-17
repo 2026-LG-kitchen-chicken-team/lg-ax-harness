@@ -957,7 +957,11 @@ for (const file of ['catalog', 'labels', 'model', 'state']) {
         self.assertNotIn("\r\n", html)
         self.assertIn("Built from web/prototypes/control-room/factory-dashboard (npm run build:office)", html)
         self.assertIn("THIRD-PARTY NOTICES", html)
-        self.assertEqual(html.count("data:image/png;base64,"), 3)  # researcher textures cannot be file:// images
+        # The approved UI embeds four character sheets, two workshop sheets and the lab wall.
+        self.assertEqual(html.count("data:image/png;base64,"), 7)
+        import base64
+        artwork = ROOT / "web/prototypes/control-room/factory-dashboard/public/workshops/approved-researchers-original-v1.png"
+        self.assertIn("data:image/png;base64," + base64.b64encode(artwork.read_bytes()).decode("ascii"), html)
         for text in ("LGAX_OFFICE_LIVE", "live.js", "../visual-viewer/view-data.js", "../visual-viewer/index.html",
                      "기록 재생", "실시간", "기록 파일 열기", "결과 화면 열기", "분석 구간"):
             self.assertIn(text, html)

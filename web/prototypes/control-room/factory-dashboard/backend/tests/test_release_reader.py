@@ -268,9 +268,10 @@ class InstalledVersionTests(Fixture):
 
     def test_a_delivered_role_result_continues_the_same_request(self):
         ask = event("ask", prompt="prompt-a")
-        handback = event("handback", kind="handback_delivered", prompt="prompt-b")
+        delegate = event("delegate", kind="delegate", prompt="prompt-a", detail={"launched_agent_id": "current-child"})
+        handback = event("handback", kind="handback_delivered", prompt="prompt-b", detail={"from_agent_id": "current-child"})
         bound = event("save", kind="shell", prompt="prompt-b", detail={"business_binding": BUSINESS})
-        self.lines([ask, handback, bound])
+        self.lines([ask, delegate, handback, bound])
         self.db(product_snapshot())
         result = self.reader.snapshot()
         self.assertEqual("matched", result["db"]["binding_status"])
@@ -278,8 +279,38 @@ class InstalledVersionTests(Fixture):
         self.assertEqual(("native-session", {"prompt-a", "prompt-b"}),
                          module.selected_native(result["events"])[:2])
         other = event("other", prompt="prompt-c", ts="2026-10-16T04:00:01Z")
-        self.lines([ask, handback, bound, {**other, "kind": "request"}])
+        self.lines([ask, delegate, handback, bound, {**other, "kind": "request"}])
         self.assertEqual("unmatched", self.reader.snapshot()["db"]["binding_status"])
+
+    def test_late_old_child_and_unverified_notification_cannot_bind_new_request(self):
+        for continuation, detail in [("handback_delivered", {"from_agent_id": "child-a"}), ("notification", {})]:
+            with self.subTest(continuation=continuation):
+                self.lines([
+                    event("request-a", prompt="a"),
+                    event("delegate-a", kind="delegate", prompt="a", detail={"launched_agent_id": "child-a"}),
+                    event("request-b", prompt="b", ts="2026-10-16T04:00:01Z"),
+                    event("late-a", kind=continuation, prompt="late-a", ts="2026-10-16T04:00:02Z", detail=detail),
+                    event("save-a", kind="shell", prompt="late-a", ts="2026-10-16T04:00:03Z", detail={"business_binding": BUSINESS}),
+                ])
+                self.db(product_snapshot())
+                snapshot = self.reader.snapshot()
+                self.assertEqual(("native-session", {"b"}), module.selected_native(snapshot["events"])[:2])
+                self.assertEqual("unmatched", snapshot["db"]["binding_status"])
+                self.assertNotIn("candidates", snapshot["db"])
+
+    def test_null_prompt_is_not_proof_of_old_subagent_parentage(self):
+        child = {**event("late-child", kind="subagent", phase="start", prompt=None, ts="2026-10-16T04:00:03Z"),
+                 "agent_id": "child-a", "actor": "product_evidence_reviewer", "node": "product_evidence_reviewer"}
+        self.lines([event("request-a", prompt="a"),
+                    event("delegate-a", kind="delegate", prompt="a", detail={"launched_agent_id": "child-a"}),
+                    event("request-b", prompt=None, ts="2026-10-16T04:00:01Z"), child,
+                    event("late-a", kind="handback_delivered", prompt="late-a", ts="2026-10-16T04:00:04Z", detail={"from_agent_id": "child-a"}),
+                    event("save-a", kind="shell", prompt="late-a", ts="2026-10-16T04:00:05Z", detail={"business_binding": BUSINESS})])
+        self.db(product_snapshot())
+        snapshot = self.reader.snapshot()
+        self.assertEqual(("native-session", {None}), module.selected_native(snapshot["events"])[:2])
+        self.assertEqual("unmatched", snapshot["db"]["binding_status"])
+        self.assertNotIn("candidates", snapshot["db"])
 
 
 class HTTPTests(Fixture):

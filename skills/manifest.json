@@ -382,7 +382,7 @@
     },
     {
       "path": "web/prototypes/agent-office/codex_follow.py",
-      "sha256": "d8b832716d42daf8b0fc3c36f174f3fe5eee099d38879a3c654c222611e05d9e"
+      "sha256": "d316a16ca45c1866d6e05f7489083b4a246fb73652a4e30fba3b9ca80a90af63"
     },
     {
       "path": "web/prototypes/agent-office/index.html",
@@ -390,7 +390,7 @@
     },
     {
       "path": "web/prototypes/agent-office/factory.html",
-      "sha256": "ac07bac318d7e92756fbbabcdacc64791435fddfa199479b785a248490c984d8"
+      "sha256": "b888a736282944187b9e3c530821408eaba6f3ed362b0806aaa07122c8ffff09"
     },
     {
       "path": "docs/contracts/judge-test.md",

@@ -71,9 +71,18 @@ export function selectedNative(events){
   const started=events.some(event=>isMain(event)&&event.session===session&&event.kind==='session'&&event.phase==='start');
   events.forEach((event,index)=>{if(index>=floor&&isMain(event)&&event.session===session&&event.kind==='request')request=index;});
   if(request<0){const prompt=started?null:events[anchors.at(-1)].prompt_id;return {session,prompt,prompts:new Set([prompt]),floor:started?floor:anchors.at(-1)};}
-  const prompt=events[request].prompt_id,prompts=new Set([prompt]);
-  for(const event of events.slice(request))if(isMain(event)&&event.session===session&&CONTINUATIONS.has(event.kind))prompts.add(event.prompt_id);
-  return {session,prompt,prompts,floor:request};
+  const prompt=events[request].prompt_id,prompts=new Set([prompt]),children=new Set();
+  // A late result can belong to an older request in this same session. Only a child explicitly linked to this
+  // request can introduce a continuation prompt; a bare notification is not proof of parentage.
+  for(const event of events.slice(request)){
+    if(event.session!==session)continue;
+    if(isMain(event)&&CONTINUATIONS.has(event.kind)&&event.prompt_id&&children.has(event.detail?.from_agent_id))prompts.add(event.prompt_id);
+    const linked=Boolean(event.prompt_id)&&prompts.has(event.prompt_id)||event.agent_id&&children.has(event.agent_id);
+    if(!linked)continue;
+    if(event.kind==='delegate'&&event.detail?.launched_agent_id)children.add(event.detail.launched_agent_id);
+    if(event.kind==='subagent'&&event.phase==='start'&&event.agent_id)children.add(event.agent_id);
+  }
+  return {session,prompt,prompts,children,floor:request};
 }
 
 /** Observer status at time `now`: observing while the selected request has an open call, role or turn. */
@@ -201,7 +210,7 @@ export function officeSnapshot({events:rawEvents=[],prepared=null,db=null,releas
   const notices=[origin==='office_replay'?'저장된 관측 기록을 고른 시각까지 다시 그립니다. 그 시각 이후의 기록과 DB 값은 쓰지 않습니다.':'runtime-data/agent-office의 관측 파일(live.js)을 1초마다 다시 읽습니다. 모델·업무·훅·DB를 실행하거나 바꾸지 않습니다.',
     '관측 중 표시는 최근 열린 사건의 기록이며 프로세스 생존·모델 성공의 독립 확인이 아닙니다.','Skill 지침 읽기와 명령 기반 작업 추정을 실제 의미 판단·완료와 구분합니다.'];
   if(dropped)notices.push(`형식을 알 수 없는 관측 기록 ${dropped}개는 읽지 않았습니다.`);
-  return {schema_version:1,source:{kind:'lgax_release_observer',release:RELEASE_PATTERN.test(release||'')?release:null,engine,origin,observed_at:isoAt(clock),
+  return {schema_version:1,source:{kind:'lgax_release_observer',release:typeof release==='string'&&RELEASE_PATTERN.test(release)?release:null,engine,origin,observed_at:isoAt(clock),
     source_updated_at:updates.length?updates.reduce((a,b)=>Date.parse(a)>=Date.parse(b)?a:b):null,observer_status:observerStatus(events,clock),asset_sha256:null,product_install_sha256:null},
     events,activity:null,db:summary,notices};
 }
