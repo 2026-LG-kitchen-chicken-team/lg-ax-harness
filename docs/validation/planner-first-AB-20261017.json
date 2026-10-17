@@ -289,9 +289,27 @@
     "latest_GUI_business_inputs": 0,
     "latest_GUI_visual_acceptance": false,
     "four_environment_latest_certified": false,
-    "fresh_Claude_case": "separate bounded protocol; final receipt recorded separately",
+    "fresh_Claude_case": {
+      "case_id": "AB_CLAUDE_FR_FINAL_01",
+      "inputs": 1,
+      "automatic_resends": 0,
+      "status": "무인기본권한_승인필요동작거절_실패보존_후속중단",
+      "elapsed_seconds": 71.203,
+      "exit_code": 1,
+      "tool_permission_denials": 3,
+      "saved_results": 0,
+      "first_denial_immediate_stop": false,
+      "first_denial_to_guard_seconds_approx": 42.641,
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "actual_effort": null,
+      "permission_mode": "default",
+      "permission_prompts": "none",
+      "public_summary_sha256": "fb245ab33d45bb8d5d20df30ff28ddd84c8c4789a0404f39670b8f7758dd8032"
+    },
     "codex_policy_warning_resolved": false,
-    "mac_linux_native_certified": false
+    "mac_linux_native_certified": false,
+    "fresh_native_count_not_added_to_AA": 1
   },
   "review": {
     "remaining_P1_P2_at_review": 0,

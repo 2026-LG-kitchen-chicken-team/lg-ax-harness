@@ -38,4 +38,10 @@ Unicode code point 기준이며 HTML entity를 풀고 연속 공백을 하나로
 
 현재 실용 권장은 [모델 결정](../decisions/model-use-20261017.md)에 정리했다. Codex 품질 우선은 Astra/low, Claude는 Opus5.5/medium이며 ZIP의 Sol/medium 기본값은 유지한다. AA의 같은 두 과제 각1회 수치에 근거한 범위이고 전 제품·전 환경 최적 인증은 아니다. Opus의 내용 품질과 일부 원본 metadata의 엄격 전량 열람 판정도 구분한다.
 
-현재 준비 진단에서 Codex CLI0.162.0과 Claude Desktop 내장 CLI2.1.299의 인증 boolean은 true, 두 새 사본 doctor는 exit0다. Claude 단독 CLI는 기본 PATH에서 발견되지 않아 Desktop 내장 CLI와 런처를 혼동하지 않는다. 이번 GUI 업무 입력은0이다. Codex의 기존 Windows MXC 정책 경고와 GUI 자동화/브라우저 접근 제한을 우회하지 않았다. 최신 네 환경의 실제 자동 열림·브라우저 육안·인쇄 쪽수를 전부 확인한 것으로 표시하지 않는다. 새 Claude1회는 별도 동결 프로토콜과 실제 결과로만 판정한다.
+현재 준비 진단에서 Codex CLI0.162.0과 Claude Desktop 내장 CLI2.1.299의 인증 boolean은 true, 두 새 사본 doctor는 exit0다. Claude 단독 CLI는 기본 PATH에서 발견되지 않아 Desktop 내장 CLI와 런처를 혼동하지 않는다. 이번 GUI 업무 입력은0이다. Codex의 기존 Windows MXC 정책 경고와 GUI 자동화/브라우저 접근 제한을 우회하지 않았다. 최신 네 환경의 실제 자동 열림·브라우저 육안·인쇄 쪽수를 전부 확인한 것으로 표시하지 않는다. 새 Claude1회는 아래 실제 결과로 분리했다.
+
+## 최신 Claude 무인1회 종료
+
+[공개 요약](claude-approval-AB-20261017.md)·[행별 시계/사용량](claude-approval-AB-20261017.json): 새 parent1회, Opus5.5/medium 요청·실제 모델Opus5.5·default 권한, --permission-prompts none 조건에서71.203초 후 exit1로 마감했다. 승인 표면이 없어 첫 Write와 같은 parent의 후속 PowerShell/Bash2개가 거절됐다. DB·업무 결과·export·보고서는 생성되지 않았다. 자동 재발송·권한 확대·GUI/다른 모델 대체는0이다.
+
+시험 수집기는 실제 거절 문구를 첫 반환에서 놓쳤고 terminal permission_denials에서 정지했다. 첫 거절→guard 관측 지연 약42.641초를 보존하며 즉시 중단 성공으로 표시하지 않는다. 제품 소스106보호파일과 catalog219/선택56자료는 그대로다. 이 무인 조건은 사용자가 접근을 승인하며 쓰는 제품 런처와 다르며 제품 코드/기획 의미 품질의 실패로 일반화하지 않는다. 실제 기획 결과가 없으므로 이 시간을 업무 완료 시간·품질 비교·권장 근거에 합산하지 않았다. 기존 AA11과 별도1입력이다. 네 환경 최신 인수·브라우저 육안·실제 인쇄 쪽수는 여전히 남아 있다.

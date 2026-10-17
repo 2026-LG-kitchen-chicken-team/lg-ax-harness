@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "기록시각": "2026-10-17T07:05:16.803917+00:00",
+  "사례": "AB_CLAUDE_FR_FINAL_01",
+  "판정": "무인기본권한_승인필요동작거절_실패보존_후속중단",
+  "실제새parent입력": 1,
+  "실제native_init": 1,
+  "예약상한": 1,
+  "자동native재발송": 0,
+  "추가native시도": 0,
+  "다른모델_GUI_프로바이더대체": 0,
+  "Codex재개": 0,
+  "source_commit": "1db850235d9a29124f53a4c5fa7205f1a9d837e3",
+  "source_manifest_sha256": "75a952a7e19ce01f5a749378b4f6284dee86afd4c8a9c27dcf3c4b99ba9159be",
+  "요청모델": "claude-opus-5-5",
+  "요청effort": "medium",
+  "native실제보고모델": "claude-opus-5-5",
+  "native실제보고effort": null,
+  "실제permissionMode": "default",
+  "실제apiKeySource": "none",
+  "새allowedTools_auto_bypass_추가": false,
+  "시작UTC": "2026-10-17T07:01:22.274402+00:00",
+  "종료UTC": "2026-10-17T07:02:33.479808+00:00",
+  "외부전체경과초": 71.203,
+  "native_process_exit_code": 1,
+  "native원수집status": "failed",
+  "wrapperstatus": "stopped_rejection",
+  "wrapper최종exit_code": 1,
+  "본래수집기turn_completed": true,
+  "자동승인표면": "--permission-prompts none: 승인이 필요한 동작은거절,permission-mode옵션생략으로default유지",
+  "최초거절핵심문구": "Permission for this tool use was denied. It requires approval, and this session has no approval surface.",
+  "거절반환순서": [
+    {
+      "순서": 1,
+      "실제도구명": "Write",
+      "public_event_line": 18,
+      "collector_경과초": 28.5,
+      "거절본문_sha256": "2b41f9c1a27f8199e9aab1c90c7e5ff67932553a7b274b6329d72eec4ef45ea0",
+      "동작실행": "도구 요청/거절 반환 관측; 파일 쓰기·명령 실행 성공은 인수하지 않음"
+    },
+    {
+      "순서": 2,
+      "실제도구명": "PowerShell",
+      "public_event_line": 31,
+      "collector_경과초": 54.359,
+      "거절본문_sha256": "fd041714ec5d4237755bc71918e0a553cf8064096ae7f4f8d564a42e105e3308",
+      "동작실행": "도구 요청/거절 반환 관측; 파일 쓰기·명령 실행 성공은 인수하지 않음"
+    },
+    {
+      "순서": 3,
+      "실제도구명": "Bash",
+      "public_event_line": 37,
+      "collector_경과초": 60.812,
+      "거절본문_sha256": "6fa0a9e5b86205f9f2358ab6694843938ffb1d42f4b016cc7af980f60c968321",
+      "동작실행": "도구 요청/거절 반환 관측; 파일 쓰기·명령 실행 성공은 인수하지 않음"
+    }
+  ],
+  "같은parent내_후속shell도구시도": 2,
+  "terminal_permission_denials": {
+    "line": 42,
+    "at_seconds": 71.14000000001397,
+    "permission_denials_count": 3,
+    "is_error": false
+  },
+  "최종guard정지": {
+    "guard_경과초": 71.141,
+    "channel": "stdout",
+    "line": 42,
+    "reasons": [
+      "permission_or_policy_denied"
+    ],
+    "line_sha256": "85a61f9cfe532694f95f55fe3923e97e5c53285113e99c669f34e1ccc3187fc2"
+  },
+  "첫거절즉시중단성공": false,
+  "감지한계": "합성검사에사용한Permission to use...문구와실제Permission for this tool use was denied문구가달라첫Write와후속PowerShell/Bash오류를놓침.terminal permission_denials에서정지.지연을보존하며즉시중단성공으로표시하지않음.모델내도구시도와parent재발송은구분.",
+  "최초거절에서guard정지까지_관측초_근사": 42.641,
+  "정지시계주의": "첫Tool반환은collector monotonic,guard는그직전생성한controller monotonic;수ms수준시작차이가있어지연은근사관측.",
+  "native소유정지": {
+    "method": "Windows owned JobObject",
+    "job_termination_returned_true": true,
+    "모든관측부모회수": true,
+    "backend전체취소인증": false
+  },
+  "관찰자소유회수": {
+    "method": "Windows owned JobObject",
+    "모든관측부모회수": true
+  },
+  "원문자료수": 56,
+  "catalog전체수": 219,
+  "전체보호파일수": 106,
+  "제품_source_corpus_106파일불변": true,
+  "corpus3파일원바이트보존": true,
+  "업무저장": false,
+  "DB파일생성": false,
+  "저장turn수": 0,
+  "export파일수": 0,
+  "web_result파일수": 0,
+  "completion파일수": 0,
+  "workflow_finish확인": false,
+  "현재전달결속": null,
+  "보고서HTML생성": false,
+  "watcher_open_requested_reported": null,
+  "실제UI렌더검사": false,
+  "부모Tool_전체56원문전달인수": "업무시작단계권한거절로인수하지못함.파일전량보존과부모독해를혼동하지않음.",
+  "의미품질검토": "not_run;업무저장/기획결과없음",
+  "parent_native_usage_raw": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 45672,
+    "cache_read_input_tokens": 387749,
+    "output_tokens": 3104,
+    "output_tokens_details": {
+      "thinking_tokens": 648
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 45672,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 725,
+        "cache_read_input_tokens": 60697,
+        "cache_creation_input_tokens": 739,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 739
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "provider_model_usage_separate_not_added": {
+    "claude-opus-5-5": {
+      "inputTokens": 16,
+      "outputTokens": 3104,
+      "cacheReadInputTokens": 387749,
+      "cacheCreationInputTokens": 45672,
+      "webSearchRequests": 0,
+      "costUSD": 0.5050697999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 648,
+      "canonicalModel": "claude-opus-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "list_cost_usd_not_billing": 0.5050697999999999,
+  "actual_billed_cost": null,
+  "관측된Agent도구호출수": 0,
+  "도구전체시간초": null,
+  "제품_모델해석범위": "제품런처의interactive승인과다른무인prompts-none조건에서승인필요동작이거절된결과.제품코드/모델의기획의미품질실패나모든GUI불능으로일반화하지않음.",
+  "제품수정": false,
+  "새모델실행금지유지": true,
+  "지문": {
+    "native_id_sha256": "69c23e01d9050c164acb0dc3201634eb50e04662258950bbdcd19fcc76594b0c",
+    "raw_native_sha256": "d93b7a8c0108887b60e5b221cdc57cd76d86bccc8a0e131fe4f31cd4c623e76b",
+    "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wrapper_guard_sha256": "f8284b82c9088d53e4c3870afb992edfebf1af07b03bfd0041f9c6ad9a28db6a",
+    "private_result_sha256": "b140a8dde05d703604610f2829fdf3a0d5eabec6138b8729e72b080a541fd8f1",
+    "completion_receipt_sha256": "b7131d2301b5f732d455d43eea3eeaf684a4302ef3c9542a3617811e9136ca81",
+    "prompt_utf8_LF_sha256": "a2710fd14558e259c6582172baddf91a7b7d515d8501e0a736a69bef2e219bd7",
+    "question_sha256": "7a3397b96ca2fb9296f0b55de24c9f8c88d8f5a93bb59c828f47af72b5107881"
+  },
+  "공개정보경계": "개인절대경로·원질문/후기본문·credentials·rawargv제외.숫자/일반오류문구/설정이름/지문만포함.",
+  "자식전체backend사용량": null,
+  "사용량주의": "부모/자식및terminal/modelUsage중복unknown,합산하지않음.cache/thinking부분집합도중복계산하지않음.실패호출을제외하지않음.개발검토사용량합산0."
+}
