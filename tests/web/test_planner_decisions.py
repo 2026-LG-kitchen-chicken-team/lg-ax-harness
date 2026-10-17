@@ -68,6 +68,12 @@ class PlannerDecisionDeliveryTests(unittest.TestCase):
     def test_nontext_title_is_rejected_instead_of_rendered_as_ui(self):
         self.assertIn('concept_titles', build_view.insights_shape_errors({'concept_titles': {'c1': {'html': '<img>'}}}))
 
+    def test_accepted_summary_keeps_the_condition_after_character_300(self):
+        from types import SimpleNamespace
+        summary = '[합성 시험 자료] ' + '설계 설명 ' * 65 + '기존에 같은 기능이 있으면 이 제안은 제외한다.'
+        self.assertGreater(len(summary), 300)
+        self.assertEqual(build_view.summary_of(SimpleNamespace(ins={'summaries': {'c1': summary}}), 'c1'), summary)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -358,7 +358,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "5ae9d770688c6539e40e2a44a30390f40914104ba966d031e9c4c12bc0da1d43"
+      "sha256": "8425e6c5165f2f66f0717e124a9f707c1654dd079e76c51d833a88b2316900c2"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",

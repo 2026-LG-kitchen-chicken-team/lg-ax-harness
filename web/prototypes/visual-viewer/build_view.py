@@ -899,7 +899,7 @@ def quote_items(c: Ctx, ids: list[str], limit: int = 2) -> list[dict]:
 def summary_of(c: Ctx, item_id) -> str | None:
     """insights summaries: the model's short summary of one item (P1, F1, RP1, C1 …), shown beside the saved text."""
     s = (c.ins.get("summaries") or {}).get(item_id)
-    return clip(s.strip(), 300) if isinstance(s, str) and s.strip() else None
+    return s.strip() if isinstance(s, str) and s.strip() else None
 
 
 def planner_scope(c: Ctx) -> dict | None:
