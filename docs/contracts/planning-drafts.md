@@ -2,6 +2,8 @@
 
 ## 업무 결과의 선택 필드
 
+표시 역할을 나눈다. 비교 요약은 무엇을 하는 안인지, reason은 선택 근거, tradeoff는 결정을 바꾸는 조건을 담는다. 공통 조사 범위·효과 미측정 설명은 전체 조건에 모으고 여러 칸에 반복하지 않는다. 제안의 핵심 조건과 초안의 확인 입력은 유지한다.
+
 `result.planning_decision`은 `{summary,selected_concept_ids,comparisons}`다. summary는1~1000자, selected_concept_ids는 현재 concepts ID의 중복 없는0~3개 배열이다. 비교만 요청하면 선택을 비워도 된다. comparisons는 현재 후보마다 정확히 한 번 `{concept_id,reason,tradeoff}`를 담는다. reason과 tradeoff는 각각1~1000자다. 실제 차이와 선택 조건을 짧게 적으며 시장 우선순위·매출 인증으로 쓰지 않는다. 후보가 없으면 두 배열은 비어 있다.
 
 `concept.work_draft`는 `{title,columns,rows}`다. title은1~200자, columns는 중복 없는1~6개 제목(각1~100자), rows는1~20행이며 각 행의 셀 수는 열 수와 같다. 각 셀은1~1000자의 실제 편집 가능한 내용이고 초안 하나는32KiB 이하다. 전체 result128KiB·입력256KiB 상한도 그대로다. 표는 요구사항/업무 흐름/질문표/양식 등 요청에 맞는 내용이며 제품별 고정 답안이 아니다. 빈 양식이나 “다음에 작성한다”는 지시만으로 실제 초안을 대신하지 않는다.

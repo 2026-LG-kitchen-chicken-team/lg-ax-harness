@@ -126,7 +126,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "affe1fd798ac306d6f55c461937e3a5c8f1f24f5214aca8ba7c7168c75a9c661"
+          "sha256": "1d47e742f5c4c8215ce11dbaf1bcf40e7145b5a39ff62f1646c853469cce2d41"
         }
       ]
     },
@@ -174,7 +174,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "9c667060aaa0120ca221dfe07143423cb95794d5eb536a5d339c4c78bafcc45c"
+          "sha256": "7e32311e8babc9997efdcf8a13afe861d9547d8eebe3e8feccc681ec771509a9"
         }
       ]
     }
@@ -366,7 +366,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "38835c2a0318a544ee22fc219d016a735dc436f11c5a58a160a665a08ff88480"
+      "sha256": "fb24aad44befb6140d1ce17dc43fbac01eb42b96413b18803b72b82a49a2ba08"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
@@ -406,7 +406,7 @@
     },
     {
       "path": "docs/contracts/planning-drafts.md",
-      "sha256": "b391115bfc5b27b19c5c7bccc801a515899ae16cdce13a24181b31179921b639"
+      "sha256": "88d3895a726b63f884d08ad0eab17df9fe0769716105fc1c46f0bdd1b2811498"
     }
   ],
   "optional_agents": [

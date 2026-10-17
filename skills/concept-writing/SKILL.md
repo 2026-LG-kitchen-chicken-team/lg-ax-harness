@@ -24,6 +24,8 @@ user-invocable: true
 
 제안의 text에도 핵심 적용 조건을 남긴다. 사건 순서·부정 범위를 보존하고 중요한 조건을 assumptions에만 숨기지 않는다.
 
+공통 조사 범위와 대표성·효과 미측정 설명은 전체 조건에서 한 번 정리한다. 비교 요약은 하는 일, 선택 이유는 착수 근거, 고려할 점은 결정을 바꾸는 조건으로 나누어 같은 면책 문장을 반복하지 않는다. 제안 설명의 핵심 조건과 실제 초안의 확인 입력 칸은 유지한다.
+
 ## 결과와 검토 연결
 
 concept의 id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 유지한다. 각 제안에 implementation_steps와 validation_plan을 작성하고, 첫 단계는 담당 역할·필요 입력·완료 산출물을 분명히 한다. 행동·완료/실패 기준을 requirements에 적고, 선택안의 실제 초안은 실행·시험 계획과 구별한다. 세부 작성 시 [구현·검증 계획](references/validation-plans.md)을 읽는다. 결과의 정확한 크기·구조는 프로젝트 루트 [업무 초안 계약](../../docs/contracts/planning-drafts.md), 저장 양식은 review-and-revise/references/payload.md를 따른다.

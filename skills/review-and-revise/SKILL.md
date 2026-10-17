@@ -6,6 +6,8 @@ user-invocable: true
 
 # 검토·수정·저장
 
+사람이 후보를 고르고 초안을 수정할 때 필요한 내용인지 확인한다. 공통 조사 한계는 한 곳에 모으고 비교 요약·선택 이유·고려점의 같은 문장 반복은 줄인다. 실제 추진 조건·원문 귀속·초안의 확인 입력은 보존하며 화면 코드에서 특정 단어를 삭제해 해결하지 않는다.
+
 ## 호출 조건과 지침
 
 자연어 요청의 자동 선택이 기본이며 Codex `$review-and-revise`(`/skills`), Claude `/review-and-revise` 명시 호출도 같은 업무 경로를 쓴다. 현재 업무 문맥에 같은 본문·지문이 없거나 문맥/버전이 바뀌면 판단 전에 `get_work_instructions`로 필요한 `main`·`review-and-revise`·`payload`의 실제 본문을 받는다.
