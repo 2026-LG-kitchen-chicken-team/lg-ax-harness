@@ -130,6 +130,8 @@ class Conversation:
                  "result_limits": {"concepts": turn["input"]["constraints"]["max_concepts"],
                                    "claims_per_section": 20, "concept_requirements": 10,
                                    "concept_assumptions": 10, "implementation_steps": 8,
+                                   "planning_decision": {"summary_chars": 1000, "comparisons": 3, "selected_concepts": 3},
+                                   "work_draft": {"columns": 6, "rows": 20, "cell_chars": 1000, "bytes": 32768},
                                    "decision_notes": 10, "decision_source_ids": 20,
                                    "result_bytes": MAX_RESULT_BYTES,
                                    "template_status": "blank_invalid_until_authored",

@@ -62,7 +62,7 @@ class ProductTools:
                     "model_scope": [{k: m[k] for k in ("model_id", "model_version", "document_version")} for m in candidates],
                     "target_customer": payload.get("target_customer", "미확인: 리뷰에 드러난 사용자 맥락만 사용"),
                     "context": ("제품군 요청: 등록된 모델별 제한 사례만 분석한다. 제품군 전체·모든 모델의 공통 불편이나 발생률로 일반화하지 않는다. 모델별 불편과 기능을 분리한다. " if mode == "family_catalog" else "모델 선택 중심 상품기획. ") + "자료에 없는 불편·내부 치수·시장 효과를 추정하지 않는다.",
-                    "constraints": payload.get("constraints", {"max_concepts": 3, "hardware_allowed": False, "exclude_pains": []}),
+                    "constraints": payload.get("constraints", {"max_concepts": 3, "hardware_allowed": True, "exclude_pains": []}),
                     "data_version": self.dataset.version,
                     "runtime": payload.get("runtime", {"engine": None, "engine_version": None, "model_id": None, "settings_fingerprint": None}),
                     "workflow": payload.get("workflow", {"rules_version": "product-contract-v1", "skill_fingerprint": None, "prompt_fingerprint": None})}

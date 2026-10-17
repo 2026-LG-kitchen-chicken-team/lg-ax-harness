@@ -1,69 +1,35 @@
 ---
 name: concept-writing
-description: "실제 근거와 기존 기능 대조로 확인된 남은 불편에 대해 조건을 지키는 상품기획 콘셉트를 작성할 때 사용한다."
+description: "실제 불편과 기존 기능 대조를 종합해 후보의 차이·선택 이유·편집 가능한 상품기획 초안을 작성할 때 사용한다."
 user-invocable: true
 ---
 
-# 기획 초안
+# 상품기획과 실제 초안
 
-## 호출 조건과 지침
+## 호출과 입력
 
-자연어 요청의 자동 선택이 기본이며 Codex `$concept-writing`(`/skills`), Claude `/concept-writing` 명시 호출도 같은 업무 경로를 쓴다. 현재 업무 문맥에 같은 본문·지문이 없거나 문맥/버전이 바뀌면 판단 전에 `get_work_instructions`로 `concept-writing`와 필요한 `main`만 선택해 실제 본문을 받는다.
+자연어 요청에 맞춰 자동 선택하며 Codex `$concept-writing`(`/skills`), Claude `/concept-writing`도 같은 경로다. main·이 Skill의 현재 본문이 없을 때만 get_work_instructions로 필요한 ID를 받는다. 같은 문맥·지문은 known_context로 재사용한다. 발견·본문 반환·실제 적용은 서로 다른 기록이다. 단독 실행은 main의 공통 규칙을 먼저 확인한다.
 
-이미 같은 지침이 문맥에 있으면 재독해하지 않고 동일 문맥·지문의 `known_context` 신고를 사용한다. 실행은 `uv run python skills/concept-writing/scripts/run.py get_work_instructions --input runtime-data/instructions.json`이며 입력·증거 구분은 프로젝트 루트 `docs/contracts/instruction-loading.md`를 따른다.
+사용자 목적·남은 불편·정확 모델의 원문/제품 사실·기존 기능 대조를 입력으로 사용한다. 자료 폭·긍정/상반 경험을 줄이지 않는다. 특정 제품·질문의 정답을 선택하지 않는다.
 
-반환 receipt는 코드 반환 근거이고 독해·적용·이해 인증이 아니다.
+## 작성
 
-## 입력과 출력
+1. 고객 문제와 바뀌는 행동이 직접 연결되는 후보만 작성한다. 최대3개는 상한이며 약한 안으로 채우지 않는다. 기존 기능 복제·미기재를 기능 부재로 단정·금지 행동은 제외한다.
+2. 일반 구체화 요청은 착수안 하나를 선택하고 이유·차이를 짧게 적는다. 사용자 선택을 우선하고, 비교만 요청하면 선택/초안을 생략할 수 있으며 복수 구체화 요청은 존중한다. result.planning_decision은 후보 비교·선택 이유다.
+3. 선택안에는 실제 수정해 쓸 concept.work_draft를 작성한다. 요구사항표·서비스 흐름·질문표·기록 양식 등 요청에 맞는 본문을 제공하며 “추후 만들 것” 목록만으로 끝내지 않는다. 유형은 예시이며 세 제품군의 고정 양식이 아니다.
+4. 관측 사실은 연결 원문으로, 새 설계는 제안으로, 후기 기반 예시는 예시로 자연스럽게 쓴다. 모르는 내부 담당자·기한·수치·효과를 사실로 채우거나 승인된 회사 양식으로 표시하지 않는다. 새 설계가 원문에 그대로 없다는 이유만으로 금지하지 않는다.
+5. 제안과 한 문장 설명 → 고객 문제 → 의미 있는 차이 → 실제 초안 → 다음 행동 순으로 읽게 한다. 반복 일반 면책·자기 지시문·내부ID·JSON·검사 배지는 본문에 넣지 않는다. 필요한 모델 식별·조작 지원·치수·안전 조건은 해당 행동 가까이에 짧게 남긴다. 실제 근거가 없으면 불가능한 판단과 필요한 자료만 구체적으로 알리고 작성 가능한 부분은 제공한다.
 
-단독 실행이면 프로젝트 루트 agents/product-planning.md의 공통 안전 규칙을 먼저 읽는다. 이미 문맥에 있으면 유지한다. 사용자 수량은 상한이며 근거가 부족하면 빈 안/보류를 허용한다. 각 concept은 remaining_pain·원문·제품 사실을 연결한다. 기존 기능 복제, 금지 행동/하드웨어, 미확인 기능 부재, 내부 치수·개선율 추정을 제외한다.
+새 요청은 하드웨어·서비스·UX를 함께 검토할 수 있다. 명시 hardware_allowed:false·제외조건·후속 상속은 지킨다. 치수/안전 근거 없이 실현성·물리 적합성을 단정하지 않는다. 외형 치수를 내부 치수로 쓰지 않는다.
 
-id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 작성한다. 요구사항은 검증할 사용자 과업·측정 항목이며 달성 효과가 아니다. 조건부 기획이면 result와 concept의 assumptions에 미확인 귀속/기능 해소/중복 한계를 남긴다. 치수 의존성은 이 선언으로 우회하지 못한다. 양식은 review-and-revise/references/payload.md다.
+## 결과와 검토 연결
 
-## 절차: 요구사항과 구현·검증 계획
+concept의 id/text/source_ids/requirements/requires_hardware/assumptions와 concept_links를 유지한다. 행동·완료/실패 기준을 requirements에 적고, 선택안의 실제 초안과 implementation_steps/validation_plan을 구별한다. 시험 계획을 작성할 때 [구현·검증 계획](references/validation-plans.md)을 읽는다. 결과의 정확한 크기·구조는 프로젝트 루트 [업무 초안 계약](../../docs/contracts/planning-drafts.md), 저장 양식은 review-and-revise/references/payload.md를 따른다.
 
-제안의 text에도 핵심 적용 조건을 붙이고 requirements/assumptions·요약에 같은 범위를 유지한다. 기존 기능이나 안내의 조건부 조치를 무조건적 권고로 다시 쓰지 않는다. 사건 순서·부정 범위를 바꾼 불편을 출발점으로 삼지 않으며 제안/미측정 효과는 관측 사실과 구별한다.
+같은 턴에서 기존 선택 planner_insights:{concept_titles:{콘셉트ID:"짧은 이름"},summaries:{현재항목ID:"한 문장"}}를 작성한다. 제목은 구별점, 요약은 대상·상황·변화를 적고 원문의 부정·사건 순서·조건을 보존한다. 새 사실/효과를 추가하지 않는다. 실제 work_draft와 planning_decision은 result 내부에 넣어 검토·저장하고 planner_insights로 우회하지 않는다. 화면용 별도 모델 호출은 추가하지 않는다.
 
-절마다 대상·조건·시점·매체를 같은 연결 source 원문과 대조한다. 명시하지 않은 속성·장소·인과는 AI 해석/미확인으로 남긴다. 제안한 과업·작동 장소·효과를 후기나 제조사의 관측 사실로 귀속하지 않는다.
+의미 판단·새 초안 작성은 네이티브 모델의 일이다. 단독 구조 진단은 `uv run python skills/concept-writing/scripts/run.py OP --input JSON_PATH`의 validate_constraints/validate_source_refs, 전체 업무는 기존 review-and-revise 검토→save_and_export를 사용한다. 실제 스크립트 실행과 Skill 읽기를 구분한다.
 
-요구사항에는 사용자가 수행할 행동과 관측 가능한 완료·실패 조건을 적는다. 개선한다/편리해진다는 표현만으로 완료 기준을 대신하지 않는다. 원문에서 확인하지 못한 작업 조건·효과는 기획/시험 가정으로 구분하고 실제 후기의 관측값으로 귀속하지 않는다.
+## 마감
 
-각 concept에 implementation_steps(실행 주체/프로토타입/확인 순서)와 validation_plan을 추가한다. validation_plan 필드는 metric/baseline/method/success_criterion/business_value/status이고 status는 planned_not_measured만 허용한다.
-
-같은 작성 턴에서 저장 후보와 함께 `planner_insights:{concept_titles:{콘셉트ID:"짧은 제안명"},summaries:{항목ID:"한 문장 요약"}}`를 작성한다. 제안명은 기능 나열·순위·검증되지 않은 효과 대신 제안의 구별점을 짧게 쓴다. 각 콘셉트 요약은 누구의 어떤 사용 상황에서 무엇을 바꾸려는지와 조건부 가치를 한 문장으로 적고, 남은 불편 ID의 요약은 사용 상황→직접 지지되는 문제 순서로 쓴다. 기존 기능·안내의 존재와 미확인·부정·사건 순서를 요약에서도 보존한다. 새 근거·효과를 요약에 추가하지 않는다.
-
-`implementation_steps[0]`은 바로 시작할 작업의 담당 역할·필요 입력·완료 산출물이 자연스럽게 드러나는 실행 문장으로 쓴다. 확정되지 않은 담당자 이름이나 측정 성과는 만들지 않는다. 제목·요약·다음 행동은 같은 모델 판단에서 작성하며 화면용 별도 모델 호출을 추가하지 않는다. `planner_insights`는 result 안에 넣지 않고 같은 후보의 save_and_export 선택 입력으로 전달한다. binding은 코드가 현재 저장 결과에서 붙인다.
-
-기존 작업 대비 무엇을 측정할지, 같은 과업·완료 품질로 어떻게 비교할지 적는다. 숫자 목표는 가설로 명시하고 미측정 절감률을 실적처럼 쓰지 않는다.
-
-제안서 예시에 없는 실제 불편도 처리하며 다른 제품군의 근거를 대신 쓰지 않는다.
-
-## 검토: 조건·분모·품질
-
-validation_plan의 기존 baseline/method/metric/success_criterion 안에서 시험 전 고정할 사용자 과업·대상과 양·초기 상태·모델/버전·사용 환경/숙련 조건·완료 품질을 적는다. 기존 기능을 실제 사용한 대조 조건과 제안 적용 조건을 같은 과제/조건으로 비교한다.
-
-반복 단위·순서·사전 배정한 전체 시도와 실패·중단·포기·회피·미확인 처리를 구체화한다. validation_plan의 선택 evaluation_protocol:{unit,failed_or_stopped,unknown}에 짧게 보완할 수 있다.
-
-상세 분모/처리 계획은 업무 개선 항목이며 생략만으로 기존 조건부 초안을 일괄 실패로 만들지 않는다. 실제 과업 완료품질·오판·실패 미검출과 추가 조작·안전 악화·중단 기준을 함께 판정한다.
-
-만족한 사용자 경험·안전·장기/반례 조건의 악화를 성공으로 세지 않는다. 시험 후 유리한 조건만 고르지 않으며, 기준선 미측정은 측정 예정으로 두고 목표/표본은 사전 결정 또는 미정으로 표시한다.
-
-서로 다른 조건/완료 품질을 개선률로 비교하지 않는다.
-
-선택 condition_controls는 시험 전에 고정할 조건 설명 배열이고, guardrail_metrics는 {metric,method,non_regression_criterion} 배열이다. 전체 사전 배정 시도에 실패·중단·미응답을 포함하고 미확인을 따로 남긴다.
-
-오안내·완료품질 저하·실패 미검출을 개선 지표와 함께 비교한다. 기존 기본 필드·evaluation_protocol은 호환하며 새 필드 없이도 조건부안을 저장할 수 있다.
-
-planning_quality_diagnostics의 scope=structural_only/blocking=false는 필드 누락 안내다. 필드 존재는 계획 타당성·실측 인증이 아니다.
-
-최종 표현에서도 연결한 각 원문이 주장 주어·대상·조건·비교절을 직접 지지해야 한다. 원문 미명시 위치·매체·조건은 unknown으로 유지하고 다른 후기의 조건을 옮기지 않는다. 기존 안내가 있어도 노출/이해 불편은 별도 근거가 필요하다. 검증은 대리 지표와 실제 과업 품질·오판·실패 탐지를 구분한다.
-
-## 완료·실패와 실행
-
-전체 업무의 최종 저장이 구조/refs/제약을 검사한다. 단독 실행·불일치 진단에는 validate_constraints/validate_source_refs를 실제 실행한다. 실행: `uv run python skills/concept-writing/scripts/run.py OP --input JSON_PATH`. 생성과 원문 검토는 네이티브 모델이다.
-
-국소 표현/검증 계획 보완과 핵심 근거 오류는 영향 범위를 구분한다. 전자는 보완 항목이며 그 자체로 업무 전체 실패를 뜻하지 않는다. 최종 전달은 현재 저장 버전의 completion_summary.text를 유지하고 새 사실·조건·매체를 추가하지 않는다.
-
-## 명시 파일 출력
-
-명시 파일 출력의 독자용 문서 표현은 [보고서 작성](../review-and-revise/references/report-writing.md)을 적용한다. 컨셉·시연 이미지를 생성하거나 보고서에 삽입하지 않는다. 사용 장면과 개선안은 근거가 연결된 문장·표로 설명하고, 기획 가설과 실제 제품/효과를 구별한다.
+작성·압축 뒤 각 사실 절의 주어·대상·조건·시점·매체가 같은 원문에 있는지 확인한다. 다른 후기의 조건을 옮기거나 제안을 제조사 사실로 귀속하지 않는다. 핵심 전제 오류와 국소 표현/계획 보완의 영향을 구분한다. 저장된 같은 버전의 completion_summary.text와 실제 웹/보고서 경로를 전달한다. 파일 출력을 명시한 경우에만 기존 [보고서 작성](../review-and-revise/references/report-writing.md)을 적용하며 컨셉 이미지는 생성하지 않는다.

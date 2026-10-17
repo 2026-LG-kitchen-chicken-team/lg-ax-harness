@@ -25,6 +25,10 @@
 - 기존 기능 존재, 해당 조건의 불편 해소, 제안 중복을 각각 대조하는가. 기능 미기재를 부재로 확정하지 않고 공용 FAQ·정확 SKU 적용 미확인을 유지한다.
 - 기획의 핵심 전제 오류와 국소 표현 오류의 영향을 구분하는가. validation_plan은 planned_not_measured이며 전체 시도 분모·실패/중단/미응답·미확인 처리, 조건통제, 오안내·완료품질·실패 탐지의 비퇴행 기준을 함께 검토한다. 선택 evaluation_protocol/condition_controls/guardrail_metrics의 상세는 보완 권고다. structural_only 누락 진단만으로 업무 전체를 실패로 선언하지 않고 필드 존재를 의미·측정 인증으로 쓰지 않는다.
 
+## 선택 이유·실제 초안과 읽기 검토
+
+후보에 planning_decision/work_draft가 있으면 원래 요청의 선택·비교·구체화 목적을 따르는지 함께 읽는다. 선택 이유·초안의 관측 사실은 해당 concept source와 대조하고, AI가 새로 제안한 설계가 원문 그대로 없다는 이유만으로 오류로 세지 않는다. 실제 초안과 앞으로 할 계획을 구별하고 모르는 내부 담당자·기한·수치·승인 사실의 채움을 지적한다. 반복 일반 면책·개발 문구의 편집은 국소 개선이며 중요한 모델/안전/치수 조건 손실은 별도로 다룬다. 새 역할이나 추가 모델 호출은 만들지 않는다.
+
 ## 완료 반환
 
 반환은 한국어 compact 객체로 먼저 준다: {findings:[{claim_id,severity,source_ids,problem,suggested_correction}],checked_source_ids,unreviewed_source_ids,completion_status}. severity에는 핵심/국소/계획보완의 실제 영향을 적고 completion_status는 complete/partial/failed 중 실제 상태다. 직접 대조한 짧은 문제·수정 권고를 우선하며 긴 원문/후보/전량 평가보고서를 복제하지 않는다. 발견 없음도 실제 확인 범위와 미검토 범위를 남긴다. complete는 배정 독해 완료이며 전체 의미 정확성·시장 대표성·실물 효과 인증이 아니다. 부모만 packet 재검증·판단 반영·저장·최종 전달을 한다.

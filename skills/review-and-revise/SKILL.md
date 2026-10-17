@@ -22,6 +22,12 @@ user-invocable: true
 
 이미 같은 main이 문맥에 있고 실제 반환 metadata를 보유했다면 그 신고를 재사용한다. 문맥 상실·버전 변경이면 main부터 다시 받으며 본문을 임의로 자르지 않는다. 단계별 예시는 프로젝트 루트 docs/contracts/instruction-loading.md의 첫 단독 검토 호출을 따른다.
 
+## 사람이 읽는 결과와 실제 초안 검토
+
+제안·고객 문제·의미 있는 비교·실제 초안·다음 행동을 먼저 읽게 편집한다. 반복 일반 면책·내부ID·JSON·검사 상태·자기 지시문은 사용자 본문에 강제하지 않는다. 중요한 정확 모델/지원 조작/치수/안전 조건은 해당 행동 가까이에 짧게 남긴다. 실제 부족은 무엇을 판단할 수 없고 어떤 자료가 필요한지만 구체적으로 알리며 한 자료 접근 실패로 전체 기획을 무근거로 바꾸지 않는다. 원문·한계·전체 조사 기록은 보존한다. 키워드 일괄 삭제로 의미를 바꾸지 않는다.
+
+result.planning_decision의 비교/선택 이유가 후보·사용자 목적에 맞는지, concept.work_draft에 다음에 만들라는 지시가 아닌 실제 편집 가능한 본문이 있는지 검토한다. 일반 구체화1안·사용자 선택·복수 요청·비교만0안을 구분하며 필드 존재만으로 유용성을 인증하지 않는다. 비교·초안의 사실은 concept 원문 연결과 함께 대조하고, AI 설계/후기 기반 예시/모르는 내부 값을 회사의 관측 사실·승인 양식으로 만들지 않는다. 실제 초안은 검토되는 result 내부에 있고 planner_insights로 우회하지 않는다. 상세는 프로젝트 루트 docs/contracts/planning-drafts.md다.
+
 ## 입력과 현재 업무
 
 명시된 새 사용자 후속 업무는 같은 business session_id와 실제 prior_turn_id, 새 원질문/question·새 request_key로 open_product_workflow를 시작할 수 있다. open_product_workflow는 evidence-retrieval wrapper의 OP이며 이 Skill은 반환된 후속 현재 handle/version을 저장·finish에 사용한다.
@@ -155,3 +161,5 @@ report_plan은 실제 조사 범위에 따라 자유롭게 구성하고 별도 r
 실행: `uv run python skills/review-and-revise/scripts/run.py OP --input JSON_PATH`. OP: save_and_export/prepare_web_result/deliver_result/save_reviewed_result/export_session/current_request/get_turn/record_usage/cancel_turn/prepare_review_packet/verify_review_packet/get_completion_summary.
 
 진단: validate_result_contract/review_product_result/start_turn/save_result/begin_invocation/finish_invocation. 장부는 실제 Agent/Tool/원격 취소를 대신하지 않는다.
+
+새 planning_decision이 있는 결과의 completion_summary.text는 저장된 선택 요약·제안·실제 초안 제목·다음 행동·적용 조건을 짧게 전달한다. 전체 planning_decision/work_draft/decision_notes/refs는 completion JSON과 웹 payload에 보존되며 최종 채팅에 내부 분류·출처ID를 반복하지 않는다. 새 필드가 없는 과거 결과는 기존 요약과 출처 전달을 호환한다.

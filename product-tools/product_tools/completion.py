@@ -56,7 +56,7 @@ class CompletionSummary:
             research = "research-" + fingerprint([session, current["request_key"]])
             events = audit.events(research) if audit.active(research) else []
             failures = access_failures(events)
-            concepts = [{k: c[k] for k in ("id", "text", "source_ids", "assumptions")}
+            concepts = [{k: c[k] for k in ("id", "text", "source_ids", "assumptions", "work_draft") if k in c}
                         for c in result["concepts"]]
             notes = result.get("decision_notes", [])
             refs = result["evidence_refs"]
@@ -100,12 +100,32 @@ class CompletionSummary:
                     lines.append(location + (" · " + url if url else " · 합성 시험자료"))
             if failures:
                 lines.append("조사 중 일부 자료에 접근하지 못했습니다. 해당 실패 자체를 성공한 자료로 처리하지 않았습니다.")
+            # New authored decisions give a concise human delivery. Keep the
+            # complete notes, refs and draft in the artifact, never rewrite
+            # source meaning by deleting words from model-authored text.
+            decision = result.get("planning_decision")
+            if decision is not None:
+                lines = [decision["summary"]]
+                lines.extend(str(i + 1) + ". " + c["text"] for i, c in enumerate(concepts))
+                selected = set(decision["selected_concept_ids"])
+                selected_concepts = [c for c in result["concepts"] if c["id"] in selected]
+                for concept in selected_concepts:
+                    if concept.get("work_draft"):
+                        lines.append("업무 초안: " + concept["work_draft"]["title"])
+                    if concept.get("implementation_steps"):
+                        lines.append("다음 할 일: " + concept["implementation_steps"][0])
+                conditions = list(dict.fromkeys(result["assumptions"] +
+                    [v for c in concepts for v in c["assumptions"]]))
+                if conditions:
+                    lines.append("적용 조건: " + " / ".join(conditions))
+                lines.extend(result["validation_findings"])
             binding = {"session_id": session, "turn_id": turn, "result_version": version,
                        "result_sha256": fingerprint(result), "context_sha256": current["context_fingerprint"],
                        "code_sha256": self.store.code_hash, "data_sha256": self.store.dataset.fingerprint,
                        "workflow_audit_hash": audit.report_audit_hash(research) if audit.active(research) else None}
             body = {"contract_version": "product-completion-v1", "binding": binding,
                     "status": current["status"], "text": "\n\n".join(lines), "concepts": concepts,
+                    **({"planning_decision": decision} if decision is not None else {}),
                     "assumptions": result["assumptions"], "validation_findings": result["validation_findings"],
                     "decision_notes": notes, "evidence_refs": refs, "source_ids": used,
                     "text_source_ids": displayed,
