@@ -266,8 +266,8 @@
     },
     {
       "path": "src/ReleaseDashboard.jsx",
-      "bytes": 26094,
-      "sha256": "7dcb0f4b6fa8e1603c3302a30e357369211bd5d8672bcc2cab97c48d854fa22b",
+      "bytes": 26594,
+      "sha256": "a26c04a6fa5fa2d66591c9cd56e190b9cbdf638ed41f945922ae555a33edc004",
       "approved_snapshot_sha256": "2435521c9d3521717205b0d7fda5cc2166f52fef5d78d62feee7e159860f5071"
     },
     {
@@ -312,8 +312,9 @@
     },
     {
       "path": "src/current-work-dock.css",
-      "bytes": 6300,
-      "sha256": "c411331baae8a391e79156dcee595b35df875785bf22db6e73d25747176060fd"
+      "bytes": 6486,
+      "sha256": "d5f71eeb3a514580cb3d82b647bf985d94253cc32e717f78462b22be04a43877",
+      "approved_snapshot_sha256": "c411331baae8a391e79156dcee595b35df875785bf22db6e73d25747176060fd"
     },
     {
       "path": "src/current-work-summary.js",
@@ -601,8 +602,8 @@
   ],
   "generated": {
     "path": "web/prototypes/agent-office/factory.html",
-    "bytes": 16891787,
-    "sha256": "b888a736282944187b9e3c530821408eaba6f3ed362b0806aaa07122c8ffff09"
+    "bytes": 16892261,
+    "sha256": "906db8d902c4600b0c3a41ac29473f1843a24809bfd6505924ad52005c9286e4"
   },
   "public_connection_wip_included": false,
   "actual_cli_business_run": "not_run",
@@ -629,6 +630,13 @@
         "backend/tests/test_release_reader.py"
       ],
       "reason": "Local HTTP acceptance found artwork 404s. Serve only direct PNG files in characters/environment/workshops and direct MP4 files in media under the explicit UI dist, preserve existing origin/path/symlink guards, and allow all five known client views. Add HTTP regressions."
+    },
+    {
+      "paths": [
+        "src/ReleaseDashboard.jsx",
+        "src/current-work-dock.css"
+      ],
+      "reason": "User requested removing three header menu entries and preventing the menu from covering current-work controls. Measure floating-menu bounds, retain real observer state, and reserve dynamic clearance for the work opener and desktop/compact-landscape work panel."
     }
   ],
   "shared_asset_hash_changes": [
@@ -640,7 +648,7 @@
     {
       "path": "web/prototypes/agent-office/factory.html",
       "previous_sha256": "ac07bac318d7e92756fbbabcdacc64791435fddfa199479b785a248490c984d8",
-      "sha256": "b888a736282944187b9e3c530821408eaba6f3ed362b0806aaa07122c8ffff09"
+      "sha256": "906db8d902c4600b0c3a41ac29473f1843a24809bfd6505924ad52005c9286e4"
     }
   ],
   "baseline_observer_audit": {
@@ -652,5 +660,30 @@
   "local_http_visual_acceptance": {
     "status": "passed",
     "scope": "Desktop local HTTP approved seated researcher artwork, six workrooms and background; actual new CLI business work and file:// acceptance remain not_run."
+  },
+  "menu_responsive_acceptance": {
+    "status": "passed",
+    "sizes": [
+      [
+        1191,
+        668
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        650,
+        390
+      ]
+    ],
+    "menu_items": [
+      "현재 작업",
+      "기록 보기",
+      "그림 읽는 법"
+    ],
+    "open_panel_and_folded_opener": "non-overlapping",
+    "temporary_viewport_override": "reset",
+    "related_existing_js_tests": 21
   }
 }
