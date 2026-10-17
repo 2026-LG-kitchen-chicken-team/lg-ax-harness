@@ -70,6 +70,9 @@ test('incomplete, cancelled and interrupted native endings cannot announce a rea
   const status=plannerStatus({...ready,currentEvents:[event('turn_end',detail)]},work,office);
   assert.equal(status.current,false);assert.equal(status.state,state);
  }
+ const childEnd={id:'child-end',kind:'subagent',phase:'end',actor:'product_evidence_reviewer',agent_id:'child-one',detail:{}};
+ assert.equal(plannerStatus({...ready,currentEvents:[...ready.currentEvents,childEnd]},work,office).current,false);
+ assert.equal(plannerStatus({...ready,currentEvents:[...ready.currentEvents,childEnd,event('turn_end')]},work,office).current,true);
 });
 
 test('a screen read failure keeps the recent plan available without declaring work failed or completed',()=>{
