@@ -1,0 +1,308 @@
+{
+  "date": "2026-10-17",
+  "source_commit": "1db850235d9a29124f53a4c5fa7205f1a9d837e3",
+  "source_manifest_sha256": "75a952a7e19ce01f5a749378b4f6284dee86afd4c8a9c27dcf3c4b99ba9159be",
+  "ci": {
+    "profile": "extended",
+    "host": "Windows",
+    "status": "passed",
+    "stage_count": 24,
+    "source_changed": false,
+    "git_clean_before": true,
+    "git_clean_after": true,
+    "report_sha256": "9a6daa1571169dfe2c50f5f0ad2cd0e0d353e2aeff5ea492bb1ec15a4117588f",
+    "stages": [
+      {
+        "id": "python-version",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "uv-version",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "node-version",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "npm-version",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "isolated-python",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "locked-python-dependencies",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "validate",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "dev-harness",
+        "status": "passed",
+        "exit_code": 0,
+        "unittest": {
+          "tests_run": 37,
+          "reported_skips": 0,
+          "skips": [],
+          "unexpected_skips": [],
+          "skip_reasons_complete": true
+        }
+      },
+      {
+        "id": "product-tools",
+        "status": "passed",
+        "exit_code": 0,
+        "unittest": {
+          "tests_run": 516,
+          "reported_skips": 0,
+          "skips": [],
+          "unexpected_skips": [],
+          "skip_reasons_complete": true
+        }
+      },
+      {
+        "id": "product-assets",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "evaluation",
+        "status": "passed",
+        "exit_code": 0,
+        "unittest": {
+          "tests_run": 146,
+          "reported_skips": 0,
+          "skips": [],
+          "unexpected_skips": [],
+          "skip_reasons_complete": true
+        }
+      },
+      {
+        "id": "visual-viewer-ci",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "visual-viewer-build",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "agent-office-ci",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "agent-office-build",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "factory-dashboard-ci",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "factory-dashboard-test",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "factory-dashboard-build",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "web",
+        "status": "passed",
+        "exit_code": 0,
+        "unittest": {
+          "tests_run": 187,
+          "reported_skips": 1,
+          "skips": [
+            {
+              "test": "test_outside_path_and_symlink_are_rejected (test_result_observer.ObserverTests.test_outside_path_and_symlink_are_rejected)",
+              "reason": "OS does not allow symlink creation",
+              "expected_platform_skip": true
+            }
+          ],
+          "unexpected_skips": [],
+          "skip_reasons_complete": true
+        }
+      },
+      {
+        "id": "observer",
+        "status": "passed",
+        "exit_code": 0,
+        "unittest": {
+          "tests_run": 38,
+          "reported_skips": 0,
+          "skips": [],
+          "unexpected_skips": [],
+          "skip_reasons_complete": true
+        }
+      },
+      {
+        "id": "evals",
+        "status": "passed",
+        "exit_code": 0,
+        "unittest": {
+          "tests_run": 28,
+          "reported_skips": 0,
+          "skips": [],
+          "unexpected_skips": [],
+          "skip_reasons_complete": true
+        }
+      },
+      {
+        "id": "locked-portable",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "locked-package",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "id": "product-assets-after-build",
+        "status": "passed",
+        "exit_code": 0
+      }
+    ],
+    "python_tests": 952,
+    "python_passed": 951,
+    "expected_windows_skip": 1,
+    "factory_js_tests": 112,
+    "factory_js_passed": 112,
+    "github_actions_pass_claim": false
+  },
+  "initial_ci": {
+    "stages": 24,
+    "passed": 23,
+    "failed": 1,
+    "failure": "web Lead print CSS-order assertion",
+    "fix": "Preserve original print-rule order; planner detail rule follows it",
+    "focused_fix_tests": 1,
+    "focused_fix_passed": 1,
+    "report_sha256": "f643de53dd4d1d13c1ce8cba6a7597d0d85deb7111e82b496e7bb9e2a754c9ed"
+  },
+  "display_replay": {
+    "method": "same saved export/result/refs; actual build_view.generate and built report JS in Node VM with DOM stub",
+    "new_model_inputs": 0,
+    "browser_inputs": 0,
+    "print_page_count": null,
+    "visual_render_acceptance": false,
+    "checks_passed": 24,
+    "checks_total": 24,
+    "source_records_preserved": 219,
+    "rows": [
+      {
+        "family": "refrigerator",
+        "old_default_text_codepoints": 254891,
+        "new_default_text_codepoints": 5532,
+        "source_records": 56,
+        "refs": 23
+      },
+      {
+        "family": "dishwasher",
+        "old_default_text_codepoints": 390902,
+        "new_default_text_codepoints": 5245,
+        "source_records": 81,
+        "refs": 29
+      },
+      {
+        "family": "microwave",
+        "old_default_text_codepoints": 332788,
+        "new_default_text_codepoints": 4144,
+        "source_records": 82,
+        "refs": 16
+      }
+    ],
+    "report_sha256": "e0eb497e2a5854612f9a4c4879f57560cf8e4daaf4e905aa4e14995e9479d09f",
+    "full_result_sources_refs_binding_equal": true,
+    "requirements_global_and_local_assumptions_visible": true,
+    "not_a_token_time_or_page_reduction_measure": true,
+    "final_template_rebinding_receipt_sha256": "94932c82dd424784b57ee6a86f192eae541bd09914bc5bc5e82ffc437f664fa3",
+    "final_built_index_sha256": "8ec5deb454d5ae8a31935990248629f667f2c252ab50677fe7380c0065a67dd9",
+    "report_template_bytes_unchanged_after_outer_CSS_fix": true
+  },
+  "bundle_local": {
+    "release": "product-v0.19.0",
+    "source_files": 134,
+    "judge_files": 217,
+    "engine_files": {
+      "codex": 103,
+      "claude": 103
+    },
+    "snapshot_commit": "7e3728f2484085104de00f5ddba4ad50cf56b734",
+    "snapshot_parents": 0,
+    "zip_only_checks": [
+      {
+        "argv": [
+          "check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "setup",
+          "--engine",
+          "codex"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "setup",
+          "--engine",
+          "claude"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "check"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "manual_byte_equal": true,
+    "manifest_bytes_equal": true,
+    "empty_catalog": true,
+    "presentation_widget_excluded": true
+  },
+  "native_scope": {
+    "historical_AA_inputs": 11,
+    "historical_AA_reserved_not_run": 3,
+    "latest_GUI_business_inputs": 0,
+    "latest_GUI_visual_acceptance": false,
+    "four_environment_latest_certified": false,
+    "fresh_Claude_case": "separate bounded protocol; final receipt recorded separately",
+    "codex_policy_warning_resolved": false,
+    "mac_linux_native_certified": false
+  },
+  "review": {
+    "remaining_P1_P2_at_review": 0,
+    "scope": [
+      "report projection and source preservation",
+      "planner navigation and critical assumptions",
+      "factory current-question state",
+      "distribution guide and model claims",
+      "manifest and generated assets"
+    ]
+  },
+  "filming": false,
+  "presentation_production": false
+}

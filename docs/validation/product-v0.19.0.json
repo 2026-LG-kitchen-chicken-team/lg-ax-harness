@@ -1,0 +1,159 @@
+{
+  "version": "product-v0.19.0",
+  "source_commit": "1db850235d9a29124f53a4c5fa7205f1a9d837e3",
+  "snapshot_commit": "7e3728f2484085104de00f5ddba4ad50cf56b734",
+  "source_files": 134,
+  "judge_files": 217,
+  "engines": {
+    "codex": {
+      "files": 103,
+      "skills": [
+        "evidence-retrieval",
+        "web-evidence-collection",
+        "needs-structuring",
+        "feature-comparison",
+        "concept-writing",
+        "review-and-revise"
+      ],
+      "native_agents": [
+        "product_evidence_reviewer",
+        "product_official_researcher",
+        "product_review_researcher"
+      ],
+      "source_manifest_sha256": "75a952a7e19ce01f5a749378b4f6284dee86afd4c8a9c27dcf3c4b99ba9159be"
+    },
+    "claude": {
+      "files": 103,
+      "skills": [
+        "evidence-retrieval",
+        "web-evidence-collection",
+        "needs-structuring",
+        "feature-comparison",
+        "concept-writing",
+        "review-and-revise"
+      ],
+      "native_agents": [
+        "product-evidence-reviewer",
+        "product-official-researcher",
+        "product-review-researcher"
+      ],
+      "source_manifest_sha256": "75a952a7e19ce01f5a749378b4f6284dee86afd4c8a9c27dcf3c4b99ba9159be"
+    }
+  },
+  "manifest_sha256": "75a952a7e19ce01f5a749378b4f6284dee86afd4c8a9c27dcf3c4b99ba9159be",
+  "repositories": [
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-harness",
+      "private": true,
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.19.0",
+      "tag": "7e3728f2484085104de00f5ddba4ad50cf56b734",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "lg-ax-harness-product-v0.19.0.zip",
+          "bytes": 6542247,
+          "sha256": "b209479925431f60ccbdd0ce8bc129c919589033dd16ad6bfcff347bd04f9640",
+          "github_digest_equal": true,
+          "download_sha256_equal": true
+        },
+        {
+          "name": "lg-ax-judge-product-v0.19.0.zip",
+          "bytes": 12991007,
+          "sha256": "8dde5df749acd0406ad47cae3421250da1efe6ec33b59ca1ec6e9dd56cb9a0fa",
+          "github_digest_equal": true,
+          "download_sha256_equal": true
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "bytes": 200,
+          "sha256": "3bfc94c3b758dd6b9bc038493df7eb670e58e869bf299bc936e3e2948a45dcc4",
+          "github_digest_equal": true,
+          "download_sha256_equal": true
+        }
+      ],
+      "raw_source_files": 134,
+      "raw_source_exact_bytes": true,
+      "parent_count": 0,
+      "previous_release_tag_and_assets_preserved": true
+    },
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+      "private": true,
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.19.0",
+      "tag": "7e3728f2484085104de00f5ddba4ad50cf56b734",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "lg-ax-harness-product-v0.19.0.zip",
+          "bytes": 6542247,
+          "sha256": "b209479925431f60ccbdd0ce8bc129c919589033dd16ad6bfcff347bd04f9640",
+          "github_digest_equal": true,
+          "download_sha256_equal": true
+        },
+        {
+          "name": "lg-ax-judge-product-v0.19.0.zip",
+          "bytes": 12991007,
+          "sha256": "8dde5df749acd0406ad47cae3421250da1efe6ec33b59ca1ec6e9dd56cb9a0fa",
+          "github_digest_equal": true,
+          "download_sha256_equal": true
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "bytes": 200,
+          "sha256": "3bfc94c3b758dd6b9bc038493df7eb670e58e869bf299bc936e3e2948a45dcc4",
+          "github_digest_equal": true,
+          "download_sha256_equal": true
+        }
+      ],
+      "raw_source_files": 134,
+      "raw_source_exact_bytes": true,
+      "parent_count": 0,
+      "previous_release_tag_and_assets_preserved": true
+    }
+  ],
+  "product_guide_commit": "5d4237c2c1cfb20665d2eaf8cc51c3b233b6f590",
+  "one_touch_download_guidance_suspended": true,
+  "old_installer_preserved": true,
+  "repository_visibility_unchanged": true,
+  "public_schedule_changed": false,
+  "local_zip_checks": [
+    {
+      "argv": [
+        "check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "setup",
+        "--engine",
+        "codex"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "setup",
+        "--engine",
+        "claude"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "latest_four_environment_native_certified": false,
+  "actual_browser_visual_acceptance": false,
+  "print_page_count": null,
+  "filming": false,
+  "final_submission": false,
+  "readme_footer_legacy_applicability": "product-v0.17.0; actual bundle release product-v0.19.0",
+  "source_manifest_bytes_equal": true,
+  "manual_bytes_equal": true,
+  "empty_catalog": true,
+  "token_widget_excluded": true
+}
