@@ -150,15 +150,36 @@ def list_sessions(harness: Path, days=3) -> list[dict]:
 
 
 def wait_for_new(harness: Path, max_seconds: float, poll=1.0) -> tuple[Path, dict]:
-    """Wait for a main session in this folder that starts after now (start this, then open Codex and ask)."""
-    known = {s["id"] for s in list_sessions(harness, days=1)}
+    """Wait for a new main session, or a new turn appended to an existing session in this folder."""
+    existing = list_sessions(harness, days=1)
+    known = {s["id"] for s in existing}
+    readers = {}
+    for session in existing:
+        path = Path(session["path"])
+        try:
+            readers[session["id"]] = Reader(path, offset=path.stat().st_size)
+        except OSError:
+            continue
     deadline = time.monotonic() + max_seconds
     while time.monotonic() < deadline:
-        fresh = [s for s in list_sessions(harness, days=1) if s["id"] not in known]
+        sessions = list_sessions(harness, days=1)
+        fresh = [s for s in sessions if s["id"] not in known]
         if fresh:
             return Path(fresh[-1]["path"]), fresh[-1]
+        for session in reversed(sessions):
+            reader = readers.get(session["id"])
+            if reader is None or reader.path != Path(session["path"]):
+                continue
+            for _, record in reader.poll():
+                payload = record.get("payload") or {}
+                if (record.get("type") == "event_msg" and isinstance(payload, dict)
+                        and payload.get("type") == "task_started" and isinstance(payload.get("turn_id"), str)
+                        and payload["turn_id"]):
+                    # Only complete records appended after observation began qualify.
+                    # Existing completion, metadata updates and another folder cannot select a session.
+                    return reader.path, session
         time.sleep(poll)
-    raise FollowError("기다리는 동안 이 하네스 폴더에서 새 Codex 세션이 시작되지 않았습니다.")
+    raise FollowError("기다리는 동안 이 하네스 폴더에서 새 Codex 질문이 시작되지 않았습니다.")
 
 
 def select(harness: Path, rollout: Path | None, latest: bool) -> tuple[Path, dict]:

@@ -815,6 +815,30 @@ class CodexFollowTests(unittest.TestCase):
         office.codex(self.root, rollout=path, once=True, out=io.StringIO())
         self.assertEqual(sum(e["kind"] == "turn_end" for e in self.events()), 1)
 
+    def test_wait_accepts_new_turn_on_existing_session_only_after_complete_start_record(self):
+        from unittest import mock
+        import codex_follow
+        path = self.write_logs(*codex_records(self.root))
+        new_start = json.dumps({"type": "event_msg", "payload": {"type": "task_started", "turn_id": "next-turn"}})
+        additions = [json.dumps({"type": "event_msg", "payload": {"type": "token_count"}}) + "\n",
+                     new_start[:24], new_start[24:] + "\n"]
+        def append(_):
+            with path.open('a', encoding='utf-8') as stream:
+                stream.write(additions.pop(0))
+        with mock.patch.object(codex_follow.time, 'sleep', side_effect=append) as sleeper:
+            chosen, meta = codex_follow.wait_for_new(self.root, max_seconds=2, poll=.01)
+        self.assertEqual(chosen, path)
+        self.assertEqual(meta['id'], MAIN_ID)
+        self.assertEqual(sleeper.call_count, 3)
+        self.assertFalse(additions)
+
+    def test_wait_does_not_replay_old_completed_session_as_new_work(self):
+        import codex_follow
+        self.write_logs(*codex_records(self.root))
+        with self.assertRaises(codex_follow.FollowError):
+            codex_follow.wait_for_new(self.root, max_seconds=.03, poll=.005)
+        self.assertFalse((self.out/'events.jsonl').exists())
+
     def test_wait_follows_only_a_session_started_later(self):
         import threading
         import time

@@ -284,7 +284,7 @@ def codex(harness: Path, rollout=None, latest=False, once=False, until_complete=
         print(watch_line(event), file=out, flush=True)
 
     def waiting():
-        print(f"새 Codex 세션을 기다립니다. 이제 {harness}에서 codex를 열고 질문하세요.\n"
+        print(f"새 Codex 질문을 기다립니다. 이제 {harness}에서 새 대화를 시작하거나 기존 대화에 질문하세요.\n"
               f"실행 대시보드: {shown}", file=out, flush=True)
 
     # One follower per harness: two (say, a second one-click start) would write the same session twice.
