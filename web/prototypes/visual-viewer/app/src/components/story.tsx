@@ -218,14 +218,14 @@ function Solutions({ b }: P) {
               </div>
               {(s.title || b.planner) && <h3 className="text-[19px] font-semibold leading-snug tracking-tight">{heading(s, i)}</h3>}
               {b.planner ? <>
-                {s.summary && s.summary !== s.text && !String(s.text || '').includes(s.summary) && <p className="text-[15px] leading-relaxed text-zinc-900"><Md text={s.summary} /></p>}
+                {!s.text && s.summary && <p className="text-[15px] leading-relaxed text-zinc-900"><Md text={s.summary} /></p>}
                 <div className="whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-800"><Md text={s.text} /></div>
               </> : <p className="text-[15px] leading-relaxed text-zinc-900"><Lead text={s.text} summary={s.summary} /></p>}
               {!b.planner && s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
               {s.background?.length > 0 && <div className="text-[13px] leading-relaxed text-zinc-600"><b className="text-zinc-800">기획 배경</b>{s.background.map((x: string, k: number) => <p key={k} className="mt-1"><Md text={x} /></p>)}</div>}
+              {b.planner && s.work_draft && <WorkDraft draft={s.work_draft} />}
               {s.assumptions?.length > 0 && <MiniList title="추진 전에 확인할 조건" items={s.assumptions} />}
               {b.planner && s.requirements?.length > 0 && <MiniList title="기획 요구사항" items={s.requirements} />}
-              {b.planner && s.work_draft && <WorkDraft draft={s.work_draft} />}
               {s.steps?.length > 0 && <div className="rounded-lg border border-[#dfe9dc] bg-[#f3f8f1] p-3 text-[13px]"><b className="text-[#2f7d4f]">다음 행동</b><p className="mt-1"><Md text={s.steps[0]} /></p></div>}
               {b.planner && s.follow_up && <CopyQuestion key={s.follow_up} text={s.follow_up} />}
             </div>

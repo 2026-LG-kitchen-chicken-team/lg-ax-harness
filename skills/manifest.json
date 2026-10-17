@@ -366,7 +366,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "b0ca1e2f8ccb2eca6afaa729c935a92f833c03c91b6ea582c77e9318a023e745"
+      "sha256": "5b17b656664d8717e70458e2875071148deddd3eea3e4ef751af13869cdf2dce"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",

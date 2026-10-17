@@ -55,7 +55,7 @@ function validationPanel(item){`, 'planner display helpers')
  // description open by default and include it in core-only print even if folded.
  const full=item.body?'<details class="planner-description" open><summary>작동 방식과 전체 설명</summary><p>'+e(item.body)+'</p></details>':'';
  const background=concept&&view.background.length?'<div class="planner-background"><h4>이 기획의 배경</h4>'+prose(uniqueTexts(view.background))+'</div>':'';
- return '<article'+(concept?' id="proposal-'+(i+1)+'"':'')+' class="result-card" data-claim-kind="'+e(kind)+'" data-claim-index="'+i+'"><h3>'+e(title)+'</h3>'+summary+full+background+conditions+requirements+workDraft(item.workDraft)+refs(item.sourceIds)+(detail?'<details class="planner-detail"><summary>적용·검증 상세</summary>'+detail+'</details>':'')+'</article>';
+ return '<article'+(concept?' id="proposal-'+(i+1)+'"':'')+' class="result-card" data-claim-kind="'+e(kind)+'" data-claim-index="'+i+'"><h3>'+e(title)+'</h3>'+(concept&&item.body?'':summary)+full+background+workDraft(item.workDraft)+conditions+requirements+refs(item.sourceIds)+(detail?'<details class="planner-detail"><summary>적용·검증 상세</summary>'+detail+'</details>':'')+'</article>';
  }).join('')+'</div>';}`)
   replaceFunction('renderBusiness', 'renderFollowUp', `function renderBusiness(r){
  let html='';
