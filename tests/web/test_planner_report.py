@@ -117,6 +117,25 @@ const path=require('node:path');
  assert.equal(normalizedShared.evidence[0].body,'Short quoted evidence');
  assert.equal(normalizedShared.appendix.sources[0].text,longBody);
  assert.equal(normalizedShared.presentation.concepts.not_current,undefined);
+ // Canonical editable drafts and choice reasons survive report normalization,
+ // remain bound to this result and are safe text, not generated HTML.
+ const authored=JSON.parse(JSON.stringify(shared));
+ authored.export.turns[0].state.latest_result.planning_decision={summary:'Choose the direct customer task first',selected_concept_ids:['c'],comparisons:[{concept_id:'c',reason:'Direct problem fit',tradeoff:'Internal owner still needed'},{concept_id:'c2',reason:'Different situation',tradeoff:'Extra hardware'}]};
+ authored.export.turns[0].state.latest_result.concepts[0].work_draft={title:'Working draft <script>no</script>',columns:['Stage','Action'],rows:[['Start','<img src=x onerror="bad">'],['Then','Actual editable action']]};
+ const authoredBefore=JSON.stringify(authored);
+ api.render(authored);
+ const authoredBody=node('#result-body').innerHTML;
+ for(const text of ['Choose the direct customer task first','Direct problem fit','Internal owner still needed','착수 제안','Working draft &lt;script&gt;','Actual editable action'])assert.ok(authoredBody.includes(text),text);
+ assert.ok(authoredBody.includes('&lt;img'));assert.ok(!authoredBody.includes('<img'));assert.ok(!authoredBody.includes('<script>'));
+ assert.equal(JSON.stringify(authored),authoredBefore);
+ const authoredNormalized=Adapter.normalize(authored);
+ assert.equal(JSON.stringify(authoredNormalized.planningDecision),JSON.stringify(authored.export.turns[0].state.latest_result.planning_decision));
+ assert.equal(JSON.stringify(authoredNormalized.concepts[0].workDraft),JSON.stringify(authored.export.turns[0].state.latest_result.concepts[0].work_draft));
+ for(const mutate of [r=>r.planning_decision.selected_concept_ids=['not-current'],r=>r.planning_decision.comparisons[0].concept_id='not-current',r=>r.planning_decision.comparisons[0].reason={},r=>r.concepts[0].work_draft.rows=[['wrong-width']],r=>r.concepts[0].work_draft.columns=[{}]]){
+   const invalid=JSON.parse(JSON.stringify(authored));mutate(invalid.export.turns[0].state.latest_result);assert.throws(()=>Adapter.normalize(invalid),Adapter.ReportDataError);
+ }
+ const uniform=JSON.parse(JSON.stringify(shared));uniform.export.turns[0].state.latest_result.concepts.forEach(c=>c.requires_hardware=false);
+ assert.ok(!api.renderBusiness(Adapter.normalize(uniform)).includes('<th>추가 하드웨어</th>'),'Uniform hardware data does not create an unhelpful comparison column');
  const escaped=JSON.parse(JSON.stringify(shared));escaped.report_plan.presentation.concepts.c.title='<img src=x onerror="bad">';
  api.render(escaped);assert.ok(node('#result-body').innerHTML.includes('&lt;img'));assert.ok(!node('#result-body').innerHTML.includes('<img'));
  for(const mutate of [p=>p.summary='not an array',p=>p.concepts=[],p=>p.concepts.c.background='not an array',p=>p.concepts.c.next_action={},p=>p.scope.reviews=-1,p=>p.scope.facts=0.5,p=>p.scope.other=Infinity,p=>p.scope.models=Number.MAX_SAFE_INTEGER+1,p=>p.scope.as_of={}]){

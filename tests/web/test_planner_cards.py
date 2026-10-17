@@ -40,10 +40,19 @@ const prepared={planner:true,items:[{title:'First candidate',text:'Full proposal
 const preparedBefore=JSON.stringify(prepared),ready=renderToStaticMarkup(React.createElement(STORY_BLOCKS.solutions,{b:prepared,copy(){}}));
 assert.ok(ready.includes('제안별 비교'));
 assert.ok(ready.includes('Who benefits and what changes'));
-assert.ok(ready.includes('이 제안 이어서 질문하기'));
-assert.ok(ready.includes('aria-label="이 제안의 후속 질문"'));
-assert.ok(ready.includes('&lt;script&gt;'));assert.ok(!ready.includes('<script>'));
+assert.ok(ready.includes('수정 질문 복사'));
+assert.ok(!ready.includes('질문 내용 보기'),'A second parallel disclosure is not shown for the same copy task');
+assert.ok(!ready.includes('<script>'));
 assert.equal(JSON.stringify(prepared),preparedBefore);
+// Business selection and editable drafts are authored, optional canonical data.
+// Displaying them must not invent rankings, erase conditions or execute markup.
+const authored={...prepared,planning_decision:{summary:'Start with the directly observed problem',selected_concept_ids:['second'],comparisons:[{concept_id:'first',reason:'Broader input needed',tradeoff:'More coordination'},{concept_id:'second',reason:'Ready for a working session',tradeoff:'Keep the safety condition'}]},items:[{...prepared.items[0],id:'first'},{...prepared.items[1],id:'second',assumptions:['Important local model condition'],work_draft:{title:'Actual draft <script>draft</script>',columns:['Stage','Action'],rows:[['Input','<img src=x onerror="bad">'],['Next','A real editable action']]}}]};
+const authoredBefore=JSON.stringify(authored),draftHtml=renderToStaticMarkup(React.createElement(STORY_BLOCKS.solutions,{b:authored,copy(){}}));
+for(const value of ['Start with the directly observed problem','Ready for a working session','Keep the safety condition','착수 제안','Actual draft &lt;script&gt;','A real editable action','Important local model condition'])assert.ok(draftHtml.includes(value),value);
+assert.ok(draftHtml.includes('&lt;img'));assert.ok(!draftHtml.includes('<img'));assert.ok(!draftHtml.includes('<script>'));
+assert.equal((draftHtml.match(/착수 제안/g)||[]).length,1);
+assert.ok(!draftHtml.includes('미작성'));assert.ok(!legacyHtml.includes('미작성'));
+assert.equal(JSON.stringify(authored),authoredBefore);
 '''
         with tempfile.TemporaryDirectory(prefix='planner-cards-', dir=APP) as compiled:
             built = subprocess.run([node, str(APP/'node_modules/typescript/bin/tsc'), '--target', 'es2022',

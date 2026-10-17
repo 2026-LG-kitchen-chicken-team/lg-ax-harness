@@ -17,8 +17,7 @@ export function plannerFirst(view: View | null): View | null {
   // its diagnostic chips/counts are replaced; the full request remains in overview.
   const main: Block[] = story.blocks.filter(b => b.type !== 'story' && b.type !== 'hero')
   if (header) main.unshift({ type: 'hero', planner: true,
-    title: overview?.title || '상품기획안', scope: header.scope,
-    chips: (header.chips || []).slice(0, 1).map(({ text, tone }: { text: string; tone: string }) => ({ text, tone })) })
+    title: overview?.title || '상품기획안', scope: header.scope })
   if (solution) main.push({ ...solution, planner: true, label: '제안', title: '검토할 상품기획', text: undefined,
     blocks: (solution.blocks || []).map((b: Block) => b.type === 'solutions' ? { ...b, planner: true,
       items: (b.items || []).map((s: Block) => ({ ...s,

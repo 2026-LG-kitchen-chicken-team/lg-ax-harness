@@ -59,7 +59,6 @@ export function ReportView({ source, close, outdated = false, latest }: {
           <ArrowLeft className="size-4" aria-hidden />업무 화면으로
         </button>
         <span className="truncate font-medium text-[#2f8f57]">보고서로 보기</span>
-        <span className="ml-auto hidden truncate text-zinc-500 md:inline">기획안과 근거를 함께 읽고 공유하세요</span>
       </div>
       {outdated && <div role="status" className="flex flex-wrap items-center gap-3 border-b border-[#e3e3e3] bg-[#f3f8f4] px-4 py-3 text-sm">
         <span>새 기획이 저장됐어요. 지금 보고 있는 보고서는 이전 저장 결과예요.</span>
