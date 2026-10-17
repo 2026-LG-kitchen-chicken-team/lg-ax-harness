@@ -24,6 +24,7 @@ Python 3.10 이상, 표준 라이브러리만 쓴다. 하네스 폴더에서는 
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -276,6 +277,14 @@ def current_export_turn(export: dict) -> dict:
     return (export.get("turns") or [{}])[-1]
 
 
+def cited_reference_matches(ref: dict, full: dict) -> bool:
+    """A stored citation can be an exact excerpt; its source identity/hash still names the full body."""
+    return (isinstance(ref, dict) and isinstance(full, dict) and set(ref) == set(full)
+            and all(ref[k] == full[k] for k in full if k != "quote")
+            and isinstance(ref.get("quote"), str) and bool(ref["quote"])
+            and isinstance(full.get("quote"), str) and ref["quote"] in full["quote"])
+
+
 def load_web_result(export: dict, export_path: Path, web_result_path: Path | None = None,
                     web_result_sha256: str | None = None, file_metadata: dict | None = None) -> tuple[dict, str]:
     """Join immutable bytes to the latest export snapshot; never use mtime as a binding."""
@@ -333,7 +342,9 @@ def load_web_result(export: dict, export_path: Path, web_result_path: Path | Non
                    or hashlib.sha256(str(r.get("quote", "")).encode("utf-8")).hexdigest() != r.get("sha256") for r in refs):
                 mismatch = True
                 continue
-            if any(r not in refs for r in result.get("evidence_refs") or []):
+            full_refs = {r["source_id"]: r for r in refs}
+            if any(not cited_reference_matches(r, full_refs.get(r.get("source_id")))
+                   for r in result.get("evidence_refs") or []):
                 mismatch = True
                 continue
             if file_metadata is not None:
@@ -549,6 +560,8 @@ def insights_shape_errors(ins) -> list[str]:
     for key in ("node_titles", "concept_titles", "feature_tags", "concept_channels"):
         if ins.get(key) is not None and not isinstance(ins[key], dict):
             errors.append(key)
+    if isinstance(ins.get("concept_titles"), dict) and not all(isinstance(v, str) for v in ins["concept_titles"].values()):
+        errors.append("concept_titles")
     if ins.get("captions") is not None and not (isinstance(ins["captions"], dict) and all(isinstance(v, dict) for v in ins["captions"].values())):
         errors.append("captions")
     if ins.get("summaries") is not None and not (isinstance(ins["summaries"], dict) and all(isinstance(v, str) for v in ins["summaries"].values())):
@@ -897,7 +910,58 @@ def quote_items(c: Ctx, ids: list[str], limit: int = 2) -> list[dict]:
 def summary_of(c: Ctx, item_id) -> str | None:
     """insights summaries: the model's short summary of one item (P1, F1, RP1, C1 …), shown beside the saved text."""
     s = (c.ins.get("summaries") or {}).get(item_id)
-    return clip(s.strip(), 300) if isinstance(s, str) and s.strip() else None
+    return s.strip() if isinstance(s, str) and s.strip() else None
+
+
+def planner_scope(c: Ctx) -> dict | None:
+    """Count selected registered material, not cited snippets or unique customers."""
+    sources = [s for s in c.web.get("sources", []) if isinstance(s, dict)]
+    if not sources:
+        return None
+    reviews = sum(s.get("kind") == "review" for s in sources)
+    facts = sum(s.get("kind") in {"product_fact", "manual", "spec", "part", "document"} for s in sources)
+    dates = sorted({d for s in sources if isinstance(s.get("origin"), dict)
+                    and isinstance((d := s["origin"].get("retrieved_date")), str)
+                    and re.fullmatch(r"\d{4}-\d{2}-\d{2}", d)})
+    return {"reviews": reviews, "facts": facts, "other": len(sources) - reviews - facts,
+            "models": len({s["model_id"] for s in sources if isinstance(s.get("model_id"), str) and s["model_id"]}),
+            "as_of": (dates[0] if len(dates) == 1 else f"{dates[0]} ~ {dates[-1]}") if dates else ""}
+
+
+def planner_follow_up(c: Ctx, item: dict, number: int, title: str | None = None) -> str:
+    label = title or f"제안 {number:02}"
+    binding = c.web.get("binding") or {}
+    scope = ", ".join(s["model_id"] for s in c.cur.get("scope", []) if s.get("model_id")) or c.cur["model"]
+    return (f"이 화면의 저장 기획을 참조해 ‘{label}’(제안 ID: {item.get('id') or number})을 이어서 다듬어줘. "
+            f"참조 세션: {c.export.get('session_id')}, turn: {c.cur['turn_id']}, 결과 버전: {binding.get('result_version')}, "
+            f"대상 모델: {scope}, 자료 버전: {c.cur.get('data_version')}. 현재 대화의 다른 기획과 섞지 마. "
+            "연결된 후기·제품자료와 기존 기능 대조를 재사용하고, 적용 조건을 유지해줘. "
+            "기획 요구사항을 구체화하고 다음 행동의 담당자·필요 입력·완료 산출물을 정리해줘. "
+            "추가 조사는 필요한 근거가 없거나 오래된 부분에만 수행하고, 미측정 효과를 확정하지 마.")
+
+
+def planner_presentation(c: Ctx) -> dict:
+    """Reuse same-turn AI wording; display code never invents a recommendation."""
+    titles = c.ins.get("concept_titles") or {}
+    remaining = {p.get("id"): p for p in c.result.get("remaining_pains") or []}
+    links = {p.get("concept_id"): p for p in (c.validation.get("assessment") or {}).get("concept_links", [])}
+    concepts = {}
+    for i, cl in enumerate(c.result.get("concepts") or [], 1):
+        cid = cl.get("id")
+        title = titles.get(cid) if isinstance(titles.get(cid), str) else None
+        background = [summary_of(c, rid) or remaining[rid].get("text", "")
+                      for rid in links.get(cid, {}).get("remaining_pain_ids", []) if rid in remaining]
+        steps = cl.get("implementation_steps") or []
+        concepts[cid] = {"title": title, "summary": summary_of(c, cid), "background": background,
+                         "next_action": steps[0] if steps else "",
+                         "follow_up": planner_follow_up(c, cl, i, title)}
+        if cl.get("work_draft"):
+            concepts[cid]["work_draft"] = copy.deepcopy(cl["work_draft"])
+    return {"title": f"{family_label(c.cur['family'])} 상품기획" if c.cur.get("family") else "상품기획",
+            "summary": [p["summary"] for p in concepts.values() if p["summary"]],
+            "concepts": concepts, "scope": planner_scope(c),
+            **({"planning_decision": copy.deepcopy(c.result["planning_decision"])}
+               if c.result.get("planning_decision") else {})}
 
 
 def claim_items(c: Ctx, claims: list[dict]) -> list[dict]:
@@ -926,7 +990,7 @@ def page_story(c: Ctx) -> list[dict]:
     hero = {"type": "hero", "eyebrow": eyebrow, "title": cur["question"] or "질문 원문 미기록",
             "subtitle": "하네스가 근거 자료에서 불편을 찾아 같은 모델의 기존 기능과 대조하고, 남은 불편에 연결한 제안을 저장했습니다."
                         + (" **합성 시험 자료**입니다." if c.synthetic else ""),
-            "chips": chips,
+            "chips": chips, "scope": planner_scope(c),
             "stats": [{"label": "근거", "value": len(c.evidence), "unit": "건", "tone": "blue"},
                       {"label": "현재 불편", "value": len(pains), "unit": "개", "tone": "red"},
                       {"label": "남은 불편", "value": len(remaining), "unit": "개", "tone": "orange"},
@@ -984,7 +1048,9 @@ def page_story(c: Ctx) -> list[dict]:
                 chips_.append({"text": "내부 치수 필요", "tone": "orange"})
         plan = cl.get("validation_plan")
         sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""),
+                    **({"work_draft": copy.deepcopy(cl["work_draft"])} if cl.get("work_draft") else {}),
                     "summary": summary_of(c, cl.get("id")), "chips": chips_,
+                    "follow_up": planner_follow_up(c, cl, i, titles.get(cl.get("id"))),
                     "assumptions": cl.get("assumptions") or [],
                     "requirements": cl.get("requirements") or [], "steps": cl.get("implementation_steps") or [],
                     "plan": {"status": PLAN_STATUS.get(plan.get("status"), plan.get("status") or "상태 미기록"),
@@ -995,7 +1061,10 @@ def page_story(c: Ctx) -> list[dict]:
                    "text": f"저장된 실행 제약: 하드웨어 추가 {stored_hardware_label(cons)} · 제안 최대 {cons.get('max_concepts', '미기록')}개. "
                            "저장 입력의 기본값·후속 설정을 포함하며 요청 원문에 명시된 조건으로 추정하지 않습니다. "
                            "효과·비용은 측정 전 미확정입니다.",
-                   "blocks": [{"type": "solutions", "items": sol}] if sol else [{"type": "callout", "tone": "warning", "text": "결과에 제안이 없습니다."}]})
+                   "blocks": [{"type": "solutions", "items": sol,
+                               **({"planning_decision": copy.deepcopy(res["planning_decision"])}
+                                  if res.get("planning_decision") else {})}]
+                   if sol else [{"type": "callout", "tone": "warning", "text": "결과에 제안이 없습니다."}]})
 
     supported = sum(1 for ch in checks if ch.get("support_status") == "supported")
     unclear = sum(1 for ch in checks if ch.get("scope_relation") not in (None, "current_model"))
@@ -2117,6 +2186,7 @@ def report_source(c: Ctx) -> dict | None:
     # Never expose another turn's unchecked latest_result through the report's selector.
     report_export = {**c.export, "turns": [current]}
     plan = report_charts(c) or {"title": "", "summary": [], "sources": [], "sections": []}
+    plan["presentation"] = planner_presentation(c)
     # Charts describe the research, not a product decision. Keep the existing plan
     # schema and values, but mark them as optional supporting material.
     for section in plan["sections"]:
@@ -2185,6 +2255,16 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
         report = report_source(ctx) if ctx else None
         if report is not None:
             view["report"] = report
+        if ctx and ctx.web and not ctx.invalid and ctx.delivery_state == "verified_binding":
+            # Display readiness is separate from semantic/competition acceptance.
+            # Delivery promotes this only after validating the installed files.
+            view["delivery"] = {
+                "export_sha256": hashlib.sha256(Path(export_path).read_bytes()).hexdigest(),
+                "binding": {key: ctx.web["binding"][key] for key in
+                            ("session_id", "turn_id", "request_key", "result_version")},
+                "business_status": ctx.cur["status"], "display_ready": False,
+                "report_data_ready": "report" in view,
+            }
     payload = json.dumps(view, ensure_ascii=False, indent=1)
 
     html = (HERE / "index.html").read_bytes()

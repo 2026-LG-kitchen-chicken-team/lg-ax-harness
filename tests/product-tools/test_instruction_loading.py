@@ -195,7 +195,16 @@ class InstalledInstructionTests(unittest.TestCase):
     def test_both_native_transformations_have_actual_body_and_dual_hash(self):
         for target, prefix in ((self.codex, ".agents/"), (self.claude, ".claude/")):
             with self.subTest(prefix=prefix):
-                response = InstructionLoader(target).get_work_instructions({"context_key": "current", "instruction_ids": ["needs-structuring", "payload", "main"]})
+                loader = InstructionLoader(target)
+                # The main contract is loaded once; reuse its actual receipt
+                # instead of redundantly exceeding the 64 KiB response limit.
+                main = loader.get_work_instructions({"context_key": "current", "instruction_ids": ["main"]})
+                item_main = main["instructions"][0]
+                known = {"instruction_id": "main", "context_key": "current", "manifest_sha256": main["manifest_sha256"],
+                         "source_sha256": item_main["source_sha256"], "returned_body_sha256": item_main["returned_body_sha256"]}
+                response = loader.get_work_instructions({"context_key": "current", "instruction_ids": ["needs-structuring", "payload", "main"], "known_context": [known]})
+                self.assertNotIn("body", response["instructions"][-1])
+                self.assertLessEqual(len(canonical({"ok": True, "result": response}).encode()), MAX_BYTES)
                 item = response["instructions"][0]
                 self.assertEqual(item["native_path"], prefix + PATHS["needs-structuring"])
                 self.assertEqual(item["body"].encode(), (target / item["returned_path"]).read_bytes())

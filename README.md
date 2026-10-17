@@ -4,11 +4,13 @@
 
 **현재 시작 방법은 심사위원 ZIP 다운로드입니다.** 터미널 한 줄 다운로드·AI 원터치 설치 안내는 2026-10-17 사용자 결정으로 잠정 중단했습니다. ZIP의 시작 파일과 uv/Python 준비는 유지합니다. [ZIP 사용 안내](adapters/common/distribution/README.md) · [원터치 안내 중단·기획 화면 원칙](docs/decisions/planner-first-20261017.md). 제품 저장소의 기존 공개 예약과 개발 저장소 비공개 범위는 변경하지 않았습니다.
 
-현재 시험판: [product-v0.19.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.19.0). **사용자는 `lg-ax-judge-product-v0.19.0.zip` 하나만 다운로드**합니다. 기획 본문·근거 부록·고급 진단을 분리하고 공장형 관제를 통합했습니다. 전체 원문과 중요 조건은 보존하며 원터치 다운로드 안내는 잠정 중단했습니다. 메인1·업무 Skill6·선택 역할3과 모델 기본값은 유지합니다. [실행·검사 인수](docs/validation/planner-first-AB-20261017.md) · [제품 ZIP·원격 바이트](docs/validation/product-v0.19.0.md).
+최신 [PR30](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/pull/30)은 선택 이유·실제 업무 초안·후속 질문을 저장→검토→웹→같은 버전 보고서로 연결하고 사람 중심으로 화면을 정리합니다. 실제 Claude와 사용성을 협의한 후 초안의 가로 폭·상단 HTML 저장·중복 안내를 보완했습니다. [최종 AL 인수](docs/validation/human-final-AL-20261018.md) · [모델/추론 권장](docs/decisions/model-use-20261018.md) · [발표·영상 근거 인수](docs/plans/human-final-AL-demo-evidence-20261018.md).
+
+현재 시험판: [product-v0.20.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.20.0). **사용자는 `lg-ax-judge-product-v0.20.0.zip` 하나만 다운로드**합니다. 메인1·업무 Skill6·선택 역할3과 Sol medium/Opus medium 기본값을 유지합니다. Codex 기존 앱 대화와 최신 turn 이벤트·Claude 로컬 결과 읽기·정확 원문 발췌의 자동 전달 연결을 보완했습니다. [제품 ZIP·원격 바이트](docs/validation/product-v0.20.0.md). 소스 ZIP에는 수정·재현용 프론트 원본도 포함하며 심사위원 사용에는 Node/npm이 필요하지 않습니다.
 
 발표·영상 전용 [Token Lens](presentation-tools/token-widget/README.md)는 실제 Codex/Claude 로그의 사용량을 별도 로컬 창에 표시합니다. 제품 ZIP에는 포함하지 않으며 모델을 호출하거나 업무 프롬프트를 추가하지 않습니다. [제작 인수](docs/plans/presentation-token-widget-AA-20261016.md) · [동일 자료 모델/추론 비교 계약](docs/validation/execution-quality-AA-method-20261016.md). 촬영은 수행하지 않았습니다.
 
-AA [모델/추론 비교 결과·그래프 원본](docs/validation/model-effort-AA-20261016.md): 실제11입력과 독립 검토를 마쳤고 Windows runtime 정책 경고 뒤3개 예약을 실행하지 않았습니다. 완료한 두 과제의 전체자료·품질·전달 조건을 충족한 후보는 Astra low이며, 추가 확인/최종 전체 권장과 기본값 변경은 보류합니다. [CSV](docs/validation/model-effort-AA-20261016.csv) · [JSON](docs/validation/model-effort-AA-20261016.json).
+이전 AA [모델/추론 비교 결과·그래프 원본](docs/validation/model-effort-AA-20261016.md): 실제11입력과 독립 검토를 마쳤고 Windows runtime 정책 경고 뒤3개 예약을 실행하지 않았습니다. 당시 완료한 두 과제의 전체자료·품질·전달 조건을 충족한 후보는 Astra low였으며 추가 확인/최종 전체 권장과 기본값 변경을 보류했습니다. 현재 권장은 위의 AL 후속 결정을 따릅니다. [CSV](docs/validation/model-effort-AA-20261016.csv) · [JSON](docs/validation/model-effort-AA-20261016.json).
 
 이전 시험판: [product-v0.17.0](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.17.0). 런처의 별도 관찰 코드가 검토·저장·업무 종료를 확인하고 기획자 웹·보고서를 연결해 브라우저 열기를 요청합니다. Stop 훅 신뢰와 별개인 경로이며, 수동 복구도 같은 검증을 사용합니다. [당시 네 실행 환경·실패와 복구·시간·사용량](docs/validation/result-delivery-Z-20261016.md) · [발표/영상 근거 인수](docs/plans/result-delivery-demo-evidence-20261016.md).
 

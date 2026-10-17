@@ -2,12 +2,12 @@
 // a page head card and prev/next. The other twelve views were removed at the user's request (2026-10-15).
 // Only build_view.py's data is shown: nothing from the reference's sample content (names, deltas, offers) is copied.
 import { useLayoutEffect, useState, type ReactNode } from 'react'
-import { ChevronLeft, ChevronRight, FileJson, FileText, FolderOpen, Info, Menu, NotebookText, RefreshCw, Search, X } from 'lucide-react'
+import { FileJson, FileText, FolderOpen, Info, Menu, NotebookText, RefreshCw, Search, X } from 'lucide-react'
 import { Badge } from '../components/ui'
 import { BlockView } from '../components/blocks'
 import { HoverNote } from '../components/hovernote'
 import { SearchDialog, type Hit } from '../components/search'
-import { BackToTop, Empty, ICONS, introOf, LiveDot, noEmoji, ReadNotice, SearchHotkey, STORY_IDS, TextScale } from '../components/shell'
+import { BackToTop, Empty, ICONS, introOf, noEmoji, ReadNotice, SearchHotkey, STORY_IDS, TextScale } from '../components/shell'
 import { LOOK, SKIN } from './blocks'
 import { SkinContext } from '../lib/skin'
 import { cn, Md } from '../lib/utils'
@@ -37,9 +37,6 @@ const S = {
   foot: 'border-t border-[#e6e6e6] px-4 py-3 text-[11px] leading-relaxed text-zinc-500',
 }
 
-// When build_view.py made this view's data (not when the result was saved).
-const builtAt = (view: View | null) => (view?.generated_at ? view.generated_at.slice(0, 16).replace('T', ' ') : '')
-
 export default function DashApp(p: Props) {
   const { view, page } = p
   const [navOpen, setNavOpen] = useState(false)
@@ -54,7 +51,7 @@ export default function DashApp(p: Props) {
         <Sidebar {...p} go={go} open={navOpen} close={() => setNavOpen(false)} />
         <div className={S.offset}>
           <TopBar {...p} tools={tools} openNav={() => setNavOpen(true)} />
-          <main className="@container flex min-w-0 flex-col gap-3 px-4 py-4 print-full sm:px-6">
+          <main className="@container mx-auto flex w-full max-w-[1280px] min-w-0 flex-col gap-4 px-4 py-5 print-full sm:px-8">
             {view && page ? <><ReadNotice phase={p.phase} busy={p.busy} reload={p.reload} /><Body {...p} go={go} /></>
               : <Empty phase={p.phase} busy={p.busy} reload={p.reload} />}
           </main>
@@ -67,11 +64,11 @@ export default function DashApp(p: Props) {
 }
 
 // 보고서로 보기, search (narrow screens; wider ones have it in the menu), larger text and the live dot.
-function Tools({ view, openSearch, big, toggleBig, live, inline, openReport }: Props) {
+function Tools({ view, openSearch, big, toggleBig, openReport }: Props) {
   return (
     <div className="flex items-center gap-2">
       {openReport && (
-        <button type="button" onClick={openReport} title="이 결과를 문서형 보고서로 보기 (인쇄·PDF)"
+        <button type="button" onClick={openReport} title="이 기획안을 보고서로 보기"
           className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#e3e3e3] bg-white px-2.5 text-[13px] font-medium text-zinc-700 hover:border-[#2f8f57]/40 hover:bg-[#f3f8f4] hover:text-[#2f7d4f]">
           <NotebookText className="size-4" aria-hidden /><span className="hidden sm:inline">보고서로 보기</span><span className="sr-only sm:hidden">보고서로 보기</span>
         </button>
@@ -84,14 +81,12 @@ function Tools({ view, openSearch, big, toggleBig, live, inline, openReport }: P
         className={cn('h-8 rounded-md border border-[#e3e3e3] bg-white px-2.5 text-sm font-semibold hover:bg-zinc-100', big && 'bg-zinc-900 text-white')}>
         가<span className="text-[11px]">{big ? '−' : '+'}</span>
       </button>
-      <LiveDot live={live} inline={inline} wide="never" />
     </div>
   )
 }
 
 function TopBar({ view, page, tools, openNav }: Props & { tools: ReactNode; openNav: () => void }) {
   const title = page?.nav || page?.title || '시각자료'
-  const at = builtAt(view)
   return (
     <header className="no-print sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-[#ececec] bg-[#fafafa]/95 px-4 text-[13px] backdrop-blur sm:px-6">
       <button type="button" onClick={openNav} aria-label="단계 메뉴 열기" className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-black/5 lg:hidden"><Menu className="size-5" /></button>
@@ -101,7 +96,6 @@ function TopBar({ view, page, tools, openNav }: Props & { tools: ReactNode; open
         <span className="truncate font-medium text-[#2f8f57]">{title}</span>
       </nav>
       <div className="ml-auto flex items-center gap-3">
-        {at && <span className="hidden text-zinc-500 xl:inline" title="최근 저장된 결과로 화면 자료를 만든 시각">화면 자료: {at}</span>}
         {tools}
       </div>
     </header>
@@ -161,7 +155,6 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
                       <button type="button" onClick={() => go(x.id)} aria-current={active ? 'page' : undefined} className={cn(S.item, active ? S.on : S.off)}>
                         <Icon className="size-4 shrink-0" aria-hidden />
                         <span className="truncate">{x.nav || x.title}</span>
-                        <span className={S.num}>{String(pages.indexOf(x) + 1).padStart(2, '0')}</span>
                       </button>
                     </li>
                   )
@@ -179,7 +172,7 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
         </nav>
         <SaveCard view={view} reload={reload} openFile={openFile} inline={inline} lastReadAt={lastReadAt} fromFile={fromFile} busy={busy} className={cn(S.card, 'mt-auto')} />
         </div>
-        {(ctx.footer || []).length > 0 && (
+        {page?.audience === 'diagnostic' && (ctx.footer || []).length > 0 && (
           <div className={S.foot}>
             {/* The session ID and usage note are reference lines; they open on hover instead of sitting in the menu. */}
             <HoverNote note={<ul className="flex flex-col gap-1">{(ctx.footer || []).map((f, k) => <li key={k} className="break-all"><Md text={noEmoji(f)} /></li>)}</ul>}
@@ -200,10 +193,11 @@ function SaveCard({ view, reload, openFile, inline, className, lastReadAt, fromF
 }) {
   const ctx = view?.context || {}
   return (
-    <div className={className}>
+    <details className={className} open={!view || undefined}>
+      <summary className="cursor-pointer text-xs font-medium text-zinc-500">저장 결과 관리</summary>
+      <div className="mt-3">
       <div className="text-xs font-semibold opacity-80">{fromFile ? '직접 연 화면 자료' : '최근 저장 결과'}</div>
-      {lastReadAt && <div className="mt-1 text-[11px] text-zinc-500">{fromFile ? '화면 자료 열기' : '최근 읽기 성공'}: {new Date(lastReadAt).toLocaleTimeString('ko-KR')}</div>}
-      <div className="mt-2.5 flex flex-wrap gap-1.5">{(ctx.status || [{ text: '데이터 없음' }]).map((s, k) => <Badge key={k} chip={s} />)}</div>
+      {lastReadAt && <div className="mt-1 text-[11px] text-zinc-500">{fromFile ? '열어 본 시각' : '확인 시각'}: {new Date(lastReadAt).toLocaleTimeString('ko-KR')}</div>}
       {ctx.file && (
         <div className="mt-3 flex items-start gap-2 text-xs">
           <FileJson className="mt-0.5 size-3.5 shrink-0 opacity-60" aria-hidden />
@@ -221,7 +215,8 @@ function SaveCard({ view, reload, openFile, inline, className, lastReadAt, fromF
           <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) openFile(f); e.target.value = '' }} />
         </label>
       )}
-    </div>
+      </div>
+    </details>
   )
 }
 
@@ -252,7 +247,7 @@ function useReveal(pageId: string | undefined) {
   }, [pageId])
 }
 
-function Body({ view, page, copy, go }: Props) {
+function Body({ view, page, copy }: Props) {
   useReveal(page?.id)
   if (!view || !page) return null
   const pages = view.pages
@@ -262,7 +257,6 @@ function Body({ view, page, copy, go }: Props) {
       {!STORY_IDS.has(page.id) && <Head view={view} page={page} n={i + 1} total={pages.length} intro={introOf(page.caption)} />}
       {/* Each top-level block keeps its data-block index (search results scroll to it). */}
       {page.blocks.map((b: Block, k: number) => <div key={k} data-block={k} className="flex min-w-0 scroll-mt-28 flex-col"><BlockView b={b} copy={copy} /></div>)}
-      <PrevNext prev={pages[i - 1]} next={pages[i + 1]} go={go} />
     </>
   )
 }
@@ -300,7 +294,7 @@ function Head({ view, page, n, total, intro }: { view: View; page: Page; n: numb
             {intro.step && <div className="mt-0.5 text-[12px] text-zinc-500">{intro.step}</div>}
           </div>
         </div>
-        <InfoStrip view={view} className="flex-1 rounded-md border border-[#e6e6e6] px-3 py-2" />
+        {page.audience === 'diagnostic' && <InfoStrip view={view} className="flex-1 rounded-md border border-[#e6e6e6] px-3 py-2" />}
       </div>
       {(intro.title || intro.text) && (
         <div className="px-0.5 text-[13px]">
@@ -309,26 +303,5 @@ function Head({ view, page, n, total, intro }: { view: View; page: Page; n: numb
         </div>
       )}
     </header>
-  )
-}
-
-function PrevNext({ prev, next, go }: { prev?: Page; next?: Page; go: (id: string) => void }) {
-  const box = 'lg-lift rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 hover:border-[#2f8f57]/45 hover:bg-[#fbfdfb]'
-  const name = 'block truncate text-[13px] font-semibold'
-  return (
-    <nav className="no-print mt-6 grid gap-3 sm:grid-cols-2" aria-label="화면 이동">
-      {prev ? (
-        <button type="button" onClick={() => go(prev.id)} className={cn('flex items-center gap-4 text-left', box)}>
-          <span className="shrink-0 text-muted-foreground"><ChevronLeft className="lg-nudge lg-nudge-prev size-5" aria-hidden /></span>
-          <span className="min-w-0"><span className="block text-xs text-muted-foreground">이전 화면</span><span className={name}>{prev.nav || prev.title}</span></span>
-        </button>
-      ) : <span className="hidden sm:block" />}
-      {next && (
-        <button type="button" onClick={() => go(next.id)} className={cn('flex items-center justify-end gap-4 text-right', box)}>
-          <span className="min-w-0"><span className="block text-xs text-muted-foreground">다음 화면</span><span className={name}>{next.nav || next.title}</span></span>
-          <span className="shrink-0 text-muted-foreground"><ChevronRight className="lg-nudge lg-nudge-next size-5" aria-hidden /></span>
-        </button>
-      )}
-    </nav>
   )
 }

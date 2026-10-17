@@ -130,6 +130,8 @@ class Conversation:
                  "result_limits": {"concepts": turn["input"]["constraints"]["max_concepts"],
                                    "claims_per_section": 20, "concept_requirements": 10,
                                    "concept_assumptions": 10, "implementation_steps": 8,
+                                   "planning_decision": {"summary_chars": 1000, "comparisons": 3, "selected_concepts": 3},
+                                   "work_draft": {"columns": 6, "rows": 20, "cell_chars": 1000, "bytes": 32768},
                                    "decision_notes": 10, "decision_source_ids": 20,
                                    "result_bytes": MAX_RESULT_BYTES,
                                    "template_status": "blank_invalid_until_authored",
@@ -444,7 +446,7 @@ class Conversation:
         with current_request/export_session; a stale replay is never delivered.
         """
         fields = ("session_id", "turn_id", "result_key", "result", "expected_result_version", "assessment")
-        obj(payload, fields, ("report", "report_plan_path", "report_sources_path", "open_folder"))
+        obj(payload, fields, ("report", "report_plan_path", "report_sources_path", "open_folder", "planner_insights"))
         options = self._report_options(payload)
         saved = self.store.save_result(**{k: payload[k] for k in fields}, require_review=True, response_mode="receipt")
         receipt = saved["receipt"]
@@ -467,12 +469,13 @@ class Conversation:
             if response["delivery_ready"]:
                 report = self._deliver_current(payload["session_id"], payload["turn_id"], receipt["current_result_version"], options)
                 response.update(report=report, report_ready=report["ready"], report_error=report.get("error"))
-        else:
+        if not options["report"] or "planner_insights" in payload:
             response.update(web_result=None, web_ready=False, web_error=None)
             if response["delivery_ready"]:
                 try:
                     response["web_result"] = self.prepare_web_result({"session_id": payload["session_id"],
-                        "turn_id": payload["turn_id"], "expected_result_version": receipt["current_result_version"]})
+                        "turn_id": payload["turn_id"], "expected_result_version": receipt["current_result_version"],
+                        **({"planner_insights": payload["planner_insights"]} if "planner_insights" in payload else {})})
                     response["web_ready"] = response["web_result"]["ready"]
                 except (OSError, ValueError, sqlite3.Error) as exc:
                     response["web_error"] = {"code": getattr(exc, "code", "web_delivery_failed"), "message": str(exc)[:512]}
@@ -504,7 +507,16 @@ class Conversation:
 
     def prepare_web_result(self, payload):
         from .web_delivery import WebDelivery
-        return WebDelivery(self.store, self.workspace).prepare_web_result(payload)
+        response = WebDelivery(self.store, self.workspace).prepare_web_result(payload)
+        insights = response["planner_insights"]
+        if insights.get("ready"):
+            # A watcher may already have rendered the preceding export. Touch
+            # its current snapshot only after the bound sidecar is complete.
+            try:
+                insights["export"] = self.export_session({"session_id": payload["session_id"]})
+            except (OSError, ValueError, sqlite3.Error) as exc:
+                insights["export_error"] = {"code": getattr(exc, "code", "export_failed"), "message": str(exc)[:512]}
+        return response
 
     def _report_options(self, payload, recovery=False):
         report = payload.get("report", recovery)

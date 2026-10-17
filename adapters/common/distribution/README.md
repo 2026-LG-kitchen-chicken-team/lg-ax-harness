@@ -4,7 +4,7 @@
 
 ## ZIP으로 시작하기
 
-1. [제품 v0.19.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.19.0)에서 **lg-ax-judge-product-v0.19.0.zip** 하나를 받습니다.
+1. [제품 v0.20.0 시험판](https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.20.0)에서 **lg-ax-judge-product-v0.20.0.zip** 하나를 받습니다.
 2. 새 폴더에 모두 압축을 풀고 맨 바깥의 **README.md 사용설명서**를 엽니다.
 3. 사용할 Codex 또는 Claude의 시작 파일을 선택합니다. 로그인·작업 폴더·접근 승인은 사용설명서 순서대로 확인합니다.
 4. 평소 말하듯 질문하고, 완료된 기획자 웹에서 핵심 기획을 읽습니다. 근거·부록은 필요할 때 열고, 같은 결과를 보고서로 볼 수 있습니다.

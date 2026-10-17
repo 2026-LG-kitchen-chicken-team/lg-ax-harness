@@ -19,7 +19,7 @@ function view(calls,{now=NOW,status='connected',activityPatch={},events=[]}={}){
 test('native Skill start drives the same room, concrete work sentence, progress and researcher clock',()=>{
  const v=view([call()]),w=observerWork(v),d=currentWorkSummary(v,w);
  assert.deepEqual(v.activeSkills,['evidence-retrieval']);assert.deepEqual(w.activeNodes,['retrieve']);
- assert.deepEqual(w.skillActiveNodes,['retrieve']);assert.match(w.line,/자료 조회/);
+ assert.deepEqual(w.skillActiveNodes,['retrieve']);assert.match(w.line,/고객 리뷰/);
  assert.match(d.rooms[0].detailLine,/고객 리뷰/);assert.equal(d.rooms[0].actor,'메인 기획 AI');
  assert.equal(d.rooms[0].progress,'처리 중 · 진행 수 집계 전');assert.ok(advanceResearcherClock(1,{working:w.rooms.retrieve.animate,dt:.1})>1);
 });
@@ -33,7 +33,8 @@ test('two and three simultaneous native Skill calls enlarge all corresponding ro
  const calls=[call(),call('feature-comparison','retrieve_product_facts'),call('web-evidence-collection','capture_web_page')];
  for(const count of [2,3]){
   const w=observerWork(view(calls.slice(0,count))),ids=w.activeNodes;
-  assert.equal(ids.length,count);assert.match(w.line,new RegExp('SKILL '+count+'개'));
+  assert.equal(ids.length,count);assert.match(w.line,/작업을 함께 진행/);
+  for(const id of ids)assert.ok(w.line.includes(w.rooms[id].label));
   const layout=factoryLayout({width:1400,height:900,roomIds:PRODUCT_SKILLS.map(s=>s.node),activeIds:['overview',...ids]});
   for(const id of ids)assert.ok(layout.zones[id].scale>layout.zones.structure.scale);
  }

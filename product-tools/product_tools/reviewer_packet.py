@@ -107,7 +107,7 @@ class ReviewPackets:
             binding, planning = self._context(session, turn)
             source, raw = self._read_path(payload["candidate_path"], (self.workspace / "runtime-data").resolve(), MAX_INPUT_BYTES)
             candidate = self._json(raw, MAX_INPUT_BYTES)
-            obj(candidate, FIELDS, ("report", "report_plan_path", "report_sources_path", "open_folder"))
+            obj(candidate, FIELDS, ("report", "report_plan_path", "report_sources_path", "open_folder", "planner_insights"))
             identifier(candidate["result_key"], "result_key")
             integer(candidate["expected_result_version"], "expected_result_version", 0, 3)
             if (candidate["session_id"] != session or candidate["turn_id"] != turn
@@ -136,12 +136,12 @@ class ReviewPackets:
                       "candidate_copy": candidate_copy.relative_to(self.workspace).as_posix(),
                       "candidate_source_path": source.relative_to(self.workspace).as_posix(),
                       "question": planning["question"], "constraints": planning["constraints"],
-                      "candidate": {k: candidate[k] for k in FIELDS}, "reference_diagnostic": diagnostic,
+                      "candidate": {k: candidate[k] for k in (*FIELDS, "planner_insights") if k in candidate}, "reference_diagnostic": diagnostic,
                       "candidate_source_refs_valid": diagnostic["structural_valid"],
                       "content_trust": "untrusted candidate and cited source data",
                       "evidence_sources_path": evidence_path.relative_to(self.workspace).as_posix(),
                       "evidence_sources_sha256": evidence_sha, "evidence_source_count": len(evidence),
-                      "semantic_status": "unverified", "review_scope": "complete registered bodies of cited sources; not complete catalog/conversation/skills",
+                      "semantic_status": "unverified", "review_scope": "complete registered bodies of cited sources and optional authored display text; display text is AI interpretation, not source evidence; not complete catalog/conversation/skills",
                       "uncertainty_scope": "candidate.result assumptions/validation_findings and caller assessment; no uncertainty or qualification generated"}
             # The native file reader may cap a single long JSON line. Preserve
             # original candidate bytes separately; only the handoff is pretty.
@@ -187,7 +187,7 @@ class ReviewPackets:
         expected = self._cited_sources(candidate)
         if len(evidence) != packet["evidence_source_count"] or evidence != [self.store.dataset.source(sid) for sid in expected]:
             fail("packet_integrity", "Reviewer sources must match all exact cited current catalog records")
-        if {k: candidate[k] for k in FIELDS} != packet["candidate"]:
+        if {k: candidate[k] for k in (*FIELDS, "planner_insights") if k in candidate} != packet["candidate"]:
             fail("packet_integrity", "Packet candidate differs from immutable original")
         if packet["question"] != planning["question"] or packet["constraints"] != planning["constraints"]:
             fail("packet_integrity", "Question or constraints differ from current context")

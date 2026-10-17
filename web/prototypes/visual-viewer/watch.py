@@ -76,7 +76,7 @@ def office_command(harness, engine, latest=False, keep=False, open_page=False):
 
 
 class Observer:
-    def __init__(self, harness, engine, opener=None):
+    def __init__(self, harness, engine, opener=None, require_native=False):
         self.delivery = delivery.Delivery(harness, engine, opener)
         self.paths = self.delivery.paths
         initial = hook.newest_export(self.paths)
@@ -84,6 +84,8 @@ class Observer:
         self.previous = self.done = None
         self.last_result = None
         self.failures = 0
+        self.require_native = require_native
+        self.delivered_signature = None
 
     def tick(self):
         latest = hook.newest_export(self.paths)
@@ -101,7 +103,26 @@ class Observer:
         if self.failures >= 2:
             return {"status": "retry_exhausted", "export": latest.name}
         try:
-            result = self.delivery.deliver(Path(latest.path))
+            completion = {"status": "not_required"}
+            if self.require_native:
+                body = json.loads(delivery.read_bytes(self.paths, Path(latest.path)).decode("utf-8-sig"))
+                current = (body.get("turns") or [{}])[-1].get("state") or {}
+                if current.get("status") == "completed":
+                    completion = delivery.native_completion(self.paths, body)
+            allow_open = completion["status"] in ("not_required", "native_completed")
+            if not allow_open and self.delivered_signature == signature:
+                self.last_result = {**(self.last_result or {}), "status": completion["status"],
+                                    "native_end_observed": False}
+                return {**self.last_result, "unchanged": True}
+            result = self.delivery.deliver(Path(latest.path), allow_open=allow_open)
+            if result.get("status") == "ready":
+                self.delivered_signature = signature
+            if not allow_open and result.get("status") == "ready":
+                # Build/update files now; open only after the same native request
+                # has ended. Do not freeze this export's signature while waiting.
+                result.update(status=completion["status"], native_end_observed=False)
+            elif completion["status"] == "native_completed":
+                result["native_end_observed"] = True
         except (Exception, SystemExit):
             self.failures += 1
             return {"status": "generation_failed", "attempt": self.failures, "export": latest.name}
@@ -116,7 +137,7 @@ class Observer:
 
 def watch(harness, engine, *, latest=False, keep=False, open_page=False, dashboard=True,
           parent_pid=0, token=None, max_seconds=10800, interval=0.5):
-    observer = Observer(harness, engine)
+    observer = Observer(harness, engine, require_native=True)
     paths = observer.paths
     lease_paths = hook.Paths(str(harness))
     lease_paths.lock = hook.checked_path(paths.harness, str(Path(paths.out) / ".result-watch.lock"))

@@ -113,6 +113,34 @@ class ObserverTests(unittest.TestCase):
     def tearDown(self):
         self.h.close()
 
+    def test_redirected_product_output_read_keeps_only_binding_without_claiming_skill(self):
+        binding = {'session_id':'S1','turn_id':'T1','request_key':'K1'}
+        path = str(self.h.root/'runtime-data/save-output.json')
+        content = json.dumps({'ok':True,'result':binding,'body':SECRET})
+        value = pre('Read', {'file_path':path}, cwd=str(self.h.root), hook_event_name='PostToolUse',
+                    tool_response={'type':'text','file':{'filePath':path,'content':content,'startLine':1,'numLines':1,'totalLines':1}})
+        self.assertEqual(self.h.run(value).returncode,0)
+        event=self.h.events()[0]
+        self.assertEqual(event['kind'],'file');self.assertIsNone(event['op'])
+        self.assertEqual(event['detail']['business_binding'],binding)
+        self.assertNotIn(SECRET,self.h.all_text())
+
+    def test_unrelated_input_partial_or_failed_read_does_not_supply_business_binding(self):
+        spec=importlib.util.spec_from_file_location('read_binding_guard',APP/'observe.py')
+        observer=importlib.util.module_from_spec(spec);spec.loader.exec_module(observer)
+        path=str(self.h.root/'runtime-data/output.json');binding={'session_id':'S1','turn_id':'T1','request_key':'K1'}
+        for named,returned,content in ((path,path,json.dumps(binding)),(path,path,json.dumps({'ok':False,'result':binding})),
+                (path,path,'{"ok":true,'),(str(self.h.root/'outside.json'),str(self.h.root/'outside.json'),json.dumps({'ok':True,'result':binding})),
+                (path,str(self.h.root/'runtime-data/other.json'),json.dumps({'ok':True,'result':binding}))):
+            with self.subTest(path=named,content=content):
+                self.assertEqual(observer.read_product_output_binding(named,{'file':{'filePath':returned,'content':content}},str(self.h.root)),{})
+        outside_result=json.dumps({'ok':True,'result':{},'request':binding})
+        self.assertEqual(observer.read_product_output_binding(path,{'file':{'filePath':path,'content':outside_result}},str(self.h.root)),{})
+        for extra in ({'startLine':20,'numLines':1,'totalLines':40},{'startLine':1,'numLines':1,'totalLines':40},
+                      {'truncated':True},{'startLine':1}):
+            response={'file':{'filePath':path,'content':json.dumps({'ok':True,'result':binding}),**extra}}
+            self.assertEqual(observer.read_product_output_binding(path,response,str(self.h.root)),{})
+
     def test_helper_business_metadata_does_not_claim_a_skill_or_leak_body(self):
         binding={"session_id":"S1","turn_id":"T1","request_key":"K1"}
         value=pre('Bash',{'command':'python runtime-data/helper.py'},
@@ -647,6 +675,22 @@ import io  # noqa: E402
 
 
 class CodexFollowTests(unittest.TestCase):
+    def test_main_task_start_is_one_private_request_even_without_desktop_user_item(self):
+        lines, child = codex_records(self.root)
+        lines = [r for r in lines if r.get('payload', {}).get('item', {}).get('type') != 'UserMessage']
+        self.write_logs(lines, child)
+        office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        requests = [e for e in self.events() if e['kind'] == 'request']
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0]['prompt_id'], 'turn-1')
+        self.assertEqual(requests[0]['actor'], 'main')
+        self.assertNotIn(SECRET, (self.out/'events.jsonl').read_text(encoding='utf-8'))
+
+    def test_task_start_and_legacy_user_item_deduplicate_by_actual_turn(self):
+        self.write_logs(*codex_records(self.root))
+        office.codex(self.root, latest=True, once=True, out=io.StringIO())
+        self.assertEqual(sum(e['kind'] == 'request' for e in self.events()), 1)
+
     def test_follower_after_task_started_retains_actual_wrapped_turn_id(self):
         lines,child=codex_records(self.root)
         lines=[row for row in lines if row.get('payload',{}).get('type')!='task_started']
@@ -815,6 +859,30 @@ class CodexFollowTests(unittest.TestCase):
         office.codex(self.root, rollout=path, once=True, out=io.StringIO())
         self.assertEqual(sum(e["kind"] == "turn_end" for e in self.events()), 1)
 
+    def test_wait_accepts_new_turn_on_existing_session_only_after_complete_start_record(self):
+        from unittest import mock
+        import codex_follow
+        path = self.write_logs(*codex_records(self.root))
+        new_start = json.dumps({"type": "event_msg", "payload": {"type": "task_started", "turn_id": "next-turn"}})
+        additions = [json.dumps({"type": "event_msg", "payload": {"type": "token_count"}}) + "\n",
+                     new_start[:24], new_start[24:] + "\n"]
+        def append(_):
+            with path.open('a', encoding='utf-8') as stream:
+                stream.write(additions.pop(0))
+        with mock.patch.object(codex_follow.time, 'sleep', side_effect=append) as sleeper:
+            chosen, meta = codex_follow.wait_for_new(self.root, max_seconds=2, poll=.01)
+        self.assertEqual(chosen, path)
+        self.assertEqual(meta['id'], MAIN_ID)
+        self.assertEqual(sleeper.call_count, 3)
+        self.assertFalse(additions)
+
+    def test_wait_does_not_replay_old_completed_session_as_new_work(self):
+        import codex_follow
+        self.write_logs(*codex_records(self.root))
+        with self.assertRaises(codex_follow.FollowError):
+            codex_follow.wait_for_new(self.root, max_seconds=.03, poll=.005)
+        self.assertFalse((self.out/'events.jsonl').exists())
+
     def test_wait_follows_only_a_session_started_later(self):
         import threading
         import time
@@ -963,7 +1031,7 @@ for (const file of ['catalog', 'labels', 'model', 'state']) {
         artwork = ROOT / "web/prototypes/control-room/factory-dashboard/public/workshops/approved-researchers-original-v1.png"
         self.assertIn("data:image/png;base64," + base64.b64encode(artwork.read_bytes()).decode("ascii"), html)
         for text in ("LGAX_OFFICE_LIVE", "live.js", "../visual-viewer/view-data.js", "../visual-viewer/index.html",
-                     "기록 재생", "실시간", "기록 파일 열기", "결과 화면 열기", "분석 구간"):
+                     "기록 재생", "실시간", "기록 파일 열기", "기획안 보기", "분석 구간"):
             self.assertIn(text, html)
 
 

@@ -20,7 +20,7 @@ def qualification(record):
 
 
 def review_product_result(dataset, payload):
-    obj(payload, ("input", "result", "assessment"))
+    obj(payload, ("input", "result", "assessment"), ("planner_insights",))
     planning, result = payload["input"], payload["result"]
     structural = ProductTools(dataset).validate_result_contract(planning, result)
     assessment = obj(payload["assessment"], ("claim_checks", "feature_matches", "concept_links"))
@@ -135,4 +135,7 @@ def review_product_result(dataset, payload):
             "can_finalize_reported_result": result["status"] != "completed" or not findings,
             "findings": findings, "qualified_claim_ids": sorted(qualified), "completion_scope": "planning_draft_only",
             "semantic_status": "unverified", "acceptance_ready": False,
+            **({"planner_insights_review": {"scope": "authored_display_text_not_source_evidence", "semantic_status": "unverified",
+                "note": "Display binding/shape is checked at delivery; original-source comparison of titles and summaries remains required."}}
+               if "planner_insights" in payload else {}),
             "note": "Checks the model's report, not whether its interpretation is true. Original-source evaluation remains required; planning_quality_diagnostics is nonblocking field presence only."}

@@ -33,7 +33,7 @@ def build():
               ROOT / "docs/contracts/product-reviewer-packet.md", ROOT / "docs/contracts/product-research-agents.md", ROOT / "docs/contracts/web-result.md", ROOT / "docs/contracts/runtime-access.md",
               *[ROOT / "web/prototypes/visual-viewer" / name for name in ("README.md", "viewer.py", "hook.py", "build_view.py", "index.html", "delivery.py", "watch.py")],
               *[ROOT / "web/prototypes/agent-office" / name for name in ("README.md", "office.py", "observe.py", "codex_follow.py", "index.html", "factory.html")],
-              ROOT / "docs/contracts/judge-test.md"]
+              ROOT / "docs/contracts/judge-test.md", ROOT / "docs/contracts/planning-drafts.md"]
     return {"version": "product-skills-v1", "agent": "agents/product-planning.md", "data_path": "data/business/empty", "skills": skills,
             "shared_files": [{"path": p.relative_to(ROOT).as_posix(), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in common],
             "optional_agents": roles, "native_installation_verified": False, "native_discovery_verified": False}

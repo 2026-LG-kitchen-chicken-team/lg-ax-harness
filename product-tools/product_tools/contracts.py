@@ -181,7 +181,7 @@ def evidence_ref(value):
 
 def claim(value, concept=False):
     obj(value, ("id", "text", "source_ids") + (("requirements", "requires_hardware", "assumptions") if concept else ()),
-        ("implementation_steps", "validation_plan") if concept else ())
+        ("implementation_steps", "validation_plan", "work_draft") if concept else ())
     identifier(value["id"], "claim id")
     text(value["text"], "claim text")
     refs = items(value["source_ids"], "source_ids")
@@ -197,6 +197,8 @@ def claim(value, concept=False):
                 text(item, key, 1000)
         if not value["requirements"]:
             fail("invalid_input", "A concept needs at least one requirement")
+        if "work_draft" in value:
+            work_draft(value["work_draft"])
         if "implementation_steps" in value:
             steps = items(value["implementation_steps"], "implementation_steps", 8)
             if not steps:
@@ -230,6 +232,48 @@ def claim(value, concept=False):
                         text(metric[key], key, 1000)
 
 
+def work_draft(value):
+    """A model-authored editable table, not renderer-generated business content."""
+    obj(value, ("title", "columns", "rows"))
+    text(value["title"], "work draft title", 200)
+    columns = items(value["columns"], "work draft columns", 6)
+    rows = items(value["rows"], "work draft rows", 20)
+    if not columns or not rows:
+        fail("invalid_input", "Work draft needs columns and authored rows")
+    for column in columns:
+        text(column, "work draft column", 100)
+    if len(set(columns)) != len(columns):
+        fail("invalid_input", "Work draft column headings must be unique")
+    for row in rows:
+        cells = items(row, "work draft row", 6)
+        if len(cells) != len(columns):
+            fail("invalid_input", "Work draft rows must match the column count")
+        for cell in cells:
+            text(cell, "work draft cell", 1000)
+    if len(canonical(value).encode("utf-8")) > 32768:
+        fail("input_limit", "Work draft exceeds 32 KiB")
+
+
+def planning_decision(value, concepts):
+    """Validate candidate identity/coverage, never rank ideas or certify demand."""
+    obj(value, ("summary", "selected_concept_ids", "comparisons"))
+    text(value["summary"], "planning decision summary", 1000)
+    known = {c["id"] for c in concepts}
+    selected = items(value["selected_concept_ids"], "selected concept ids", 3)
+    for concept_id in selected:
+        identifier(concept_id, "selected concept id")
+    if len(set(selected)) != len(selected) or not set(selected) <= known:
+        fail("invalid_input", "Selected concepts must be unique current concept IDs")
+    compared = []
+    for comparison in items(value["comparisons"], "concept comparisons", 3):
+        obj(comparison, ("concept_id", "reason", "tradeoff"))
+        compared.append(identifier(comparison["concept_id"], "comparison concept id"))
+        text(comparison["reason"], "comparison reason", 1000)
+        text(comparison["tradeoff"], "comparison tradeoff", 1000)
+    if len(set(compared)) != len(compared) or set(compared) != known:
+        fail("invalid_input", "Comparisons must cover each current concept exactly once")
+
+
 def planning_quality_diagnostics(result):
     """Optional field presence only; never infer adequacy or change finalization."""
     missing = []
@@ -243,7 +287,7 @@ def planning_quality_diagnostics(result):
             "note": "Optional planning details to consider; presence does not certify meaning, measurement or quality."}
 
 def product_result(value, planning):
-    obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"), optional=("decision_notes",))
+    obj(value, ("status", "pains", "existing_features", "remaining_pains", "concepts", "assumptions", "evidence_refs", "validation_findings", "revisions", "usage_summary"), optional=("decision_notes", "planning_decision"))
     if value["status"] not in ("completed", "needs_input", "held", "failed", "cancelled"):
         fail("invalid_input", "Unknown result status")
     integer(value["revisions"], "revisions", 0, 2)
@@ -256,6 +300,8 @@ def product_result(value, planning):
         fail("invalid_input", "Claim IDs must be unique across result sections")
     if value["status"] == "completed" and not value["concepts"]:
         fail("invalid_input", "Completed proposal requires at least one concept")
+    if "planning_decision" in value:
+        planning_decision(value["planning_decision"], value["concepts"])
     for key in ("assumptions", "validation_findings"):
         for item in items(value[key], key):
             text(item, key)

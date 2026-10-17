@@ -1,0 +1,75 @@
+{
+  "release": "product-v0.20.0",
+  "source_commit": "d542c40e55579df0b19713f2532fd96450f2559d",
+  "product_snapshot_commit": "ddc270dbe86d326692a9bb6ce22af371447e07b8",
+  "assets": [
+    {
+      "name": "lg-ax-harness-product-v0.20.0.zip",
+      "bytes": 23223612,
+      "sha256": "f7fe116b8ac36458a7d68e150b939f99b085a40a3f606ce8d106fabfcba3cb4c",
+      "files": 284,
+      "manifest_entries": 283,
+      "crc": "passed",
+      "paths_and_unique": "passed",
+      "manifest_sha": "passed"
+    },
+    {
+      "name": "lg-ax-judge-product-v0.20.0.zip",
+      "bytes": 25017930,
+      "sha256": "81f6b50c8b65c03e585c86b014b2394d3e2d927911b15ec70c2ca71118822e79",
+      "files": 225,
+      "manifest_entries": 224,
+      "crc": "passed",
+      "paths_and_unique": "passed",
+      "manifest_sha": "passed"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 198,
+      "sha256": "cdc98002c9b0b8ce31a3ea82d4937897663a788c6b5f8bdf30bcdb1a2083bbcd"
+    }
+  ],
+  "remote_checks": [
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-harness",
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-harness/releases/tag/product-v0.20.0",
+      "tag": "product-v0.20.0",
+      "snapshot": "ddc270dbe86d326692a9bb6ce22af371447e07b8",
+      "parents": 0,
+      "asset_names_sizes_digests_download_SHA": "passed",
+      "automatic_source_zip_raw_files": 284,
+      "automatic_source_zip_matches_product_source": true,
+      "v0.19.0_assets_unchanged": true,
+      "visibility": "PRIVATE"
+    },
+    {
+      "repo": "2026-LG-kitchen-chicken-team/lg-ax-agent",
+      "url": "https://github.com/2026-LG-kitchen-chicken-team/lg-ax-agent/releases/tag/product-v0.20.0",
+      "tag": "product-v0.20.0",
+      "snapshot": "ddc270dbe86d326692a9bb6ce22af371447e07b8",
+      "parents": 0,
+      "asset_names_sizes_digests_download_SHA": "passed",
+      "automatic_source_zip_raw_files": 284,
+      "automatic_source_zip_matches_product_source": true,
+      "v0.19.0_assets_unchanged": true,
+      "visibility": "PRIVATE"
+    }
+  ],
+  "distribution_readme_commit": "4242d94bcb4cb3563b92a417a6d5b4d2c363d418",
+  "package_independent_audit_sha256": "33577a731c3e290b50ceb35282f6a4018644a274df83e0124f5ca448368c305c",
+  "final_source_rebuild_sha256": "c9ec91f1ef9266eeb04a99fa85ff6918e996ca23cc0377db07aa5570dde6dbb1",
+  "CI": {
+    "status": "passed",
+    "stages": 24,
+    "functional_source": "d542c40e55579df0b19713f2532fd96450f2559d"
+  },
+  "scope": {
+    "Windows_clean_setup": true,
+    "new_macOS_Linux_native": false,
+    "new_Claude_GUI_business": false,
+    "new_CLI_business": 8,
+    "final_parser_replay_cases": 5,
+    "filming": false,
+    "billing": "unknown"
+  }
+}

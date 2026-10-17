@@ -205,7 +205,36 @@ def find_cli(name):
     """PATH first, then the native installer's folder (a fresh install is not on this window's PATH yet)."""
     found = shutil.which(name)
     local = Path.home() / '.local' / 'bin' / (name + ('.exe' if os.name == 'nt' else ''))
-    return found or (str(local) if local.is_file() else None)
+    return found or (str(local) if local.is_file() else None) or (desktop_claude_cli() if name == 'claude' else None)
+
+def desktop_claude_cli():
+    """Best-effort Store Desktop CLI discovery; never copy auth or modify PATH."""
+    if sys.platform != 'win32' or not os.environ.get('LOCALAPPDATA'):
+        return None
+    cache = Path(os.environ['LOCALAPPDATA']) / 'Packages/Claude_pzs8sxrjxfjjc/LocalCache/Roaming/Claude/claude-code'
+    try:
+        if cache.is_symlink() or (hasattr(cache, 'is_junction') and cache.is_junction()):
+            return None
+        base = cache.resolve(strict=True)
+        versions = []
+        for folder in cache.iterdir():
+            if folder.is_dir() and re.fullmatch(r'\d+\.\d+\.\d+', folder.name):
+                versions.append((tuple(map(int, folder.name.split('.'))), folder))
+        probes = 0
+        for version, folder in sorted(versions, reverse=True)[:2]:
+            for candidate in sorted(folder.glob('*/claude.exe'))[:2]:
+                if probes >= 4:
+                    return None
+                if not candidate.is_file() or not candidate.resolve(strict=True).is_relative_to(base):
+                    continue
+                probes += 1
+                code, text = quiet([str(candidate), '--version'], timeout=1.5)
+                reported = re.search(r'(\d+)\.(\d+)\.(\d+)\s+\(Claude Code\)', text) if code == 0 else None
+                if reported and tuple(map(int, reported.groups())) == version and version >= DESKTOP_MIN:
+                    return str(candidate)
+    except (OSError, ValueError):
+        pass
+    return None
 
 def quiet(argv, timeout=60, env=None, cwd=None):
     try:

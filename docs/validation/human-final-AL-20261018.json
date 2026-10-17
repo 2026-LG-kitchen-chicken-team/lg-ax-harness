@@ -1,0 +1,895 @@
+{
+  "schema": "AL-model-quality-safe-summary-v1",
+  "generated_at": "2026-10-17T21:08:16.958884+00:00",
+  "source_for_native_model_trials": "c5b2fbc860f2fc87dd49ad498b9cada13b3d2065",
+  "completed_reviewed": 8,
+  "pending_review": 0,
+  "not_a_final_model_recommendation": true,
+  "comparison_limits": [
+    "One run per profile and product; optional reviewer use differs.",
+    "Codex process clock and Claude hook clock are explicitly labelled, not assumed identical instrumentation.",
+    "Registered body counts are not independent customers, full online pages or market representativeness.",
+    "Provider billing/currency cost remains unknown; retain cache and child scopes.",
+    "The prior12.312s headless permission denial is a separate failure and is not one of these ordinary interactive results."
+  ],
+  "rows": [
+    {
+      "engine": "claude",
+      "interface": "ordinary interactive CLI",
+      "profile": "opus-high",
+      "model": "claude-opus-5-5",
+      "model_observation": "actual model observed in per-message usage",
+      "family": "dishwasher",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 1151.448,
+      "clock": "first actual human UserPromptSubmit -> last main Stop; excludes wrapper idle/exit; child handback is not a new human input",
+      "wrapper_seconds": 1484.75,
+      "exit_code": 0,
+      "body_expected": 81,
+      "body_backend_returned_unique": 81,
+      "body_full_in_actual_tool_context": 81,
+      "body_partial_count": 0,
+      "cited_refs": 20,
+      "cited_refs_valid": 20,
+      "citation_check": "exact nonempty original substring and nine source metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        11
+      ],
+      "native_child_chain": {
+        "status": "not_run",
+        "verified_native_business_children": 0
+      },
+      "material_issues": [
+        {
+          "priority": "P2",
+          "code": "valid_excerpt_reference_rejected_by_original_viewer",
+          "scope": "Original c5b2fbc result-to-view delivery; core stored planning valid",
+          "status": "originally reproduced; subsequent code fix/replay recorded separately"
+        }
+      ],
+      "observed_limitations": [],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "original_observer": "waiting_binding/mismatch",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "Last usage per distinct message ID only; do not duplicate iterations or snapshots",
+        "message_ids": 52,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "observed_main_categories": {
+          "input_tokens": 104,
+          "cache_creation_input_tokens": 373820,
+          "cache_read_input_tokens": 11216812,
+          "output_tokens": 117937
+        },
+        "billing": "unknown"
+      }
+    },
+    {
+      "engine": "claude",
+      "interface": "ordinary interactive CLI",
+      "profile": "opus-high",
+      "model": "claude-opus-5-5",
+      "model_observation": "actual model observed in per-message usage",
+      "family": "fridge",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 1075.985,
+      "clock": "first actual human UserPromptSubmit -> last main Stop; wrapper separate; child handback not a new human input",
+      "wrapper_seconds": 1175.516,
+      "exit_code": 0,
+      "body_expected": 56,
+      "body_backend_returned_unique": 56,
+      "body_full_in_actual_tool_context": 56,
+      "body_partial_count": 0,
+      "cited_refs": 17,
+      "cited_refs_valid": 17,
+      "citation_check": "full raw quotes and nine source metadata fields exact",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        8
+      ],
+      "native_child_chain": {
+        "status": "verified native launch -> matching reviewer completion -> delivered handback -> main edits -> saved result",
+        "verified_native_business_children": 1,
+        "child_actual_full_source_bodies": 17,
+        "child_assigned_sources": 17,
+        "child_candidate_actual_full_lines": 103,
+        "review_findings": 9,
+        "main_post_handback_edits": 20,
+        "first_saved_result_version": 1,
+        "child_self_hash_recalculation": "unknown; external independent file hashes checked"
+      },
+      "material_issues": [],
+      "observed_limitations": [
+        {
+          "code": "controlled_prompt_deviations",
+          "categories": [
+            "no-op ad-hoc python",
+            "shell semicolon chaining"
+          ],
+          "scope": "Read-only/no corpus mutation; distinct from product or semantic failure."
+        }
+      ],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "native_end_observed": true,
+        "OS_open_request": "requested",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "Last usage per distinct main message ID; child retained separately; no duplicate snapshots/iterations",
+        "message_ids": 49,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "observed_main_categories": {
+          "input_tokens": 100,
+          "cache_creation_input_tokens": 296993,
+          "cache_read_input_tokens": 9439395,
+          "output_tokens": 94865
+        },
+        "observed_child_categories": {
+          "input_tokens": 6,
+          "cache_creation_input_tokens": 60710,
+          "cache_read_input_tokens": 69068,
+          "output_tokens": 827
+        },
+        "child_message_ids": 3,
+        "parent_child_message_ID_overlap_count": 0,
+        "inclusion_note": "Observed message IDs disjoint; do not add duplicate snapshots or claim provider billing certainty.",
+        "billing": "unknown"
+      }
+    },
+    {
+      "engine": "claude",
+      "interface": "ordinary interactive CLI",
+      "profile": "opus-medium",
+      "model": "claude-opus-5-5",
+      "model_observation": "actual model observed in per-message usage",
+      "family": "dishwasher",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 1122.485,
+      "clock": "first actual human UserPromptSubmit -> last main Stop; excludes wrapper idle/exit; child handback is not a new human input",
+      "wrapper_seconds": 1213.187,
+      "exit_code": 0,
+      "body_expected": 81,
+      "body_backend_returned_unique": 81,
+      "body_full_in_actual_tool_context": 80,
+      "body_partial_count": 1,
+      "cited_refs": 15,
+      "cited_refs_valid": 15,
+      "citation_check": "exact nonempty original substring and nine source metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        8
+      ],
+      "native_child_chain": {
+        "status": "verified launch -> matching role completion -> delivered handback -> main edits -> saved result",
+        "verified_native_business_children": 1,
+        "child_actual_full_source_bodies": 15,
+        "child_assigned_sources": 15,
+        "review_findings": 7,
+        "main_post_handback_edits": 13,
+        "first_saved_result_version": 1,
+        "child_self_hash_recalculation": "unknown; separate reviewer audit verified immutable files"
+      },
+      "material_issues": [
+        {
+          "priority": "P2",
+          "code": "valid_excerpt_reference_rejected_by_original_viewer",
+          "scope": "Original c5b2fbc result-to-view delivery; core stored planning valid",
+          "status": "originally reproduced; subsequent code fix/replay recorded separately"
+        }
+      ],
+      "observed_limitations": [
+        {
+          "code": "actual_tool_context_partial_body",
+          "body_role": "uncited comparison PDP",
+          "observed_chars": 3539,
+          "full_chars": 3900,
+          "missing_chars": 361,
+          "impact": "Do not claim all81 full received; all15 final cited bodies were fully available. Backend81 differs from actual main context80full+1partial."
+        },
+        {
+          "code": "read_only_ad_hoc_python_instruction_deviation",
+          "count": 1,
+          "scope": "No source or corpus mutation; retain in experiment conditions."
+        }
+      ],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "original_observer": "waiting_binding/mismatch",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "Last usage per distinct main message ID; child separately retained; do not add snapshots/iterations or assume billing",
+        "message_ids": 55,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "observed_main_categories": {
+          "input_tokens": 112,
+          "cache_creation_input_tokens": 328918,
+          "cache_read_input_tokens": 11532726,
+          "output_tokens": 100784
+        },
+        "billing": "unknown",
+        "observed_child_categories": {
+          "input_tokens": 4,
+          "cache_creation_input_tokens": 52284,
+          "cache_read_input_tokens": 13289,
+          "output_tokens": 318
+        },
+        "child_message_ids": 2,
+        "parent_child_message_ID_overlap_count": 0,
+        "inclusion_note": "Main and child observed message IDs disjoint; no provider billing certification. Do not add duplicate aggregate snapshots."
+      }
+    },
+    {
+      "engine": "claude",
+      "interface": "ordinary interactive CLI",
+      "profile": "opus-medium",
+      "model": "claude-opus-5-5",
+      "model_observation": "actual model observed in per-message usage",
+      "family": "fridge",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 899.374,
+      "clock": "first actual human UserPromptSubmit -> last main Stop; excludes wrapper idle/exit; child handback is not a new human input",
+      "wrapper_seconds": 1054.407,
+      "exit_code": 0,
+      "body_expected": 56,
+      "body_backend_returned_unique": 56,
+      "body_full_in_actual_tool_context": 56,
+      "body_partial_count": 0,
+      "cited_refs": 16,
+      "cited_refs_valid": 16,
+      "citation_check": "exact nonempty original substring and nine source metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        7
+      ],
+      "native_child_chain": {
+        "status": "not_run",
+        "verified_native_business_children": 0
+      },
+      "material_issues": [
+        {
+          "priority": "P2",
+          "code": "valid_excerpt_reference_rejected_by_original_viewer",
+          "scope": "Original c5b2fbc result-to-view delivery; core stored planning valid",
+          "status": "originally reproduced; subsequent code fix/replay recorded separately"
+        }
+      ],
+      "observed_limitations": [
+        {
+          "code": "read_only_ad_hoc_python_instruction_deviation",
+          "count": 1,
+          "scope": "No source or corpus mutation; retain in experiment conditions."
+        }
+      ],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "original_observer": "waiting_binding/mismatch",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "last observed usage per distinct message ID; do not add duplicated snapshots/iterations; provider billing unknown",
+        "message_ids": 50,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "observed_main_categories": {
+          "input_tokens": 100,
+          "cache_creation_input_tokens": 249495,
+          "cache_read_input_tokens": 7873093,
+          "output_tokens": 74014
+        },
+        "billing": "unknown"
+      }
+    },
+    {
+      "engine": "codex",
+      "interface": "CLI",
+      "profile": "astra-low",
+      "model": "gpt-6-astra",
+      "model_observation": "requested CLI model; no independent provider model-resolution receipt",
+      "family": "dishwasher",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 464.813,
+      "clock": "native CLI invocation to process exit",
+      "exit_code": 0,
+      "body_expected": 81,
+      "body_backend_returned_unique": 81,
+      "body_full_in_actual_tool_context": 81,
+      "body_partial_count": 0,
+      "cited_refs": 21,
+      "cited_refs_valid": 21,
+      "citation_check": "full raw quote and nine metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        10
+      ],
+      "native_child_chain": {
+        "status": "not_reported_as_run",
+        "verified_native_business_children": null
+      },
+      "material_issues": [],
+      "observed_limitations": [],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "same_embedded_report": true,
+        "native_end_observed": true,
+        "OS_open_request": "requested",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "single terminal usage receipt; cached subset of input and reasoning subset of output; parent/child inclusion unknown; do not sum duplicates",
+        "observed": {
+          "input_tokens": 3744113,
+          "cached_input_tokens": 3554560,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 16389,
+          "reasoning_output_tokens": 1670
+        },
+        "billing": "unknown"
+      }
+    },
+    {
+      "engine": "codex",
+      "interface": "CLI",
+      "profile": "astra-low",
+      "model": "gpt-6-astra",
+      "model_observation": "requested CLI model; no independent provider model-resolution receipt",
+      "family": "fridge",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 390.718,
+      "clock": "native CLI invocation to process exit",
+      "exit_code": 0,
+      "body_expected": 56,
+      "body_backend_returned_unique": 56,
+      "body_full_in_actual_tool_context": 56,
+      "body_partial_count": 0,
+      "cited_refs": 24,
+      "cited_refs_valid": 24,
+      "citation_check": "full raw quote and nine metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        10
+      ],
+      "native_child_chain": {
+        "status": "not_reported_as_run",
+        "verified_native_business_children": null
+      },
+      "material_issues": [],
+      "observed_limitations": [],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "same_embedded_report": true,
+        "native_end_observed": true,
+        "OS_open_request": "requested",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "single terminal usage receipt; cached subset of input and reasoning subset of output; parent/child inclusion unknown; do not sum duplicates",
+        "observed": {
+          "input_tokens": 2293815,
+          "cached_input_tokens": 2025344,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 14482,
+          "reasoning_output_tokens": 674
+        },
+        "billing": "unknown"
+      }
+    },
+    {
+      "engine": "codex",
+      "interface": "CLI",
+      "profile": "sol-medium",
+      "model": "gpt-6.1-sol",
+      "model_observation": "requested CLI model; no independent provider model-resolution receipt",
+      "family": "dishwasher",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 461.328,
+      "clock": "native CLI invocation to process exit",
+      "exit_code": 0,
+      "body_expected": 81,
+      "body_backend_returned_unique": 81,
+      "body_full_in_actual_tool_context": 81,
+      "body_partial_count": 0,
+      "cited_refs": 17,
+      "cited_refs_valid": 17,
+      "citation_check": "full raw quote and nine metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        9
+      ],
+      "native_child_chain": {
+        "status": "stored reviewer observation exists; native provider child chain unknown",
+        "verified_native_business_children": null,
+        "stored_checked_source_count": 16,
+        "reason": "Exposed native collab wait had empty receiver IDs and states."
+      },
+      "material_issues": [],
+      "observed_limitations": [],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "same_embedded_report": true,
+        "native_end_observed": true,
+        "OS_open_request": "requested",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "single terminal usage receipt; cached subset of input and reasoning subset of output; parent/child inclusion unknown; do not sum duplicates",
+        "observed": {
+          "input_tokens": 4442769,
+          "cached_input_tokens": 4260736,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 22215,
+          "reasoning_output_tokens": 3521
+        },
+        "billing": "unknown"
+      }
+    },
+    {
+      "engine": "codex",
+      "interface": "CLI",
+      "profile": "sol-medium",
+      "model": "gpt-6.1-sol",
+      "model_observation": "requested CLI model; no independent provider model-resolution receipt",
+      "family": "fridge",
+      "status": "completed_reviewed",
+      "elapsed_seconds": 292.906,
+      "clock": "native CLI invocation to process exit",
+      "exit_code": 0,
+      "body_expected": 56,
+      "body_backend_returned_unique": 56,
+      "body_full_in_actual_tool_context": 56,
+      "body_partial_count": 0,
+      "cited_refs": 14,
+      "cited_refs_valid": 14,
+      "citation_check": "full raw quote and nine metadata fields",
+      "comparison_count": 2,
+      "selected_count": 1,
+      "draft_rows": [
+        8
+      ],
+      "native_child_chain": {
+        "status": "not_reported_as_run",
+        "verified_native_business_children": null
+      },
+      "material_issues": [],
+      "observed_limitations": [],
+      "original_result_to_web": {
+        "same_current_web_binding": true,
+        "same_current_web_result": true,
+        "same_embedded_report": true,
+        "native_end_observed": true,
+        "OS_open_request": "requested",
+        "physical_browser_verified": false
+      },
+      "usage": {
+        "scope": "single terminal usage receipt; cached subset of input and reasoning subset of output; parent/child inclusion unknown; do not sum duplicates",
+        "observed": {
+          "input_tokens": 3113163,
+          "cached_input_tokens": 2949504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 14899,
+          "reasoning_output_tokens": 1328
+        },
+        "billing": "unknown"
+      }
+    }
+  ],
+  "subsequent_delivery_fix_replay": {
+    "method": "Final normal parsers (including captured actual complete Read tool responses) and Observer over immutable actual completed artifacts; OS opener intercepted; not a new native or physical-browser run",
+    "source_fix_parent_reported": "ec5763f excerpt-reference fix plus final observer fixes; native model trial source stays c5b2fbc",
+    "new_native_model_runs": false,
+    "rows": [
+      {
+        "label": "codex-gui2",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_requested": true,
+        "OS_open_requests_intercepted": 1,
+        "OS_opener_intercepted_for_test": true,
+        "original_input_unchanged_receipt": true,
+        "independent_original_hash_checks": "other assigned scope; receipt metadata only",
+        "new_AI_calls": 0,
+        "physical_browser_verified": false
+      },
+      {
+        "label": "opus-medium-fridge",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_requested": true,
+        "OS_open_requests_intercepted": 1,
+        "OS_opener_intercepted_for_test": true,
+        "original_input_unchanged_receipt": true,
+        "independent_original_hash_checks": {
+          "count": 13,
+          "all_match": true
+        },
+        "new_AI_calls": 0,
+        "physical_browser_verified": false
+      },
+      {
+        "label": "opus-high-dishwasher",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_requested": true,
+        "OS_open_requests_intercepted": 1,
+        "OS_opener_intercepted_for_test": true,
+        "original_input_unchanged_receipt": true,
+        "independent_original_hash_checks": {
+          "count": 8,
+          "all_match": true
+        },
+        "new_AI_calls": 0,
+        "physical_browser_verified": false
+      },
+      {
+        "label": "opus-medium-dishwasher",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_requested": true,
+        "OS_open_requests_intercepted": 1,
+        "OS_opener_intercepted_for_test": true,
+        "original_input_unchanged_receipt": true,
+        "independent_original_hash_checks": {
+          "count": 8,
+          "all_match": true
+        },
+        "new_AI_calls": 0,
+        "physical_browser_verified": false
+      },
+      {
+        "label": "opus-high-fridge",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_requested": true,
+        "OS_open_requests_intercepted": 1,
+        "OS_opener_intercepted_for_test": true,
+        "original_input_unchanged_receipt": true,
+        "independent_original_hash_checks": {
+          "count": 8,
+          "all_match": true
+        },
+        "new_AI_calls": 0,
+        "physical_browser_verified": false
+      }
+    ],
+    "receipt_sha256": "506b32a7f8ca5240ff2055a9a10a1e1ed669c413a61a451166eb6b48fb547822"
+  },
+  "privacy": "No raw source bodies, user prompts, thinking, auth, database or provider billing in this record",
+  "reviewer_product_git_writes": 0,
+  "reviewer_additional_model_calls": 0,
+  "final_quality_conclusion": "All eight scoped native outputs reviewed. No new material core-planning P1/P2 found. Original excerpt-viewer P2 affected three Claude outputs and final fixed-code replay covers all five supplied GUI/Claude cases ready/verified/native-end/open-request. Preserve medium-dishwasher80full+1partial, optional-role differences, separate clocks, not-run physical browser and unknown billing.",
+  "final_functional_source": "d542c40e55579df0b19713f2532fd96450f2559d",
+  "native_source": "c5b2fbc860f2fc87dd49ad498b9cada13b3d2065",
+  "final_local_ci": {
+    "source_commit": "d542c40e55579df0b19713f2532fd96450f2559d",
+    "status": "passed",
+    "stages": [
+      {
+        "id": "python-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "6e9cdbfd7cf0c686adf13bce5502508c6b0be0e6141c0d7189752fd35f5fa0e5"
+      },
+      {
+        "id": "uv-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "3c1e05ef9984489bea3dba19167758a9781751a33c577a6f693924160c09d5bc"
+      },
+      {
+        "id": "node-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "f2db7513d1a99c59a8305f1f0fafe00132a814be5986347116431ee13df21d44"
+      },
+      {
+        "id": "npm-version",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "ba52821f9c8af5decc45ea42fc5d91314afc54f89877747f8c56dd00a49dcceb"
+      },
+      {
+        "id": "isolated-python",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "5866add05ceaec3a534923211d80325a2e2e0df70cdc9fd71358f508eff2fd28"
+      },
+      {
+        "id": "locked-python-dependencies",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "18bfe02c6c0d853cee247542dc415a1309498c5582352ec20c4db049da4667f3"
+      },
+      {
+        "id": "validate",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "efb4ffb3f6dd6a96aeaeda37065dfb0a47ef7e17e3b58c1eaba20860ef9422ee"
+      },
+      {
+        "id": "dev-harness",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "7a7a257aa43462c2c3ace1c7a5f288221ac883ee827eb0be035ca2c81bb64ec3"
+      },
+      {
+        "id": "product-tools",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "0071f63693aef24da61ea69f32638a887b006b0a972477b533e118eb85e32aca"
+      },
+      {
+        "id": "product-assets",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "b71c63f7d281491b62b4944e1a0d78533af94619bf6e7c8f7705f94539965b8e"
+      },
+      {
+        "id": "evaluation",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "b8b0a3105d4850f72f503a6f6a372a8bdf56aaa27ab44b83fb48cf3bb5a47f64"
+      },
+      {
+        "id": "visual-viewer-ci",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "989b87b1c7129b546d2794c788694d425ee5921b5251f6a90509edc15182a6a7"
+      },
+      {
+        "id": "visual-viewer-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "d0cf983b0ebda24768a2a141828970cbb4dd03ae7e5f360637ec37262b27b8c5"
+      },
+      {
+        "id": "agent-office-ci",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "f5c3695ae197fda84090a19c0a0379d04bc2f5bbe9f3ef71cf825470d8bbb720"
+      },
+      {
+        "id": "agent-office-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "976055eb8678073a1ad4befb323ce23c332ce915707d97fd029a2448d93794f6"
+      },
+      {
+        "id": "factory-dashboard-ci",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "f4a047560a9603302acd2babae8f2cbcb7a06f01feb9888a92e26e165cbb5fcc"
+      },
+      {
+        "id": "factory-dashboard-test",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "621c4e290ee5c53672db01024abb9e4d489592a04c669a34393d55b213bc2b5f"
+      },
+      {
+        "id": "factory-dashboard-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "19a97b3bf927965ab4374abf6cab8f9f609a73edb026c82612eabaf36b298848"
+      },
+      {
+        "id": "web",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "9428a261ed0caa6eb851b6a170ed04080d2ff7c209204ce22a1b7460c1af7dc0"
+      },
+      {
+        "id": "observer",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "8b3677dcac2fede55420fb6237d346c43148c1fea2d5181c88b0ca41a3cb443b"
+      },
+      {
+        "id": "evals",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "5da6480df460aaff2a0beef64f2f10d5d185d2b6d98f0048f770d22dffd2ae79"
+      },
+      {
+        "id": "locked-portable",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "61bc65c9c505c8cc7d507f752a7bc652b33606ac23c33c3391a13d54952ab41b"
+      },
+      {
+        "id": "locked-package",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "b9e698e653cc9f38312a43a9c1252a344272a1f6ef15dc052782628416b879a1"
+      },
+      {
+        "id": "product-assets-after-build",
+        "status": "passed",
+        "exit_code": 0,
+        "receipt_sha256": "e5af3510c83d341425ab914ac0b09fd92394984e26d28d8deb3ec153ed92fd97"
+      }
+    ],
+    "report_sha256": "a5a9a4433b9df4a06e567e45cf25f33ea43826e6d4787da9c3e801f99d917cbc",
+    "scope": "Windows; functional source frozen during checks; documentation-only final report follows"
+  },
+  "package_audits": [
+    {
+      "name": "lg-ax-harness-product-v0.20.0.zip",
+      "bytes": 23223612,
+      "sha256": "f7fe116b8ac36458a7d68e150b939f99b085a40a3f606ce8d106fabfcba3cb4c",
+      "files": 284,
+      "manifest_entries": 283,
+      "crc": "passed",
+      "paths_and_unique": "passed",
+      "manifest_sha": "passed"
+    },
+    {
+      "name": "lg-ax-judge-product-v0.20.0.zip",
+      "bytes": 25017930,
+      "sha256": "81f6b50c8b65c03e585c86b014b2394d3e2d927911b15ec70c2ca71118822e79",
+      "files": 225,
+      "manifest_entries": 224,
+      "crc": "passed",
+      "paths_and_unique": "passed",
+      "manifest_sha": "passed"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 198,
+      "sha256": "cdc98002c9b0b8ce31a3ea82d4937897663a788c6b5f8bdf30bcdb1a2083bbcd"
+    }
+  ],
+  "clean_setup_commands": [
+    {
+      "argv": [
+        "judge.py",
+        "check"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "8efc77c4f3914c114e11eb6609cb2460a4c2e26b34dcc1da8e28481007c6d7ee",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "judge.py",
+        "setup",
+        "--engine",
+        "codex"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "0e7269f03ab779d60020f3da00f819222956eecc620599e1219c3c07fa77c45f",
+      "stderr_sha256": "38ea63d770747b6f3830950ef0a2a7f71b856c7251d116175fc8241c31458fd4"
+    },
+    {
+      "argv": [
+        "judge.py",
+        "setup",
+        "--engine",
+        "claude"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "afef949d129fad00468e0587c79d907047a353fbb72f3eaeec5a59d747886377",
+      "stderr_sha256": "ed4252eda20b92e96e5428b02f42c18d842c7630251c10808fe799f836d90f14"
+    },
+    {
+      "argv": [
+        "judge.py",
+        "check"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "8efc77c4f3914c114e11eb6609cb2460a4c2e26b34dcc1da8e28481007c6d7ee",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "actual_parser_replay": {
+    "sha256": "506b32a7f8ca5240ff2055a9a10a1e1ed669c413a61a451166eb6b48fb547822",
+    "cases": [
+      {
+        "label": "codex-gui2",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_count": 1,
+        "original_unchanged": true,
+        "new_AI_calls": 0
+      },
+      {
+        "label": "opus-medium-fridge",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_count": 1,
+        "original_unchanged": true,
+        "new_AI_calls": 0
+      },
+      {
+        "label": "opus-high-dishwasher",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_count": 1,
+        "original_unchanged": true,
+        "new_AI_calls": 0
+      },
+      {
+        "label": "opus-medium-dishwasher",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_count": 1,
+        "original_unchanged": true,
+        "new_AI_calls": 0
+      },
+      {
+        "label": "opus-high-fridge",
+        "status": "ready",
+        "binding": "verified_binding",
+        "native_end_observed": true,
+        "open_count": 1,
+        "original_unchanged": true,
+        "new_AI_calls": 0
+      }
+    ]
+  },
+  "validation_history": [
+    "CI1 stale generated manifest: failed; preserved",
+    "CI2 product timeout120 and concurrent source change: failed; preserved",
+    "CI3 preserved failing new dedup test and source change: failed; fixed before final CI4",
+    "Initial headless Claude permission denial12.312sec exit1; subsequent ordinary TUI explicitly approved; no automatic resend"
+  ],
+  "gui": {
+    "codex": [
+      {
+        "case": "GUI1",
+        "seconds": 586.949,
+        "business_complete": true,
+        "model_effort": "unknown/inherited",
+        "initial_delivery": "existing thread not adopted",
+        "correction": "Existing-thread code corrected; final replay covers GUI2, not an additional GUI1 replay"
+      },
+      {
+        "case": "GUI2",
+        "seconds": 606.046,
+        "business_complete": true,
+        "model_effort": "unknown/inherited",
+        "initial_delivery": "no legacy UserMessage request event",
+        "correction": "actual task_started parsed; same result replay; new AI0"
+      }
+    ],
+    "claude": {
+      "fresh_setup": 0,
+      "desktop_launch": 0,
+      "new_business_inputs": 0,
+      "reason": "Native Windows app control unavailable; launcher success is not a new GUI business run"
+    }
+  }
+}

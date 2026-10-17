@@ -504,6 +504,13 @@ function Chips({ b }: P) {
 
 // --- story page ---------------------------------------------------------------------------------------------------
 function Hero({ b }: P) {
+  if (b.planner) return <header className="py-2">
+    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-[24px] font-semibold leading-snug tracking-tight">{b.title}</h1><Badges items={b.chips} /></div>
+    {b.scope && <details className="mt-2 text-[12px] text-zinc-500">
+      <summary className="cursor-pointer leading-relaxed">자료 범위 · {b.scope.models}개 모델 · 후기 {b.scope.reviews}건 · 제품자료 {b.scope.facts}건{b.scope.other > 0 && ` · 기타 ${b.scope.other}건`}{b.scope.as_of && ` · 관측 ${b.scope.as_of}`}</summary>
+      <p className="mt-2 leading-relaxed">이번 결과에 전달된 등록 자료의 범위예요. 제안별 ‘근거 확인’은 그중 해당 제안이 인용한 자료를 보여줘요. 자료 건수는 고객 수나 시장 비율과 달라요. <a className="underline" href="#dashboard">자료 전체 보기</a></p>
+    </details>}
+  </header>
   return (
     <section className="@container flex min-w-0 flex-col gap-4">
       <div className={cn(LOOK.card, 'p-5')}>
@@ -572,13 +579,14 @@ function reportTitle(b: Block): string {
 }
 
 function StorySection({ b, copy }: P) {
-  const no = SECTION_NO[b.key]
+  if (b.planner) return <section aria-label={b.title} className="flex flex-col gap-4"><Blocks blocks={b.blocks || []} copy={copy} /></section>
+  const no = b.planner ? undefined : SECTION_NO[b.key]
   const name = String(b.label || '').split('·').pop()?.trim()
   return (
     <section className="mt-4 flex flex-col gap-3">
       <div className="border-b border-[#e6e6e6] pb-2">
         <div className="text-[13px] font-medium text-[#2f7d4f]">{no ? `${no}. ` : ''}{name}</div>
-        <h2 className="mt-1 text-balance text-[17px] font-semibold tracking-tight text-foreground">{reportTitle(b)}</h2>
+        <h2 className="mt-1 text-balance text-[17px] font-semibold tracking-tight text-foreground">{b.planner ? b.title : reportTitle(b)}</h2>
         {b.text && <p className={cn('mt-1.5 max-w-3xl leading-relaxed text-muted-foreground', 'text-[13px]')}><Md text={b.text} /></p>}
       </div>
       <div className={cn('flex flex-col', LOOK.gap)}><Blocks blocks={b.blocks || []} copy={copy} /></div>

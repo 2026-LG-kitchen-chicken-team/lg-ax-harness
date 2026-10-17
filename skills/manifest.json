@@ -81,7 +81,7 @@
         },
         {
           "path": "skills/needs-structuring/SKILL.md",
-          "sha256": "737e9283cb5786331262f11df1d1caf79665022a78722c8364d13ffdb011d892"
+          "sha256": "e23a8bfe141a35691368a566e3b982f004eea483ddf04fd8632f83939d5ed76a"
         }
       ]
     },
@@ -102,13 +102,13 @@
         },
         {
           "path": "skills/feature-comparison/SKILL.md",
-          "sha256": "b1b4b4a815d5201a144890575047f5f097452276162ee5684123750b6d6911b1"
+          "sha256": "ce4658b1e3bbe8c80b499e283e4a3ffa1eff59e5ee6612684ac100b28bbd9cf9"
         }
       ]
     },
     {
       "name": "concept-writing",
-      "description": "실제 근거와 기존 기능 대조로 확인된 남은 불편에 대해 조건을 지키는 상품기획 콘셉트를 작성할 때 사용한다.",
+      "description": "실제 불편과 기존 기능 대조를 종합해 후보의 차이·선택 이유·편집 가능한 상품기획 초안을 작성할 때 사용한다.",
       "path": "skills/concept-writing/SKILL.md",
       "operations": [
         "get_work_instructions",
@@ -117,12 +117,16 @@
       ],
       "files": [
         {
+          "path": "skills/concept-writing/references/validation-plans.md",
+          "sha256": "1f3957b4fb8cfb723b7c94593043ecea2bf4ccc1d511b135ea0b0afe3de55ebb"
+        },
+        {
           "path": "skills/concept-writing/scripts/run.py",
           "sha256": "a739f9e53c35c400cc9d27ab647488bd078d91ce3e062f942cb1646d2f9d498c"
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "756c485db6af9b58b35f662b762f21c70e6ed4a3d617bfbbb3d3ee1cc2de602b"
+          "sha256": "1d47e742f5c4c8215ce11dbaf1bcf40e7145b5a39ff62f1646c853469cce2d41"
         }
       ]
     },
@@ -158,7 +162,7 @@
         },
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "983711265ab5d26fdbd4b3d6412b3833eca48a50c908f3f77dd1329fed915484"
+          "sha256": "4da12d437ca4a33637d56c197171449670e7d78c6a088381de7fab837cf84370"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -170,7 +174,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "92100eb9a09bdeb7d63c57c07657313a5918e5369e98424901f2e1fa5b38dd7e"
+          "sha256": "7e32311e8babc9997efdcf8a13afe861d9547d8eebe3e8feccc681ec771509a9"
         }
       ]
     }
@@ -178,11 +182,11 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "f260e64cc7ad5755f89dd4dbb7a633330d6ee077886b739fe63ed4072e2ef33d"
+      "sha256": "12743ba6382e52ff666f8c34107d7037c3faa26d33223f58cc04f81771e24b5f"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
-      "sha256": "92bf0a4641f3fd3e4a9c2ebbbc533a42db76a93478b687b0b6fa3309a9b112a2"
+      "sha256": "1623a7a1a518a6bca7994ede90d867a40d8cd7b16c6f801f78941419e4df45d6"
     },
     {
       "path": "agents/product-official-researcher.md",
@@ -206,15 +210,15 @@
     },
     {
       "path": "product-tools/product_tools/completion.py",
-      "sha256": "66df6882371620b5455959a53779a4dfe3aa68fc51877e961841cd87ca90cfa9"
+      "sha256": "63e32427db6928474789c366876a6b63903a2008949c72c28d6c4700cdf9d90e"
     },
     {
       "path": "product-tools/product_tools/contracts.py",
-      "sha256": "463d9ea5e3c04b601727d596e92a0711cbc1d8fbd29142b122e7c433e0b595a2"
+      "sha256": "b83aef796a230b0368911415baf95e9626b37bd1411c2a91589f6ee568250d2a"
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "adb342a7f929b65a0da0a0a7f79309baffdf5832f96c949019127805e298fc35"
+      "sha256": "8629278a193eaed87bd9050288bee40d99615006cee8f150ba7e9b66804c40fc"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -246,11 +250,15 @@
     },
     {
       "path": "product-tools/product_tools/payload.py",
-      "sha256": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e"
+      "sha256": "6b113c44275e3c8353cb48ab38bcb8c6b71cb6a9a863fda3dd603cb0289ab1a9"
+    },
+    {
+      "path": "product-tools/product_tools/planner_insights.py",
+      "sha256": "019b4e9abe385ef6b1ac942496f8eac7ec50d1cd3e5df435dffe97193f0e0c13"
     },
     {
       "path": "product-tools/product_tools/planning.py",
-      "sha256": "5a1588057f61f7ffa2ac4e592fff7257ed8ed931ee022025bc57c3d67ae68547"
+      "sha256": "09fbef8703e904ff766ce988ddf7e14eeeb0be7acc3a007402d79fa28864abbc"
     },
     {
       "path": "product-tools/product_tools/reporting.py",
@@ -262,7 +270,7 @@
     },
     {
       "path": "product-tools/product_tools/reviewer_packet.py",
-      "sha256": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4"
+      "sha256": "82ece38826f0e25e6c9375128cce163f44730f1d859d25f2e05643c9dfb6269d"
     },
     {
       "path": "product-tools/product_tools/selection.py",
@@ -274,11 +282,11 @@
     },
     {
       "path": "product-tools/product_tools/tools.py",
-      "sha256": "2bdd0377b893b9b8e5e16d0d6a7fccb78bc42720b42904afd3c511dc9c026e32"
+      "sha256": "a99a304c3924c8a2625ca0f09bb73d52df590c28a73d1c93283f531a7370281e"
     },
     {
       "path": "product-tools/product_tools/web_delivery.py",
-      "sha256": "bac5cc397edea8684caeff2511c1c6a6cf6b75cdb98e9ee41a66d44ff35269a2"
+      "sha256": "d0788dc005b68951b72c4852ab22592b7618a486a931b110ae38014fc42f4af0"
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
@@ -334,7 +342,7 @@
     },
     {
       "path": "docs/contracts/web-result.md",
-      "sha256": "159c77ba8e1cd706b343fb99e825df17f36ac50c172c948a0be4adf2bb4c46c2"
+      "sha256": "4b652230254254d12705b0696c3696c9f18604514f911cd21f038a3b3b3e73b2"
     },
     {
       "path": "docs/contracts/runtime-access.md",
@@ -354,19 +362,19 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "30baaecdad7f846bfaaee4d522170440944404ce258dce30f79069b355866e22"
+      "sha256": "722992ccb6d5c65d1caff5a60e4e7f204375a8191b6165ca50b5953a884ff739"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "8ec5deb454d5ae8a31935990248629f667f2c252ab50677fe7380c0065a67dd9"
+      "sha256": "fb24aad44befb6140d1ce17dc43fbac01eb42b96413b18803b72b82a49a2ba08"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
-      "sha256": "353fc871c0df58b8265c7a95fe1ee6a2bb09dc90fce2dd23ab66f3f730ed91c0"
+      "sha256": "a9f3d20fa36c11d23d671f9a7a25a459370dfb5f4132909b37aa175dd774b52c"
     },
     {
       "path": "web/prototypes/visual-viewer/watch.py",
-      "sha256": "841f3ac7a7dfbea0f233eefd0d9c8106bef37b8ce96a2273cd3424ae33d8cf22"
+      "sha256": "3a88e564bf1f9e991ce9ce2a6111cd331d8c4efc38557f9e7db3894be6739adc"
     },
     {
       "path": "web/prototypes/agent-office/README.md",
@@ -374,15 +382,15 @@
     },
     {
       "path": "web/prototypes/agent-office/office.py",
-      "sha256": "25f332f18d178ac06beaa25db3ef690475d973bb1f07e8f8d1e73d19cba85d28"
+      "sha256": "d8b8d6b29644490394e99f881bc217a0783a138ee694362f77c2c19f73658466"
     },
     {
       "path": "web/prototypes/agent-office/observe.py",
-      "sha256": "bec0e28bce8b663a4e1fbf99875356ef23e23b5699d2d74b0abe040d3af64f01"
+      "sha256": "1e0b22b9d2851aab9f1ee970ebf401b3555ef10c745edd2998ec06ae28769b76"
     },
     {
       "path": "web/prototypes/agent-office/codex_follow.py",
-      "sha256": "d316a16ca45c1866d6e05f7489083b4a246fb73652a4e30fba3b9ca80a90af63"
+      "sha256": "82ce95b176c97e024fcd6283e1494d831a94f76da9c0221f33bff8543b842976"
     },
     {
       "path": "web/prototypes/agent-office/index.html",
@@ -390,11 +398,15 @@
     },
     {
       "path": "web/prototypes/agent-office/factory.html",
-      "sha256": "70f83d849399098ecd27a9c0a75edb393b9178ef4ea80b4460c63fb02b229143"
+      "sha256": "c6bf7e19ca7932b451259475bbe5cf4f8be040c5af85dad30a94cf69ac63a044"
     },
     {
       "path": "docs/contracts/judge-test.md",
-      "sha256": "7d966d00ff537bce8e5939a6e08830d287e6fdc1e3703ef62d993e202b5f2648"
+      "sha256": "2486d7ba8ccc50333234972b44ed7bad8318b32574674f085626e56a202fa871"
+    },
+    {
+      "path": "docs/contracts/planning-drafts.md",
+      "sha256": "88d3895a726b63f884d08ad0eab17df9fe0769716105fc1c46f0bdd1b2811498"
     }
   ],
   "optional_agents": [

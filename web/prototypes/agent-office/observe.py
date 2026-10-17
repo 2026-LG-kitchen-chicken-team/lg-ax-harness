@@ -259,6 +259,8 @@ def classify(payload: dict) -> dict:
             else:
                 event["kind"] = "file"
                 event["detail"].update(area_of(path, payload.get("cwd")))
+                if tool == "Read" and hook == "PostToolUse":
+                    event["detail"].update(read_product_output_binding(path, payload.get("tool_response"), payload.get("cwd")))
         elif tool in WEB_TOOLS:
             event["kind"] = "web"
             if tool == "WebFetch":
@@ -325,6 +327,38 @@ def stdout_frames(response) -> list:
             return []
         frames.append(value)
     return frames
+
+
+def read_product_output_binding(path, response, cwd) -> dict:
+    """Recognize a redirected product JSON response that was actually returned by Read; keep only IDs."""
+    try:
+        base = Path(cwd or HARNESS).resolve()
+        file = response.get("file") if isinstance(response, dict) else None
+        if not isinstance(file, dict) or not isinstance(file.get("content"), str):
+            return {}
+        bounds = ("startLine", "numLines", "totalLines")
+        if (any(k in file for k in bounds) and
+                (not all(type(file.get(k)) is int for k in bounds)
+                 or file["startLine"] not in (0, 1) or file["numLines"] != file["totalLines"]
+                 or file["totalLines"] < 1)):
+            return {}
+        if response.get("truncated") not in (None, False) or file.get("truncated") not in (None, False):
+            return {}
+        source = Path(path)
+        source = (source if source.is_absolute() else base / source).resolve()
+        returned = Path(file.get("filePath") or "")
+        returned = (returned if returned.is_absolute() else base / returned).resolve()
+        if source != returned or source.suffix.lower() != ".json" or not source.is_relative_to(base / "runtime-data"):
+            return {}
+        content = file["content"]
+        if len(content) > MAX_STDIN:
+            return {}
+        data = json.loads(content)
+        if not isinstance(data, dict) or data.get("ok") is not True or not isinstance(data.get("result"), dict):
+            return {}
+        return business_binding(json.dumps(data["result"], ensure_ascii=False))
+    except (OSError, ValueError, TypeError):
+        return {}
 
 
 def business_binding(response) -> dict:

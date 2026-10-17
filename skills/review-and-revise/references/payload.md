@@ -6,9 +6,11 @@ bundle 응답의 candidate_template에는 현재 session_id/turn_id/result_key/e
 
 기본 최종 출력은 `report:false`의 검토된 현재 웹 JSON과 작은 receipt·completion_summary다. 최종 답변은 completion_summary.text를 그대로 전달한다. 누락 시 `get_completion_summary` 입력 `{session_id,turn_id,expected_result_version}`으로 같은 현재 저장 결과의 기획 문구·조건·출처에서 요약을 얻는다. Tool binding/version 검사는 새 의미 인증이나 모델 출력 전체 강제가 아니다. 사용자가 파일 출력을 명시한 경우에만 `report:true`로 기존 파일 제작을 요청한다. 선택 `report_plan_path`는 runtime-data 내부의 별도 작성 JSON 파일 경로, `open_folder`는 보고서 요청 시 기본 true인 폴더 열기 옵션이다. 전체 보고서를 아래 result에 끼워 넣거나 256KiB 때문에 줄이지 않는다. report/report_ready/report_error는 저장·export 상태와 별도로 확인한다. 작성 스키마와 파일 검수는 [보고서 작성](report-writing.md)을 따른다.
 
+선택 `planner_insights`는 result 바깥에 `{concept_titles:{현재콘셉트ID:"짧은 이름"},summaries:{현재항목ID:"대상·변화·조건을 보존한 한 문장"}}`으로 작성한다. 제목은1~120자, 요약은1~1000자, 전체32KiB 이하이며 자료 밖 사실·효과를 추가하지 않는다. 코드는 현재 binding을 붙여 sidecar를 저장하고 export를 갱신한다. `web_result.planner_insights`의 ready/path/sha256/binding과 export_error를 별도로 확인한다. 표시 실패가 저장 accepted/web_ready를 뒤집지는 않는다. 같은 version의 `prepare_web_result`로 복구하며 입력 생략은 저장 문구 재사용, 다른 문구는 충돌이다. 후보 수정 시 새 version에 표현을 다시 전달한다. 상세 필드·현재 ID·불변 보존은 [웹 전달 계약](../../../docs/contracts/web-result.md)을 따른다.
+
 보고서 복구 OP `deliver_result`의 입력은 `{session_id, turn_id, expected_result_version, report_plan_path?, report_sources_path?, open_folder?}`다. 현재 저장 결과에서 복구하며 새 turn이나 업무 수정 횟수를 만들지 않는다. 실제 ready/files로 확인한 결과 폴더를 전달하고 내부 receipt/export는 보존한다.
 
-open_request_bundle 입력: `{question:"실제 요청",model_id:"선택 모델",user_submitted:true}`. 후속에는 같은 session_id/prior_turn_id와 실제 추가 질문을 준다. constraints 기본값은 `{max_concepts:3,hardware_allowed:false,exclude_pains:[]}`. 전체 constraints를 지정할 때3필드를 모두 넣는다. bundle.scope는 조회 입력의 `scope`이며 PlanningInput의 배열 `model_scope`와 다르다. records는 종류 metadata, evidence_refs에 원문·URL·SHA가 한 번 들어 있다. omitted_source_ids/truncated이면 필요한 것만 좁혀 조회한다. 긍정/상충 의견을 누락하지 않는다.
+open_request_bundle 입력: `{question:"실제 요청",model_id:"선택 모델",user_submitted:true}`. 후속에는 같은 session_id/prior_turn_id와 실제 추가 질문을 준다. 새 요청의 constraints 기본값은 `{max_concepts:3,hardware_allowed:true,exclude_pains:[]}`이며 명시false·후속 상속·치수/안전 근거 조건을 유지한다. 전체 constraints를 지정할 때3필드를 모두 넣는다. bundle.scope는 조회 입력의 `scope`이며 PlanningInput의 배열 `model_scope`와 다르다. records는 종류 metadata, evidence_refs에 원문·URL·SHA가 한 번 들어 있다. omitted_source_ids/truncated이면 필요한 것만 좁혀 조회한다. 긍정/상충 의견을 누락하지 않는다.
 
 save_reviewed_result 입력은6필수 필드와 선택 response_mode다. 일반 업무는 response_mode="receipt"를 사용한다:
 
@@ -40,3 +42,13 @@ expected_result_version은 응답 turn.result_version(첫0, 다음1, 다음2)이
 receipt 응답에는 전체 input/latest_result 대신 ID·버전·상태·검토 요약과 result/assessment 지문이 있다. review_summary.findings는 최대20개이며 생략 건수를 표시한다. accepted=false면 같은 turn에서 Python json으로 새 수정 파일을 작성하고 불확실 주장/제약을 실제 원문과 대조한다. 문자열 apply_patch 실패를 반복하지 않는다. 마지막 답변은 현재 completion_summary.text와 실제 웹/export 경로다. 내부 `{receipt: 저장응답.receipt, export: export_session응답}`는 보존하며 사용자에게 오류 파일 방문을 요구하지 않는다. 전체 result/assessment는 export 원문에 유지한다. 최신 상세값은 current_request/get_turn에서 복구할 수 있다. JSON 파일은 UTF-8을 우선 사용하며 Windows BOM 있는 UTF-8/UTF-16도 명시적 BOM 범위에서 허용한다. 인코딩 추정은 하지 않는다.
 
 공식 원문 직접 인용은 support_quote와 대조한다. factual_summary는 저장 해석이며 공식 인용문이 아니다. 원문 사실/AI 해석/기획 가설을 구별하고 해석을 제조사 발언으로 저장하지 않는다. 조사 전 요청만 있고 turn이 없으면 record_request_research 후 export_session하고 {request:current_request의 실제 응답,export}로 전달한다.
+
+## 선택한 안의 실제 업무 초안
+
+result의 선택 planning_decision은 `{summary,selected_concept_ids,comparisons:[{concept_id,reason,tradeoff}]}`다. summary/reason/tradeoff는1~1000자, 현재 후보별 비교가 정확히 한 번 있어야 한다. 선택ID는 현재 concept만 중복 없이0~3개다. 일반 구체화는1안, 사용자 지정/복수 요청을 우선하며 비교만 요청이면0안도 가능하다.
+
+concept의 선택 work_draft는 `{title,columns,rows}`다. title1~200자, 중복 없는 열제목1~6개(각1~100자), 행1~20개, 셀1~1000자, 행의 셀 수는 열 수와 같고32KiB 이하다. “작성 예정” 목록이 아닌 실제 수정 가능한 내용이다. 새 두 필드는 result128KiB 안에 포함되며 기존 필드·원문 연결·assessment를 대체하지 않는다. 새 관측 사실이 필요하면 해당 concept의 source_ids·정확 refs·검토에 포함한다. 실제 관측/후기 기반 예시/AI 설계/내부 입력을 구별하고 확인되지 않은 내부 값을 채우지 않는다.
+
+기존 기록은 새 선택 필드 없이 읽으며 현재 저장→export→웹 payload→completion JSON에 그대로 전달된다. 본문 변경은 새 검토·저장 버전이고 같은 버전 prepare_web_result는 복구만 한다. 상세 계약은 프로젝트 루트 docs/contracts/planning-drafts.md다.
+
+새 planning_decision이 있는 결과의 completion_summary.text는 저장된 선택 요약·제안·실제 초안 제목·다음 행동·적용 조건을 짧게 전달한다. 전체 planning_decision/work_draft/decision_notes/refs는 completion JSON과 웹 payload에 보존되며 최종 채팅에 내부 분류·출처ID를 반복하지 않는다. 새 필드가 없는 과거 결과는 기존 요약과 출처 전달을 호환한다.

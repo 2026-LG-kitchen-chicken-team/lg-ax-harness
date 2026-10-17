@@ -83,9 +83,41 @@ assert.equal(plannerFirst(null),null);
         self.run_js(r'''
 for(const request of ['냉장고','전자레인지','식기세척기','arbitrary new product; custom scope']){
  const result={kind:'lgax-view',schema:1,pages:[{id:'story',title:request,blocks:[{type:'hero',title:request},{type:'story',key:'solution',blocks:[{type:'solutions',items:[{text:request+' original proposal'}]}]}]}]};
- const shown=plannerFirst(result);assert.equal(shown.pages[0].blocks[0].title,request);
+ const shown=plannerFirst(result);assert.equal(shown.pages[0].blocks[0].title,'상품기획안');
  assert.ok(JSON.stringify(shown).includes(request+' original proposal'));
 }
+''')
+
+    def test_task_title_and_proposals_precede_process_without_mutating_saved_data(self):
+        self.run_js(r'''
+const view={kind:'lgax-view',schema:1,context:{file:{name:'internal.json',size:'200KB'},status:[{text:'기획 초안 완료'},{text:'유효'},{text:'의미 검토 전 · 인수 전'}]},pages:[
+ {id:'story',title:'한눈에 보기',blocks:[{type:'hero',title:'PRIVATE TEST PROMPT /private/evaluation',chips:[{text:'기획 초안 완료'},{text:'유효'}],stats:[{value:99}]},
+ {type:'callout',tone:'warning',text:'This result is not current'},
+ {type:'story',key:'flow',blocks:[{type:'flow',text:'Recorded comparison'}]},
+ {type:'story',key:'solution',blocks:[{type:'solutions',items:[{title:'Explicit stored heading',text:'Same saved proposal.',assumptions:['Critical condition']}]}]}]},
+ {id:'overview',title:'An arbitrary product planning task',blocks:[{type:'text',text:'PRIVATE TEST PROMPT /private/evaluation'}]}]};
+const original=JSON.stringify(view),shown=plannerFirst(view),main=shown.pages[0].blocks;
+assert.equal(main[0].title,'An arbitrary product planning task');
+assert.ok(!JSON.stringify(main).includes('PRIVATE TEST PROMPT'));
+assert.ok(!JSON.stringify(main).includes('internal.json'));
+assert.ok(!JSON.stringify(shown.context).includes('의미 검토 전'));
+assert.ok(main.some(b=>b.text==='This result is not current'));
+assert.ok(main.findIndex(b=>b.key==='solution')<main.findIndex(b=>b.type==='expander'));
+assert.ok(JSON.stringify(main).includes('Explicit stored heading'));
+assert.ok(JSON.stringify(main).includes('Critical condition'));
+assert.ok(JSON.stringify(shown.pages.find(p=>p.id==='overview')).includes('PRIVATE TEST PROMPT'));
+assert.equal(JSON.stringify(view),original);
+''')
+
+    def test_background_uses_only_recorded_remaining_problem_links(self):
+        self.run_js(r'''
+const input={kind:'lgax-view',schema:1,pages:[{id:'story',title:'Work',blocks:[
+ {type:'story',key:'flow',blocks:[{type:'flow',nodes:[{id:'r1',column:'remaining',text:'Recorded linked background.'},{id:'r2',column:'remaining',text:'Unrelated background.'},{id:'f1',column:'feature',text:'Unlinked feature.'}]}]},
+ {type:'story',key:'solution',blocks:[{type:'solutions',items:[{id:'c1',text:'Stored proposal.',links:[{text:'r1'}]},{id:'c2',text:'No recorded link.',links:[]}]}]}]}]};
+const projected=plannerFirst(input),items=projected.pages[0].blocks.find(b=>b.key==='solution').blocks[0].items;
+assert.deepEqual(items[0].background,['Recorded linked background.']);
+assert.deepEqual(items[1].background,[]);
+assert.equal(input.pages[0].blocks[1].blocks[0].items[0].background,undefined);
 ''')
 
     def test_appendix_navigation_resolves_the_displayed_pages(self):

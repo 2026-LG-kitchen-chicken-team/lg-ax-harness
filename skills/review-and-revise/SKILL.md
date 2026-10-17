@@ -6,6 +6,8 @@ user-invocable: true
 
 # 검토·수정·저장
 
+사람이 후보를 고르고 초안을 수정할 때 필요한 내용인지 확인한다. 공통 조사 한계는 한 곳에 모으고 비교 요약·선택 이유·고려점의 같은 문장 반복은 줄인다. 실제 추진 조건·원문 귀속·초안의 확인 입력은 보존하며 화면 코드에서 특정 단어를 삭제해 해결하지 않는다.
+
 ## 호출 조건과 지침
 
 자연어 요청의 자동 선택이 기본이며 Codex `$review-and-revise`(`/skills`), Claude `/review-and-revise` 명시 호출도 같은 업무 경로를 쓴다. 현재 업무 문맥에 같은 본문·지문이 없거나 문맥/버전이 바뀌면 판단 전에 `get_work_instructions`로 필요한 `main`·`review-and-revise`·`payload`의 실제 본문을 받는다.
@@ -21,6 +23,12 @@ user-invocable: true
 3. main은 보유 신고로 생략되고 검토 Skill·양식 본문만 반환되는지 확인한다. 세 새 본문을 한 번에 요청하여 64KiB 초과로 재시도하지 않는다.
 
 이미 같은 main이 문맥에 있고 실제 반환 metadata를 보유했다면 그 신고를 재사용한다. 문맥 상실·버전 변경이면 main부터 다시 받으며 본문을 임의로 자르지 않는다. 단계별 예시는 프로젝트 루트 docs/contracts/instruction-loading.md의 첫 단독 검토 호출을 따른다.
+
+## 사람이 읽는 결과와 실제 초안 검토
+
+제안·고객 문제·의미 있는 비교·실제 초안·다음 행동을 먼저 읽게 편집한다. 반복 일반 면책·내부ID·JSON·검사 상태·자기 지시문은 사용자 본문에 강제하지 않는다. 중요한 정확 모델/지원 조작/치수/안전 조건은 해당 행동 가까이에 짧게 남긴다. 실제 부족은 무엇을 판단할 수 없고 어떤 자료가 필요한지만 구체적으로 알리며 한 자료 접근 실패로 전체 기획을 무근거로 바꾸지 않는다. 원문·한계·전체 조사 기록은 보존한다. 키워드 일괄 삭제로 의미를 바꾸지 않는다.
+
+result.planning_decision의 비교/선택 이유가 후보·사용자 목적에 맞는지, concept.work_draft에 다음에 만들라는 지시가 아닌 실제 편집 가능한 본문이 있는지 검토한다. 일반 구체화1안·사용자 선택·복수 요청·비교만0안을 구분하며 필드 존재만으로 유용성을 인증하지 않는다. 비교·초안의 사실은 concept 원문 연결과 함께 대조하고, AI 설계/후기 기반 예시/모르는 내부 값을 회사의 관측 사실·승인 양식으로 만들지 않는다. 실제 초안은 검토되는 result 내부에 있고 planner_insights로 우회하지 않는다. 상세는 프로젝트 루트 docs/contracts/planning-drafts.md다.
 
 ## 입력과 현재 업무
 
@@ -58,6 +66,8 @@ packet ready는 원문 의미/후보 valid/save 승인 인증이 아니다. 수�
 
 bundle의 candidate_template을 실제 판단으로 채운다. result_limits를 확인하고 Python json으로 파일 작성 뒤 save_and_export를 실행한다. 기본 report:false의 delivery_ready/web_ready와 현재 web_result 파일/SHA/binding을 확인한다. 양식·파일 생성은 의미 승인이나 HTML 연결을 인증하지 않는다.
 
+같은 후보에 `planner_insights.concept_titles`의 짧은 제안명과 `summaries`의 콘셉트·남은 불편 한 문장 요약을 작성해 save_and_export의 선택 입력으로 함께 보낸다. 현재 result 항목 ID만 사용하고 제목·요약도 연결 원문의 조건·부정·사건 순서 및 기존 기능 대조와 일치하는지 검토한다. 콘셉트 요약은 대상+바꾸려는 과업/가치, 남은 불편 요약은 사용 상황→문제로 적는다. `implementation_steps[0]`에는 담당 역할·필요 입력·완료 산출물을 남긴다. 저장 후보 수정 시 이 표현도 함께 고치며 별도 화면용 모델 호출은 하지 않는다.
+
 ## 검토: 출처·검증 계획·수정 범위
 
 보류의 판단 근거도 decision_notes에 원문 사실·AI 해석·미확인으로 구분하고 정확 refs에 연결한다. 원문 직접 인용은 support_quote의 연속 구간이며 요약/판단은 공식 발언으로 표시하지 않는다.
@@ -89,6 +99,8 @@ planning_quality_diagnostics는 structural_only/blocking=false의 누락 안내�
 최종 답변을 내기 전 현재 저장 버전과 completion_summary.text의 사건 순서·부정 범위·적용 조건을 대조한다. 저장된 의미 오류를 최종 문장만 바꿔 숨기지 않는다. 같은 turn의 남은 수정 한도 안에서 저장을 고치거나 핵심 전제의 불확실성을 보류하고, 해당 영향 밖의 기획까지 자동 실패로 넓히지 않는다.
 
 일반 업무는 기존6필드의 save_and_export(report:false)로 저장/export와 웹 정형 데이터 전달을 수행한다. web_ready/web_result.path/sha256/binding을 확인한다.
+
+선택 제목·요약 전달은 별도 `web_result.planner_insights.ready/path/sha256/binding`으로 확인한다. 실패해도 정형 결과 저장·웹 전달 성공을 뒤집거나, 웹 성공만으로 제목·요약도 전달됐다고 쓰지 않는다. 같은 현재 version의 prepare_web_result로 복구할 수 있으며 저장된 표현은 재사용된다. 다른 session/turn/binding·항목 ID는 거부되고 과거 버전 표현을 자동 승계하지 않는다. 상세 입력·복구는 [저장 양식](references/payload.md)을 따른다.
 
 데이터에는 현재 결과·전체 선택 원문·출처·검토/조사 이력이 있고 웹팀이 작업 화면/보고서HTML을 만든다. PDF/DOCX/XLSX 생성·이미지검수는 기본 필수가 아니다.
 
@@ -151,3 +163,5 @@ report_plan은 실제 조사 범위에 따라 자유롭게 구성하고 별도 r
 실행: `uv run python skills/review-and-revise/scripts/run.py OP --input JSON_PATH`. OP: save_and_export/prepare_web_result/deliver_result/save_reviewed_result/export_session/current_request/get_turn/record_usage/cancel_turn/prepare_review_packet/verify_review_packet/get_completion_summary.
 
 진단: validate_result_contract/review_product_result/start_turn/save_result/begin_invocation/finish_invocation. 장부는 실제 Agent/Tool/원격 취소를 대신하지 않는다.
+
+새 planning_decision이 있는 결과의 completion_summary.text는 저장된 선택 요약·제안·실제 초안 제목·다음 행동·적용 조건을 짧게 전달한다. 전체 planning_decision/work_draft/decision_notes/refs는 completion JSON과 웹 payload에 보존되며 최종 채팅에 내부 분류·출처ID를 반복하지 않는다. 새 필드가 없는 과거 결과는 기존 요약과 출처 전달을 호환한다.

@@ -45,6 +45,78 @@ class ObserverTests(unittest.TestCase):
     def observer(self):
         return watch.Observer(self.h.root, "codex", self.opener)
 
+    def native_events(self, key="microwave", ending="turn_end", *, different=False):
+        body = fixture.export_of(key)
+        binding = {k: body["turns"][-1]["web_binding"][k] for k in ("session_id", "turn_id", "request_key")}
+        if different:
+            binding["request_key"] = "another-request"
+        base = {"v": 1, "actor": "main", "session": "native-one", "prompt_id": "prompt-one"}
+        events = [{**base, "kind": "request", "detail": {}},
+                  {**base, "kind": "skill_op", "phase": "end", "detail": {"business_binding": binding}}]
+        if ending:
+            events.append({**base, "kind": ending, "detail": {}})
+        office = self.h.root / "runtime-data/agent-office"
+        office.mkdir(exist_ok=True)
+        path = office / "events.jsonl"
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        return path, events
+
+    def test_production_waits_for_matching_native_end_but_prepares_files(self):
+        o = watch.Observer(self.h.root, "codex", self.opener, require_native=True)
+        self.h.add("microwave")
+        self.native_events(ending=None)
+        self.assertEqual(self.settle(o)["status"], "waiting_native_completion")
+        self.assertTrue((self.h.out / "view-data.js").is_file())
+        self.opener.assert_not_called()
+        self.native_events()
+        result = o.tick()
+        self.assertEqual(result["status"], "ready")
+        self.assertTrue(result["native_end_observed"])
+        self.opener.assert_called_once()
+        view = delivery.payload((self.h.out / "view-data.js").read_bytes())
+        self.assertTrue(view["delivery"]["display_ready"])
+        self.assertTrue(view["delivery"]["report_data_ready"])
+        self.assertEqual(view["delivery"]["binding"]["result_version"], fixture.export_of("microwave")["turns"][-1]["state"]["result_version"])
+
+    def test_unrelated_end_or_cancel_does_not_open_current_plan(self):
+        o = watch.Observer(self.h.root, "codex", self.opener, require_native=True)
+        self.h.add("microwave")
+        self.native_events(different=True)
+        self.assertEqual(self.settle(o)["status"], "waiting_native_completion")
+        self.native_events(ending="turn_cancelled")
+        result = o.tick()
+        self.assertEqual(result["status"], "native_cancelled")
+        self.opener.assert_not_called()
+
+    def test_continuation_after_parent_end_waits_for_new_end(self):
+        self.h.add("microwave")
+        path, events = self.native_events()
+        events.insert(2, {**events[0], "kind": "delegate", "detail": {"launched_agent_id": "child-one"}})
+        events.append({**events[0], "prompt_id": "prompt-return", "kind": "handback_delivered", "detail": {"from_agent_id": "child-one"}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
+
+    def test_parent_end_with_open_child_waits_for_child_return(self):
+        self.h.add("microwave")
+        path, events = self.native_events()
+        events.insert(2, {**events[0], "kind": "delegate", "detail": {"launched_agent_id": "child-one"}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
+        events.append({**events[0], "kind": "subagent", "actor": "product_evidence_reviewer", "agent_id": "child-one", "phase": "end", "detail": {}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
+        events.append({**events[0], "kind": "turn_end", "detail": {}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "native_completed")
+
+    def test_orphan_child_tail_does_not_invent_a_parent_continuation(self):
+        self.h.add("microwave")
+        path, events = self.native_events()
+        events.append({**events[0], "kind":"subagent", "actor":"other_subagent", "agent_id":"unlinked-tail",
+                       "phase":"end", "detail":{"agent_type":None}})
+        path.write_text("".join(json.dumps(e)+"\n" for e in events), encoding='utf-8')
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "native_completed")
+
     def settle(self, observer):
         first = observer.tick()
         return observer.tick() if first["status"] == "stabilizing" else first
@@ -292,6 +364,7 @@ class ObserverTests(unittest.TestCase):
                               "observer_token_matched": True, "engine": started["engine"]}))
             self.assertFalse((self.h.out / "view-data.js").exists())
             self.h.add("dishwasher")
+            self.native_events("dishwasher")
             self.assertEqual(wait_status("ready")["open_status"], "disabled")
             self.assertEqual(delivery.diagnose(hook.Paths(str(self.h.root)), self.observer().delivery.hashes)["current_binding"], "matched_current")
         finally:

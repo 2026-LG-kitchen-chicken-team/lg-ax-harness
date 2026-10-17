@@ -1,0 +1,9 @@
+engine,model,effort_profile,family,seconds,clock,expected_records,backend_records,actual_full_records,partial_records,cited_refs,valid_refs,draft_rows,exit_code,billing
+claude,claude-opus-5-5,opus-high,dishwasher,1151.448,first actual human UserPromptSubmit -> last main Stop; excludes wrapper idle/exit; child handback is not a new human input,81,81,81,0,20,20,11,0,unknown
+claude,claude-opus-5-5,opus-high,fridge,1075.985,first actual human UserPromptSubmit -> last main Stop; wrapper separate; child handback not a new human input,56,56,56,0,17,17,8,0,unknown
+claude,claude-opus-5-5,opus-medium,dishwasher,1122.485,first actual human UserPromptSubmit -> last main Stop; excludes wrapper idle/exit; child handback is not a new human input,81,81,80,1,15,15,8,0,unknown
+claude,claude-opus-5-5,opus-medium,fridge,899.374,first actual human UserPromptSubmit -> last main Stop; excludes wrapper idle/exit; child handback is not a new human input,56,56,56,0,16,16,7,0,unknown
+codex,gpt-6-astra,astra-low,dishwasher,464.813,native CLI invocation to process exit,81,81,81,0,21,21,10,0,unknown
+codex,gpt-6-astra,astra-low,fridge,390.718,native CLI invocation to process exit,56,56,56,0,24,24,10,0,unknown
+codex,gpt-6.1-sol,sol-medium,dishwasher,461.328,native CLI invocation to process exit,81,81,81,0,17,17,9,0,unknown
+codex,gpt-6.1-sol,sol-medium,fridge,292.906,native CLI invocation to process exit,56,56,56,0,14,14,8,0,unknown

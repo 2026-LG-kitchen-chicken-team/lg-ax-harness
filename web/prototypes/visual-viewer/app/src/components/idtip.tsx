@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Block, View } from '../types'
 
-type Entry = { kind: string; text: string }
+type Entry = { kind: string; text: string; location?: string; href?: string; site?: string }
 // The card is light and eases in (index.css "lg-tip").
 type Tip = { id: string; entry: Entry; left: number; top?: number; bottom?: number }
 type Api = { lookup: (id: string) => Entry | undefined; show: (id: string, el: HTMLElement) => void; hide: () => void }
@@ -27,7 +27,11 @@ export function buildIdIndex(view: View | null): Map<string, Entry> {
   walk(view.pages.find((p) => p.id === 'story')?.blocks || [])
   for (const b of view.pages.find((p) => p.id === 'evidence')?.blocks || []) {
     if (b.type !== 'table' || !(b.columns || []).some((c: Block) => c.key === 'id')) continue
-    for (const r of b.rows || []) put(r.id, '근거 원문', [r.quote, r.loc].filter((x) => typeof x === 'string' && x).join(' — '))
+    for (const r of b.rows || []) {
+      put(r.id, typeof r.type?.text === 'string' ? r.type.text : '근거 원문', r.quote)
+      const entry = map.get(r.id)
+      if (entry) map.set(r.id, { ...entry, location: r.loc, href: r.url?.href, site: r.url?.text })
+    }
   }
   return map
 }
