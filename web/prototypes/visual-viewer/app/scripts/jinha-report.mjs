@@ -1,6 +1,7 @@
 // Vite plugin for vite.config.ts. Plain Node (like publish.mjs) so the app's type check needs no Node types.
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { plannerReport } from './planner-report.mjs'
 
 // "보고서로 보기": 신진하's report (../vendor/jinha-report, kept byte for byte; see SOURCE.md) as one HTML string. The
 // stylesheets and scripts go inline (the viewer is one file), the host's Cloudflare snippet and the canonical link (an
@@ -21,7 +22,7 @@ export function jinhaReport() {
         if (n !== 1) throw new Error(`jinha-report: ${what} found ${n} times (expected 1)`)
         return html.replace(find, () => to)
       }
-      const code = { adapter: read('report-data-adapter.js'), app: read('report-app.js') }
+      let code = { adapter: read('report-data-adapter.js'), app: read('report-app.js') }
       // The iframe load event only means the document loaded. Report actual
       // embedded-result rendering separately, without leaking internal errors.
       // Keep upstream vendor files byte-identical; fail closed on a changed hook.
@@ -31,12 +32,14 @@ const notice=(message,error=false)=>{if(error){reportState('lgax-report-error');
         'report status notice')
       code.app = once(code.app, 'restoreTraceSelection();',
         "restoreTraceSelection();reportState('lgax-report-ready');", 'embedded render completion')
-      const css = read('styles.css') + '\n' + read('result-report.css')
+      let css = read('styles.css') + '\n' + read('result-report.css')
+      let html = read('index.html')
+      this.addWatchFile(fileURLToPath(new URL('./planner-report.mjs', import.meta.url)))
+      ;({ code, html, css } = plannerReport({ code, html, css, once }))
       for (const [name, text] of Object.entries({ ...code, css })) {
         if (/<\/(script|style)/i.test(text)) throw new Error(`jinha-report: ${name} contains a closing script/style tag`)
       }
       const hide = '#import-report,#copy-link,#show-sample,.connection-help{display:none!important}'
-      let html = read('index.html')
       html = once(html, /<link rel="canonical" href="[^"]*">/, '', 'canonical link')
       html = once(html, '<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="result-report.css">', `<style>\n${css}\n${hide}\n</style>`, 'stylesheets')
       html = once(html, '<script src="report-data-adapter.js"></script><script src="report-app.js"></script>', `<script>\n${code.adapter}\n</script><script>\n${code.app}\n</script>`, 'scripts')

@@ -811,7 +811,8 @@ class BuildViewTests(TempCase):
         # 덧붙이는 그래프 두 개(근거 구성·제안과 근거 연결)는 근거 대시보드와 같은 기준으로 센다
         plan = view["report"]["plan"]
         self.assertEqual((plan["title"], plan["summary"], plan["sources"]), ("", [], []))
-        self.assertEqual([s["title"] for s in plan["sections"][:2]], ["근거 구성", "제안과 근거 연결"])
+        self.assertEqual([s["title"] for s in plan["sections"]], ["근거 구성", "제안과 근거 연결"])
+        self.assertTrue(all(s["audience"] == "appendix" for s in plan["sections"]))
         donut, bars = (s["blocks"][0] for s in plan["sections"][:2])
         result = build_view.current_row(build_view.read_turns(export_of("microwave")))["result"]
         self.assertEqual((donut["chart_type"], sum(donut["series"][0]["values"])), ("donut", len(result["evidence_refs"])))
@@ -830,14 +831,11 @@ class BuildViewTests(TempCase):
         turn = report["export"]["turns"][0]
         self.assertEqual(turn["state"]["latest_result"], body["result"])
         self.assertEqual(turn["state"]["latest_result"]["evidence_refs"], body["result"]["evidence_refs"])
-        sections = report["plan"]["sections"]
-        bodies = [b["text"] for section in sections for b in section["blocks"] if b["type"] == "paragraph"]
-        for source in body["sources"]:
-            self.assertIn(source["text"], bodies)
-        records = {label: json.loads(value) for label, value in sections[-1]["blocks"][0]["rows"]}
-        for label, key in (("binding", "binding"), ("근거 검토·전달 이력", "evidence_history"),
-                           ("조사 상태", "investigation"), ("조사 사건", "investigation_events")):
-            self.assertEqual(records[label], body[key])
+        self.assertEqual(report["plan"]["appendix"]["sources"], body["sources"])
+        records = report["plan"]["diagnostics"]
+        for key in ("binding", "evidence_history", "investigation", "investigation_events"):
+            self.assertEqual(records[key], body[key])
+        self.assertFalse(any(b["type"] == "paragraph" for section in report["plan"]["sections"] for b in section["blocks"]))
         self.assertIn("의미 인증이 아닙니다", blob(report))
 
     def test_report_preserves_uncited_long_body_and_every_validation_condition_without_changing_refs(self):
@@ -855,10 +853,12 @@ class BuildViewTests(TempCase):
         context.result["concepts"][0]["validation_plan"].update(
             condition_controls=["[합성 시험 자료] 조건 동등"], guardrail_metrics=["[합성 시험 자료] 미확인율 제한"],
             evaluation_protocol={"denominator": "[합성 시험 자료] 전체 배정건"})
+        context.export["turns"][-1]["state"]["latest_result"] = context.result
         projected = build_view.report_source(context)
-        self.assertIn(long_text, [block.get("text") for section in projected["plan"]["sections"] for block in section["blocks"]])
-        validation = next(section for section in projected["plan"]["sections"] if section["title"] == "보고서 범위와 검증 조건")
-        self.assertEqual(json.loads(validation["blocks"][1]["rows"][0][1]), context.result["concepts"][0]["validation_plan"])
+        self.assertIn(long_text, [source.get("text") for source in projected["plan"]["appendix"]["sources"]])
+        self.assertNotIn(long_text, blob(projected["plan"]["sections"]))
+        self.assertEqual(projected["export"]["turns"][0]["state"]["latest_result"]["concepts"][0]["validation_plan"],
+                         context.result["concepts"][0]["validation_plan"])
         self.assertEqual(context.result["evidence_refs"], original_refs)
         for key in ("cancel_after_reject", "reject3", "third_cancelled"):
             _, refused = self.build(key)

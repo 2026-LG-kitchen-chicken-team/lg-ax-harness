@@ -985,6 +985,7 @@ def page_story(c: Ctx) -> list[dict]:
         plan = cl.get("validation_plan")
         sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""),
                     "summary": summary_of(c, cl.get("id")), "chips": chips_,
+                    "assumptions": cl.get("assumptions") or [],
                     "requirements": cl.get("requirements") or [], "steps": cl.get("implementation_steps") or [],
                     "plan": {"status": PLAN_STATUS.get(plan.get("status"), plan.get("status") or "상태 미기록"),
                              "rows": [{"k": label, "v": plan.get(key) or "미작성"} for key, label in PLAN_FIELDS]} if plan else None,
@@ -2103,8 +2104,8 @@ VIEW_MODES = ("ops",)
 def report_source(c: Ctx) -> dict | None:
     """Project only the verified current turn into the report vendor's input contract.
 
-    Keep stored result/refs untouched. Full registered bodies and review/research records
-    are separate report sections, so quoted refs and chart/keyword denominators stay intact.
+    Keep stored result/refs untouched. Full registered bodies and technical records
+    remain in additive appendix/diagnostics payloads, never flattened into the planner body.
     """
     if not c.web or not c.has_result or c.invalid or c.cur["status"] == "cancelled":
         return None
@@ -2116,38 +2117,22 @@ def report_source(c: Ctx) -> dict | None:
     # Never expose another turn's unchecked latest_result through the report's selector.
     report_export = {**c.export, "turns": [current]}
     plan = report_charts(c) or {"title": "", "summary": [], "sources": [], "sections": []}
-    encode = lambda value: json.dumps(value, ensure_ascii=False, indent=2)
-    sections = plan["sections"]
-    sections.append({"title": "보고서 범위와 검증 조건", "blocks": [{
-        "type": "paragraph", "text": "현재 저장 검토와 전체 버전 지문이 일치한 결과만 표시합니다. "
-        "기본 근거와 키워드는 결과에 인용한 본문 범위이고, 아래 등록 원문 전체와 구분합니다. "
-        "등록 건수는 고객 수나 대표성이 아니며, source_fact·검토 신고는 모델의 분류로 원문 의미 인증이 아닙니다. "
-        "검증 계획은 실측 전 조건이며 다음 원문 필드를 생략하지 않습니다."
-    }, {"type": "table", "columns": ["제안 ID", "검증 계획 원문"],
-        "rows": [[cl.get("id", ""), encode(cl.get("validation_plan"))]
-                 for cl in c.result.get("concepts", [])]}]})
-    sources = [s for s in c.web.get("sources", []) if isinstance(s, dict)]
-    source_blocks = [{"type": "table", "columns": ["전달·검토 범위", "원문 기록"],
-                      "rows": [["coverage", encode(c.web.get("coverage", {}))]]}]
-    for source in sources:
-        sid = source.get("source_id", "")
-        source_blocks.append({"type": "table", "title": sid,
-                              "columns": ["출처 메타데이터", "기록"], "rows": [
-                                  ["결과 인용 여부", "결과에 인용" if sid in c.ev else "인용 안 함"],
-                                  ["원문 메타데이터", encode({k: v for k, v in source.items() if k != "text"})]]})
-        # No excerpt, trimming or model summary substitutes for the registered body.
-        if source.get("text"):
-            source_blocks.append({"type": "paragraph", "title": sid + " · 등록 원문 전체",
-                                  "text": source["text"]})
-    sections.append({"title": f"선택 등록 원문 전체 {len(sources)}건", "blocks": source_blocks})
-    sections.append({"title": "현재 검토·조사 이력과 버전", "blocks": [{
-        "type": "table", "columns": ["구분", "저장 기록 원문"], "rows": [
-            ["binding", encode(c.web.get("binding", {}))],
-            ["저장 검토", encode(c.validation)],
-            ["근거 검토·전달 이력", encode(c.web.get("evidence_history", {}))],
-            ["조사 상태", encode(c.web.get("investigation", {}))],
-            ["조사 사건", encode(c.web.get("investigation_events", []))],
-            ["현재 turn 이력", encode({k: v for k, v in current.items() if k != "state"})]]}]})
+    # Charts describe the research, not a product decision. Keep the existing plan
+    # schema and values, but mark them as optional supporting material.
+    for section in plan["sections"]:
+        section["audience"] = "appendix"
+    plan["appendix"] = {
+        "sources": [s for s in c.web.get("sources", []) if isinstance(s, dict)],
+        "coverage": c.web.get("coverage", {}),
+        "scope_note": "인용 근거와 선택 등록 원문 전체는 서로 다른 범위입니다. 등록 건수는 고객 수나 대표성이 아니며, 원문 의미 인증이 아닙니다.",
+    }
+    plan["diagnostics"] = {
+        "binding": c.web.get("binding", {}), "validation": c.validation,
+        "evidence_history": c.web.get("evidence_history", {}),
+        "investigation": c.web.get("investigation", {}),
+        "investigation_events": c.web.get("investigation_events", []),
+        "current_turn_history": {k: v for k, v in current.items() if k != "state"},
+    }
     return {"export": report_export, "turn_id": turn_id, "plan": plan}
 
 
