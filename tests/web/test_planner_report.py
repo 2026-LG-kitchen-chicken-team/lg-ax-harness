@@ -77,6 +77,62 @@ const path=require('node:path');
  assert.ok(scopedBody.includes('전체 기획의 적용 조건'));
  assert.equal(scopedBody.split('Global dimension prerequisite').length-1,2,'Global and local scope remain explicit');
  assert.equal(normalized.evidence[0].body,'Short quoted evidence','Registered body must not replace the quotation/keyword denominator');
+ // Additive presentation matches the planner web's saved wording, without
+ // replacing the ProductResult or hiding its full operating mechanism.
+ const shared=JSON.parse(JSON.stringify(data));
+ const mechanism='The user selects a mode. The display then asks for a confirmation. No action is applied until confirmation; retain this final mechanism condition.';
+ shared.export.turns[0].state.latest_result.concepts[0].text=mechanism;
+ shared.export.turns[0].state.latest_result.concepts[0].requirements=['First saved requirement','Second requirement stays in default print'];
+ shared.export.turns[0].state.latest_result.concepts[0].assumptions=['First applicability condition','Second applicability condition'];
+ shared.export.turns[0].state.latest_result.concepts.push({id:'c2',text:'A different stored mechanism.',source_ids:['S'],requires_hardware:true,assumptions:[],requirements:[],implementation_steps:['Build second prototype']});
+ shared.report_plan.presentation={title:'Shared report title',summary:['Shared concise overview'],concepts:{c:{title:'Shared concise proposal',summary:'Shared concise overview',background:['Shared linked background'],next_action:'Create prototype',follow_up:'Continue with the saved proposal and preserve its conditions.'},c2:{title:'Second proposal',summary:'Second saved summary'},not_current:{title:'Unrelated title must not appear'}},scope:{reviews:0,facts:2,other:3,models:1,as_of:'2026-10-18'}};
+ const sharedBefore=JSON.stringify(shared);
+ api.render(shared);
+ const sharedBody=node('#result-body').innerHTML,sharedCore=sharedBody.replace(/<details class="planner-detail">[^]*?<\/details>/g,'');
+ assert.equal(node('#report-title').textContent,'Shared report title');
+ assert.ok(sharedCore.includes('Shared concise proposal'));
+ assert.ok(sharedCore.includes('Shared concise overview'));
+ assert.ok(sharedCore.includes(mechanism),'The entire stored mechanism is visible/default-printable, including its final condition');
+ assert.ok(sharedCore.includes('<details class="planner-description" open>'));
+ assert.ok(!sharedCore.includes('Unrelated title must not appear'));
+ assert.ok(sharedCore.includes('Shared linked background'));
+ assert.ok(sharedCore.includes('First saved requirement'));
+ assert.ok(sharedBody.includes('class="planner-condition-detail"'));
+ assert.ok(sharedCore.includes('Second requirement stays in default print'));
+ assert.ok(sharedCore.includes('Second applicability condition'));
+ assert.ok(sharedCore.includes('planner-comparison'));
+ assert.ok(sharedCore.includes('href="#proposal-1"'));
+ assert.ok(sharedCore.includes('href="#proposal-2"'));
+ assert.ok(sharedCore.includes('Build second prototype'),'Absent presentation next_action falls back only to the saved first step');
+ assert.ok(sharedBody.includes('Continue with the saved proposal and preserve its conditions.'));
+ assert.ok(node('#report-scope').textContent.includes('후기 0건'),'Observed zero counts remain visible');
+ assert.ok(node('#report-scope').textContent.includes('제품 자료 2건'));
+ assert.ok(node('#report-scope').textContent.includes('기타 3건'));
+ assert.ok(node('#report-scope').textContent.includes('모델 1개'));
+ assert.ok(node('#report-scope').textContent.includes('2026-10-18'));
+ assert.equal(node('.report-opening').hidden,true,'Saved aggregate summaries do not create a duplicate cover for the same proposals');
+ assert.equal(JSON.stringify(shared),sharedBefore);
+ const normalizedShared=Adapter.normalize(shared);
+ assert.equal(normalizedShared.concepts[0].body,mechanism);
+ assert.equal(normalizedShared.evidence[0].body,'Short quoted evidence');
+ assert.equal(normalizedShared.appendix.sources[0].text,longBody);
+ assert.equal(normalizedShared.presentation.concepts.not_current,undefined);
+ const escaped=JSON.parse(JSON.stringify(shared));escaped.report_plan.presentation.concepts.c.title='<img src=x onerror="bad">';
+ api.render(escaped);assert.ok(node('#result-body').innerHTML.includes('&lt;img'));assert.ok(!node('#result-body').innerHTML.includes('<img'));
+ for(const mutate of [p=>p.summary='not an array',p=>p.concepts=[],p=>p.concepts.c.background='not an array',p=>p.concepts.c.next_action={},p=>p.scope.reviews=-1,p=>p.scope.facts=0.5,p=>p.scope.other=Infinity,p=>p.scope.models=Number.MAX_SAFE_INTEGER+1,p=>p.scope.as_of={}]){
+   const bad=JSON.parse(JSON.stringify(shared));mutate(bad.report_plan.presentation);assert.throws(()=>Adapter.normalize(bad),Adapter.ReportDataError);
+ }
+ const mismatched=JSON.parse(JSON.stringify(shared));mismatched.report_plan_turn_id='not-current';
+ const isolated=Adapter.normalize(mismatched);assert.equal(isolated.presentation,undefined);assert.equal(isolated.concepts[0].body,mechanism);
+ // Evidence clicks open their actual ancestor details and stay in this report
+ // instead of navigating the parent iframe/document. This is a pure DOM stub.
+ const sourceDetails={tagName:'DETAILS',open:false,parentElement:null};let scrolls=0,prevented=0,rerenders=0,click;
+ const destination={parentElement:sourceDetails,scrollIntoView:()=>scrolls++};
+ const cite={getAttribute:()=>'#evidence-1'};
+ const citationCode=scripts[1].slice(scripts[1].indexOf("document.addEventListener('click',event=>{const anchor="),scripts[1].indexOf("$('#evidence-filters').addEventListener"));
+ new Function('document','$','$$','setTimeout','renderEvidence','let selectedFilter="all";'+citationCode)({addEventListener:(_,fn)=>click=fn,getElementById:id=>id==='evidence-1'?destination:null},node,()=>[],fn=>fn(),()=>rerenders++);
+ click({preventDefault:()=>prevented++,target:{closest:selector=>selector==='a[href^="#"]'||selector==='.evidence-refs a'?cite:null}});
+ assert.equal(node('#report-appendix').open,true);assert.equal(sourceDetails.open,true);assert.equal(scrolls,1);assert.equal(prevented,1);assert.equal(rerenders,1);
  assert.ok(html.includes('id="report-appendix"'));
  assert.ok(html.includes('id="include-appendix"'));
  assert.ok(!html.includes('id="include-appendix" checked'));
@@ -84,11 +140,11 @@ const path=require('node:path');
  assert.ok(html.includes('body:not(.print-with-appendix) .report-appendix'));
  assert.ok(html.includes('body:not(.print-with-appendix) .planner-detail'));
  assert.ok(!html.includes("printDetails=$$('#paper details:not([open])')"),'Printing does not force every appendix open by default');
- const callbacks={},toggles=[],details=[{open:false},{open:false}];
+ const callbacks={},toggles=[],coreDetails=[{open:false},{open:false}],appendixDetails=[{open:false},{open:false}];
  const printCode=scripts[1].slice(scripts[1].indexOf('let printDetails=[];'),scripts[1].indexOf("$('#show-sample').addEventListener"));
- new Function('window','$','$$','document',printCode)({addEventListener:(name,fn)=>callbacks[name]=fn},node,()=>details,{body:{classList:{toggle:(name,value)=>toggles.push([name,value]),remove(){}}}});
- callbacks.beforeprint();assert.ok(details.every(d=>!d.open));assert.deepEqual(toggles.at(-1),['print-with-appendix',false]);callbacks.afterprint();
- node('#include-appendix').checked=true;callbacks.beforeprint();assert.ok(details.every(d=>d.open));assert.deepEqual(toggles.at(-1),['print-with-appendix',true]);callbacks.afterprint();assert.ok(details.every(d=>!d.open));
+ new Function('window','$','$$','document',printCode)({addEventListener:(name,fn)=>callbacks[name]=fn},node,selector=>selector.includes('planner-description')?coreDetails:appendixDetails,{body:{classList:{toggle:(name,value)=>toggles.push([name,value]),remove(){}}}});
+ callbacks.beforeprint();assert.ok(coreDetails.every(d=>d.open),'Core description and conditions remain in default print');assert.ok(appendixDetails.every(d=>!d.open));assert.deepEqual(toggles.at(-1),['print-with-appendix',false]);callbacks.afterprint();assert.ok(coreDetails.every(d=>!d.open));
+ node('#include-appendix').checked=true;callbacks.beforeprint();assert.ok([...coreDetails,...appendixDetails].every(d=>d.open));assert.deepEqual(toggles.at(-1),['print-with-appendix',true]);callbacks.afterprint();assert.ok([...coreDetails,...appendixDetails].every(d=>!d.open));
  // Other-turn plans remain rejected with the same original adapter contract.
  const other=JSON.parse(JSON.stringify(data));other.report_plan_turn_id='another';
  const rejected=Adapter.normalize(other);
