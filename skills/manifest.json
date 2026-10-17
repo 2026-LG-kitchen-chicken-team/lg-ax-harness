@@ -362,7 +362,7 @@
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "12ecbab83b4b45cb6cf00e7e1b0e03cc4b2a73ef1beb3d0f5ad0c2d9e0b60d3f"
+      "sha256": "d45196cf569c930b74f89306e33ba7685101bdc56dfc784bac514fd4acfa2d00"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
