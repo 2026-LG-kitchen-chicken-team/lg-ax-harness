@@ -198,6 +198,8 @@ class JudgePackageTests(unittest.TestCase):
                 for engine in ('codex','claude'):
                     self.assertIn(engine+'/web/prototypes/agent-office/codex_follow.py',names)
                     self.assertIn(engine+'/web/prototypes/agent-office/index.html',names)
+                    self.assertIn(engine+'/web/prototypes/agent-office/factory.html',names)  # the run dashboard
+                    self.assertEqual(z.read(engine+'/web/prototypes/agent-office/factory.html'),(ROOT/'web/prototypes/agent-office/factory.html').read_bytes())
                     self.assertIn(engine+'/product-install.json',names)
                     self.assertEqual([],json.loads(z.read(engine+'/data/business/empty/models.json')))
                     self.assertEqual(b'',z.read(engine+'/data/business/empty/sources.jsonl'))

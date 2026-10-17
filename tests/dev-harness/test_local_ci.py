@@ -24,14 +24,16 @@ class LocalCITests(unittest.TestCase):
         self.assertEqual(extended[:len(stages)], stages)
         self.assertEqual([s["suite"] for s in extended if s.get("suite")],
                          ["dev-harness", "product-tools", "evaluation", "web", "observer", "evals"])
-        self.assertEqual(len([s for s in extended if s["id"].endswith("-ci")]), 2)
+        self.assertEqual(len([s for s in extended if s["id"].endswith("-ci")]), 3)
+        factory = [s for s in extended if s["id"].startswith("factory-dashboard-")]
+        self.assertEqual([s["argv"][2:] for s in factory], [["ci"], ["test"], ["run", "build:office"]])
         self.assertTrue({"locked-portable", "locked-package"}.issubset({s["id"] for s in extended}))
         self.assertTrue(all(s["timeout"] <= 600 for s in extended if "timeout" in s))
 
     def test_install_is_explicit_and_does_not_silently_pass_required_stages(self):
         stages = ci.plan("extended", "python", "node", "npm-cli.js", ".harness/new", False)
         gated = [s["id"] for s in stages if s.get("not_run_reason")]
-        self.assertEqual(gated, ["locked-python-dependencies", "visual-viewer-ci", "agent-office-ci", "locked-portable", "locked-package"])
+        self.assertEqual(gated, ["locked-python-dependencies", "visual-viewer-ci", "agent-office-ci", "factory-dashboard-ci", "locked-portable", "locked-package"])
         self.assertFalse(next(s for s in stages if s["id"] == "visual-viewer-build").get("not_run_reason"))
 
     def test_failed_command_is_preserved_and_next_command_still_runs(self):

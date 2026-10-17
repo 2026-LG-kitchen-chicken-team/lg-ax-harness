@@ -115,6 +115,6 @@ uv run python web/prototypes/visual-viewer/watch.py diagnose --harness . --engin
 uv run python web/prototypes/visual-viewer/watch.py generate --harness . --engine codex
 ```
 
-대시보드는 별도 관찰 프로그램이며 현재 제품 설치기와 심사위원용 ZIP에 실행 파일5개를 포함한다. `web/prototypes/agent-office/README.md`를 따라 같은 제품 폴더에 연결한다. Claude는 `office.py install --claude <제품폴더>`, Codex는 실행 **전에** `office.py codex --harness <제품폴더> --wait --until-complete`를 별도 터미널에서 실행한다. 대시보드 HTML은 해당 제품 폴더의 `runtime-data/agent-office/index.html`이다. Codex follower를 나중에 켜서 이전 로그를 읽은 경우는 실시간 관측과 구분한다. 업무가 끝난 뒤 저장 기록 재생을 현재 실행 중으로 표시하지 않는다. 심사 ZIP의 준비·질문·결과 확인은 [사용자 테스트 안내](judge-test.md)를 따른다.
+대시보드는 별도 관찰 프로그램이며 현재 제품 설치기와 심사위원용 ZIP에 실행 파일6개(관찰 프로그램 3개·README·화면 2개)를 포함한다. `web/prototypes/agent-office/README.md`를 따라 같은 제품 폴더에 연결한다. Claude는 `office.py install --claude <제품폴더>`, Codex는 실행 **전에** `office.py codex --harness <제품폴더> --wait --until-complete`를 별도 터미널에서 실행한다. 기본 대시보드 HTML은 해당 제품 폴더의 `runtime-data/agent-office/factory.html`(공장 관제)이고, 같은 기록을 3D 사무실로 보는 `index.html`도 함께 둔다. `--open-on-prompt`는 기본으로 공장 관제를 연다. Codex follower를 나중에 켜서 이전 로그를 읽은 경우는 실시간 관측과 구분한다. 업무가 끝난 뒤 저장 기록 재생을 현재 실행 중으로 표시하지 않는다. 심사 ZIP의 준비·질문·결과 확인은 [사용자 테스트 안내](judge-test.md)를 따른다.
 
-대시보드의 오래된 기록이 있으면 처음에 재생 모드가 선택될 수 있다. 실행 관찰을 시작할 때 화면의 `실시간`을 선택하거나 `index.html#mode=live`로 연다. 새 사건 파일이 갱신됐다는 사실과 사용자가 선택한 화면 모드는 구별한다. 결과 웹은 자동 데이터 갱신용 `runtime-data/visual-viewer/index.html`을 사용한다. 내보낸 단일 보고서 HTML·수동 JSON 열기는 고정 산출물이며 자동 갱신 화면이 아니다.
+대시보드의 오래된 기록이 있으면 처음에 재생 모드가 선택될 수 있다. 실행 관찰을 시작할 때 화면의 `실시간`을 선택하거나 `factory.html#mode=live`로 연다. 새 사건 파일이 갱신됐다는 사실과 사용자가 선택한 화면 모드는 구별한다. 결과 웹은 자동 데이터 갱신용 `runtime-data/visual-viewer/index.html`을 사용한다. 내보낸 단일 보고서 HTML·수동 JSON 열기는 고정 산출물이며 자동 갱신 화면이 아니다.
