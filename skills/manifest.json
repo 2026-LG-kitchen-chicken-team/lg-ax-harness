@@ -334,11 +334,11 @@
     },
     {
       "path": "docs/contracts/web-result.md",
-      "sha256": "f66593c12fe78ec554e3a9ca8ab38681d5a5a70798a8699f96979461d8bf453e"
+      "sha256": "159c77ba8e1cd706b343fb99e825df17f36ac50c172c948a0be4adf2bb4c46c2"
     },
     {
       "path": "docs/contracts/runtime-access.md",
-      "sha256": "645cc8f9ca7ca025fcd994ec521bc133bb273592097eea57d32176db2d5e353d"
+      "sha256": "20156081ac3bf15c855f7bb9435805e283d39f94fb6903bbf6f014fe5f127fc0"
     },
     {
       "path": "web/prototypes/visual-viewer/README.md",
@@ -354,11 +354,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "4b65403bf9a2275986ddd9cfbb21373615d3d2329db6c40e1695d6ff18a7e418"
+      "sha256": "30baaecdad7f846bfaaee4d522170440944404ce258dce30f79069b355866e22"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "1baf22132073c99405441cd2b92968cbf261cbe229b6cd2786be79b4c3e106f5"
+      "sha256": "2e8c108e077b5b02123fac239ddcd1425235a1324f7a1d8212c0e9b6e3bd95cf"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
@@ -382,7 +382,7 @@
     },
     {
       "path": "web/prototypes/agent-office/codex_follow.py",
-      "sha256": "d316a16ca45c1866d6e05f7489083b4a246fb73652a4e30fba3b9ca80a90af63"
+      "sha256": "d8b832716d42daf8b0fc3c36f174f3fe5eee099d38879a3c654c222611e05d9e"
     },
     {
       "path": "web/prototypes/agent-office/index.html",
@@ -390,11 +390,11 @@
     },
     {
       "path": "web/prototypes/agent-office/factory.html",
-      "sha256": "9e4d9ff1e50b2a790836f883b2ccd231e8db35bd868fdcec858168caa6023e2f"
+      "sha256": "ac07bac318d7e92756fbbabcdacc64791435fddfa199479b785a248490c984d8"
     },
     {
       "path": "docs/contracts/judge-test.md",
-      "sha256": "fc86e9a5151618ac7b000c9c43ba45bf54afcaf7592a3534de0da1f4f4102d9a"
+      "sha256": "7d966d00ff537bce8e5939a6e08830d287e6fdc1e3703ef62d993e202b5f2648"
     }
   ],
   "optional_agents": [

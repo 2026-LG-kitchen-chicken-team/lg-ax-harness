@@ -132,7 +132,7 @@ function Solutions({ b }: P) {
     <div className="flex flex-col gap-4">
       {(b.items || []).map((s: Block, i: number) => (
         <Card key={i} className="overflow-hidden">
-          <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="flex flex-col gap-4 p-5">
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-bold">제안 {s.n}</span>
@@ -141,9 +141,13 @@ function Solutions({ b }: P) {
               </div>
               <p className="text-[15px] leading-relaxed"><Lead text={s.text} summary={s.summary} /></p>
               {s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
-              {s.requirements?.length > 0 && <MiniList title="요구사항" items={s.requirements} />}
+              {s.assumptions?.length > 0 && <MiniList title="적용 전제" items={s.assumptions} />}
+              {s.requirements?.length > 0 && <MiniList title="기획 요구사항" items={s.requirements} />}
+              {s.steps?.length > 0 && <div className="rounded-lg bg-muted/40 p-3 text-[13px]"><b>시작할 작업</b><p className="mt-1"><Md text={s.steps[0]} /></p></div>}
             </div>
-            <div className="flex min-w-0 flex-col gap-3">
+            <details className="planner-detail rounded-lg border bg-muted/20 p-3">
+              <summary className="cursor-pointer text-[13px] font-medium">전체 적용 순서 · 검증 계획</summary>
+              <div className="mt-3 flex min-w-0 flex-col gap-3">
               {s.steps?.length > 0 ? (
                 <div>
                   <div className="mb-2 text-xs font-semibold text-muted-foreground">구현 단계</div>
@@ -165,7 +169,8 @@ function Solutions({ b }: P) {
                   </dl>
                 </div>
               ) : <p className="text-xs text-muted-foreground">검증 계획: <b>미작성</b></p>}
-            </div>
+              </div>
+            </details>
           </div>
           {s.sources?.length > 0 && <div className="border-t bg-muted/30 px-6 py-2.5"><SourcesNote items={s.sources} /></div>}
         </Card>

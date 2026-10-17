@@ -28,8 +28,8 @@ function validationPanel(item){`, 'planner display helpers')
  else if(r.discomforts.length)html+=section('해결해야 할 문제',cards(r.discomforts,'discomforts'));
  if(r.existingFeatures.length)html+=section('현재 기능과 기획의 출발점',cards(r.existingFeatures,'existingFeatures'));
  if(r.concepts.length)html+=section('제안하는 상품기획',cards(r.concepts,'concepts'));
- const localConditions=new Set(r.concepts.flatMap(c=>list(c.assumptions)).map(plain));
- const conditions=uniqueTexts(r.assumptions).filter(a=>!localConditions.has(plain(a)));
+ // Global and per-proposal assumptions have different scope, even if wording matches.
+ const conditions=uniqueTexts(r.assumptions);
  if(conditions.length)html+=section('적용 전에 확인할 조건',prose(conditions));
  return html;
 }`)
@@ -58,6 +58,7 @@ function validationPanel(item){`, 'planner display helpers')
   // reached only via diagnostics. No automatic content/length cutoff is applied.
   code.app = once(code.app, "$('#source-description').textContent='본문·표·그래프에 연결된 '+report.evidence.length+'개 자료입니다. 항목을 검색하고 원문을 확인할 수 있습니다.';",
     "$('#source-description').textContent='본문의 근거 번호로 연결된 자료입니다. 원문은 필요한 항목만 열어 확인하세요. 기본 인쇄에는 이 부록을 포함하지 않습니다.';", 'planner source wording')
+  code.app = once(code.app, "e(fileLabel||report.meta.sourceFile||'연결된 하네스 결과')", "'상품기획 보고서'", 'planner hide technical filename')
   code.app = once(code.app, "document.addEventListener('click',event=>{if(event.target.closest('.evidence-refs a')){",
     "document.addEventListener('click',event=>{if(event.target.closest('a[href=\"#sources\"]'))$('#report-appendix').open=true;if(event.target.closest('.evidence-refs a')){$('#report-appendix').open=true;", 'planner citation expansion')
   code.app = once(code.app, "const open=event.target.closest('[data-trace-kind]');if(open){", "const open=event.target.closest('[data-trace-kind]');if(open){$('#report-appendix').open=true;", 'planner trace expansion')

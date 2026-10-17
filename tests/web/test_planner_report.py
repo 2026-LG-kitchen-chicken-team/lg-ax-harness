@@ -63,6 +63,14 @@ const path=require('node:path');
  const normalized=Adapter.normalize(data);
  assert.equal(normalized.appendix.sources[0].text,longBody);
  assert.equal(JSON.stringify(normalized.diagnostics),JSON.stringify(data.report_plan.diagnostics));
+ // Equal wording in one candidate must not erase a condition applying to all candidates.
+ const scoped=JSON.parse(JSON.stringify(data));
+ scoped.export.turns[0].state.latest_result.concepts[0].assumptions=['Global dimension prerequisite'];
+ scoped.export.turns[0].state.latest_result.concepts.push({...scoped.export.turns[0].state.latest_result.concepts[0],id:'c2',text:'Second candidate',assumptions:[]});
+ scoped.export.turns[0].state.latest_result.assumptions=['Global dimension prerequisite'];
+ const scopedBody=api.renderBusiness(Adapter.normalize(scoped));
+ assert.ok(scopedBody.includes('적용 전에 확인할 조건'));
+ assert.equal(scopedBody.split('Global dimension prerequisite').length-1,2,'Global and local scope remain explicit');
  assert.equal(normalized.evidence[0].body,'Short quoted evidence','Registered body must not replace the quotation/keyword denominator');
  assert.ok(html.includes('id="report-appendix"'));
  assert.ok(html.includes('id="include-appendix"'));

@@ -22,6 +22,7 @@ export type Block = { type: string; [key: string]: any }
 
 export interface Page {
   id: string
+  audience?: 'planning' | 'evidence' | 'diagnostic'
   nav?: string
   icon?: string
   title: string
