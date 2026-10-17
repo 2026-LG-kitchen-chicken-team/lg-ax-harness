@@ -54,7 +54,7 @@ export default function DashApp(p: Props) {
         <Sidebar {...p} go={go} open={navOpen} close={() => setNavOpen(false)} />
         <div className={S.offset}>
           <TopBar {...p} tools={tools} openNav={() => setNavOpen(true)} />
-          <main className="@container flex min-w-0 flex-col gap-3 px-4 py-4 print-full sm:px-6">
+          <main className="@container mx-auto flex w-full max-w-[1280px] min-w-0 flex-col gap-4 px-4 py-5 print-full sm:px-8">
             {view && page ? <><ReadNotice phase={p.phase} busy={p.busy} reload={p.reload} /><Body {...p} go={go} /></>
               : <Empty phase={p.phase} busy={p.busy} reload={p.reload} />}
           </main>
@@ -161,7 +161,6 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
                       <button type="button" onClick={() => go(x.id)} aria-current={active ? 'page' : undefined} className={cn(S.item, active ? S.on : S.off)}>
                         <Icon className="size-4 shrink-0" aria-hidden />
                         <span className="truncate">{x.nav || x.title}</span>
-                        <span className={S.num}>{String(pages.indexOf(x) + 1).padStart(2, '0')}</span>
                       </button>
                     </li>
                   )
@@ -179,7 +178,7 @@ function Sidebar({ view, page, go, open, close, reload, openFile, inline, openSe
         </nav>
         <SaveCard view={view} reload={reload} openFile={openFile} inline={inline} lastReadAt={lastReadAt} fromFile={fromFile} busy={busy} className={cn(S.card, 'mt-auto')} />
         </div>
-        {(ctx.footer || []).length > 0 && (
+        {page?.audience === 'diagnostic' && (ctx.footer || []).length > 0 && (
           <div className={S.foot}>
             {/* The session ID and usage note are reference lines; they open on hover instead of sitting in the menu. */}
             <HoverNote note={<ul className="flex flex-col gap-1">{(ctx.footer || []).map((f, k) => <li key={k} className="break-all"><Md text={noEmoji(f)} /></li>)}</ul>}
@@ -202,7 +201,7 @@ function SaveCard({ view, reload, openFile, inline, className, lastReadAt, fromF
   return (
     <div className={className}>
       <div className="text-xs font-semibold opacity-80">{fromFile ? '직접 연 화면 자료' : '최근 저장 결과'}</div>
-      {lastReadAt && <div className="mt-1 text-[11px] text-zinc-500">{fromFile ? '화면 자료 열기' : '최근 읽기 성공'}: {new Date(lastReadAt).toLocaleTimeString('ko-KR')}</div>}
+      {lastReadAt && <div className="mt-1 text-[11px] text-zinc-500">{fromFile ? '열어 본 시각' : '확인 시각'}: {new Date(lastReadAt).toLocaleTimeString('ko-KR')}</div>}
       <div className="mt-2.5 flex flex-wrap gap-1.5">{(ctx.status || [{ text: '데이터 없음' }]).map((s, k) => <Badge key={k} chip={s} />)}</div>
       {ctx.file && (
         <div className="mt-3 flex items-start gap-2 text-xs">

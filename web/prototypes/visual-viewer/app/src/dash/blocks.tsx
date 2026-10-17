@@ -504,6 +504,9 @@ function Chips({ b }: P) {
 
 // --- story page ---------------------------------------------------------------------------------------------------
 function Hero({ b }: P) {
+  if (b.planner) return <header className="flex flex-wrap items-center justify-between gap-3 py-2">
+    <h1 className="text-[24px] font-semibold leading-snug tracking-tight">{b.title}</h1><Badges items={b.chips} />
+  </header>
   return (
     <section className="@container flex min-w-0 flex-col gap-4">
       <div className={cn(LOOK.card, 'p-5')}>
@@ -572,13 +575,14 @@ function reportTitle(b: Block): string {
 }
 
 function StorySection({ b, copy }: P) {
-  const no = SECTION_NO[b.key]
+  if (b.planner) return <section aria-label={b.title} className="flex flex-col gap-4"><Blocks blocks={b.blocks || []} copy={copy} /></section>
+  const no = b.planner ? undefined : SECTION_NO[b.key]
   const name = String(b.label || '').split('·').pop()?.trim()
   return (
     <section className="mt-4 flex flex-col gap-3">
       <div className="border-b border-[#e6e6e6] pb-2">
         <div className="text-[13px] font-medium text-[#2f7d4f]">{no ? `${no}. ` : ''}{name}</div>
-        <h2 className="mt-1 text-balance text-[17px] font-semibold tracking-tight text-foreground">{reportTitle(b)}</h2>
+        <h2 className="mt-1 text-balance text-[17px] font-semibold tracking-tight text-foreground">{b.planner ? b.title : reportTitle(b)}</h2>
         {b.text && <p className={cn('mt-1.5 max-w-3xl leading-relaxed text-muted-foreground', 'text-[13px]')}><Md text={b.text} /></p>}
       </div>
       <div className={cn('flex flex-col', LOOK.gap)}><Blocks blocks={b.blocks || []} copy={copy} /></div>

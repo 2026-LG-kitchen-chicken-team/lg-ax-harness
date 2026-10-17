@@ -6,11 +6,12 @@
 <title>LG AX 상품기획 뷰어</title>
 <!-- Pretendard (Korean UI font). Offline it falls back to Malgun Gothic / Apple SD Gothic Neo. -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<!-- build_view.py writes view-data.js next to this page; --standalone replaces this exact tag with the data. -->
-<script src="view-data.js" charset="utf-8"></script>
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><main role="status" aria-busy="true" style="max-width:36rem;margin:12vh auto;padding:2rem;font:16px/1.8 system-ui,sans-serif;color:#24462e;text-align:center"><h1 style="font-size:24px">상품기획 화면을 준비하고 있어요</h1><p>저장된 결과를 확인하고 있어요. 잠시만 기다려 주세요.</p></main></div>
+<!-- Show the initial shell before the data script, including slow/offline reads.
+     build_view.py replaces this exact tag for a self-contained saved report. -->
+<script src="view-data.js" charset="utf-8"></script>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

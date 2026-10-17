@@ -2,7 +2,7 @@
 // Ctrl+K hotkey, larger text, back-to-top, the live dot and the empty state.
 import { useEffect, useState } from 'react'
 import {
-  ArrowUp, BarChart3, FileText, Filter, GitCompareArrows, History, Home, Lightbulb, Package, Presentation,
+  ArrowUp, BarChart3, FileText, Filter, GitCompareArrows, History, Home, Lightbulb, LoaderCircle, Package, Presentation,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import type { LiveState } from '../lib/useView'
@@ -106,13 +106,17 @@ export function ReadNotice({ phase, busy, reload }: ReadProps) {
 export function Empty({ phase, busy, reload }: ReadProps) {
   const failed = phase === 'error'
   const loading = phase === 'loading'
-  return <div className="mx-auto mt-16 w-full max-w-xl text-center" role="status" aria-busy={loading}>
+  return <div className="mx-auto mt-12 w-full max-w-xl rounded-2xl border border-[#e3e8e3] bg-white px-6 py-10 text-center shadow-sm" role="status" aria-busy={loading}>
+    <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-[#eef5eb] text-[#2f7d4f]">
+      {loading ? <LoaderCircle className="size-6 motion-safe:animate-spin" aria-hidden /> : <FileText className="size-6" aria-hidden />}
+    </div>
     <h1 className="text-2xl font-bold tracking-tight">{failed ? '화면 연결을 확인해 주세요' : loading ? '저장된 결과를 불러오고 있어요' : '첫 결과를 기다리고 있어요'}</h1>
     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
       {failed ? '지금은 저장된 화면 자료를 읽지 못했어요. 잠시 후 다시 불러오거나 저장한 화면 자료를 직접 열어 주세요.'
         : loading ? '잠시만 기다려 주세요. 결과가 확인되면 이 화면에 표시해 드릴게요.'
           : '아직 표시할 저장 결과가 없어요. 업무 결과가 저장되면 자동으로 확인해요. 이미 저장했다면 다시 불러오기를 눌러 주세요.'}
     </p>
+    {loading && <div aria-hidden className="mx-auto mt-6 flex max-w-sm flex-col gap-2 motion-safe:animate-pulse"><div className="h-3 w-3/4 rounded bg-zinc-100" /><div className="h-3 rounded bg-zinc-100" /><div className="h-3 w-5/6 rounded bg-zinc-100" /></div>}
     <button type="button" onClick={reload} disabled={busy} className="mt-5 rounded-md border border-[#e3e3e3] bg-white px-4 py-2 text-sm font-medium text-[#2f7d4f] disabled:opacity-50">{busy ? '화면 연결 확인 중' : '다시 불러오기'}</button>
   </div>
 }

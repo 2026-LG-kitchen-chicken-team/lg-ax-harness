@@ -5,7 +5,7 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode
 import { ArrowRight, ExternalLink, FileText, Quote } from 'lucide-react'
 import { Badge, Badges, Card } from './ui'
 import { HoverNote, SourceNote } from './hovernote'
-import { Lead } from './lead'
+import { firstSentence, Lead } from './lead'
 import { useIdTip } from './idtip'
 import { cn, Md, safeHref, tone, TONE_DOT, TONE_HEX } from '../lib/utils'
 import type { Block } from '../types'
@@ -120,10 +120,20 @@ function SourcesNote({ items }: { items: Block[] }) {
   const tip = useIdTip()
   const ids = items.map((c) => (typeof c === 'string' ? c : c.text))
   return (
-    <HoverNote className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
-      note={<ul className="flex flex-col gap-1.5">{ids.map((id) => <li key={id}><span className="font-mono text-[11px] text-zinc-400">{id}</span>{tip?.lookup(id) && <div className="line-clamp-3">{tip.lookup(id)!.text}</div>}</li>)}</ul>}>
-      <FileText className="size-3.5" aria-hidden />근거 원문 {ids.length}건
-    </HoverNote>
+    <details className="group/evidence text-xs text-zinc-600">
+      <summary className="inline-flex cursor-pointer items-center gap-1.5 rounded py-1 font-medium text-[#2f7d4f] focus-visible:outline-2">
+        <FileText className="size-3.5" aria-hidden />근거 확인 ({ids.length}건)
+      </summary>
+      <ul className="mt-3 flex flex-col gap-2">{ids.map((id, i) => {
+        const entry = tip?.lookup(id), href = safeHref(entry?.href)
+        return <li key={id}><details className="rounded-lg border bg-white p-3">
+          <summary className="cursor-pointer leading-relaxed text-zinc-700"><b>근거 {i + 1} · {entry?.kind || '자료'}</b>{entry?.location && <span className="ml-2 text-zinc-500">{entry.location}</span>}</summary>
+          <p className="mt-3 whitespace-pre-line text-[13px] font-normal leading-relaxed">{entry?.text || '이 자료는 전체 근거 목록에서 확인할 수 있어요.'}</p>
+          {href && <a href={href} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 font-medium text-[#2f7d4f] underline">{entry?.site || '원문 페이지'}<ExternalLink className="size-3" aria-hidden /></a>}
+        </details></li>
+      })}</ul>
+      <a href="#dashboard" className="mt-3 inline-block font-medium underline underline-offset-2">조사 자료와 출처 전체 보기</a>
+    </details>
   )
 }
 
@@ -131,23 +141,29 @@ function Solutions({ b }: P) {
   return (
     <div className="flex flex-col gap-4">
       {(b.items || []).map((s: Block, i: number) => (
-        <Card key={i} className="overflow-hidden">
+        <Card key={i} className="overflow-hidden" >
           <div className="flex flex-col gap-4 p-5">
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-bold">제안 {s.n}</span>
-                <Badge chip={{ text: s.id, tone: 'k4' }} />
-                <Badges items={s.chips} />
+                <span className="text-xs font-semibold tracking-wide text-[#2f7d4f]">제안 {String(s.n || i + 1).padStart(2, '0')}</span>
+                {!b.planner && <><Badge chip={{ text: s.id, tone: 'k4' }} /><Badges items={s.chips} /></>}
+                {b.planner && <Badges items={(s.chips || []).filter((c: Block) => c.text === '하드웨어 필요' || c.text === '내부 치수 필요')} />}
               </div>
-              <p className="text-[15px] leading-relaxed"><Lead text={s.text} summary={s.summary} /></p>
-              {s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
-              {s.assumptions?.length > 0 && <MiniList title="적용 전제" items={s.assumptions} />}
-              {s.requirements?.length > 0 && <MiniList title="기획 요구사항" items={s.requirements} />}
-              {s.steps?.length > 0 && <div className="rounded-lg bg-muted/40 p-3 text-[13px]"><b>시작할 작업</b><p className="mt-1"><Md text={s.steps[0]} /></p></div>}
+              {s.title && <h3 className="text-[19px] font-semibold leading-snug tracking-tight">{s.title}</h3>}
+              {b.planner && !s.title
+                ? <h3 className="text-[18px] font-semibold leading-relaxed tracking-tight text-zinc-900"><Lead text={s.text} summary={s.summary} quiet /></h3>
+                : <p className="text-[15px] leading-relaxed text-zinc-900"><Lead text={s.text} summary={s.summary} quiet={!!b.planner} /></p>}
+              {!b.planner && s.links?.length > 0 && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">연결된 남은 불편 <Badges items={s.links} /></div>}
+              {s.background?.length > 0 && <div className="text-[13px] leading-relaxed text-zinc-600"><b className="text-zinc-800">기획 배경</b>{s.background.map((x: string, k: number) => <p key={k} className="mt-1">{firstSentence(x)}</p>)}</div>}
+              {!b.planner && s.assumptions?.length > 0 && <MiniList title="추진 전에 확인할 조건" items={s.assumptions} />}
+              {s.steps?.length > 0 && <div className="rounded-lg border border-[#dfe9dc] bg-[#f3f8f1] p-3 text-[13px]"><b className="text-[#2f7d4f]">다음 행동</b><p className="mt-1"><Md text={s.steps[0]} /></p></div>}
             </div>
             <details className="planner-detail rounded-lg border bg-muted/20 p-3">
-              <summary className="cursor-pointer text-[13px] font-medium">전체 적용 순서 · 검증 계획</summary>
+              <summary className="cursor-pointer text-[13px] font-medium">{b.planner ? '추진 조건 · 요구사항 · 검증 방법' : '요구사항 · 적용 순서 · 검증 방법'}</summary>
               <div className="mt-3 flex min-w-0 flex-col gap-3">
+              {b.planner && <Badges items={(s.chips || []).filter((c: Block) => c.text.startsWith('기존 기능 중복'))} />}
+              {b.planner && s.assumptions?.length > 0 && <MiniList title="추진 전에 확인할 조건" items={s.assumptions} />}
+              {s.requirements?.length > 0 && <MiniList title="기획 요구사항" items={s.requirements} />}
               {s.steps?.length > 0 ? (
                 <div>
                   <div className="mb-2 text-xs font-semibold text-muted-foreground">구현 단계</div>

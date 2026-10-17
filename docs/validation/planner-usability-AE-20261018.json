@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-18",
+  "baseline": "9484361b99c99e550e551f2a976481424ebfa2a4",
+  "scope": "Planner/result HTML and report presentation; actual saved result replay and controlled browser state tests",
+  "web_tests": {
+    "total": 190,
+    "passed": 189,
+    "skipped": 1,
+    "failed": 0,
+    "receipt": ".harness/checks/a5aa34fa567c460c9af1b46ca8c6045d/receipt.json"
+  },
+  "build": {
+    "exit_code": 0,
+    "new_packages_installed": false,
+    "source_files_byte_bound": 43
+  },
+  "source_objects": {
+    "fridge": 56,
+    "dishwasher": 81,
+    "microwave": 82,
+    "latest_fridge": 56,
+    "independent_customer_count_claimed": false
+  },
+  "source_payload_changed": false,
+  "screenshots": 11,
+  "standalone_actual_result_html": 4,
+  "browser_checks": [
+    "proposal_first",
+    "condition_disclosure",
+    "source_per_item",
+    "three_family_reports",
+    "report_citation_anchor",
+    "waiting",
+    "loading",
+    "first_read_failure",
+    "last_good_retention",
+    "recovery",
+    "report_outdated_and_latest"
+  ],
+  "native_ai_runs": 0,
+  "release_published": false,
+  "remaining_P1_P2_in_reviewed_scope": 0,
+  "not_run": [
+    "Fresh native planning",
+    "OS browser auto-open",
+    "Mobile",
+    "Print pagination",
+    "Planner task-time study"
+  ]
+}
