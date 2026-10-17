@@ -172,7 +172,7 @@ function Solutions({ b, copy }: P) {
               {s.steps?.length > 0 && <div className="rounded-lg border border-[#dfe9dc] bg-[#f3f8f1] p-3 text-[13px]"><b className="text-[#2f7d4f]">다음 행동</b><p className="mt-1"><Md text={s.steps[0]} /></p></div>}
               {b.planner && s.follow_up && <div className="no-print flex flex-wrap items-start gap-3 text-[12px]">
                 <button type="button" onClick={() => copy(s.follow_up)} className="inline-flex items-center gap-1.5 rounded-md border border-[#cbdcc8] bg-white px-3 py-2 font-medium text-[#2f7d4f] hover:bg-[#f3f8f1]"><Copy className="size-3.5" aria-hidden />이 제안 이어서 질문하기 · 복사</button>
-                <details className="min-w-0 flex-1 py-2"><summary className="cursor-pointer text-zinc-500">질문 내용 보기</summary><p className="mt-2 text-zinc-500">복사한 질문을 작업하던 Codex·Claude 대화에 붙여넣으세요.</p><textarea aria-label="이 제안의 후속 질문" readOnly value={s.follow_up} className="mt-2 min-h-28 w-full rounded border bg-white p-3 text-zinc-700" /></details>
+                <details className="min-w-0 flex-1 py-2"><summary className="cursor-pointer text-zinc-500">질문 내용 보기</summary><p className="mt-2 text-zinc-500">복사한 질문을 작업하던 Codex·Claude 대화에 붙여넣으세요.</p><textarea aria-label="이 제안의 후속 질문" translate="no" spellCheck={false} readOnly value={s.follow_up} className="mt-2 min-h-28 w-full rounded border bg-white p-3 text-zinc-700" /></details>
               </div>}
             </div>
             <details className="planner-detail rounded-lg border bg-muted/20 p-3">

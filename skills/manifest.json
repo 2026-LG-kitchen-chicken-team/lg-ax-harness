@@ -158,7 +158,7 @@
         },
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "c3ba8dd48bb9724f03cab184871c596e05430e5ac38291554bb968b25b34e8ed"
+          "sha256": "48a0c0ee10edfa8073feab9b29a9412e8e77138fb1fa2663e4a0555b3968f98d"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -178,7 +178,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "315ecb0656a2e14d7e700fdf6687dc17709b547691a740b03ed455d603dec8cd"
+      "sha256": "4a8af3c0e95f13022a79053b4fd2746f38ec67173b23fb86e042beff7b8395f7"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
