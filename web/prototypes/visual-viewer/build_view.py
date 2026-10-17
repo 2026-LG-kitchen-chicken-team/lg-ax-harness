@@ -24,6 +24,7 @@ Python 3.10 이상, 표준 라이브러리만 쓴다. 하네스 폴더에서는 
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -944,9 +945,13 @@ def planner_presentation(c: Ctx) -> dict:
         concepts[cid] = {"title": title, "summary": summary_of(c, cid), "background": background,
                          "next_action": steps[0] if steps else "",
                          "follow_up": planner_follow_up(c, cl, i, title)}
+        if cl.get("work_draft"):
+            concepts[cid]["work_draft"] = copy.deepcopy(cl["work_draft"])
     return {"title": f"{family_label(c.cur['family'])} 상품기획" if c.cur.get("family") else "상품기획",
             "summary": [p["summary"] for p in concepts.values() if p["summary"]],
-            "concepts": concepts, "scope": planner_scope(c)}
+            "concepts": concepts, "scope": planner_scope(c),
+            **({"planning_decision": copy.deepcopy(c.result["planning_decision"])}
+               if c.result.get("planning_decision") else {})}
 
 
 def claim_items(c: Ctx, claims: list[dict]) -> list[dict]:
@@ -1033,6 +1038,7 @@ def page_story(c: Ctx) -> list[dict]:
                 chips_.append({"text": "내부 치수 필요", "tone": "orange"})
         plan = cl.get("validation_plan")
         sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""),
+                    **({"work_draft": copy.deepcopy(cl["work_draft"])} if cl.get("work_draft") else {}),
                     "summary": summary_of(c, cl.get("id")), "chips": chips_,
                     "follow_up": planner_follow_up(c, cl, i, titles.get(cl.get("id"))),
                     "assumptions": cl.get("assumptions") or [],
@@ -1045,7 +1051,10 @@ def page_story(c: Ctx) -> list[dict]:
                    "text": f"저장된 실행 제약: 하드웨어 추가 {stored_hardware_label(cons)} · 제안 최대 {cons.get('max_concepts', '미기록')}개. "
                            "저장 입력의 기본값·후속 설정을 포함하며 요청 원문에 명시된 조건으로 추정하지 않습니다. "
                            "효과·비용은 측정 전 미확정입니다.",
-                   "blocks": [{"type": "solutions", "items": sol}] if sol else [{"type": "callout", "tone": "warning", "text": "결과에 제안이 없습니다."}]})
+                   "blocks": [{"type": "solutions", "items": sol,
+                               **({"planning_decision": copy.deepcopy(res["planning_decision"])}
+                                  if res.get("planning_decision") else {})}]
+                   if sol else [{"type": "callout", "tone": "warning", "text": "결과에 제안이 없습니다."}]})
 
     supported = sum(1 for ch in checks if ch.get("support_status") == "supported")
     unclear = sum(1 for ch in checks if ch.get("scope_relation") not in (None, "current_model"))
@@ -2236,6 +2245,16 @@ def generate(export_path: Path | None, insights_path: Path | None = None, focus:
         report = report_source(ctx) if ctx else None
         if report is not None:
             view["report"] = report
+        if ctx and ctx.web and not ctx.invalid and ctx.delivery_state == "verified_binding":
+            # Display readiness is separate from semantic/competition acceptance.
+            # Delivery promotes this only after validating the installed files.
+            view["delivery"] = {
+                "export_sha256": hashlib.sha256(Path(export_path).read_bytes()).hexdigest(),
+                "binding": {key: ctx.web["binding"][key] for key in
+                            ("session_id", "turn_id", "request_key", "result_version")},
+                "business_status": ctx.cur["status"], "display_ready": False,
+                "report_data_ready": "report" in view,
+            }
     payload = json.dumps(view, ensure_ascii=False, indent=1)
 
     html = (HERE / "index.html").read_bytes()

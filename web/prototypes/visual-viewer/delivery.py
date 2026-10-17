@@ -173,6 +173,7 @@ def diagnose(paths, hashes, export=None, out=None):
         result["export_sha256"] = export_sha
         result["current_binding"] = state
         stamp = view.get("delivery")
+        result["display_ready"] = isinstance(stamp, dict) and stamp.get("display_ready") is True
         if stamp is not None and (not isinstance(stamp, dict) or stamp.get("export_sha256") != export_sha):
             result["current_binding"] = "sidecar_stale"
             return result
@@ -227,7 +228,9 @@ class Delivery:
                 return {"status": "superseded", "display_verified": False}
             key = hook.export_key(entry)
             good = diagnose(paths, self.hashes, export)
-            ready = good["view_shape"] == "valid" and good["index_matches_installed"] and good["current_binding"] in ("matched_current", "request_only")
+            ready = (good["view_shape"] == "valid" and good["index_matches_installed"]
+                     and good["current_binding"] in ("matched_current", "request_only")
+                     and good.get("display_ready") is True)
             if current.get("built_key") != key or not ready:
                 os.makedirs(paths.out, exist_ok=True)
                 stage = Path(tempfile.mkdtemp(prefix=".delivery-", dir=paths.out))
@@ -236,7 +239,8 @@ class Delivery:
                 summary = builder.generate(export, None, "auto", out_dir=stage, insights_dir=Path(paths.out),
                                            index_sha256=self.hashes["index"])
                 generated = payload(read_bytes(paths, stage / "view-data.js"))
-                generated["delivery"] = {"export_sha256": before, "binding": state}
+                generated["delivery"] = {**generated.get("delivery", {}), "export_sha256": before,
+                                         "web_binding_state": state, "display_ready": True}
                 (stage / "view-data.js").write_text("window.LGAX_VIEW = " + json.dumps(generated, ensure_ascii=False, allow_nan=False) + ";\n", encoding="utf-8")
                 check = diagnose(paths, self.hashes, export, stage)
                 if check["view_shape"] != "valid" or not check["index_matches_installed"] or check["current_binding"] not in ("matched_current", "request_only"):
@@ -285,3 +289,72 @@ class Delivery:
 def time_stamp():
     import time
     return time.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+
+def native_completion(paths, body):
+    """Match sanitized native observations to this business request, never by time.
+
+    The observer records identifiers/events only. No raw conversation or command
+    is read here; a quiet or disconnected observer is not an AI failure.
+    """
+    records = Path(paths.harness) / "runtime-data/agent-office/events.jsonl"
+    if not records.is_file():
+        return {"status": "waiting_native_completion"}
+    try:
+        raw = read_bytes(paths, records)
+        if raw and not raw.endswith(b"\n"):
+            return {"status": "waiting_native_completion"}
+        events = [json.loads(line) for line in raw.splitlines()[-1500:] if line.strip()]
+        if any(not isinstance(e, dict) for e in events):
+            return {"status": "waiting_native_completion"}
+        events = [e for e in events if e.get("v") == 1]
+        main = lambda e: e.get("actor") == "main" and not e.get("agent_id")
+        anchors = [i for i,e in enumerate(events) if main(e) and e.get("kind") == "request"]
+        if not anchors:
+            return {"status": "waiting_native_completion"}
+        chosen = events[anchors[-1]]
+        session = chosen.get("session")
+        prompts, children, selected = {chosen.get("prompt_id")}, set(), []
+        for event in events[anchors[-1]:]:
+            if event.get("session") != session:
+                continue
+            detail = event.get("detail") or {}
+            if not isinstance(detail, dict):
+                continue
+            if (main(event) and event.get("kind") in ("handback_delivered", "notification")
+                    and detail.get("from_agent_id") in children):
+                prompts.add(event.get("prompt_id"))
+            linked = event.get("prompt_id") in prompts or event.get("agent_id") in children
+            if not linked:
+                continue
+            if event.get("kind") == "delegate" and detail.get("launched_agent_id"):
+                children.add(detail["launched_agent_id"])
+            if event.get("kind") == "subagent" and event.get("phase") == "start" and event.get("agent_id"):
+                children.add(event["agent_id"])
+            selected.append(event)
+        current = (body.get("turns") or [{}])[-1]
+        expected = current.get("web_binding") or {}
+        keys = ("session_id", "turn_id", "request_key")
+        if not all(isinstance(expected.get(k), str) and expected[k] for k in keys):
+            return {"status": "waiting_native_completion"}
+        matches = [e for e in selected if main(e) and all(
+            ((e.get("detail") or {}).get("business_binding") or {}).get(k) == expected[k] for k in keys)]
+        if not matches:
+            return {"status": "waiting_native_completion"}
+        terminal = [e for e in selected if main(e) and e.get("kind") in ("turn_cancelled", "turn_end")]
+        if any(e.get("kind") == "turn_cancelled" for e in terminal):
+            return {"status": "native_cancelled"}
+        if not terminal or terminal[-1].get("kind") != "turn_end":
+            return {"status": "waiting_native_completion"}
+        final_index = max(i for i,e in enumerate(selected) if e is terminal[-1])
+        if any(main(e) and e.get("kind") in ("request", "handback_delivered", "notification")
+               for e in selected[final_index + 1:]):
+            return {"status": "waiting_native_completion"}
+        end_detail = terminal[-1].get("detail") or {}
+        if (end_detail.get("interrupted") is True
+                or end_detail.get("turn_status") in ("failed", "cancelled", "interrupted")
+                or end_detail.get("response_status") in ("failed", "cancelled", "incomplete", "error")):
+            return {"status": "native_failed"}
+        return {"status": "native_completed", "native_session": session}
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        return {"status": "waiting_native_completion"}
