@@ -122,7 +122,7 @@
         },
         {
           "path": "skills/concept-writing/SKILL.md",
-          "sha256": "756c485db6af9b58b35f662b762f21c70e6ed4a3d617bfbbb3d3ee1cc2de602b"
+          "sha256": "36c87ee2051de8ea711499c3470d63e5d5a8aa50e2d7977b6979e29a772b7aff"
         }
       ]
     },
@@ -158,7 +158,7 @@
         },
         {
           "path": "skills/review-and-revise/references/payload.md",
-          "sha256": "983711265ab5d26fdbd4b3d6412b3833eca48a50c908f3f77dd1329fed915484"
+          "sha256": "c3ba8dd48bb9724f03cab184871c596e05430e5ac38291554bb968b25b34e8ed"
         },
         {
           "path": "skills/review-and-revise/references/report-writing.md",
@@ -170,7 +170,7 @@
         },
         {
           "path": "skills/review-and-revise/SKILL.md",
-          "sha256": "92100eb9a09bdeb7d63c57c07657313a5918e5369e98424901f2e1fa5b38dd7e"
+          "sha256": "f4fb89de92eb7f23b342efe9e13f3933f1c095e91bf4a7e7f42d8151133c680d"
         }
       ]
     }
@@ -178,7 +178,7 @@
   "shared_files": [
     {
       "path": "agents/product-planning.md",
-      "sha256": "f260e64cc7ad5755f89dd4dbb7a633330d6ee077886b739fe63ed4072e2ef33d"
+      "sha256": "315ecb0656a2e14d7e700fdf6687dc17709b547691a740b03ed455d603dec8cd"
     },
     {
       "path": "agents/product-evidence-reviewer.md",
@@ -214,7 +214,7 @@
     },
     {
       "path": "product-tools/product_tools/conversation.py",
-      "sha256": "adb342a7f929b65a0da0a0a7f79309baffdf5832f96c949019127805e298fc35"
+      "sha256": "8261963c0a1516491741ae5256de5e27064cd87b525a257d4fc4165d149a9a70"
     },
     {
       "path": "product-tools/product_tools/dataset.py",
@@ -246,11 +246,15 @@
     },
     {
       "path": "product-tools/product_tools/payload.py",
-      "sha256": "2d22d54d1a7b1da1f97876cf69b00756917162d283d29162af80623d0a29e31e"
+      "sha256": "6b113c44275e3c8353cb48ab38bcb8c6b71cb6a9a863fda3dd603cb0289ab1a9"
+    },
+    {
+      "path": "product-tools/product_tools/planner_insights.py",
+      "sha256": "019b4e9abe385ef6b1ac942496f8eac7ec50d1cd3e5df435dffe97193f0e0c13"
     },
     {
       "path": "product-tools/product_tools/planning.py",
-      "sha256": "5a1588057f61f7ffa2ac4e592fff7257ed8ed931ee022025bc57c3d67ae68547"
+      "sha256": "09fbef8703e904ff766ce988ddf7e14eeeb0be7acc3a007402d79fa28864abbc"
     },
     {
       "path": "product-tools/product_tools/reporting.py",
@@ -262,7 +266,7 @@
     },
     {
       "path": "product-tools/product_tools/reviewer_packet.py",
-      "sha256": "905f4d3169d0128a1f355892b4ca80b2e3d7c6d440124561bfff6f9637e780c4"
+      "sha256": "82ece38826f0e25e6c9375128cce163f44730f1d859d25f2e05643c9dfb6269d"
     },
     {
       "path": "product-tools/product_tools/selection.py",
@@ -278,7 +282,7 @@
     },
     {
       "path": "product-tools/product_tools/web_delivery.py",
-      "sha256": "bac5cc397edea8684caeff2511c1c6a6cf6b75cdb98e9ee41a66d44ff35269a2"
+      "sha256": "d0788dc005b68951b72c4852ab22592b7618a486a931b110ae38014fc42f4af0"
     },
     {
       "path": "product-tools/product_tools/web_evidence.py",
@@ -334,7 +338,7 @@
     },
     {
       "path": "docs/contracts/web-result.md",
-      "sha256": "159c77ba8e1cd706b343fb99e825df17f36ac50c172c948a0be4adf2bb4c46c2"
+      "sha256": "4b652230254254d12705b0696c3696c9f18604514f911cd21f038a3b3b3e73b2"
     },
     {
       "path": "docs/contracts/runtime-access.md",
@@ -354,11 +358,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/build_view.py",
-      "sha256": "30baaecdad7f846bfaaee4d522170440944404ce258dce30f79069b355866e22"
+      "sha256": "5ae9d770688c6539e40e2a44a30390f40914104ba966d031e9c4c12bc0da1d43"
     },
     {
       "path": "web/prototypes/visual-viewer/index.html",
-      "sha256": "6fc1b190762cf52292d8d23e79bfd4cdaede8f8ac6e1d7ea48741fe3f719de2d"
+      "sha256": "12ecbab83b4b45cb6cf00e7e1b0e03cc4b2a73ef1beb3d0f5ad0c2d9e0b60d3f"
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",

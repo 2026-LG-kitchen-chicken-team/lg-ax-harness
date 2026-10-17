@@ -917,9 +917,13 @@ def planner_scope(c: Ctx) -> dict | None:
             "as_of": (dates[0] if len(dates) == 1 else f"{dates[0]} ~ {dates[-1]}") if dates else ""}
 
 
-def planner_follow_up(item: dict, number: int, title: str | None = None) -> str:
+def planner_follow_up(c: Ctx, item: dict, number: int, title: str | None = None) -> str:
     label = title or f"제안 {number:02}"
-    return (f"방금 저장한 상품기획의 ‘{label}’(제안 ID: {item.get('id') or number})을 이어서 다듬어줘. "
+    binding = c.web.get("binding") or {}
+    scope = ", ".join(s["model_id"] for s in c.cur.get("scope", []) if s.get("model_id")) or c.cur["model"]
+    return (f"이 화면의 저장 기획을 참조해 ‘{label}’(제안 ID: {item.get('id') or number})을 이어서 다듬어줘. "
+            f"참조 세션: {c.export.get('session_id')}, turn: {c.cur['turn_id']}, 결과 버전: {binding.get('result_version')}, "
+            f"대상 모델: {scope}, 자료 버전: {c.cur.get('data_version')}. 현재 대화의 다른 기획과 섞지 마. "
             "연결된 후기·제품자료와 기존 기능 대조를 재사용하고, 적용 조건을 유지해줘. "
             "기획 요구사항을 구체화하고 다음 행동의 담당자·필요 입력·완료 산출물을 정리해줘. "
             "추가 조사는 필요한 근거가 없거나 오래된 부분에만 수행하고, 미측정 효과를 확정하지 마.")
@@ -939,7 +943,7 @@ def planner_presentation(c: Ctx) -> dict:
         steps = cl.get("implementation_steps") or []
         concepts[cid] = {"title": title, "summary": summary_of(c, cid), "background": background,
                          "next_action": steps[0] if steps else "",
-                         "follow_up": planner_follow_up(cl, i, title)}
+                         "follow_up": planner_follow_up(c, cl, i, title)}
     return {"title": f"{family_label(c.cur['family'])} 상품기획" if c.cur.get("family") else "상품기획",
             "summary": [p["summary"] for p in concepts.values() if p["summary"]],
             "concepts": concepts, "scope": planner_scope(c)}
@@ -1030,7 +1034,7 @@ def page_story(c: Ctx) -> list[dict]:
         plan = cl.get("validation_plan")
         sol.append({"id": cl.get("id"), "n": i, "title": titles.get(cl.get("id")), "text": cl.get("text", ""),
                     "summary": summary_of(c, cl.get("id")), "chips": chips_,
-                    "follow_up": planner_follow_up(cl, i, titles.get(cl.get("id"))),
+                    "follow_up": planner_follow_up(c, cl, i, titles.get(cl.get("id"))),
                     "assumptions": cl.get("assumptions") or [],
                     "requirements": cl.get("requirements") or [], "steps": cl.get("implementation_steps") or [],
                     "plan": {"status": PLAN_STATUS.get(plan.get("status"), plan.get("status") or "상태 미기록"),

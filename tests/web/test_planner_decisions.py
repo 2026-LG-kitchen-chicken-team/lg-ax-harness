@@ -45,6 +45,9 @@ class PlannerDecisionDeliveryTests(unittest.TestCase):
                 self.assertEqual(presentation['concepts']['c1']['follow_up'], concepts[0]['follow_up'])
                 self.assertIn('c1', concepts[0]['follow_up'])
                 self.assertIn('필요 입력', concepts[0]['follow_up'])
+                self.assertIn(candidate['session_id'], concepts[0]['follow_up'])
+                self.assertIn(candidate['turn_id'], concepts[0]['follow_up'])
+                self.assertIn('MWJ25E', concepts[0]['follow_up'])
                 self.assertEqual(presentation['scope'], hero['scope'])
                 scope = hero['scope']
                 full_sources = view['report']['plan']['appendix']['sources']
