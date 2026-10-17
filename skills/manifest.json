@@ -370,11 +370,11 @@
     },
     {
       "path": "web/prototypes/visual-viewer/delivery.py",
-      "sha256": "4b5303761ff656bbf1e8ea39e46933dc3931f3f6c5f926d19fd41d58f55a2150"
+      "sha256": "6a60a6fbc3855f755506501f6bf38296fe74b431eb774d7e0e9901ac56b08bd2"
     },
     {
       "path": "web/prototypes/visual-viewer/watch.py",
-      "sha256": "0e07a348647e8fe666411fc0dfc9cea48a50c6a9c6ae1427c2768e17b08e802b"
+      "sha256": "3a88e564bf1f9e991ce9ce2a6111cd331d8c4efc38557f9e7db3894be6739adc"
     },
     {
       "path": "web/prototypes/agent-office/README.md",
@@ -398,7 +398,7 @@
     },
     {
       "path": "web/prototypes/agent-office/factory.html",
-      "sha256": "c9f364873812aead4094a516c2b36ea0b2a30bd8cd18b7d2205de32c76da5761"
+      "sha256": "42e391ae98fc05872413ffc081046de9a5d91e8f829da30368a17ffa9dc5cd85"
     },
     {
       "path": "docs/contracts/judge-test.md",

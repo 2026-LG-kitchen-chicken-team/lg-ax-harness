@@ -111,7 +111,9 @@ class Observer:
                     completion = delivery.native_completion(self.paths, body)
             allow_open = completion["status"] in ("not_required", "native_completed")
             if not allow_open and self.delivered_signature == signature:
-                return {**(self.last_result or {}), "unchanged": True}
+                self.last_result = {**(self.last_result or {}), "status": completion["status"],
+                                    "native_end_observed": False}
+                return {**self.last_result, "unchanged": True}
             result = self.delivery.deliver(Path(latest.path), allow_open=allow_open)
             if result.get("status") == "ready":
                 self.delivered_signature = signature

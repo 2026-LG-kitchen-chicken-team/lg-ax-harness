@@ -62,6 +62,16 @@ test('quiet main work and a recovered tool error do not become failure, an input
  assert.equal(old.state,'connection');assert.notEqual(old.state,'input');
 });
 
+test('incomplete, cancelled and interrupted native endings cannot announce a ready plan',()=>{
+ for(const [detail,state] of [
+  [{response_status:'incomplete'},'failed'],[{response_status:'cancelled'},'cancelled'],
+  [{turn_status:'interrupted'},'cancelled'],[{interrupted:true},'cancelled'],
+ ]){
+  const status=plannerStatus({...ready,currentEvents:[event('turn_end',detail)]},work,office);
+  assert.equal(status.current,false);assert.equal(status.state,state);
+ }
+});
+
 test('a screen read failure keeps the recent plan available without declaring work failed or completed',()=>{
  const result=plannerStatus({...ready,connectionStatus:'error'},work,office);
  assert.equal(result.state,'connection');assert.equal(result.current,false);

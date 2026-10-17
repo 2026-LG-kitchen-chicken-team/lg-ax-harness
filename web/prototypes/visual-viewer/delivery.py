@@ -356,7 +356,8 @@ def native_completion(paths, body):
         if open_children:
             return {"status": "waiting_native_completion"}
         final_index = max(i for i,e in enumerate(selected) if e is terminal[-1])
-        if any(main(e) and e.get("kind") in ("request", "handback_delivered", "notification")
+        if any((main(e) and e.get("kind") in ("request", "handback_delivered", "notification"))
+               or (e.get("kind") == "subagent" and e.get("phase") in ("end", "fail"))
                for e in selected[final_index + 1:]):
             return {"status": "waiting_native_completion"}
         end_detail = terminal[-1].get("detail") or {}

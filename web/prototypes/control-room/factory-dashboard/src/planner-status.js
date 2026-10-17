@@ -3,7 +3,8 @@ import {sameBinding} from './office-records.js';
 const RESULT_URL='../visual-viewer/index.html';
 const main=e=>e.actor==='main'&&!e.agent_id;
 const terminal=e=>main(e)&&['turn_end','turn_cancelled','request','handback_delivered','notification'].includes(e.kind);
-const failures=new Set(['failed','error','timeout','timed_out']);
+const failures=new Set(['failed','error','timeout','timed_out','incomplete']);
+const cancellations=new Set(['cancelled','canceled','interrupted','stopped']);
 
 /** Human-facing projection of observed state. It never infers a percentage, ETA,
  * an input request from quiet time, or completion from the mere presence of a file. */
@@ -20,7 +21,9 @@ export function plannerStatus(view,work,office=null){
   !(view.spans||[]).some(s=>s.status==='open'&&events.some(e=>e.id===s.start?.id));
  const nativeStatus=marker?.detail?.response_status||marker?.detail?.turn_status;
  const business=['needs_input','awaiting_input','awaiting_approval'].includes(nativeStatus)?nativeStatus:db?.turn?.status||db?.request?.status;
- const cancelled=marker?.kind==='turn_cancelled'||view.activity?.state==='cancelled'||db?.cancelled===true||business==='cancelled';
+ const cancelled=marker?.kind==='turn_cancelled'||marker?.detail?.interrupted===true||
+  cancellations.has(marker?.detail?.response_status)||cancellations.has(marker?.detail?.turn_status)||
+  view.activity?.state==='cancelled'||db?.cancelled===true||business==='cancelled';
  const failed=failures.has(marker?.detail?.response_status)||failures.has(marker?.detail?.turn_status)||failures.has(business);
  const current=Boolean(view.connectionStatus==='connected'&&!replay&&joined&&ended&&!cancelled&&!failed&&business==='completed'&&delivery.business_status==='completed');
  const previous=Boolean(metadata&&(!delivery||delivery.display_ready===true));

@@ -85,7 +85,7 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual(self.settle(o)["status"], "waiting_native_completion")
         self.native_events(ending="turn_cancelled")
         result = o.tick()
-        self.assertNotEqual(result.get("status"), "ready")
+        self.assertEqual(result["status"], "native_cancelled")
         self.opener.assert_not_called()
 
     def test_continuation_after_parent_end_waits_for_new_end(self):
@@ -103,6 +103,9 @@ class ObserverTests(unittest.TestCase):
         path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
         self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
         events.append({**events[0], "kind": "subagent", "actor": "product_evidence_reviewer", "agent_id": "child-one", "phase": "end", "detail": {}})
+        path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+        self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "waiting_native_completion")
+        events.append({**events[0], "kind": "turn_end", "detail": {}})
         path.write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
         self.assertEqual(delivery.native_completion(hook.Paths(str(self.h.root)), fixture.export_of("microwave"))["status"], "native_completed")
 
