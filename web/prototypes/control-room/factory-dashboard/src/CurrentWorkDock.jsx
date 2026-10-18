@@ -1,5 +1,5 @@
 import React from 'react';
-import {Wrench,UserRound,ChevronRight,ChevronLeft,X,Activity,Link2} from 'lucide-react';
+import {Wrench,UserRound,ChevronRight,ChevronLeft,ChevronUp,X,Activity,Link2} from 'lucide-react';
 import {PRODUCT_SKILLS} from './skill-catalog.js';
 import './current-work-dock.css';
 const time=value=>value?new Date(value).toLocaleTimeString('ko-KR',{hour12:false}):'';
@@ -18,6 +18,6 @@ export default function CurrentWorkDock({summary,rooms,selected='overview',listO
    <section className="dock-next"><h3>다음 행동</h3><p>{summary.next}</p></section>
    {!summary.preview&&<div className="dock-buttons"><button onClick={onDetails}>전체 작업 기록</button>{!summary.live&&<button onClick={onConnect}><Link2 size={12}/>실제 연결</button>}</div>}
    {!summary.preview&&<details className="dock-raw"><summary>수신한 CLI 기록 펼치기</summary><p>관측기가 보낸 원문 필드예요. 명령 본문과 LLM 내부 생각은 전송되지 않아요.</p>{summary.raw.length?<pre>{summary.raw.map(e=>JSON.stringify(e,null,2)).join('\n')}</pre>:<p>아직 수신한 CLI 기록이 없어요.</p>}</details>}
-  </aside>:<button className="current-work-opener" onClick={onOpen}><Activity size={14}/>작업 상세</button>}
+  </aside>:<button className="current-work-opener" aria-label="지금 하는 일 열기" onClick={onOpen}><Activity size={14}/><span className="work-opener-wide">지금 하는 일</span><span className="work-opener-narrow">지금 하는 일 · 기록 보기</span><ChevronUp className="work-opener-chevron" size={14}/></button>}
  </>;
 }

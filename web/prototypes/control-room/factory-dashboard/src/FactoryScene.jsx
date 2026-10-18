@@ -272,7 +272,8 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       host.dataset.workshopArtwork=artState.ready?'ready':artState.error?'fallback':'loading';
       factory.environment.update({...desiredLayout,zones:currentShapes});
       const fitShapes={...currentShapes,...Object.fromEntries(Object.entries(desiredLayout.zones).map(([id,g])=>[id+'-target',g]))};
-      const fit=fitFactory(fitShapes,{width,height,panelWidth:currentPanelWidth+currentLeftInset,top:Math.max(width<600?82:68,(host.closest('.fullscreen-app')?.querySelector('.topbar')?.getBoundingClientRect().bottom||0)+10),bottom:Math.max(height<500?54:width<600?72:66,Number(dataRef.current.bottomInset)||0),artwork:artState.ready});
+      const reference=Boolean(host.closest('.reference-layout'));
+      const fit=fitFactory(fitShapes,{width,height,panelWidth:currentPanelWidth+currentLeftInset,top:Math.max(reference?(width<760?110:92):width<600?82:68,(host.closest('.fullscreen-app')?.querySelector('.topbar')?.getBoundingClientRect().bottom||0)+10),bottom:Math.max(reference?(width<760?74:22):height<500?54:width<600?72:66,Number(dataRef.current.bottomInset)||0),artwork:artState.ready});
       desiredTarget.set(fit.x,.35,fit.z);target.lerp(desiredTarget,smooth);
       currentExtent=fit.extent>currentExtent?fit.extent:currentExtent+(fit.extent-currentExtent)*smooth;
       camera.zoom=1;camera.left=-currentExtent*aspect;camera.right=currentExtent*aspect;camera.top=currentExtent;camera.bottom=-currentExtent;

@@ -12,7 +12,7 @@ export function fieldToWorld(u,v){const d=VIEW.rx*VIEW.dz-VIEW.rz*VIEW.dx;return
 // connects their work and is not counted as an extra Skill.
 const ROOM_SCALES={wide:[1.05,2,1.48,1.36,1.25,1.16,1.10],compact:[.96,1.25,1.18,1.12,1.08,1.04,1.00]};
 export function factoryLayout({width=1280,height=800,panelWidth=0,activeIds=[],roomIds=ZONE_IDS.slice(1)}={}){
- const available=Math.max(240,width-Math.max(0,panelWidth)),zoneIds=['overview',...ALL_ZONE_IDS.filter(id=>id!=='overview'&&roomIds.includes(id))],active=zoneIds.filter(id=>activeIds.includes(id)),compact=available<650,short=compact&&height<540&&available/height>1.22;
+ const available=Math.max(240,width-Math.max(0,panelWidth)),zoneIds=['overview',...ALL_ZONE_IDS.filter(id=>id!=='overview'&&roomIds.includes(id))],active=zoneIds.filter(id=>activeIds.includes(id)),compact=available<760,short=compact&&height<540&&available/height>1.22;
  const activeSkillCount=active.filter(id=>id!=='overview').length,roomScale=ROOM_SCALES[compact?'compact':'wide'][activeSkillCount];
  const idleScale=compact?(activeSkillCount>1?.60:activeSkillCount?.72:.96):(activeSkillCount>1?.52:activeSkillCount?.66:1.05);
  const plannerScale=active.includes('overview')?(activeSkillCount?.72:compact?1.22:1.65):(compact?.85:.82);
@@ -22,7 +22,7 @@ export function factoryLayout({width=1280,height=800,panelWidth=0,activeIds=[],r
    const v=id==='overview'?0:(Math.floor(index/columns)-(columns===3?.5:1))*(columns===3?12.5:12);
    return [id,{id,...fieldToWorld(u,v),active:active.includes(id),scale:id==='overview'?plannerScale:active.includes(id)?roomScale:idleScale}];
  }));
- return {zones,compact,short,columns,active,activeSkillCount};
+ return {zones,compact,short,columns,active,activeSkillCount,viewport:{width,height,available}};
 }
 export function fitFactory(zones,{width,height,panelWidth=0,top=76,bottom=72,artwork=false}={}){
  const availableWidth=Math.max(180,width-panelWidth-24),availableHeight=Math.max(140,height-top-bottom);

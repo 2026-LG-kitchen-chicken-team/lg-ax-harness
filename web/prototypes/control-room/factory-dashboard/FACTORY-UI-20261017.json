@@ -183,6 +183,11 @@
       "sha256": "a9a2f18465d03ea5b25be93dfa1fe5d0638c437fc1fb535fd53707527dc79624"
     },
     {
+      "path": "docs/RESPONSIVE-REFERENCE-20261018.md",
+      "bytes": 1993,
+      "sha256": "5005862f948be6ec4804b44111255838325a63195cfefcbe372fb51218f0f0df"
+    },
+    {
       "path": "docs/REVIEW-FIXES-20261018.md",
       "bytes": 5840,
       "sha256": "6fcc98d84afe93eb6bc68b28a965a08cc9a2083a8b8d6b61817989c5b59ab6db",
@@ -318,8 +323,8 @@
     },
     {
       "path": "src/CurrentWorkDock.jsx",
-      "bytes": 2999,
-      "sha256": "9eab5f1d9d1a1950113dc01a5a8aec98b679e82f835f3199eb425fbd21f27186",
+      "bytes": 3225,
+      "sha256": "8045eb2c84b8d41ef1f0296be40fe759525d3f324e96e7a765edc7dbbd5cafcc",
       "previous_source_sha256": "60462159f1a84ac4189205e3b2409bae00884d58fd2075455e2041b031c3c5db"
     },
     {
@@ -329,8 +334,8 @@
     },
     {
       "path": "src/FactoryScene.jsx",
-      "bytes": 41420,
-      "sha256": "35b893e7a6d291aacdd832f06b8fcebfdd98164415090439228ea5473f8fb76b",
+      "bytes": 41543,
+      "sha256": "9cccd39966bd8d2af3259f95a86cd8e12b7a384370ebf3f870c70d39a8f5e581",
       "previous_source_sha256": "9184c70ab8309e7fb96e1fd57871c3bd02a4ffc444d4157d53ead53ab92cbd0a"
     },
     {
@@ -352,8 +357,8 @@
     },
     {
       "path": "src/ReleaseDashboard.jsx",
-      "bytes": 25360,
-      "sha256": "cd6ae1b0f4c50a31daec494a78b15c65132fef75297ad4870d5aaa3fc9484c48",
+      "bytes": 25662,
+      "sha256": "2b2ed700bcf24416afb42168242977559c94077651a54e1fdc1242f4b55457f4",
       "approved_snapshot_sha256": "2435521c9d3521717205b0d7fda5cc2166f52fef5d78d62feee7e159860f5071",
       "previous_source_sha256": "a09d02a494b98d320ebe6f9d7af79ee498b0a169f8e55c959c9eb47b0a041ae2"
     },
@@ -435,8 +440,8 @@
     },
     {
       "path": "src/factory-layout.js",
-      "bytes": 6150,
-      "sha256": "e9f371d784f5976a40145495f497ec1d6e944179209899c231c4a726fb5ff47d",
+      "bytes": 6184,
+      "sha256": "5aa93e64328b7ed93bc85eff76e25bf9120acfeaa3a93a9ce9de2c5ea529261b",
       "previous_source_sha256": "3d2f0aa7c298645dbe0d13acd0c605b8c5246a7131311b01d91e0469af4305e1"
     },
     {
@@ -570,6 +575,11 @@
       "sha256": "eb220c4cf7f28f505ece5ef59dd6df315c7479c03226ffc114f5fade4a3eac61"
     },
     {
+      "path": "src/responsive-lab.css",
+      "bytes": 4757,
+      "sha256": "1d267bab3944a944978493bc1dfbcd114c5f3afb6ec7399cae6cbd6ff1192bb8"
+    },
+    {
       "path": "src/sample-data.js",
       "bytes": 6900,
       "sha256": "b9c00b9ce51aa1e4968595d5e4a9077e3a8cc87a8bcfd3da60de4154472f3ae0"
@@ -628,8 +638,8 @@
     },
     {
       "path": "src/workshop-composition.js",
-      "bytes": 620,
-      "sha256": "7a9816e120c79084c64de0dd726c749e79c11ce94e2b13f8a568e013a36c8519",
+      "bytes": 1248,
+      "sha256": "c397f7d6f1392ecc5a45724772ac8cafbe390e2389459ea0cb9dfca93832f706",
       "previous_source_sha256": "809573be67b8cb9df8dc6ad64bdb38c663fbd22c44fc7b512f69051d2f658e20"
     },
     {
@@ -700,7 +710,8 @@
     {
       "path": "tests/ordered-grid.test.mjs",
       "bytes": 2075,
-      "sha256": "45b5708c230b2b1b4e3a66f256d0c97b398f58a88abe5606cad1c806a9c2dc80"
+      "sha256": "5a977a99b425c5a4c50ebb731597535b9ddbdf95b4d735de2fd93100d9fec68b",
+      "previous_source_sha256": "45b5708c230b2b1b4e3a66f256d0c97b398f58a88abe5606cad1c806a9c2dc80"
     },
     {
       "path": "tests/planner.test.mjs",
@@ -736,8 +747,8 @@
     },
     {
       "path": "tests/workshop-composition.test.mjs",
-      "bytes": 2649,
-      "sha256": "ba270117376c41053c225bda617f260470c330372c03ee5ac35857b5d4875440",
+      "bytes": 3646,
+      "sha256": "bda9c53556aa3419eddf4b4df756558240c65452d168b752c16b38dde85eff4b",
       "previous_source_sha256": "77951bf4a53d66ec09030e730cc40260c6639b056c99143e500cd59d5de94c53"
     },
     {
@@ -761,12 +772,13 @@
     "README.md",
     "docs/CLI-TESTING.md",
     "docs/VALIDATION-20261017.md",
-    "docs/REVIEW-FIXES-20261018.md"
+    "docs/REVIEW-FIXES-20261018.md",
+    "docs/RESPONSIVE-REFERENCE-20261018.md"
   ],
   "generated": {
     "path": "web/prototypes/agent-office/factory.html",
-    "bytes": 16924226,
-    "sha256": "ff9cabc4d9e863ab179518796483f3de23f21332c1cdef22a6daf21896704141"
+    "bytes": 16929718,
+    "sha256": "a634c2eea82cd85a0089bd930e7109acaf9b7877e4fe3dc173db488228fdc3e3"
   },
   "public_connection_wip_included": false,
   "actual_cli_business_run": "not_run",
@@ -914,5 +926,14 @@
       "claude",
       "codex"
     ]
+  },
+  "responsive_reference_20261018": {
+    "base_commit": "3e9eb5dd141bfed5e696485d1fc601bd731a2d9d",
+    "doc": "docs/RESPONSIVE-REFERENCE-20261018.md",
+    "wide": "3 columns x 2 rows",
+    "narrow": "2 columns x 3 rows",
+    "artwork_changed": false,
+    "model_or_business_cli_run": "not_run",
+    "public_site_changed": false
   }
 }
