@@ -382,15 +382,15 @@
     },
     {
       "path": "web/prototypes/agent-office/office.py",
-      "sha256": "d8b8d6b29644490394e99f881bc217a0783a138ee694362f77c2c19f73658466"
+      "sha256": "6d3921a5ed786355f8819f34173ff19f73452912753f5260df6d84a404863f69"
     },
     {
       "path": "web/prototypes/agent-office/observe.py",
-      "sha256": "1e0b22b9d2851aab9f1ee970ebf401b3555ef10c745edd2998ec06ae28769b76"
+      "sha256": "142f13dee679bb6891bffd50a97f3c5b1fbdec2b8a4fbb17494d869d3b5cc983"
     },
     {
       "path": "web/prototypes/agent-office/codex_follow.py",
-      "sha256": "82ce95b176c97e024fcd6283e1494d831a94f76da9c0221f33bff8543b842976"
+      "sha256": "6fe5496499012330b0714510b96db4444dd1b1ef9f845c9fea8c687e004aef3b"
     },
     {
       "path": "web/prototypes/agent-office/index.html",
@@ -398,7 +398,7 @@
     },
     {
       "path": "web/prototypes/agent-office/factory.html",
-      "sha256": "c6bf7e19ca7932b451259475bbe5cf4f8be040c5af85dad30a94cf69ac63a044"
+      "sha256": "ff9cabc4d9e863ab179518796483f3de23f21332c1cdef22a6daf21896704141"
     },
     {
       "path": "docs/contracts/judge-test.md",

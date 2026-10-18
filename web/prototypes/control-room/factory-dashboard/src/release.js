@@ -11,8 +11,8 @@ const ROLES = new Map(RELEASE_ROLES.map(role => [role.id, role]));
 const NODES = Object.fromEntries(RELEASE_SKILLS.map(s=>[s.node,s.label]));
 const ACTORS = new Set(['main', ...ROLES.keys(), 'other_subagent', 'unknown_subagent']);
 const EVENT_NODES = new Set([...ACTORS, ...SKILLS.keys(), 'unknown_skill']);
-const KINDS = new Set(['lifecycle', 'tool', 'delegate', 'handback', 'handback_delivered', 'notification', 'request', 'subagent', 'skill_op', 'skill_load', 'shell', 'file', 'web', 'turn_cancelled', 'turn_end', 'session']);
-const HOOKS = new Set(['PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'UserPromptSubmit', 'Stop', 'SubagentStart', 'SubagentStop', 'SessionStart', 'SessionEnd']);
+const KINDS = new Set(['lifecycle', 'tool', 'delegate', 'handback', 'handback_delivered', 'notification', 'permission', 'request', 'subagent', 'skill_op', 'skill_load', 'shell', 'file', 'web', 'turn_cancelled', 'turn_end', 'session']);
+const HOOKS = new Set(['PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'UserPromptSubmit', 'Stop', 'SubagentStart', 'SubagentStop', 'SessionStart', 'SessionEnd', 'PermissionRequest', 'Notification']);
 const AREAS = new Set(['exports', 'web_evidence', 'catalogs', 'deliverables', 'conversation', 'runtime', 'skills', 'agents', 'docs', 'data', 'tools', 'web', 'outside', 'harness']);
 const PROGRAMS = new Set(['ls', 'dir', 'cat', 'type', 'head', 'tail', 'find', 'grep', 'rg', 'wc', 'pwd', 'cd', 'echo', 'mkdir', 'cp', 'mv', 'rm', 'python', 'python3', 'py', 'uv', 'git', 'sed', 'awk', 'jq', 'curl', 'wget', 'sort', 'uniq', 'node', 'npm', 'npx', 'get-childitem', 'get-content', 'set-location', 'test-path', 'select-string', 'new-item', 'remove-item', 'copy-item', 'move-item', 'invoke-webrequest', 'out-file', 'set-content', 'get-item', 'write-output', 'measure-object', 'product_doctor', 'other']);
 const DEFAULTS = Object.freeze({ pollMs: 2000, timeoutMs: 8000, staleMs: 20000, sourceStaleMs: 120000, freshnessMs: 1000 });
@@ -54,8 +54,8 @@ function details(value) {
   for (const key of ['interrupted', 'background', 'accepted', 'other_skill_operation']) if (raw[key] != null) out[key] = boolean(raw[key], `detail.${key}`);
   if (raw.duration_ms != null) { if (typeof raw.duration_ms !== 'number' || !Number.isFinite(raw.duration_ms) || raw.duration_ms < 0) invalid('duration_ms'); out.duration_ms = raw.duration_ms; }
   if (raw.exit_code != null) { if (!Number.isSafeInteger(raw.exit_code)) invalid('exit_code'); out.exit_code = raw.exit_code; }
-  for (const key of ['result_version', 'revision_count']) if (raw[key] != null) out[key] = integer(raw[key], key, key === 'revision_count' ? 2 : 3);
-  for (const key of ['reason', 'error', 'turn_status', 'response_status', 'launched_agent_id', 'from_agent_id']) if (raw[key] != null) out[key] = id(raw[key], `detail.${key}`, false);
+  for (const key of ['result_version', 'revision_count', 'mapping_version']) if (raw[key] != null) out[key] = integer(raw[key], key, key === 'revision_count'||key==='mapping_version' ? 2 : 3);
+  for (const key of ['reason', 'error', 'turn_status', 'response_status', 'launched_agent_id', 'from_agent_id', 'background_task_id', 'task_status']) if (raw[key] != null) out[key] = id(raw[key], `detail.${key}`, false);
   if (raw.host != null) { if (typeof raw.host !== 'string' || raw.host.length > 253 || !/^[A-Za-z0-9.:-]+$/.test(raw.host)) invalid('host'); out.host = raw.host; }
   if (raw.area != null) out.area = option(raw.area, AREAS, 'detail.area');
   if (raw.skill != null) out.skill = option(raw.skill, new Set(SKILLS.keys()), 'detail.skill');
@@ -130,48 +130,76 @@ const callKey = event => [event.src, event.session, event.prompt_id || '', event
 function labelFor(event) {
   const skill = SKILLS.get(event.node), role = ROLES.get(event.node) || ROLES.get(event.actor);
   if (instructionOnly(event)) return event.kind==='skill_load' ? `${skill?.label || '미확인 Skill'} 지침 파일 조회 관측` : '작업 설명서 조회 · 조회한 본문은 기록에 미제공';
-  if (event.kind === 'skill_op') return workSkills(event).map(id=>SKILLS.get(id).label).join(' · ')+' · '+(skillOperation(event.op)?.label||'작업 명령')+' · '+(event.detail.reason==='native_result_unconfirmed'?'종료 결과 확인 필요':event.detail.interrupted?'취소':{start:'호출 중',end:'완료',fail:'실패'}[event.phase]||'관측');
+  if (event.kind === 'skill_op') return workSkills(event).map(id=>SKILLS.get(id).label).join(' · ')+' · '+(skillOperation(event.op)?.label||'작업 명령')+' · '+(event.detail.reason==='native_result_unconfirmed'?'종료 결과 확인 필요':event.detail.interrupted?'취소':event.detail.turn_status==='held'?'보류 결과 저장':{start:'호출 중',end:'완료',fail:'실패'}[event.phase]||'관측');
   if (event.kind === 'delegate') return `${role?.label || '기타 역할'} 위임 호출 관측${event.detail.background ? ' · 비동기 시작 응답' : ''}`;
   if (event.kind === 'subagent') return `${role?.label || '기타 하위 에이전트'} ${event.phase === 'start' ? '시작' : '종료'} 관측`;
   if (event.kind === 'turn_cancelled') return '네이티브 turn 취소 관측 · Tool 종료 결과는 별도 확인';
+  if (event.kind === 'permission') return 'CLI에서 명령 실행 승인을 기다리고 있어요';
   if (event.kind === 'turn_end') return '메인 최종 응답 종료 관측';
   if (event.kind === 'request') return '네이티브 요청 접수 관측';
   if (event.kind === 'web') return `웹 Tool 관측${event.detail.host ? ` · ${event.detail.host}` : ''}`;
-  if (event.kind === 'shell') return '일반 코드·셸 Tool 관측 · Skill 호출과 구분';
-  if (event.kind === 'file') return '파일 Tool 관측';
+  if (event.kind === 'shell') return event.phase==='start'?'로컬 명령을 실행하고 있어요':'로컬 명령의 결과를 받았어요';
+  if (event.kind === 'file') return event.phase==='start'?'파일을 읽거나 정리하고 있어요':'파일 도구의 결과를 받았어요';
   if (event.kind === 'handback' || event.kind === 'handback_delivered') return '하위 에이전트 반환 전달 관측';
-  if (event.kind === 'tool') return `${event.tool || '네이티브 Tool'} 호출 관측`;
+  if (event.kind === 'tool') return /browser|playwright|cua/i.test(event.tool||'')?'브라우저에서 자료를 확인하고 있어요':/search|fetch|web/i.test(event.tool||'')?'자료를 검색하거나 원문을 열고 있어요':'작업 도구를 사용한 기록을 받았어요';
   return '네이티브 세션 사건 관측';
 }
 function spansFor(events) {
-  // Async hooks can record a call's end a few milliseconds before its start; that start is then already closed.
-  const spans = [], pending = new Map(), cancelled = new Map(), endedFirst = new Map();
-  const turnKey = event => JSON.stringify([event.session, event.prompt_id]);
-  for (const event of events) {
-    if (mainEvent(event) && ['turn_cancelled', 'turn_end'].includes(event.kind) || event.kind === 'session' && event.phase === 'end') {
-      const cancellation = event.kind === 'turn_cancelled';
-      if (cancellation) cancelled.set(turnKey(event), Date.parse(event.ts));
-      for (const span of pending.values()) {
-        if (span.status !== 'open') continue;
-        const sameTurn = span.start.prompt_id === event.prompt_id;
-        if (event.kind === 'session' || (mainEvent(span.start) && sameTurn)) { span.status = cancellation ? 'cancelled' : 'unknown'; span.closedBy = event.id; span.endedAt = event.ts; span.resultKnown = false; }
+  const spans=[],pending=new Map(),cancelled=new Map(),endedFirst=new Map(),background=new Map(),taskEnds=new Map();
+  const turnKey=e=>JSON.stringify([e.session,e.prompt_id]);
+  const taskKey=e=>JSON.stringify([e.session,e.detail.background_task_id]);
+  const terminal=(span,event)=>{
+    if(span.status==='cancelled'){span.lateEnd=event;return;}
+    span.end=event;span.endedAt=event.ts;
+    span.status=event.detail.reason==='native_result_unconfirmed'?'unknown':event.detail.interrupted||event.detail.task_status==='cancelled'?'cancelled':event.phase==='fail'||event.detail.task_status==='failed'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0?'failed':event.detail.accepted===false?'rejected':event.detail.turn_status==='held'?'held':'completed';
+    span.resultKnown=!['unknown','cancelled'].includes(span.status);
+  };
+  for(const event of events){
+    if(event.detail.background_task_id&&['completed','failed','cancelled'].includes(event.detail.task_status)){
+      taskEnds.set(taskKey(event),event);
+      const span=background.get(taskKey(event));if(span)terminal(span,event);
+    }
+    if(event.kind==='permission'){
+      const candidates=[...pending.values()].filter(s=>s.status==='open'&&!s.background&&s.start.src===event.src&&s.start.session===event.session&&s.start.prompt_id===event.prompt_id&&s.start.actor===event.actor&&s.start.agent_id===event.agent_id&&(!event.tool||s.start.tool===event.tool)&&(!event.call||s.start.call===event.call));
+      if(candidates.length===1){candidates[0].status='awaiting';candidates[0].permission=event;}
+      continue;
+    }
+    if(mainEvent(event)&&['turn_cancelled','turn_end'].includes(event.kind)||event.kind==='session'&&event.phase==='end'){
+      const cancellation=event.kind==='turn_cancelled';if(cancellation)cancelled.set(turnKey(event),Date.parse(event.ts));
+      for(const span of pending.values()){
+        if(!['open','awaiting'].includes(span.status))continue;
+        const sameTurn=span.start.prompt_id===event.prompt_id;
+        if(event.kind==='session'||mainEvent(span.start)&&sameTurn&&(cancellation||!span.background)){
+          span.status=cancellation?'cancelled':'unknown';span.closedBy=event.id;span.endedAt=event.ts;span.resultKnown=false;
+        }
       }
       continue;
     }
-    if(event.kind==='subagent'&&['end','fail'].includes(event.phase)&&event.agent_id){for(const span of pending.values())if(span.status==='open'&&span.start.kind!=='subagent'&&span.start.agent_id===event.agent_id){span.status='unknown';span.endedAt=event.ts;span.closedBy=event.id;span.resultKnown=false;}}
-    if (!['start', 'end', 'fail'].includes(event.phase) || event.kind === 'session') continue;
-    const key = event.kind === 'subagent' ? `role|${event.session}|${event.agent_id || `unpaired:${event.id}`}` : callKey(event);
-    if (event.phase === 'start') {
-      if (endedFirst.has(key)) { const span = endedFirst.get(key); endedFirst.delete(key); Object.assign(span, { id: event.id, start: event, startUnobserved: false }); }
-      else if (!pending.has(key)) { const span = { id: event.id, key, start: event, end: null, status: 'open', resultKnown: false, endedAt: null, closedBy: null }; pending.set(key, span); spans.push(span); }
-    } else {
-      const span = pending.get(key);
-      const cancelledAt = cancelled.get(turnKey(event));
-      const cancelledBeforeEnd = cancelledAt != null && (!span || Date.parse(span.start.ts) <= cancelledAt);
-      if (span) {
-        if (span.status === 'cancelled' || cancelledBeforeEnd) { span.lateEnd = event; continue; }
-        span.end = event; span.endedAt = event.ts; span.status = event.detail.reason==='native_result_unconfirmed'?'unknown':event.detail.interrupted?'cancelled':event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed'; span.resultKnown = !['unknown','cancelled'].includes(span.status);
-      } else { const early = { id: event.id, key, start: event, end: event, status: cancelledBeforeEnd||event.detail.interrupted ? 'cancelled' : event.detail.reason==='native_result_unconfirmed'?'unknown':event.phase === 'fail'||Number.isSafeInteger(event.detail.exit_code)&&event.detail.exit_code!==0 ? 'failed' : event.detail.accepted === false ? 'rejected' : 'completed', resultKnown: !cancelledBeforeEnd&&!event.detail.interrupted&&event.detail.reason!=='native_result_unconfirmed', endedAt: event.ts, startUnobserved: true }; spans.push(early); if (event.call) endedFirst.set(key, early); }
+    if(event.kind==='subagent'&&['end','fail'].includes(event.phase)&&event.agent_id){
+      for(const span of pending.values())if(['open','awaiting'].includes(span.status)&&span.start.kind!=='subagent'&&span.start.agent_id===event.agent_id){span.status='unknown';span.endedAt=event.ts;span.closedBy=event.id;span.resultKnown=false;}
+    }
+    if(!['start','end','fail'].includes(event.phase)||event.kind==='session')continue;
+    const key=event.kind==='subagent'?`role|${event.session}|${event.agent_id||`unpaired:${event.id}`}`:callKey(event);
+    if(event.phase==='start'){
+      if(endedFirst.has(key)){const span=endedFirst.get(key);endedFirst.delete(key);Object.assign(span,{id:event.id,start:event,startUnobserved:false});}
+      else if(pending.has(key)&&pending.get(key).startUnobserved){Object.assign(pending.get(key),{id:event.id,start:event,startUnobserved:false});}
+      else if(!pending.has(key)){const span={id:event.id,key,start:event,end:null,status:'open',resultKnown:false,endedAt:null,closedBy:null};pending.set(key,span);spans.push(span);}
+      continue;
+    }
+    let span=pending.get(key);
+    if(event.detail.background&&event.kind!=='delegate'&&event.phase==='end'){
+      if(!span){span={id:event.id,key,start:event,end:null,status:'open',resultKnown:false,endedAt:null,startUnobserved:true};pending.set(key,span);spans.push(span);}
+      if(span.status==='cancelled')continue;
+      span.background=true;span.launch=event;span.status='open';
+      if(event.detail.background_task_id){background.set(taskKey(event),span);const done=taskEnds.get(taskKey(event));if(done)terminal(span,done);}
+      continue;
+    }
+    const cancelledAt=cancelled.get(turnKey(event)),cancelledBeforeEnd=cancelledAt!=null&&(!span||Date.parse(span.start.ts)<=cancelledAt);
+    if(span){if(cancelledBeforeEnd){span.lateEnd=event;continue;}terminal(span,event);}
+    else{
+      span={id:event.id,key,start:event,end:event,status:'open',resultKnown:false,endedAt:event.ts,startUnobserved:true};
+      if(cancelledBeforeEnd){span.status='cancelled';}else terminal(span,event);
+      spans.push(span);if(event.call)endedFirst.set(key,span);
     }
   }
   return spans;
@@ -252,6 +280,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   const activeSpans = observationFresh && !latestMainCancelled ? spans.filter(span => span.status === 'open' && currentIds.has(span.start.id) && span.start.kind !== 'skill_load') : [];
   const activeSkills = [...new Set(activeSpans.filter(span => skillWorkEvent(span.start)).flatMap(span=>workSkills(span.start)))];
   const activeNodes = [...new Set(activeSkills.map(skill => SKILLS.get(skill).node))];
+  const awaiting=spans.some(span=>span.status==='awaiting'&&currentIds.has(span.start.id));
   const nativeTerminal=['turn_cancelled','turn_end'].includes(turnMarker?.kind);
   const activityInput=nativeTerminal&&data?.activity?{...data.activity,state:turnMarker.kind==='turn_cancelled'?'cancelled':'finished',reported_stage:null,last_event_at:turnMarker.ts}:data?.activity;
   const activity=activityPresentation(activityInput,sessionId,promptId,connected,nowMs);
@@ -267,8 +296,8 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
     const operations = related.filter(event => workSkills(event).includes(skill.id)), relevantSpans = spans.filter(span => currentIds.has(span.start.id)&&workSkills(span.start).includes(skill.id));
     const instructionSpans=spans.filter(span=>currentIds.has(span.start.id)&&instructionSkills(span.start).includes(skill.id)),lastInstruction=instructionSpans.at(-1);
     const latest = relevantSpans.at(-1), active = activeSkills.includes(skill.id), loaded = instructionSpans.some(span=>span.status==='completed')||related.some(event=>instructionSkills(event).includes(skill.id)&&event.phase==='point')||Boolean(activity?.skill_reads.some(r=>r.id===skill.id));
-    const status = active ? 'running' : latest?.status === 'failed' ? 'failed' : latest?.status === 'rejected' ? 'review' : latest?.status === 'cancelled' ? 'cancelled' : latest?.status === 'completed' ? 'completed' : operations.length ? 'unknown' : lastInstruction?.status==='open'?'reading':lastInstruction?.status==='failed'?'instruction_error':loaded ? 'loaded' : 'idle';
-    const statusLabel = { running: 'Skill 명령 진행', failed: 'Skill 명령 실패', review: '저장 확인 필요', cancelled: '취소 · 종료 결과 미확인', completed: 'Skill 명령 완료', unknown: '명령 종료 미확인', loaded: '지침 조회 확인', reading:'지침 확인 중', instruction_error:'지침 조회 실패', idle: '실행 기록 없음' }[status];
+    const status = active ? 'running' : latest?.status === 'awaiting' ? 'awaiting' : latest?.status === 'held' ? 'held' : latest?.status === 'failed' ? 'failed' : latest?.status === 'rejected' ? 'review' : latest?.status === 'cancelled' ? 'cancelled' : latest?.status === 'completed' ? 'completed' : operations.length ? 'unknown' : lastInstruction?.status==='open'?'reading':lastInstruction?.status==='failed'?'instruction_error':loaded ? 'loaded' : 'idle';
+    const statusLabel = { running: 'Skill 명령 진행', awaiting:'CLI 승인 대기', held:'보류 결과 저장', failed: 'Skill 명령 실패', review: '저장 확인 필요', cancelled: '취소 · 종료 결과 미확인', completed: 'Skill 명령 완료', unknown: '명령 종료 미확인', loaded: '지침 조회 확인', reading:'지침 확인 중', instruction_error:'지침 조회 실패', idle: '실행 기록 없음' }[status];
     const read=activity?.skill_reads.find(r=>r.id===skill.id);
     const displayEvents=read&&!related.some(e=>e.kind==='skill_load')?[...related,{id:'read-'+skill.id,ts:read.time,time:read.time,kind:'skill_load',node:skill.id,actor:'main',phase:'end',basis:'command_result',message:skill.label+' 지침 조회 명령 완료'}]:related;
     return { ...skill, used: related.length > 0||loaded, instructionLoaded: loaded, operationObserved: operations.length > 0, status, statusLabel, active, events: displayEvents, lastEventAt: displayEvents.at(-1)?.ts || null, basis: operations.length ? 'command_based_mapping' : loaded ? 'instruction_loaded' : null, task: related.length ? labelFor(related.at(-1)) : loaded?'지침 조회 명령 확인 · Skill 업무 실행 대기':'실제 Skill 실행 기록이 아직 없습니다.' };
@@ -310,6 +339,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   else if (connectionStatus === 'error' || !data) header = { state: 'error', text: '릴리즈 관찰 연결 확인 필요', detail: connection.error || '관찰 데이터를 읽지 못했습니다.' };
   else if (!events.length || data.source.observer_status === 'waiting_for_session') header = { state: 'waiting', text: `릴리즈 연결됨 · ${data.source.engine === 'codex' ? 'Codex' : 'Claude Code'} 세션 대기`, detail: '실제 사용 사건이 기록되면 표시합니다. 가상 사건을 만들지 않습니다.' };
   else if (latestMainCancelled) header = { state: 'cancelled', text: '네이티브 turn 취소 관측', detail: '열린 Tool의 종료 결과와 원격 프로세스 종료는 별도 확인이 필요합니다.' };
+  else if (awaiting) header = { state:'awaiting',text:'CLI에서 명령 실행 승인을 기다리고 있어요',detail:'CLI의 권한 요청을 확인하고 허용 또는 거절을 선택하세요. 승인을 대신 결정하지 않습니다.' };
   else if (!latestActive && turnOpen) header = { state: 'active', text: ANALYSIS_NODES.some(node => nodes[node].status === 'analysis') ? '분석 구간 · 메인 기획자 직접 작성' : '메인 기획자 작업 중 · 진행 중인 도구 호출 없음', detail: '질문 접수(또는 하위 역할 결과 전달) 뒤 최종 응답 전입니다. 훅 기록이며 모델 내부 상태를 뜻하지 않습니다.' };
   else if (latestActive) header = { state: 'active', text: labelFor(latestActive), detail: latestActive.kind === 'skill_op' ? '명령 경로에 따른 Tool 관찰입니다. Skill의 의미 판단이나 성공을 자동 인증하지 않습니다.' : '네이티브 사건을 관측한 범위이며 모델 내부 상태를 뜻하지 않습니다.' };
   else if (turnMarker?.kind === 'turn_end') header = { state: 'recorded', text: '메인 최종 응답 종료 관측', detail: '데이터 저장·원문 의미 승인·전체 프로세스 종료와 구분합니다.' };
@@ -317,6 +347,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
   if(activity&&connected){header={state:activity.working?'active':activity.state==='cancelled'?'cancelled':'recorded',text:activity.text,detail:activity.current?'네이티브 Tool 호출의 시작과 종료 기록입니다. Skill 명령은 실제 실행 경로와 작업 이름을 대조합니다.':activity.reported?'CLI의 공개 진행 보고입니다. 실제 Skill 명령 호출 기록과 구분합니다.':'선택한 네이티브 요청의 시작·완료와 명령 결과를 표시합니다.'};}
   nextAction = connectionStatus === 'disconnected' || connectionStatus === 'error' ? '로컬 관찰 읽기 서버 주소와 Bearer 키로 연결하세요.' : connectionStatus === 'stale' ? '읽기 연결을 확인하고 상태를 다시 읽으세요.' : !events.length ? '관찰기가 설치 제품의 실제 네이티브 세션을 기록할 때까지 기다리세요.' : 'Skill·역할의 실제 기록과 현재 버전의 저장 결과를 확인하세요.';
   if(activity&&connected)nextAction=activity.next;
+  if(awaiting&&connected)nextAction='CLI의 권한 요청에서 명령을 확인한 뒤 허용 또는 거절을 선택하세요.';
   // The file view reads observer files beside the page; it has no release server to connect to.
   const origin = data?.source.origin || connection.origin || 'release_server';
   if (origin !== 'release_server') {
@@ -326,7 +357,7 @@ export function deriveReleaseView(snapshot, connection = {}, nowMs = Date.now())
     if (['disconnected', 'error', 'stale'].includes(connectionStatus)) nextAction = '이 화면이 하네스의 runtime-data/agent-office 폴더에서 열렸는지, 옆에 live.js가 있는지 확인하세요. 자동으로 다시 읽습니다.';
     else if (!events.length) nextAction = replay ? '다른 세션이나 기록 파일을 고르세요.' : '이 하네스 폴더에서 Claude Code로 질문하거나, Codex는 관찰 창을 켠 뒤 질문하세요. 기록이 생기면 바로 표시합니다.';
   }
-  return freeze({ readonly: true, sourceMode: 'release', origin, release: data?.source.release || null, activity, mainActive:Boolean(connected&&observationFresh&&!latestMainCancelled&&(activity?activity.working:turnOpen)), header, nextAction, connectionStatus, nodes, activeNodes, activeSkills, skills: usedSkills, roles, agents, unboundAgents, instructionQuery, currentEvents, actors: [...new Set(currentEvents.map(event => event.actor))].filter(actor => actor === 'main' || ROLES.has(actor)), recentEvents:activity?activity.actions.slice(-3).reverse():recentEvents, events, spans, sessionId, promptId, promptIds: [...promptIds], product, bindingState, binding: boundDb?.binding || null, database: boundDb, counts, lastEventAt, sourceAgeSeconds: data?.source.source_updated_at ? Math.max(0, (nowMs - Date.parse(data.source.source_updated_at)) / 1000) : null, observationFresh: Boolean(observationFresh), notices: data?.notices || [] });
+  return freeze({ readonly: true, sourceMode: 'release', origin, release: data?.source.release || null, activity, awaiting, mainActive:Boolean(connected&&observationFresh&&!latestMainCancelled&&(!awaiting||activeSpans.length)&&(activity?activity.working:turnOpen)), header, nextAction, connectionStatus, nodes, activeNodes, activeSkills, skills: usedSkills, roles, agents, unboundAgents, instructionQuery, currentEvents, actors: [...new Set(currentEvents.map(event => event.actor))].filter(actor => actor === 'main' || ROLES.has(actor)), recentEvents:activity?activity.actions.slice(-3).reverse():recentEvents, events, spans, sessionId, promptId, promptIds: [...promptIds], product, bindingState, binding: boundDb?.binding || null, database: boundDb, counts, lastEventAt, sourceAgeSeconds: data?.source.source_updated_at ? Math.max(0, (nowMs - Date.parse(data.source.source_updated_at)) / 1000) : null, observationFresh: Boolean(observationFresh), notices: data?.notices || [] });
 }
 
 function endpointFor(value) {
@@ -338,13 +369,14 @@ function endpointFor(value) {
 
 export class ReleaseStore {
   #state; #listeners = new Set(); #token = ''; #endpoint = ''; #fetch; #clock; #setTimer; #clearTimer; #Abort;
-  #pollTimer = null; #freshnessTimer = null; #controller = null; #generation = 0; #request = 0; #options;
+  #pollTimer = null; #freshnessTimer = null; #controller = null; #generation = 0; #request = 0; #options; #renewToken;
   constructor(options = {}) {
     this.#fetch = options.fetchImpl || globalThis.fetch?.bind(globalThis);
     this.#clock = options.clock || (() => Date.now());
     this.#setTimer = options.setTimer || globalThis.setTimeout.bind(globalThis);
     this.#clearTimer = options.clearTimer || globalThis.clearTimeout.bind(globalThis);
     this.#Abort = options.AbortControllerImpl || globalThis.AbortController;
+    this.#renewToken = typeof options.renewToken==='function'?options.renewToken:null;
     this.#options = { ...DEFAULTS };
     for (const name of Object.keys(DEFAULTS)) if (options[name] != null) { const value = options[name]; if (!Number.isFinite(value) || value < 1 || value > 3600000) throw new ReleaseError('option', '읽기 연결 시간 설정이 맞지 않습니다.'); this.#options[name] = value; }
     const connection = { status: 'disconnected', url: '', lastReceivedAt: null, error: null, staleAfterMs: this.#options.staleMs, sourceStaleAfterMs: this.#options.sourceStaleMs };
@@ -400,7 +432,14 @@ export class ReleaseStore {
       const timeout = new Promise((_, reject) => { timer = this.#setTimer(() => { reject(new ReleaseError('timeout', '하네스 읽기 응답 시간이 초과되었습니다.')); controller.abort(); }, this.#options.timeoutMs); });
       const cancelled = new Promise((_, reject) => controller.signal.addEventListener('abort', () => reject(new ReleaseError('cancelled', '이전 읽기 요청을 취소했습니다.')), { once: true }));
       const read = (async () => {
-        const response = await this.#fetch(this.#endpoint, { method: 'GET', headers, cache: 'no-store', credentials: 'omit', redirect: 'error', signal: controller.signal });
+        const requestSnapshot=()=>this.#fetch(this.#endpoint, { method: 'GET', headers, cache: 'no-store', credentials: 'omit', redirect: 'error', signal: controller.signal });
+        let response=await requestSnapshot();
+        if(response?.status===401&&this.#renewToken){
+          const next=await this.#renewToken(new URL(this.#endpoint).origin,{signal:controller.signal});
+          if(stillCurrent()&&typeof next==='string'&&/^[A-Za-z0-9_-]{32,128}$/.test(next)){
+            this.#token=next;headers.Authorization='Bearer '+next;response=await requestSnapshot();
+          }
+        }
         if (!response?.ok) throw new ReleaseError('http', response?.status === 401 || response?.status === 403 ? '하네스 읽기 인증을 확인해 주세요.' : '하네스 읽기 응답을 받지 못했습니다.');
         return normalizeReleaseSnapshot(await response.json());
       })();

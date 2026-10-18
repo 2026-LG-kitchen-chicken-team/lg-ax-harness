@@ -5,8 +5,8 @@ const SKILLS=new Set(['evidence-retrieval','web-evidence-collection','needs-stru
 const ACTORS=new Set(['main','product_official_researcher','product_review_researcher','product_evidence_reviewer','other_subagent','unknown_subagent']);
 const ROLE_IDS=['product_official_researcher','product_review_researcher','product_evidence_reviewer'];
 const NODES=new Set([...ACTORS,...SKILLS,'unknown_skill']);
-const KINDS=new Set(['lifecycle','tool','delegate','handback','handback_delivered','notification','request','subagent','skill_op','skill_load','shell','file','web','turn_cancelled','turn_end','session']);
-const HOOKS=new Set(['PreToolUse','PostToolUse','PostToolUseFailure','UserPromptSubmit','Stop','SubagentStart','SubagentStop','SessionStart','SessionEnd']);
+const KINDS=new Set(['lifecycle','tool','delegate','handback','handback_delivered','notification','permission','request','subagent','skill_op','skill_load','shell','file','web','turn_cancelled','turn_end','session']);
+const HOOKS=new Set(['PreToolUse','PostToolUse','PostToolUseFailure','UserPromptSubmit','Stop','SubagentStart','SubagentStop','SessionStart','SessionEnd','PermissionRequest','Notification']);
 const PHASES=new Set(['start','end','fail','point']),BASES=new Set(['observed','instruction_loaded','command_based_mapping']),TS_BASES=new Set(['hook_received','codex_log','reader_received']);
 const AREAS=new Set(['exports','web_evidence','catalogs','deliverables','conversation','runtime','skills','agents','docs','data','tools','web','outside','harness']);
 const PROGRAMS=new Set(['ls','dir','cat','type','head','tail','find','grep','rg','wc','pwd','cd','echo','mkdir','cp','mv','rm','python','python3','py','uv','git','sed','awk','jq','curl','wget','sort','uniq','node','npm','npx','get-childitem','get-content','set-location','test-path','select-string','new-item','remove-item','copy-item','move-item','invoke-webrequest','out-file','set-content','get-item','write-output','measure-object','product_doctor','product-doctor.py','other']);
@@ -35,10 +35,10 @@ function safeDetail(raw){
   const out={};if(!raw||typeof raw!=='object')return out;
   for(const key of ['interrupted','background','accepted','other_skill_operation'])if(typeof raw[key]==='boolean')out[key]=raw[key];
   if(typeof raw.duration_ms==='number'&&Number.isFinite(raw.duration_ms)&&raw.duration_ms>=0)out.duration_ms=raw.duration_ms;
-  for(const key of ['result_version','revision_count']){const limit=key==='revision_count'?2:3;if(Number.isSafeInteger(raw[key])&&raw[key]>=0&&raw[key]<=limit)out[key]=raw[key];}
+  for(const key of ['result_version','revision_count','mapping_version']){const limit=key==='revision_count'||key==='mapping_version'?2:3;if(Number.isSafeInteger(raw[key])&&raw[key]>=0&&raw[key]<=limit)out[key]=raw[key];}
   if(Number.isSafeInteger(raw.exit_code))out.exit_code=raw.exit_code;
-  for(const key of ['reason','error','turn_status','response_status']){const value=codeToken(raw[key]);if(value)out[key]=value;}
-  for(const key of ['launched_agent_id','from_agent_id']){const value=idToken(raw[key]);if(value)out[key]=value;}
+  for(const key of ['reason','error','turn_status','response_status','task_status']){const value=codeToken(raw[key]);if(value)out[key]=value;}
+  for(const key of ['launched_agent_id','from_agent_id','background_task_id']){const value=idToken(raw[key]);if(value)out[key]=value;}
   if(typeof raw.host==='string'&&raw.host.length<=253&&/^[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?$/.test(raw.host))out.host=raw.host.toLowerCase();
   if(AREAS.has(raw.area))out.area=raw.area;
   if(SKILLS.has(raw.skill))out.skill=raw.skill;
@@ -86,11 +86,30 @@ export function selectedNative(events){
 }
 
 /** Observer status at time `now`: observing while the selected request has an open call, role or turn. */
+export function recordingEdges(events){
+ const tasks=new Map(),ends=new Map(),out=[];
+ const finish=(task,event)=>({...task,id:event.id+'-task-end',ts:event.ts,phase:event.detail.task_status==='failed'?'fail':'end',detail:{...task.detail,...event.detail,background:false}});
+ for(const event of events){
+  const key=JSON.stringify([event.session,event.detail?.background_task_id]);
+  if(event.detail?.background&&event.phase==='end'&&event.kind!=='delegate'){
+   if(event.detail.background_task_id)tasks.set(key,event);
+   out.push({...event,phase:'point'});if(ends.has(key))out.push(finish(event,ends.get(key)));continue;
+  }
+  const task=tasks.get(key);
+  if(['completed','failed','cancelled'].includes(event.detail?.task_status))ends.set(key,event);
+  if(task&&['completed','failed','cancelled'].includes(event.detail?.task_status)&&!(event.call===task.call&&['end','fail'].includes(event.phase))){
+   out.push(finish(task,event));
+  }
+  out.push(event);
+ }
+ return out;
+}
 export function observerStatus(events,now){
   if(!events.length)return 'waiting_for_session';
   const {session,prompts,floor}=selectedNative(events),current=events.slice(floor).filter(event=>event.session===session&&prompts.has(event.prompt_id));
   const opened=new Set(),closed=new Set();let turnOpen=false;
-  for(const event of current){
+  for(const event of recordingEdges(current)){
+    if(event.detail?.background&&event.call&&!closed.has(event.call))opened.add(event.call);
     if(isMain(event)&&(event.kind==='request'||CONTINUATIONS.has(event.kind)))turnOpen=true;
     // Async hooks may record a call's end just before its start: a start whose end is already seen is closed.
     if(event.call){if(event.phase==='start'){if(!closed.has(event.call))opened.add(event.call);}else if(['end','fail'].includes(event.phase)){opened.delete(event.call);closed.add(event.call);}}
@@ -191,14 +210,17 @@ export function sessionsOf(events,projected=false){
 /** Busy intervals of one session (calls, roles and open turns), used to skip quiet time while replaying. */
 export function busyIntervals(events){
   const out=[],open=new Map(),closed=new Set();let turn=null;
-  for(const event of events){
+  for(const event of recordingEdges(events)){
     const t=Date.parse(event.ts),key=event.kind==='subagent'?'agent:'+(event.agent_id||event.actor):event.call;
+    if(event.detail?.background&&key&&!closed.has(key)&&!open.has(key))open.set(key,t);
     if(key&&event.phase==='start'){if(!closed.has(key))open.set(key,t);}
     else if(key&&['end','fail'].includes(event.phase)){if(open.has(key))out.push([open.get(key),t]);else out.push([t,t]);open.delete(key);if(event.kind!=='subagent')closed.add(key);}
     else if(!key)out.push([t,t]);
     if(isMain(event)&&(event.kind==='request'||CONTINUATIONS.has(event.kind)))turn??=t;
     if(isMain(event)&&['turn_end','turn_cancelled'].includes(event.kind)&&turn!=null){out.push([turn,t]);turn=null;}
   }
+  const last=events.length?Date.parse(events.at(-1).ts):null;
+  if(last!=null)for(const start of open.values())out.push([start,last]);
   out.sort((a,b)=>a[0]-b[0]);
   const merged=[];for(const [a,b] of out){const last=merged.at(-1);if(last&&a<=last[1]+1000)last[1]=Math.max(last[1],b);else merged.push([a,b]);}
   return merged;

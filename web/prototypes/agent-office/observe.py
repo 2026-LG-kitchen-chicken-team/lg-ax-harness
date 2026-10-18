@@ -23,13 +23,15 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import sqlite3
 import sys
 import time
 import uuid
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, unquote
 
 VERSION = 1
 HERE = Path(__file__).resolve().parent
@@ -186,6 +188,78 @@ def area_of(path: str, cwd) -> dict:
     return {"area": "harness"}
 
 
+def command_spec(command, cwd=None):
+    """A literal, single Python entry point; never a path inside echo, code or a pipeline.
+
+    Output redirection is allowed, but multiple executable statements do not prove
+    which Skill is currently running and are deliberately left as shell work.
+    """
+    if isinstance(command, list):
+        if not command or not all(isinstance(x, str) for x in command):
+            return None
+        shell = command[0].replace('\\', '/').rsplit('/', 1)[-1].lower().removesuffix('.exe')
+        options = {'powershell': ({'-noprofile', '-noninteractive', '-nologo'}, {'-command', '-c'}),
+                   'pwsh': ({'-noprofile', '-noninteractive', '-nologo'}, {'-command', '-c'}),
+                   'bash': ({'-l', '--login', '--noprofile', '--norc'}, {'-c'}),
+                   'sh': ({'-l', '--login'}, {'-c'}), 'cmd': ({'/d', '/q', '/s'}, {'/c'})}
+        allowed, flags = options.get(shell, (set(), set()))
+        index = next((i for i, x in enumerate(command) if x.lower() in flags), None)
+        if index is None or index != len(command)-2 or not all(x.lower() in allowed for x in command[1:index]):
+            return None
+        command = command[-1]
+    if not isinstance(command, str) or len(command) > 128*1024 or any(c in command for c in ('\n', '\r', '$', '`')):
+        return None
+    try:
+        lexer = shlex.shlex(command, posix=False, punctuation_chars=';&|<>')
+        lexer.whitespace_split = True
+        tokens = [x[1:-1] if len(x)>1 and x[0]==x[-1] and x[0] in ('"', "'") else x for x in lexer]
+        if tokens[:1] == ['&']:
+            tokens.pop(0)
+        args, redirects, i = [], [], 0
+        while i < len(tokens):
+            x=tokens[i]
+            if x in ('>', '>>') and i+1 < len(tokens):
+                if args and args[-1] in ('1', '2'):
+                    args.pop()
+                redirects.append(tokens[i+1]); i+=2; continue
+            if x in (';', '&&', '||', '|', '&', '<', '<<', '>&', '&>'):
+                return None
+            args.append(x); i+=1
+        def program(x): return x.replace('\\', '/').rsplit('/', 1)[-1].lower().removesuffix('.exe')
+        if args and program(args[0]) == 'uv':
+            args=args[1:]
+            if not args or args.pop(0)!='run': return None
+            while args and args[0] in ('--no-project', '--no-config', '--quiet', '--no-sync', '--offline'):
+                args.pop(0)
+        if not args or program(args.pop(0)) not in ('python', 'python3', 'py'): return None
+        while args and args[0] in ('-B', '-u', '-I', '-3', '-3.12'): args.pop(0)
+        if len(args)<2: return None
+        path=Path(args[0].replace('\\', '/'))
+        folder=cwd or HARNESS
+        if isinstance(folder,str) and folder.lower().startswith('file:'):
+            uri=urlsplit(folder)
+            if uri.netloc not in ('','localhost') or uri.query or uri.fragment:return None
+            folder=unquote(uri.path)
+            if re.match(r'^/[A-Za-z]:/',folder):folder=folder[1:]
+        base=Path(folder)
+        target=(path if path.is_absolute() else base/path).resolve()
+        relative=target.relative_to(HARNESS.resolve()).as_posix()
+        match=re.fullmatch(r'(?:\.agents/|\.claude/)?skills/([a-z0-9-]+)/scripts/run\.py', relative)
+        if not match or match[1] not in SKILL_OPS: return None
+        return {'skill':match[1], 'op':args[1] if args[1] in CLI_OPS else 'unknown_operation',
+                'args':args[2:], 'redirects':redirects}
+    except (ValueError, TypeError, OSError):
+        return None
+
+
+def background_result(response):
+    if not isinstance(response, dict): return {}
+    task = token(response.get('backgroundTaskId') or response.get('task_id'))
+    if task and (response.get('backgroundTaskId') or response.get('status') in ('running', 'async_launched')):
+        return {'background':True, 'background_task_id':task}
+    return {}
+
+
 def classify(payload: dict) -> dict:
     """One hook payload -> one event. Only harness names, ids, times and host names are kept."""
     hook = payload.get("hook_event_name") or ""
@@ -230,7 +304,9 @@ def classify(payload: dict) -> dict:
             event.update(kind="skill_load", node=name if name in SKILL_OPS else "unknown_skill", basis="instruction_loaded")
         elif tool in SHELLS:
             command = tin.get("command") if isinstance(tin.get("command"), str) else ""
-            pairs = [(s, o) for s, o in RUN_PY.findall(command) if s in SKILL_OPS]
+            spec = command_spec(command, payload.get('cwd'))
+            pairs = [(spec['skill'], spec['op'])] if spec else []
+            event['detail']['mapping_version'] = 2
             if pairs:
                 skill, op = pairs[0]
                 op = op if op in CLI_OPS else "unknown_operation"
@@ -245,12 +321,25 @@ def classify(payload: dict) -> dict:
                         event["detail"]["error"] = failed
                     elif op in SAVE_OPS:
                         event["detail"].update(save_outcome(payload.get("tool_response")))
-                    event["detail"].update(business_binding(payload.get("tool_response")))
+                    reported=business_binding(payload.get('tool_response'))
+                    entered=command_input_binding(spec,payload.get('cwd'))
+                    if not reported or not entered or reported==entered:
+                        event['detail'].update(reported or entered)
             else:
                 event["kind"] = "shell"
                 event["detail"]["programs"] = programs_of(command)
                 if hook == "PostToolUse":
                     event["detail"].update(business_binding(payload.get("tool_response")))
+            if hook == 'PostToolUse':
+                event['detail'].update(background_result(payload.get('tool_response')))
+                if isinstance(payload.get('tool_response'),dict) and payload['tool_response'].get('interrupted') is True:
+                    event['detail']['interrupted']=True
+        elif tool == 'TaskOutput':
+            event['detail']['background_task_id'] = token(tin.get('task_id'))
+            response=payload.get('tool_response')
+            task=response.get('task') if isinstance(response,dict) and isinstance(response.get('task'),dict) else response
+            if hook == 'PostToolUse' and isinstance(task,dict) and task.get('status') in ('completed','failed','cancelled'):
+                event['detail']['task_status']=task['status']
         elif tool in FILE_TOOLS:
             path = tin.get(FILE_TOOLS[tool]) if isinstance(tin.get(FILE_TOOLS[tool]), str) else ""
             match = SKILL_MD.search(path.replace("\\", "/"))
@@ -278,6 +367,10 @@ def classify(payload: dict) -> dict:
                 event["detail"]["from_agent_id"] = found.group(1)
         elif head.startswith("<task-notification>"):
             event.update(kind="notification", node="main", actor="main")
+            task=re.search(r'<task-id>([A-Za-z0-9_.:-]{1,80})</task-id>', prompt[:4096])
+            status=re.search(r'<status>(completed|failed|cancelled)</status>', prompt[:4096])
+            if task and status:
+                event['detail'].update(background_task_id=task[1],task_status=status[1])
         else:
             event.update(kind="request", node="main", actor="main")
     elif hook in ("SubagentStart", "SubagentStop"):
@@ -287,11 +380,16 @@ def classify(payload: dict) -> dict:
             event["detail"]["agent_type"] = token(payload.get("agent_type"))
     elif hook == "Stop":
         event.update(kind="turn_cancelled" if payload.get("is_interrupt") is True else "turn_end", node="main", actor="main")
+    elif hook == 'PermissionRequest' or hook == 'Notification' and payload.get('notification_type') == 'permission_prompt':
+        event.update(kind='permission',node='main',actor=actor,phase='point')
+        event['detail']['reason']='permission_prompt'
     elif hook in ("SessionStart", "SessionEnd"):
         event.update(kind="session", node="main", actor="main", phase="start" if hook == "SessionStart" else "end")
         source = payload.get("source") or payload.get("reason")
         if isinstance(source, str) and ERROR_CODE.match(source):
             event["detail"]["reason"] = source
+    if hook == 'PostToolUseFailure' and payload.get('is_interrupt') is True and actor == 'main':
+        event.update(kind='turn_cancelled',node='main',op=None,ops=[],phase='point',basis='observed')
     return event
 
 
@@ -383,6 +481,35 @@ def business_binding(response) -> dict:
     return {}
 
 
+def command_input_binding(spec, cwd, before=None):
+    """Explicit input IDs + the exact DB row, never the newest result or time proximity."""
+    if not spec or '--input' not in spec['args']: return {}
+    try:
+        value=spec['args'][spec['args'].index('--input')+1]
+        source=Path(value)
+        source=source if source.is_absolute() else Path(cwd or HARNESS)/source
+        relative=source.absolute().relative_to(HARNESS.resolve())
+        checked=HARNESS.resolve()
+        for part in relative.parts:
+            checked=checked/part
+            if checked.is_symlink() or checked.exists() and getattr(checked.lstat(),'st_file_attributes',0)&0x400:return {}
+        if not source.resolve().is_relative_to(HARNESS.resolve()/'runtime-data') or source.stat().st_size>MAX_STDIN:
+            return {}
+        if before and source.stat().st_mtime > datetime.fromisoformat(before.replace('Z','+00:00')).timestamp()+.001:
+            return {}
+        data=json.loads(source.read_text(encoding='utf-8'))
+        if not isinstance(data,dict) or not token(data.get('turn_id')): return {}
+        if DB.is_symlink() or not DB.is_file(): return {}
+        with closing(sqlite3.connect(DB.resolve().as_uri()+'?mode=ro',uri=True,timeout=.1)) as con:
+            row=con.execute('SELECT session_id,turn_id,request_key FROM turns WHERE turn_id=?',(data['turn_id'],)).fetchone()
+        if not row or any(not token(x) for x in row):return {}
+        found=dict(zip(('session_id','turn_id','request_key'),row))
+        if any(data.get(k) is not None and data[k]!=v for k,v in found.items()):return {}
+        return {'business_binding':found}
+    except (OSError,ValueError,TypeError,IndexError,sqlite3.Error):
+        return {}
+
+
 def save_outcome(response) -> dict:
     """Whether the harness accepted a saved candidate: accepted, reason code, turn status and version only."""
     data = stdout_json(response)
@@ -430,6 +557,8 @@ def tool_error(response):
         data = json.loads(text[start:])
     except ValueError:
         return None
+    if isinstance(data, dict) and data.get('ok') is True and isinstance(data.get('result'),dict) and data['result'].get('status') == 'unavailable':
+        return 'source_unavailable'
     if isinstance(data, dict) and data.get("ok") is False:
         code = data.get("error") or data.get("code")
         if isinstance(code, dict):
@@ -538,7 +667,7 @@ def latest_export() -> dict | None:
     return {"name": short(newest.name, 120), "modified_at": stamp, "count": len(files)}
 
 
-def snapshot_db() -> dict:
+def snapshot_db(expected=None) -> dict:
     """A short read-only look at the harness database. Never creates or changes it; a busy database is skipped.
 
     product-tools writes with BEGIN IMMEDIATE and a 5 s timeout on a rollback journal, so this reader opens the file
@@ -554,8 +683,13 @@ def snapshot_db() -> dict:
         snap = {"available": True, "read_at": now(), "workflow": None, "workflow_events": [], "request": None, "turn": None,
                 "results": 0, "candidates": [], "evidence_delivered": None, "evidence_reviews": None, "cancelled": False,
                 "latest_export": latest_export()}
-        turn_row = con.execute("SELECT turn_id, status, revision_count, result_version, valid, created_at, session_id, request_key "
-                               "FROM turns ORDER BY created_at DESC,turn_id DESC LIMIT 1").fetchone() if "turns" in tables else None
+        columns="SELECT turn_id, status, revision_count, result_version, valid, created_at, session_id, request_key FROM turns "
+        if expected and all(isinstance(expected.get(k),str) and TOKEN.fullmatch(expected[k]) for k in ('session_id','turn_id','request_key')):
+            turn_row=con.execute(columns+'WHERE session_id=? AND turn_id=? AND request_key=?',tuple(expected[k] for k in ('session_id','turn_id','request_key'))).fetchone() if 'turns' in tables else None
+        elif expected:
+            turn_row=None
+        else:
+            turn_row=con.execute(columns+'ORDER BY created_at DESC,turn_id DESC LIMIT 1').fetchone() if 'turns' in tables else None
         binding = {"session_id": turn_row[6], "turn_id": turn_row[0], "request_key": turn_row[7]} if turn_row else None
         snap.update(binding=binding, binding_status="unverified_native_session")
         if "product_workflows" in tables and binding:
@@ -658,7 +792,7 @@ def refresh_live(event: dict):
     snap = None
     if event["hook"] in REFRESH_DB and (event["kind"] in ("skill_op", "delegate", "subagent", "turn_end", "session", "request")):
         try:
-            snap = snapshot_db()
+            snap = snapshot_db(event.get('detail',{}).get('business_binding'))
         except sqlite3.Error as exc:  # busy or locked: keep the previous snapshot and say so
             snap = None
             note_error(f"snapshot skipped: {type(exc).__name__}")

@@ -19,5 +19,5 @@ export function currentWorkSummary(view,work,{preview=false,replay=false,playing
 }
 export function workDockInsets(width,{visible=false,listOpen=false,height=800}={}){
  const compact=width<=700&&!(width>=600&&height<520);
- return {right:!compact&&visible?298:0,left:!compact&&listOpen?204:0,bottom:compact&&(visible||listOpen)?212:0};
+ return {right:!compact&&visible?298:0,left:!compact&&listOpen?204:0,bottom:compact&&(visible||listOpen)?Math.min(184,height*.27)+94:0};
 }

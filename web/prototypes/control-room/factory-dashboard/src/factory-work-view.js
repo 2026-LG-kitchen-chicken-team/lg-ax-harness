@@ -21,10 +21,10 @@ export function observerWork(view){
     const helpers=helpersHere.map(a=>({id:a.id,kind:'helper',label:actorLabel(a.role),role:a.role,unmapped:true}));
     const observedHelper=helpers.length>0;
     const status=confirmed?'running':reporting?'reported':observedHelper?'helper':skill?.status==='loaded'?'loaded':node?.status||'idle';
-    const statusLabel=confirmed?'SKILL 사용 중':reporting?'진행 보고':observedHelper?'도우미 작업':status==='completed'?'기록 완료':status==='failed'?'오류':status==='unknown'?'종료 확인 필요':status==='loaded'?'지침 확인':status==='reading'?'지침 확인 중':status==='instruction_error'?'지침 조회 실패':status==='analysis'?'분석 구간':'대기';
+    const statusLabel=confirmed?'SKILL 사용 중':reporting?'진행 보고':observedHelper?'도우미 작업':status==='awaiting'?'승인 대기':status==='held'?'보류':status==='cancelled'?'취소':status==='review'?'확인 필요':status==='completed'?'기록 완료':status==='failed'?'오류':status==='unknown'?'종료 확인 필요':status==='loaded'?'지침 확인':status==='reading'?'지침 확인 중':status==='instruction_error'?'지침 조회 실패':status==='analysis'?'분석 구간':'대기';
     const task=confirmed?def.verb:reporting?'CLI가 이 작업을 보고했어요':observedHelper?'도우미가 자료를 확인해요':status==='loaded'?'설명서 조회 완료 · 작업 전':status==='reading'?'설명서를 가져오는 중이에요':status==='instruction_error'?'설명서를 가져오지 못했어요':def.verb;
     const op=eventOperations(related.at(-1)?.start).findLast(x=>x.skill===def.id)?.op;
-    const detailLine=confirmed?operationText(op)||ACTIONS[op]||def.description:reporting?def.verb+' · CLI가 알려준 진행 소식이에요.':observedHelper?'도우미 AI가 자료를 살펴보고 있어요.':status==='completed'?'이 작업을 마쳤어요.':status==='reading'?'Skill 설명서를 가져오고 있어요. 아직 실제 작업을 시작한 것은 아니에요.':status==='loaded'?'Skill 설명서를 확인한 기록이에요. 작업 명령은 아직 확인되지 않았어요.':status==='instruction_error'?'설명서를 가져오지 못했어요. 조회 기록의 오류를 확인하세요.':status==='failed'?'이 구역의 작업 명령에서 오류가 났어요. 아래 기록을 확인하세요.':status==='analysis'?'메인 기획 AI가 자료를 분석하고 있어요.':def.description;
+    const detailLine=status==='awaiting'?'CLI의 권한 요청에서 허용 또는 거절을 선택해 주세요.':status==='held'?'보류된 결과와 필요한 추가 조건을 확인해 주세요.':status==='cancelled'?'요청이 취소됐어요. 프로세스 종료 여부는 CLI에서 확인하세요.':confirmed?operationText(op)||ACTIONS[op]||def.description:reporting?def.verb+' · CLI가 알려준 진행 소식이에요.':observedHelper?'도우미 AI가 자료를 살펴보고 있어요.':status==='completed'?'이 작업을 마쳤어요.':status==='reading'?'Skill 설명서를 가져오고 있어요. 아직 실제 작업을 시작한 것은 아니에요.':status==='loaded'?'Skill 설명서를 확인한 기록이에요. 작업 명령은 아직 확인되지 않았어요.':status==='instruction_error'?'설명서를 가져오지 못했어요. 조회 기록의 오류를 확인하세요.':status==='failed'?'이 구역의 작업 명령에서 오류가 났어요. 아래 기록을 확인하세요.':status==='analysis'?'메인 기획 AI가 자료를 분석하고 있어요.':def.description;
     const roleText=actors.length?actors.map(a=>a.kind==='helper'?'도우미 · '+a.label:'담당 · 메인 AI').join(' + '):reporting?'담당 · 메인 AI':observedHelper?'도우미 · '+helpers.map(a=>a.label).join(' + '):confirmed?'담당 AI · 확인 중':null;
     return [def.node,{...def,status,statusLabel,task,detailLine,confirmed,reporting,actors,helpers,helperActive:observedHelper,roleText,helperRole:actors.some(a=>a.kind==='helper')||observedHelper,caption:task,workerCount:confirmed?Math.max(1,actors.length):reporting?1:observedHelper?helpers.length:1,animate:confirmed||observedHelper}];
   }));
@@ -33,12 +33,13 @@ export function observerWork(view){
   const first=PRODUCT_SKILLS.find(s=>activeSkills.includes(s.id));
   let line=view.header?.text||'하네스 연결을 기다려요';
   if(!connected)line=view.connectionStatus==='stale'?'작업 소식이 늦어지고 있어요 · 연결을 확인하세요':view.connectionStatus==='error'?'작업 소식을 읽지 못했어요 · 연결을 확인하세요':'하네스 연결 대기 · CLI에서 하는 일을 연결해 보세요';
+  else if(view.awaiting)line='CLI에서 명령 실행 승인을 기다리고 있어요';
   else if(first)line=activeSkills.length>1?PRODUCT_SKILLS.filter(s=>activeSkills.includes(s.id)).map(s=>s.label).join(' · ')+' 작업을 함께 진행하고 있어요':rooms[first.node].detailLine;
   else if(workingAgents.length)line='도우미 AI '+workingAgents.length+'명이 함께 작업하고 있어요';
   else if(mainWorking&&view.instructionQuery?.status==='reading')line='작업에 필요한 안내를 읽고 있어요';
   else if(mainWorking&&view.activity?.current)line=view.activity.text;
   else if(mainWorking&&view.activity?.reported_stage)line='메인 AI · '+(SKILL_BY_ROOM[view.activity.reported_stage]?.verb||'작업을 진행해요');
-  else if(mainWorking)line='메인 기획 AI가 작업하고 있어요';
+  else if(mainWorking)line=view.header?.text||'메인 기획 AI가 작업하고 있어요';
   else if(view.activity?.ready)line='준비됐어요 · AI 화면에서 상품기획을 요청해 주세요';
   else if(view.header?.state==='cancelled')line='이번 요청을 취소했어요 · 마지막 기록을 볼 수 있어요';
   else if(view.header?.state==='waiting')line='AI 화면에서 질문을 기다려요';

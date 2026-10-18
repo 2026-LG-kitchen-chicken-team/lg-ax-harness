@@ -11,7 +11,11 @@ export function instructionSkills(event){
   return [];
 }
 export function workSkills(event){
-  return [...new Set(eventOperations(event).filter(x=>SKILL_BY_ID[x.skill]&&x.op&&!INSTRUCTIONS.has(x.op)&&!ADMIN.has(x.op)).map(x=>x.skill))];
+  // A shell containing several Skill entry points has no per-command lifecycle.
+  // Its sequential operations must never appear as parallel active rooms.
+  const operations=eventOperations(event).filter(x=>SKILL_BY_ID[x.skill]&&x.op&&x.op!=='unknown_operation'&&!INSTRUCTIONS.has(x.op)&&!ADMIN.has(x.op));
+  if(operations.length>1)return [];
+  return [...new Set(operations.map(x=>x.skill))];
 }
 export const instructionLookup = event => eventOperations(event).some(x=>INSTRUCTIONS.has(x.op));
 export const instructionOnly = event => event?.kind==='skill_load'||instructionLookup(event)&&workSkills(event).length===0;

@@ -42,7 +42,7 @@ export default function OfficeReplayBar({office,store,onFollow,following}){
       <div className="office-lanes" aria-hidden="true">{LANES.map(([id,label])=><span key={id}>{label}</span>)}</div>
       <div ref={track} className="office-strip" role="slider" tabIndex={0} aria-label="기록 시각" aria-valuemin={0} aria-valuemax={Math.round((end-start)/1000)} aria-valuenow={Math.round((at-start)/1000)} aria-valuetext={`${mmss(at-start)} / ${mmss(end-start)}`}
         onPointerDown={e=>{drag.current=true;e.currentTarget.setPointerCapture?.(e.pointerId);seekAt(e.clientX);}} onPointerMove={e=>drag.current&&seekAt(e.clientX)} onPointerUp={()=>{drag.current=false;}}
-        onKeyDown={e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();store.seek(at+(e.key==='ArrowRight'?5000:-5000));}}}>
+        onKeyDown={e=>{if(['Home','End','ArrowRight','ArrowLeft'].includes(e.key)){e.preventDefault();store.seek(e.key==='Home'?start:e.key==='End'?end:at+(e.key==='ArrowRight'?5000:-5000));}}}>
         <Strip strip={office.strip} start={start} end={end}/><i className="office-playhead" style={{left:`${frac*100}%`}}/>
       </div>
     </div>

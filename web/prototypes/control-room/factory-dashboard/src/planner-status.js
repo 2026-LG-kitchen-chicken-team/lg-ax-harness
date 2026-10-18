@@ -38,6 +38,7 @@ export function plannerStatus(view,work,office=null){
  const status={mode,state:'waiting',title:'AI 화면에서 상품기획을 요청해 주세요',action:null,result,current:false};
  if(current)return {...status,state:'ready',title:'기획안이 준비됐어요',action:delivery.report_data_ready?'기획안에서 내용을 살펴보고 보고서로 이어 볼 수 있어요.':null,current:true};
  if(cancelled)return {...status,state:'cancelled',title:'이번 작업을 취소했어요',action:'AI 화면에서 이어 할 작업을 입력해 주세요.'};
+ if(view.awaiting)return {...status,state:'input',title:'CLI에서 명령 실행 승인을 기다려요',action:'CLI의 권한 요청에서 허용 또는 거절을 선택해 주세요.'};
  if(failed&&ended)return {...status,state:'failed',title:'이번 작업을 마치지 못했어요',action:'AI 화면의 안내를 확인하고 다시 요청해 주세요.'};
  if(['needs_input','awaiting_input','awaiting_approval'].includes(business))return {...status,state:'input',title:business==='awaiting_approval'?'AI 화면에서 승인을 기다려요':'AI 화면에서 추가 입력을 기다려요',action:'AI가 요청한 내용을 확인하고 답해 주세요.'};
  if(view.connectionStatus==='error'||view.connectionStatus==='stale'||view.connectionStatus==='disconnected'&&events.length)return {...status,state:'connection',title:'작업 소식 연결을 다시 확인하고 있어요',action:'AI 화면에서는 작업을 계속 확인할 수 있어요. 기존 기록은 그대로 보관돼요.'};

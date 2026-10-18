@@ -2,7 +2,7 @@
  * view-data.js (every 4 s), replay of a recorded session, and records files the viewer opens. Read-only; it never
  * starts AI work. The {snapshot, connection, view} contract is the same one ReleaseDashboard draws for the server. */
 import {deriveReleaseView} from './release.js';
-import {officeSnapshot,prepareEvents,parseRecordFile,validLiveFile,resultMetadata,sessionsOf,busyIntervals,quietUntil} from './office-records.js';
+import {officeSnapshot,prepareEvents,parseRecordFile,validLiveFile,resultMetadata,sessionsOf,busyIntervals,quietUntil,recordingEdges} from './office-records.js';
 
 export const SPEEDS=[1,4,8,16,32,64];
 export const RESULT_VIEW_URL='../visual-viewer/index.html';
@@ -45,10 +45,11 @@ function laneOf(event){
 /** The replay strip of one session: calls by lane, open turns, requests and DB moments. */
 export function stripModel(events,db){
   const spans=[],open=new Map(),closed=new Set(),points=[];let turn=null;
-  for(const event of events){
+  for(const event of recordingEdges(events)){
     const t=Date.parse(event.ts),key=event.kind==='subagent'?'agent:'+(event.agent_id||event.actor):event.call;
-    if(key&&event.phase==='start'){if(closed.has(key))continue;open.set(key,{lane:event.kind==='subagent'?'roles':laneOf(event),start:t,end:null,status:'open'});spans.push(open.get(key));}
-    else if(key&&['end','fail'].includes(event.phase)){const span=open.get(key),status=event.phase==='fail'||event.detail.accepted===false?'failed':'done';if(span){span.end=t;span.status=status;open.delete(key);}else if(event.kind!=='subagent'){spans.push({lane:laneOf(event),start:t,end:t,status});closed.add(key);}}
+    if(event.detail?.background&&key&&!closed.has(key)&&!open.has(key)){const partial={lane:laneOf(event),start:t,end:null,status:'open',startUnobserved:true};open.set(key,partial);spans.push(partial);}
+    if(key&&event.phase==='start'){if(closed.has(key))continue;const partial=open.get(key);if(partial?.startUnobserved){partial.start=t;partial.startUnobserved=false;}else if(!partial){open.set(key,{lane:event.kind==='subagent'?'roles':laneOf(event),start:t,end:null,status:'open'});spans.push(open.get(key));}}
+    else if(key&&['end','fail'].includes(event.phase)){const span=open.get(key),status=event.detail.interrupted||event.detail.task_status==='cancelled'?'cancelled':event.detail.reason==='native_result_unconfirmed'?'unknown':event.phase==='fail'||event.detail.accepted===false?'failed':'done';if(span){span.end=t;span.status=status;open.delete(key);}else if(event.kind!=='subagent'){spans.push({lane:laneOf(event),start:t,end:t,status});}if(event.kind!=='subagent')closed.add(key);}
     if(event.actor==='main'&&!event.agent_id){
       if(event.kind==='request'){points.push({lane:'db',t,kind:'request'});turn??=t;}
       if(['handback_delivered','notification'].includes(event.kind))turn??=t;

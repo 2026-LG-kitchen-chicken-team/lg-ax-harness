@@ -7,8 +7,14 @@ export function createLabEnvironment(scene,{cube,resources}){
  const wall=new THREE.Group();scene.add(wall);wall.rotation.y=Math.atan2(13,18);
  const frame=cube(wall,1,5.7,.12,0,2.86,-.03,'#e8e7dc',.025);frame.castShadow=false;
  let artState='loading';
- const texture=new THREE.TextureLoader().load(warmLabWall,()=>{artState='ready';},undefined,()=>{artState='error';});texture.colorSpace=THREE.SRGBColorSpace;
- const material=new THREE.MeshBasicMaterial({map:texture}),geometry=new THREE.PlaneGeometry(1,5.7),picture=new THREE.Mesh(geometry,material);picture.position.set(0,2.86,.05);wall.add(picture);resources.push(texture,material,geometry);
+ let disposed=false,retry=null;
+ const material=new THREE.MeshBasicMaterial(),geometry=new THREE.PlaneGeometry(1,5.7),picture=new THREE.Mesh(geometry,material);picture.visible=false;picture.position.set(0,2.86,.05);wall.add(picture);resources.push(material,geometry,{dispose(){disposed=true;clearTimeout(retry);}});
+ function load(attempt=0){
+  if(disposed)return;
+  const texture=new THREE.TextureLoader().load(warmLabWall,()=>{if(disposed)return;material.map=texture;material.needsUpdate=true;picture.visible=true;artState='ready';},undefined,()=>{artState='error';if(attempt<2&&!warmLabWall.startsWith('data:'))retry=setTimeout(()=>load(attempt+1),300*(attempt+1));});
+  texture.colorSpace=THREE.SRGBColorSpace;resources.push(texture);
+ }
+ load();
  return {status:()=>artState,update(layout){
   let minV=Infinity;for(const zone of Object.values(layout.zones)){
    const f=zone.id==='overview'?PLANNER_FLOOR:ZONE_FLOOR;
