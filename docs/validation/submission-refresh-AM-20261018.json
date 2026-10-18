@@ -1,0 +1,249 @@
+{
+  "schema": "submission-refresh-AM-v1",
+  "date": "2026-10-18",
+  "source_url": "https://app.notion.com/p/LG-AX-3f1b10a4d2da812aa094fac0c03d6d50",
+  "purpose": "공식 안내·실제 실행·촬영 인계의 근거 갱신",
+  "product": {
+    "version": "product-v0.20.0",
+    "functional_source": "d542c40e55579df0b19713f2532fd96450f2559d",
+    "judge_zip_sha256": "81f6b50c8b65c03e585c86b014b2394d3e2d927911b15ec70c2ca71118822e79",
+    "PR31": "unmerged_do_not_change",
+    "PR32": "unmerged_do_not_change",
+    "parent_temporary_merge": "aborted; no remote PR mutation",
+    "product_code_changes": 0
+  },
+  "notion": {
+    "text_snapshots": 42,
+    "unique_text_snapshots": 37,
+    "page_end": {
+      "top": 30407,
+      "client_height": 1152,
+      "scroll_height": 31559
+    },
+    "connector": "404; public browser read succeeded",
+    "shared_page_writes": 0,
+    "image_bundle_requested": 23,
+    "image_bundle_success": 0,
+    "download_event": "timeout; local original EML ZIP acquired and verified separately",
+    "source_equivalence": "Read original captures, EML/attachments, and official original notice; no claim that failed Notion image fetches succeeded or all file bytes matched Notion.",
+    "source_files": [
+      {
+        "private_relative_path": "notion/sections.json",
+        "sha256": "c0da2d463c22d210868354b26d1682e4c3f81ba076d51512139bd6c600a383b1",
+        "bytes": 246838
+      },
+      {
+        "private_relative_path": "notion/reconciliation.md",
+        "sha256": "b01ba35e13210e1c8c56c86c33ed8421fb8397d1aca5107e4dac09bcae9e09be",
+        "bytes": 8439
+      },
+      {
+        "private_relative_path": "notion/reconciliation.json",
+        "sha256": "46189b22b857f92b89febe988d7cc19ddb51c1ec124da80fde78a98fa9300aa2",
+        "bytes": 15408
+      },
+      {
+        "private_relative_path": "notion/mail-review.md",
+        "sha256": "640d242eb39f9c118f3e47e55d2abd3cdf4f172c443f6c328bb3067e6d829b1f",
+        "bytes": 15870
+      },
+      {
+        "private_relative_path": "notion/mail-review.json",
+        "sha256": "b16d3491902512340656b8313ed0ed7fdfb78eb29b61f1072a93f8764286aba1",
+        "bytes": 31356
+      },
+      {
+        "private_relative_path": "notion/initial-notice/review.md",
+        "sha256": "420b0bd988546706d294d24b15627b17541c04a6b4575bb678924308a7edb724",
+        "bytes": 8274
+      },
+      {
+        "private_relative_path": "notion/initial-notice/review.json",
+        "sha256": "df223e6d19a436b73cc33cff8a170241f73d292f265b84dc6d049978ab1a902c",
+        "bytes": 13512
+      },
+      {
+        "private_relative_path": "video-review/brief.md",
+        "sha256": "59bc1ece27df0a86f56b63aa0dba3af9c182d07989ae023da6cde2ec2653f55e",
+        "bytes": 12384
+      },
+      {
+        "private_relative_path": "video-review/brief.json",
+        "sha256": "aeb71d65b5a61f0ceef9e2c341be6860ee7680176bbc298605892c188088e8b6",
+        "bytes": 16752
+      },
+      {
+        "private_relative_path": "showcase/selection.md",
+        "sha256": "58aa13135cf7c5598724ebdf58aa6cdb92b87cbccc0902ae9605f6eef9bf03e0",
+        "bytes": 14324
+      },
+      {
+        "private_relative_path": "showcase/selection.json",
+        "sha256": "e1824617fa96a2bfb0ced2a993b679d79ecc2ddfdbd0cfe8a78ae99ce0d8d093",
+        "bytes": 34751
+      },
+      {
+        "private_relative_path": "claude-gui-review.md",
+        "sha256": "854a087b1cc06540015f39193271ef8588d46efcf3e59c1c31c5d3b531738400",
+        "bytes": 7002
+      },
+      {
+        "private_relative_path": "claude-gui-review.json",
+        "sha256": "6822245fcfd506fdc507a93f052b862c84aca028c8a852b49f4e2dc129257c2a",
+        "bytes": 11751
+      },
+      {
+        "private_relative_path": "notion/doc-review.md",
+        "sha256": "d1423310da68ce0fc8cfde53b244d7dbb4fc7c0f30d0f28736be99f2815be58f",
+        "bytes": 2318
+      },
+      {
+        "private_relative_path": "notion/doc-review.json",
+        "sha256": "779269088fad3d8294d8178ec160c7e984242d869faaafc8df2e9c4f57ecda58",
+        "bytes": 5680
+      }
+    ]
+  },
+  "direct_source_coverage": {
+    "mail_bodies": 16,
+    "official_messages": 10,
+    "participant_questions": 4,
+    "participant_submissions": 2,
+    "mail_attachment_occurrences": 9,
+    "distinct_mail_attachments": 7,
+    "mail_pdf_files": 2,
+    "mail_pdf_pages": 5,
+    "mail_xlsx_files": 3,
+    "mail_xlsx_sheets": 7,
+    "mail_png_originals_parent_visual": 2,
+    "organizer_captures_visual": 4,
+    "official_initial_hwp": 2,
+    "official_poster_pdf_pages": 1,
+    "hwp_scope": "all Section0 text records and embedded first-page preview; full page-layout rendering not run",
+    "pdf_visual_scope": "evaluation2 pages by reviewer; receipt-example3 pages by parent; poster1 page by reviewer",
+    "mail_zip": {
+      "sha256": "0ebe483b3cb967829f25543abc7ce99edc730cff47f5421e40aba5d4d7f90ad2",
+      "bytes": 2681857
+    },
+    "captures": [
+      {
+        "id": "S1",
+        "filename": "image(20261016-054807).png",
+        "sha256": "48103e9c1d0a46223398ec7b976e99c2ad6e0b4974d5a299d08f1b65e118f67e"
+      },
+      {
+        "id": "S2",
+        "filename": "image(20261016-054808).png",
+        "sha256": "5fbb73cea61d6c3c4a9d00805ae726753007acf6325285b867ada89cde7969fc"
+      },
+      {
+        "id": "S3",
+        "filename": "image(20261016-055113).png",
+        "sha256": "9c6865241b5c99b35c7dbf290e6ff999b4ce1072f84228e2f95335405b4f6ce6"
+      },
+      {
+        "id": "S4",
+        "filename": "image(20261016-060102).png",
+        "sha256": "e1e506b4194554d1df1c6ac94e333f4c266af856d7e69425f60434f5a386624c"
+      }
+    ],
+    "official_initial_files": [
+      {
+        "original_name": "[공고]LG전자와 함께하는 국립창원대학교 AX해커톤 대회 모집 공고.hwp",
+        "status": 200,
+        "bytes": 59392,
+        "sha256": "c67c87903691fa79a460123f63b9668f93ac1270fe79886816ac5c1a68eb63a2"
+      },
+      {
+        "original_name": "[별첨]LG전자-국립창원대학교 AX해커톤 대회 참가신청서.hwp",
+        "status": 200,
+        "bytes": 61440,
+        "sha256": "3ecc8ffdbcd622ee01d1061ea6f0d85aa0ec75704bbdc8204f9a36e6629f405f"
+      },
+      {
+        "original_name": "LG전자-국립창원대학교 AX 해커톤 대회 포스터 1.pdf",
+        "status": 200,
+        "bytes": 191759,
+        "sha256": "ed5551ddc3f79118d4ebca40c45e36f15dd76e4de36e88e1c3dcb9db821c89ba"
+      }
+    ]
+  },
+  "applied_conditions": {
+    "submission_deadline_kst": "2026-10-20 18:00",
+    "deadline_source": "2026-10-02 18:08 organizer EML body; initial notice confirms10/20 date only",
+    "single_presenter": "2026-10-06 09:36 organizer EML directly confirms one presenter",
+    "unlimited_submission_material_length": true,
+    "video_in_slides_replaces_separate_video": true,
+    "on_site_presentation_plus_demo_minutes": 10,
+    "video_can_replace_on_site_live_demo": true,
+    "team_member_may_submit": true,
+    "next_notice": "19일 예정; submission method, not product requirement change",
+    "criteria_points": [
+      20,
+      20,
+      10,
+      30,
+      20
+    ],
+    "token_bonus": "implementation/design and evidence; numeric points unspecified",
+    "subsidy": "max300000/team, relevant payments after10/2 selection, forms+combined evidence+one representative account copy; payment after10/28 and document check; subsidy evidence deadline unspecified",
+    "second_stage_written_review": "Notion summary says10/21 written review; exact phrase not confirmed in16 EML/evaluation PDF. Do not upgrade this attribution.",
+    "venue": "official initial notice says10/28 14:00, main building2F Insong Hall; subject to change",
+    "unknown": [
+      "final submission route/form/filename/format/size",
+      "numeric token bonus application",
+      "subsidy evidence deadline"
+    ]
+  },
+  "history_excluded": [
+    "old product-v0.8.1/PR6/PR10 state",
+    "separate lg-ax-2026 PM/DATA/CORE/W1/PR276-279 data/code/evaluations",
+    "completed consultation evidence requests"
+  ],
+  "new_product_requirements_found": false,
+  "showcase": {
+    "mode": "previous real outputs replayed by exact v0.20 renderer, not new native executions",
+    "families": [
+      "fridge",
+      "dishwasher",
+      "microwave"
+    ],
+    "binding_verified": 3,
+    "browser_web_report_back": 3,
+    "browser_warn_or_error_count": 0,
+    "microwave_scope": "feature/evidence/idea extension; old saved result has no selected priority or work draft"
+  },
+  "production": {
+    "filming": 0,
+    "paid_tts_generation": 0,
+    "new_install": 0,
+    "focusee_file_version": "2.3.5.0",
+    "focusee_scope": "app launch/onboarding observed; native skip action failed geometry, recording/editing/audio/SRT export not verified",
+    "presentation": "full submission deck with embedded video plus separate onsite10min cut",
+    "one_line_install": "suspended by user; do not advertise as current feature",
+    "thread_handoffs": [
+      {
+        "title": "LG 시연영상",
+        "thread_id": "01a13509-c582-70c0-aadb-3c01856cb135",
+        "status": "send_message tool succeeded"
+      },
+      {
+        "title": "LG 발표 자료 ppt",
+        "thread_id": "01a14acf-a0d8-7e92-9a83-1d5645687461",
+        "status": "send_message tool succeeded"
+      }
+    ]
+  },
+  "checks": {
+    "documents_only": true,
+    "source_originals_kept_private": true,
+    "product_tests_reused_as_new_passes": false,
+    "github_actions_started": false,
+    "notes": "Code unchanged: no redundant full product regression for this document-only update.",
+    "document_link_json_and_fingerprint_checks": 49,
+    "document_check_exit_code": 0,
+    "independent_document_review_open_P1_P2": 0,
+    "observer_and_local_replay_server": "own helpers stopped by Ctrl+C after native completion; exit1 is deliberate interruption, not a business test failure",
+    "replay_http_note": "three result HTML requests200; optional favicon request404; recorded browser warn/error logs empty"
+  }
+}

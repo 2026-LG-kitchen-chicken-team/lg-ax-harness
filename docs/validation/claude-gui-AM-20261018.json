@@ -1,0 +1,69 @@
+{
+  "schema": "claude-gui-AM-final-v1",
+  "version": "product-v0.20.0",
+  "engine": "Claude Desktop Code Local GUI",
+  "model": "Opus5.5",
+  "effort": "medium",
+  "business_inputs": 1,
+  "new_online_collection": false,
+  "click_submit_at": "2026-10-18T08:56:56.664Z",
+  "native_prompt_hook_at": "2026-10-18T08:56:59.171Z",
+  "native_end_turn_at": "2026-10-18T09:08:02.588Z",
+  "native_stop_hook_at": "2026-10-18T09:08:06.020Z",
+  "click_to_end_turn_seconds": 665.924,
+  "prompt_to_end_turn_seconds": 663.417,
+  "prompt_to_stop_hook_seconds": 666.849,
+  "sources": {
+    "delivered": 56,
+    "caller_reviewed": 54,
+    "excluded": 2,
+    "independent_check": "56 body/metadata/hash matches;16 cited+2 excluded records read for meaning;38 uncited records not independently close-read",
+    "meaning": "registered records; not customers, market coverage, or whole-source authentication"
+  },
+  "result": {
+    "version": 2,
+    "candidates": 2,
+    "priority_selected": 1,
+    "work_draft_rows": 8,
+    "work_draft_columns": 5,
+    "status": "completed",
+    "delivery": "accepted/web_ready",
+    "binding": "verified_binding"
+  },
+  "reviewer": {
+    "native_id": "a427d676506427279",
+    "returned": true,
+    "seconds": 118.488,
+    "main_integration": "17 field changes observed between initial and revised candidate, then saved"
+  },
+  "protected_files": {
+    "checked": 111,
+    "unchanged": 111
+  },
+  "actual_auto_open": {
+    "method": "Chrome tab inventory; no manual open by parent",
+    "dashboard_tab": {
+      "created_at": "2026-10-18T08:56:59.374Z",
+      "title": "KITCHEN AX · 상품기획 팩토리"
+    },
+    "result_tab": {
+      "created_at": "2026-10-18T09:08:06.984Z",
+      "title": "상품기획 · LG AX 상품기획"
+    },
+    "content_display_verified": false,
+    "reason": "browser URL policy denies file protocol; no alternate-surface workaround attempted"
+  },
+  "report_display": "not_run for this new GUI result; separate3-family replay report interactions passed",
+  "tokens": {
+    "gui_earlier_display": "82.9k",
+    "reviewer_reported": 71536,
+    "total_backend_billing": "unknown; do not sum GUI badge with reviewer display or call it savings"
+  },
+  "limitations": [
+    "one GUI cold-environment run on one product family, not four-environment new rerun",
+    "final chat text has repeated conditions; frozen product code unchanged",
+    "initial recoverable command errors and browser-preview error are retained in private native record"
+  ],
+  "product_changed": false,
+  "recorded_video": false
+}
