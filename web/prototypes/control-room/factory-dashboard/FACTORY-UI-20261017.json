@@ -183,6 +183,11 @@
       "sha256": "a9a2f18465d03ea5b25be93dfa1fe5d0638c437fc1fb535fd53707527dc79624"
     },
     {
+      "path": "docs/RESPONSIVE-PARALLEL-20261018.md",
+      "bytes": 1880,
+      "sha256": "89c7d831a47c7512d844d0e72da4ebcb8a4e42b487ade0d4c910f54c2c5e5982"
+    },
+    {
       "path": "docs/RESPONSIVE-REFERENCE-20261018.md",
       "bytes": 1993,
       "sha256": "5005862f948be6ec4804b44111255838325a63195cfefcbe372fb51218f0f0df"
@@ -369,8 +374,8 @@
     },
     {
       "path": "src/ResearcherPreview.jsx",
-      "bytes": 9954,
-      "sha256": "8dcdc1ae9be4844ca3ce092c12cac09bc28588d9c65f890ab8091d99a06383b0",
+      "bytes": 10313,
+      "sha256": "dd970e7ccbed5752b68a72958f8b0be036408e6a33a33e9ac9b2475a6c55d8e8",
       "previous_source_sha256": "fbb6e83f7576d3594a2d325d5a881dad8defe9964bbcd981f46db1bebd035065"
     },
     {
@@ -576,8 +581,9 @@
     },
     {
       "path": "src/responsive-lab.css",
-      "bytes": 4757,
-      "sha256": "1d267bab3944a944978493bc1dfbcd114c5f3afb6ec7399cae6cbd6ff1192bb8"
+      "bytes": 5076,
+      "sha256": "03fee700769590f2fc2fded0ab5d885d05dbe23ab6a6efadf2a76952d1a8be4f",
+      "previous_source_sha256": "1d267bab3944a944978493bc1dfbcd114c5f3afb6ec7399cae6cbd6ff1192bb8"
     },
     {
       "path": "src/sample-data.js",
@@ -633,8 +639,9 @@
     },
     {
       "path": "src/workshop-actions.js",
-      "bytes": 3971,
-      "sha256": "8ec516968cb3bf738a4e4604b5dc9c4435a2003eef3c2bc51fa1e5f173d5437c"
+      "bytes": 4042,
+      "sha256": "497aff4db3365469bb52e17f7c8a546c530e14e5d19a54e576da61629e7988bf",
+      "previous_source_sha256": "8ec516968cb3bf738a4e4604b5dc9c4435a2003eef3c2bc51fa1e5f173d5437c"
     },
     {
       "path": "src/workshop-composition.js",
@@ -746,6 +753,11 @@
       "sha256": "0c29ced9d88bb14728c22641857127c39e2fd9fe1d9ad25bea6bebe2f0d7a2fa"
     },
     {
+      "path": "tests/workshop-actions.test.mjs",
+      "bytes": 2867,
+      "sha256": "2968c35d511227d79e5efd65baee773973984257ec74cd45aec6a56d3d537509"
+    },
+    {
       "path": "tests/workshop-composition.test.mjs",
       "bytes": 3646,
       "sha256": "bda9c53556aa3419eddf4b4df756558240c65452d168b752c16b38dde85eff4b",
@@ -773,12 +785,13 @@
     "docs/CLI-TESTING.md",
     "docs/VALIDATION-20261017.md",
     "docs/REVIEW-FIXES-20261018.md",
-    "docs/RESPONSIVE-REFERENCE-20261018.md"
+    "docs/RESPONSIVE-REFERENCE-20261018.md",
+    "docs/RESPONSIVE-PARALLEL-20261018.md"
   ],
   "generated": {
     "path": "web/prototypes/agent-office/factory.html",
-    "bytes": 16929718,
-    "sha256": "a634c2eea82cd85a0089bd930e7109acaf9b7877e4fe3dc173db488228fdc3e3"
+    "bytes": 16921051,
+    "sha256": "03e389e26a23f4c918c4d751f2791c7141cef4c914c10b2f879ea2f2b6cdeb32"
   },
   "public_connection_wip_included": false,
   "actual_cli_business_run": "not_run",
@@ -933,6 +946,18 @@
     "wide": "3 columns x 2 rows",
     "narrow": "2 columns x 3 rows",
     "artwork_changed": false,
+    "model_or_business_cli_run": "not_run",
+    "public_site_changed": false
+  },
+  "responsive_parallel_20261018": {
+    "base_commit": "d740dc4",
+    "doc": "docs/RESPONSIVE-PARALLEL-20261018.md",
+    "preview_counts": [
+      2,
+      3
+    ],
+    "artwork_changed": false,
+    "run_layout_scales_changed": false,
     "model_or_business_cli_run": "not_run",
     "public_site_changed": false
   }

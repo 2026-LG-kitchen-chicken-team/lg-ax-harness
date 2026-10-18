@@ -5,9 +5,10 @@ export function createWorkshopActions(stations,artwork,resources){
  const rooms={};
  function material(color){const m=new THREE.MeshBasicMaterial({color,transparent:true,depthWrite:false,depthTest:false,side:THREE.DoubleSide});resources.push(m);return m;}
  const sage=material('#537765'),gold=material('#f8b852'),cream=material('#fff9e9'),ink=material('#668074');
- function rect(parent,w,h,x,y,m=cream){const geo=new THREE.PlaneGeometry(w,h),mesh=new THREE.Mesh(geo,m);mesh.position.set(x,y,.01);mesh.renderOrder=2;parent.add(mesh);resources.push(geo);return mesh;}
+ // Work props sit above the room art (-1), behind researchers (.5).
+ function rect(parent,w,h,x,y,m=cream){const geo=new THREE.PlaneGeometry(w,h),mesh=new THREE.Mesh(geo,m);mesh.position.set(x,y,.01);mesh.renderOrder=.25;parent.add(mesh);resources.push(geo);return mesh;}
  function outline(parent,w,h,x,y,m=gold){const group=new THREE.Group();group.position.set(x,y,.02);parent.add(group);rect(group,w,.009,0,-h/2,m);rect(group,w,.009,0,h/2,m);rect(group,.009,h,-w/2,0,m);rect(group,.009,h,w/2,0,m);return group;}
- function circle(parent,r,x,y,m=gold){const geo=new THREE.RingGeometry(r*.82,r,40),mesh=new THREE.Mesh(geo,m);mesh.position.set(x,y,.03);mesh.renderOrder=2.1;parent.add(mesh);resources.push(geo);return mesh;}
+ function circle(parent,r,x,y,m=gold){const geo=new THREE.RingGeometry(r*.82,r,40),mesh=new THREE.Mesh(geo,m);mesh.position.set(x,y,.03);mesh.renderOrder=.25;parent.add(mesh);resources.push(geo);return mesh;}
  for(const id of Object.keys(SKILL_ACTIONS)){
   const g=new THREE.Group();g.name='skill-action-'+id;stations[id].add(g);g.visible=false;
   const time={value:0};let animate=()=>{};

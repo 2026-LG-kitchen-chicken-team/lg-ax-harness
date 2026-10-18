@@ -15,6 +15,9 @@
 .reference-layout.release-app .header-actions{display:none!important}
 .reference-layout.release-app .header-actions.menu-open{display:flex!important;position:absolute;right:0;top:58px;flex-direction:column;align-items:stretch;width:180px;max-width:calc(100vw - 28px);padding:9px;border:1px solid #e8ebe2;border-radius:10px;background:#fffef9;box-shadow:0 8px 24px #45553b1a}
 .reference-layout .header-actions button,.reference-layout .planner-menu-result{text-align:left;padding:10px;justify-content:flex-start}
+.reference-layout.researcher-preview .header-actions button{display:flex;font-size:11px;gap:6px}
+.reference-layout.researcher-preview .header-actions button:last-child span{display:inline}
+.reference-layout.researcher-preview .header-actions select{width:100%;max-width:none;min-height:36px}
 .reference-layout .planner-menu-result{display:none;text-decoration:none;color:#37533e;font-size:11px}
 .reference-layout.release-app .planner-result-link{padding:6px 8px;font-size:10px}
 .reference-layout .current-work-opener{position:fixed;top:18px;right:99px;left:auto;bottom:auto;height:32px;box-sizing:border-box;padding:6px 9px;border-color:#e0e5d9;font-size:11px;box-shadow:none}
@@ -23,7 +26,7 @@
 .reference-layout .current-work-dock{top:74px}
 .reference-layout .panel-return{top:72px}
 .reference-layout .harness-inspector{top:116px}
-@media(max-width:1000px){.reference-layout .planner-work-status small{display:none}.reference-layout.release-app .planner-result-link{display:none}.reference-layout .planner-menu-result{display:block}}
+@media(max-width:1000px){.fullscreen-app.reference-layout.release-app .planner-work-status small{display:none}.reference-layout.release-app .planner-result-link{display:none}.reference-layout .planner-menu-result{display:block}}
 @media(max-width:759px){
  .fullscreen-app.release-app.reference-layout .topbar{top:10px;left:10px;right:10px;height:46px;padding:0 68px 0 9px;gap:8px}
  .reference-layout.release-app .brand b{font-size:14px}
