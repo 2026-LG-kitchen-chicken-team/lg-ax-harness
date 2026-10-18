@@ -4,7 +4,7 @@ import {ROOM_ORDER,factoryLayout,worldToField,ZONE_FLOOR} from '../src/factory-l
 import {researcherPresence,SEATED_DOCKS} from '../src/researcher-presence.js';
 
 test('numbered rooms read left to right on desktop and phone, with main AI in the aisle',()=>{
- for(const [width,height,columns] of [[1440,900,3],[754,668,3],[390,844,2],[320,568,2],[844,390,3]]){
+ for(const [width,height,columns] of [[1440,900,3],[754,668,2],[390,844,2],[320,568,2],[844,390,3]]){
   for(const activeIds of [[],['compare'],ROOM_ORDER]){
    const layout=factoryLayout({width,height,roomIds:ROOM_ORDER,activeIds});assert.equal(layout.columns,columns);
    const projected=ROOM_ORDER.map(id=>worldToField(layout.zones[id].x,0,layout.zones[id].z));

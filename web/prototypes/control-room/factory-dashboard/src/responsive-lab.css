@@ -1,0 +1,48 @@
+/* The approved reference is one responsive scene, not two separate screens. */
+.work-opener-narrow,.work-opener-chevron{display:none}
+.fullscreen-app.release-app.reference-layout .topbar{top:10px;left:12px;right:12px;height:48px;padding:0 188px 0 12px;box-sizing:border-box;display:flex;align-items:center;flex-wrap:nowrap;gap:12px;border:1px solid #fffffff0;border-radius:10px;background:#fffef9f2;box-shadow:0 3px 16px #686c5510}
+.reference-layout.release-app .brand{padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;flex:0 0 auto}
+.reference-layout.release-app .brand b{font-size:19px;white-space:nowrap}
+.reference-layout.release-app .brand>span{display:none}
+.reference-layout.release-app .planner-work-status{display:flex;align-items:center;gap:9px;min-width:0;max-width:none;flex:1;padding:0 0 0 14px;border:0;border-left:1px solid #d8dfd4;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;line-height:1.3}
+.reference-layout .planner-work-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#8f9f89;flex:0 0 auto}
+.reference-layout .planner-work-status.state-working::before{background:#ed9b3d}
+.reference-layout .planner-work-status:is(.state-input,.state-failed,.state-connection)::before{background:#d7a04c}
+.reference-layout.release-app .planner-work-status button{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:1.5}
+.reference-layout.release-app .planner-work-status small{order:2;flex:0 0 auto;margin:0;font-size:9px;white-space:nowrap}
+.reference-layout.release-app .planner-work-status p{display:none}
+.reference-layout.release-app .mobile-menu-toggle{display:flex!important;position:absolute;right:9px;top:7px;align-items:center;gap:5px;height:32px;padding:6px 9px;border:1px solid #e5e9df;border-radius:8px;background:#fff;color:#435a4d;font-size:11px}
+.reference-layout.release-app .header-actions{display:none!important}
+.reference-layout.release-app .header-actions.menu-open{display:flex!important;position:absolute;right:0;top:58px;flex-direction:column;align-items:stretch;width:180px;max-width:calc(100vw - 28px);padding:9px;border:1px solid #e8ebe2;border-radius:10px;background:#fffef9;box-shadow:0 8px 24px #45553b1a}
+.reference-layout .header-actions button,.reference-layout .planner-menu-result{text-align:left;padding:10px;justify-content:flex-start}
+.reference-layout.researcher-preview .header-actions button{display:flex;font-size:11px;gap:6px}
+.reference-layout.researcher-preview .header-actions button:last-child span{display:inline}
+.reference-layout.researcher-preview .header-actions select{width:100%;max-width:none;min-height:36px}
+.reference-layout .planner-menu-result{display:none;text-decoration:none;color:#37533e;font-size:11px}
+.reference-layout.release-app .planner-result-link{padding:6px 8px;font-size:10px}
+.reference-layout .current-work-opener{position:fixed;top:18px;right:99px;left:auto;bottom:auto;height:32px;box-sizing:border-box;padding:6px 9px;border-color:#e0e5d9;font-size:11px;box-shadow:none}
+.reference-layout .skill-nav{top:72px;left:14px}
+.reference-layout .factory-scene{min-height:0}
+.reference-layout .current-work-dock{top:74px}
+.reference-layout .panel-return{top:72px}
+.reference-layout .harness-inspector{top:116px}
+@media(max-width:1000px){.fullscreen-app.reference-layout.release-app .planner-work-status small{display:none}.reference-layout.release-app .planner-result-link{display:none}.reference-layout .planner-menu-result{display:block}}
+@media(max-width:759px){
+ .fullscreen-app.release-app.reference-layout .topbar{top:10px;left:10px;right:10px;height:46px;padding:0 68px 0 9px;gap:8px}
+ .reference-layout.release-app .brand b{font-size:14px}
+ .reference-layout.release-app .planner-work-status{flex-basis:auto;order:0;gap:6px;padding-left:8px}
+ .reference-layout.release-app .planner-work-status button{font-size:10px}
+ .reference-layout .current-work-opener{top:auto;bottom:12px;left:12px;right:12px;height:44px;padding:10px 13px;font-size:11px;border-radius:10px;background:#fffef9f5;box-shadow:0 4px 16px #5a655015}
+ .reference-layout .work-opener-wide{display:none}
+ .reference-layout .work-opener-narrow{display:inline}
+ .reference-layout .work-opener-chevron{display:block;margin-left:auto}
+ .reference-layout .skill-nav{top:70px;left:12px}
+ .reference-layout .skill-nav.is-open{top:auto;bottom:12px;left:12px;right:12px}
+ .reference-layout .skill-nav.is-open{width:auto}
+ .reference-layout .skill-nav-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:8px;margin:0}
+ .reference-layout .skill-nav-rows>small,.reference-layout .skill-nav-rows>p{display:none}
+ .reference-layout .current-work-dock{top:auto;bottom:12px;left:12px;right:12px;width:auto;height:27dvh;max-height:27dvh}
+ .reference-layout .panel-return{top:auto;bottom:calc(60dvh + 10px)}
+ .reference-layout .harness-inspector{top:auto;bottom:0;height:60dvh}
+}
+@media(prefers-reduced-motion:reduce){.reference-layout .current-work-opener{transition:none}}
