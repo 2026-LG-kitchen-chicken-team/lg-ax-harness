@@ -6,3 +6,5 @@
 
 @media(max-width:700px){.current-work-dock{bottom:12px}.fullscreen-app:has(.current-work-dock) .floating-run{display:none}}
 @media(min-width:600px) and (max-width:700px) and (max-height:519px){.current-work-dock{left:auto;right:10px;top:max(72px,var(--work-menu-clearance,0px));bottom:12px;width:250px;height:auto;max-height:none}.dock-work-rows{display:grid;overflow:visible}.dock-work-row{width:100%}.skill-nav.is-open{top:72px;bottom:auto;right:auto;width:174px}.skill-nav-rows{display:block}}
+
+@media(max-width:599px){.release-app .current-work-dock,.release-app .skill-nav.is-open{bottom:82px;max-height:27dvh}.release-app:has(.current-work-dock) .floating-run{display:flex}}

@@ -6,6 +6,8 @@ import json
 import mimetypes
 import os
 import stat
+import secrets
+import re
 import urllib.parse
 from pathlib import Path, PurePosixPath
 
@@ -31,7 +33,7 @@ class ReleaseHandler(HarnessHandler):
     def host_allowed(self):
         return self.headers.get("Host") in (f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}")
 
-    def local_reply(self, status, raw=b"", content_type="application/json; charset=utf-8"):
+    def local_reply(self, status, raw=b"", content_type="application/json; charset=utf-8", nonce=None):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(raw)))
@@ -39,7 +41,8 @@ class ReleaseHandler(HarnessHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
         self.send_header("X-Frame-Options", "DENY")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
+        scripts="'self'"+(" 'nonce-"+nonce+"'" if nonce else '')
+        self.send_header("Content-Security-Policy", "default-src 'self'; script-src "+scripts+"; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
         # No Access-Control-Allow-Origin on any local HTML/static response,
         # including error responses to a configured public Site Origin.
         self.end_headers()
@@ -49,7 +52,8 @@ class ReleaseHandler(HarnessHandler):
     def local_error(self, status, code):
         messages = {"origin_denied": "로컬 화면은 같은 출처에서만 읽을 수 있습니다.", "not_found": "지원하지 않는 정적 파일입니다.",
                     "invalid_request": "허용되지 않은 정적 파일 요청입니다.", "host_denied": "허용되지 않은 로컬 호스트입니다.",
-                    "unavailable": "로컬 화면을 읽을 수 없습니다."}
+                    "unavailable": "로컬 화면을 읽을 수 없습니다.",
+                    "result_unavailable":"현재 요청과 연결된 결과 화면을 아직 열 수 없습니다. CLI에서 결과 내보내기 완료 여부를 확인하세요."}
         raw = json.dumps({"code": code, "error": messages[code]}, ensure_ascii=False).encode("utf-8")
         self.local_reply(status, raw)
 
@@ -74,6 +78,22 @@ class ReleaseHandler(HarnessHandler):
             return super().do_GET()
         if self.server.ui_dist is None:
             return self.local_error(404, "not_found")
+        if parsed.path=='/result':
+            # Full result text is navigable from this local factory only. It is
+            # never a public-Site/CORS endpoint and no credential enters a URL.
+            if (parsed.query or parsed.fragment or not self.static_origin_allowed()
+                    or self.headers.get('Sec-Fetch-Site')!='same-origin'
+                    or self.headers.get('Sec-Fetch-Dest')!='document'):
+                return self.local_error(403,'origin_denied')
+            try:
+                html=self.server.reader.result_document()
+                nonce=secrets.token_urlsafe(24)
+                # Touch actual script tags only, never a '<script>' string
+                # inside the trusted viewer's compiled JavaScript bundle.
+                html=re.sub(r'(<script\b[^>]*>)([\s\S]*?)(</script\s*>)',lambda m:m[1].replace('<script','<script nonce="'+nonce+'"',1)+m[2]+m[3],html)
+                return self.local_reply(200,html.encode('utf-8'),'text/html; charset=utf-8',nonce)
+            except (ReleaseReadError,OSError,ValueError,TypeError,KeyError,RecursionError):
+                return self.local_error(409,'result_unavailable')
         if not self.static_origin_allowed():
             return self.local_error(403, "origin_denied")
         query_pairs = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)

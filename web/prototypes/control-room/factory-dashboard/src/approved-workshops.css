@@ -62,3 +62,7 @@
 .fullscreen-app .factory-scene.has-illustrated-workshops .factory-station-label{padding:0 2px!important;outline-offset:0}
 
 .fullscreen-app .factory-scene.has-illustrated-workshops .factory-planner-label{width:var(--planner-width,125px)!important}.fullscreen-app .factory-scene.has-illustrated-workshops .factory-planner-label strong{font-size:var(--planner-font,12px)!important}
+
+/* Keep the actual quiet/terminal state inside the green fascia as well. */
+.fullscreen-app .factory-scene.has-illustrated-workshops .factory-station-label .factory-station-state{display:inline-flex!important;flex:0 0 auto;font-size:clamp(5px,calc(var(--fascia-font)*.62),8px);padding:1px 2px;gap:2px;max-width:44%}
+.fullscreen-app .factory-scene.has-illustrated-workshops .station-state-short{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

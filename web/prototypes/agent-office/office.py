@@ -48,7 +48,7 @@ SETTINGS_REL = (".claude", "settings.local.json")
 AUTO_OPEN = "auto-open.json"  # beside the records; observe.py reads it at UserPromptSubmit
 MARKER = "LG_AX_AGENT_OFFICE_V1"
 TOOL_EVENTS = ("PreToolUse", "PostToolUse", "PostToolUseFailure")
-OTHER_EVENTS = ("UserPromptSubmit", "Stop", "SubagentStart", "SubagentStop", "SessionStart", "SessionEnd")
+OTHER_EVENTS = ("UserPromptSubmit", "Stop", "SubagentStart", "SubagentStop", "SessionStart", "SessionEnd", "PermissionRequest", "Notification")
 TESTED_CLAUDE = ("2.1.289",)
 
 SKILL_KO = {"evidence-retrieval": "근거 조회", "web-evidence-collection": "웹 수집", "needs-structuring": "불편 구조화",

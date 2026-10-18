@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { createResearchers } from './ResearcherCharacters.js';
-import {factoryLayout,fitFactory,transitionFactory,fieldToWorld,ZONE_IDS,ALL_ZONE_IDS,ZONE_FLOOR,PLANNER_FLOOR} from './factory-layout.js';
+import {factoryLayout,fitFactory,transitionFactory,fieldToWorld,roomPresentation,ZONE_IDS,ALL_ZONE_IDS,ZONE_FLOOR,PLANNER_FLOOR} from './factory-layout.js';
 import './factory-scene.css';
 import {createSkillWorkAnimations} from './skill-work-animations.js';
 import {SKILL_BY_ROOM} from './skill-catalog.js';
@@ -221,6 +221,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
     const observer=new ResizeObserver(resize);observer.observe(host);resize();
     currentPanelWidth=clampPanel(dataRef.current.panelWidth);
     const raycaster=new THREE.Raycaster(), pointer=new THREE.Vector2();let down=null;
+    let presentationUntil={};
     function locate(ev){const rect=renderer.domElement.getBoundingClientRect();pointer.set((ev.clientX-rect.left)/rect.width*2-1,-(ev.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(factory.scene.children,true);for(const hit of hits){let visible=true;for(let p=hit.object;p;p=p.parent)if(!p.visible)visible=false;if(!visible)continue;let o=hit.object;while(o){if(o.userData.station)return o.userData.station;o=o.parent;}}return null;}
     const pointerDown=e=>{down={x:e.clientX,y:e.clientY};};
     const pointerUp=e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<6){const id=locate(e);if(id)dataRef.current.onSelect?.(id);}down=null;};
@@ -245,9 +246,11 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
       if(Math.abs(currentPanelWidth-clampPanel(requestedPanelWidth))<.1)currentPanelWidth=clampPanel(requestedPanelWidth);
       currentLeftInset+=((Number(dataRef.current.leftInset)||0)-currentLeftInset)*smooth;
       const usableWidth=Math.max(180,width-currentPanelWidth-currentLeftInset),usableRight=width-currentPanelWidth,aspect=width/height;
-      const nextKey=[Math.round(usableWidth/4),Math.round(height/4),activeKey,visibleRoomIds.join('|')].join(':');
+      const presentation=roomPresentation(activeIds,ms,presentationUntil,reduce?0:800);presentationUntil=presentation.until;
+      const layoutActive=reduce?activeIds:presentation.ids;
+      const nextKey=[Math.round(usableWidth/4),Math.round(height/4),[...layoutActive].sort().join('|'),visibleRoomIds.join('|')].join(':');
       if(nextKey!==layoutKey){
-        const nextLayout=composeWorkshopLayout(factoryLayout({width,height,panelWidth:currentPanelWidth+currentLeftInset,activeIds,roomIds:visibleRoomIds}));
+        const nextLayout=composeWorkshopLayout(factoryLayout({width,height,panelWidth:currentPanelWidth+currentLeftInset,activeIds:layoutActive,roomIds:visibleRoomIds}));
         if(!desiredLayout||visibleIds.some(id=>{const a=desiredLayout.zones[id],b=nextLayout.zones[id];return !a||Math.abs(a.x-b.x)+Math.abs(a.z-b.z)+Math.abs(a.scale-b.scale)>.001;})){
           const from=desiredLayout?Object.fromEntries(Object.entries(factory.stations).filter(([id])=>visibleIds.includes(id)).map(([id,g])=>[id,{id,x:g.position.x,z:g.position.z,scale:g.scale.x}])):Object.fromEntries(Object.entries(nextLayout.zones).map(([id,g])=>[id,{...g,scale:.01}]));
           reflow={from,at:elapsed};
@@ -322,7 +325,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
           el.style.setProperty('--fascia-width',Math.max(40,Math.min(plateW,320))+'px');
           el.style.setProperty('--fascia-angle',plate.angle+'deg');
           el.dataset.illustrated='true';el.dataset.compactPlate='false';
-          const fasciaFont=Math.max(6,Math.min(16,plateW/((s.title.replace(/\s/g,'').length||6)+3.8)));
+          const fasciaFont=Math.max(5,Math.min(16,plateW/((s.title.replace(/\s/g,'').length||6)+7)));
           el.style.setProperty('--fascia-font',fasciaFont+'px');
           el.style.setProperty('--sign-height',Math.max(fasciaFont*1.55,Math.min(40,artH*(plate.height||.075)))+'px');
           el.style.setProperty('--active-offset',Math.min(-32,-artH*.68)+'px');
@@ -382,7 +385,7 @@ export default function FactoryScene({ selected='overview', onSelect, active=nul
     <div className="factory-label-layer">
       {STATIONS.filter(s=>roomIds.includes(s.id)).map(base=>{const s={...base,...stationLabels[base.id],id:base.id},status=stageStatus(stepStates[s.id]),stateLabel=s.statusLabel||statusText(status);return <button key={s.id} ref={el=>{labelsRef.current[s.id]=el;}} className={`factory-station-label ${selected===s.id?'is-selected':''} status-${status} ${s.helperRole?'has-helper':''} ${s.reporting?'is-reported':''}`} onClick={()=>onSelect?.(s.id)} aria-pressed={selected===s.id} aria-label={`${s.no} ${s.title} · ${stateLabel}${selected===s.id?' · 선택됨':''}`} title={`${s.title} — ${s.caption}`}>
         {semantics&&<span className="station-kind"><Wrench size={11}/>SKILL · 일하는 방법</span>}
-        <span className="station-sign-row"><span className="factory-station-number">{s.no}</span><span className="factory-station-title"><strong>{s.title}</strong></span><span className="factory-station-state"><i/><span className="station-state-full">{stateLabel}</span><span className="station-state-short" aria-hidden="true">{statusText(status)}</span></span></span>
+        <span className="station-sign-row"><span className="factory-station-number">{s.no}</span><span className="factory-station-title"><strong>{s.title}</strong></span><span className="factory-station-state"><i/><span className="station-state-full">{stateLabel}</span><span className="station-state-short" aria-hidden="true">{{running:'사용 중',completed:'완료',unknown:'확인 필요',awaiting:'승인 대기',cancelled:'취소',held:'보류',failed:'오류',review:'확인 필요',reading:'지침 조회',loaded:'지침 확인'}[s.status]||statusText(status)}</span></span></span>
         <span className="factory-station-caption">{semantics?(s.task||SKILL_BY_ROOM[s.id]?.verb||s.caption):s.caption}</span>
         <span className="artwork-active-badge" aria-hidden="true"><Wrench size={11}/>{stateLabel}</span>
         {semantics&&s.roleText&&<span className={'station-actor '+(s.helperRole?'helper':'main')}><UserRound size={10}/>{s.roleText}</span>}

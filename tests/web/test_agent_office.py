@@ -107,6 +107,25 @@ def pre(tool, tool_input, **extra):
 
 
 class ObserverTests(unittest.TestCase):
+    def test_printed_skill_example_and_compound_shell_do_not_become_skill_calls(self):
+        command='python skills/needs-structuring/scripts/run.py read_evidence_batch'
+        for example in [f'echo "{command}"; sleep 5',command+' && python skills/feature-comparison/scripts/run.py retrieve_product_facts']:
+            self.h.run(pre('Bash',{'command':example}))
+        self.assertTrue(all(e['kind']=='shell' and not e['ops'] for e in self.h.events()))
+
+    def test_background_bash_receipt_keeps_its_task_identifier_without_output(self):
+        command='python skills/feature-comparison/scripts/run.py retrieve_product_facts'
+        self.h.run(pre('Bash',{'command':command}))
+        self.h.run({'hook_event_name':'PostToolUse','session_id':'S1','tool_name':'Bash','tool_use_id':'toolu_1','tool_input':{'command':command},'tool_response':{'backgroundTaskId':'task-one','stdout':SECRET}})
+        value=self.h.events()[-1];self.assertTrue(value['detail']['background']);self.assertEqual(value['detail']['background_task_id'],'task-one')
+        self.assertNotIn(SECRET,self.h.all_text())
+
+    def test_permission_and_interrupted_failure_are_distinct_from_work_completion(self):
+        command='python skills/feature-comparison/scripts/run.py retrieve_product_facts'
+        self.h.run({'hook_event_name':'PermissionRequest','session_id':'S1','tool_name':'Bash','tool_input':{'command':command}})
+        self.h.run({'hook_event_name':'PostToolUseFailure','session_id':'S1','tool_name':'Bash','is_interrupt':True,'tool_input':{'command':command}})
+        self.assertEqual([e['kind'] for e in self.h.events()],['permission','turn_cancelled'])
+
     def setUp(self):
         self.h = Harness()
 
@@ -249,8 +268,8 @@ class ObserverTests(unittest.TestCase):
         self.h.run({"hook_event_name": "PostToolUse", "session_id": "S1", "tool_name": "Bash", "tool_input": {"command": save},
                     "tool_response": {"stdout": json.dumps(accepted)}})
         a, b, c = self.h.events()
-        self.assertEqual((a["node"], a["op"], a["detail"]), ("evidence-retrieval", "fetch_web_page", {"other_skill_operation": True}))
-        self.assertEqual(b["detail"], {"accepted": False, "reason": "claim_unsupported", "turn_status": "needs_revision",
+        self.assertEqual((a["node"], a["op"], a["detail"]), ("evidence-retrieval", "fetch_web_page", {"mapping_version":2,"other_skill_operation": True}))
+        self.assertEqual(b["detail"], {"mapping_version":2,"accepted": False, "reason": "claim_unsupported", "turn_status": "needs_revision",
                                        "result_version": 1, "revision_count": 0})
         self.assertEqual(office.label_of(b), "검토·수정 · save_and_export 거절됨 (claim_unsupported, needs_revision)")
         self.assertEqual(office.label_of(c), "검토·수정 · save_and_export 승인됨 (completed)")

@@ -62,7 +62,17 @@ export function createWorkshopArtwork(stations){
   const frontMaterial=material.clone(),front=new THREE.Mesh(blank,frontMaterial);front.quaternion.copy(sprite.quaternion);front.position.copy(sprite.position);front.renderOrder=1;front.visible=false;group.add(front);
   return {id,index,group,legacy,material,sprite,frontMaterial,front,frame:null,idle:true};
  });
- Promise.all(workshopImages.map(url=>new THREE.ImageLoader().loadAsync(url))).then(images=>{
+ const retryTimers=new Set();
+ async function loadArtwork(url){
+  for(let attempt=0;attempt<3;attempt++){
+   if(disposed)throw Error('disposed');
+   try{return await new THREE.ImageLoader().loadAsync(url);}catch(error){
+    if(attempt===2||url.startsWith('data:'))throw error;
+    await new Promise(resolve=>{const timer=setTimeout(()=>{retryTimers.delete(timer);resolve();},200*(attempt+1));retryTimers.add(timer);});
+   }
+  }
+ }
+ Promise.all(workshopImages.map(loadArtwork)).then(images=>{
   if(disposed)return;
   frames=images.map(atlas);ready=true;
  }).catch(()=>{error=true;});
@@ -80,6 +90,6 @@ export function createWorkshopArtwork(stations){
    return {idleRooms,ready,error};
   },
   room(id){return ready?rooms.find(room=>room.id===id):null;},
-  dispose(){disposed=true;for(const room of rooms){room.sprite.removeFromParent();room.front.removeFromParent();room.material.dispose();room.frontMaterial.dispose();room.front.geometry.dispose();}frames?.flat().forEach(frame=>{frame.texture.dispose();frame.foreground.dispose();frame.geometry.dispose();});},
+  dispose(){disposed=true;for(const timer of retryTimers)clearTimeout(timer);retryTimers.clear();for(const room of rooms){room.sprite.removeFromParent();room.front.removeFromParent();room.material.dispose();room.frontMaterial.dispose();room.front.geometry.dispose();}frames?.flat().forEach(frame=>{frame.texture.dispose();frame.foreground.dispose();frame.geometry.dispose();});},
  };
 }

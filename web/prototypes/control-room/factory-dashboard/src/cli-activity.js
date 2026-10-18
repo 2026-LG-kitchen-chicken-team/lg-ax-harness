@@ -23,7 +23,7 @@ export function activityLine(event){
  return publicSentence(event?.message)||'작업 기록을 받았어요';
 }
 export function cliActivity(summary,view={}){
- const preview=Boolean(summary.preview),status=preview?'모의 실행':view.connectionStatus==='connected'?'실제 기록':view.connectionStatus==='stale'?'연결 지연':'연결 대기';
+ const preview=Boolean(summary.preview),status=preview?'모의 실행':view.origin==='office_replay'||summary.basis?.startsWith('기록 재생')?'기록 재생':view.connectionStatus==='connected'?'실제 기록':view.connectionStatus==='stale'?'연결 지연':'연결 대기';
  const nativeCalls=view.activity?.calls||[],nativeIds=new Set(nativeCalls.map(c=>'call-'+c.id));
  const calls=nativeCalls.map(c=>({id:'cli-'+c.id,op:c.operation,status:c.status,time:c.ended_at||c.started_at,message:c.category==='instruction'?'작업 설명서를 확인했어요':'작업 도구를 사용한 기록을 받았어요'}));
  const events=[...calls,...(view.recentEvents||[]).filter(e=>!nativeIds.has(e.id))].sort((a,b)=>(Date.parse(b.time||b.ts||b.at)||0)-(Date.parse(a.time||a.ts||a.at)||0)).slice(0,20),seen=new Set(),recent=[];

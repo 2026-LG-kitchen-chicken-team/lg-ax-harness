@@ -1,7 +1,9 @@
 """Read only an installed product's observer artifacts; never execute JavaScript or native AI.
 
-The selected product folder is explicit. No runtime DB, raw session log, home
-directory, credential file, or global latest session is opened by this reader.
+The selected product folder is explicit. Public native tool receipts are read
+only for observer-selected sessions in that same workspace. Input IDs may be
+checked against their exact read-only DB row; no latest-result guessing, command
+execution, credential access or source record modification is performed.
 """
 from __future__ import annotations
 
@@ -27,7 +29,7 @@ CONTINUATIONS = ("handback_delivered", "notification")
 SKILLS = {"evidence-retrieval", "web-evidence-collection", "needs-structuring", "feature-comparison", "concept-writing", "review-and-revise"}
 ROLES = {"main", "product_official_researcher", "product_review_researcher", "product_evidence_reviewer", "other_subagent", "unknown_subagent", "unknown_skill"}
 NODES = ROLES | SKILLS
-KINDS = {"lifecycle", "tool", "delegate", "handback", "handback_delivered", "notification", "skill_load", "skill_op", "file", "shell", "web", "request", "subagent", "turn_end", "turn_cancelled", "session"}
+KINDS = {"lifecycle", "tool", "delegate", "handback", "handback_delivered", "notification", "permission", "skill_load", "skill_op", "file", "shell", "web", "request", "subagent", "turn_end", "turn_cancelled", "session"}
 PHASES = {"point", "start", "end", "fail"}
 BASES = {"observed", "instruction_loaded", "command_based_mapping"}
 TS_BASES = {"hook_received", "codex_log", "reader_received"}
@@ -121,17 +123,17 @@ def safe_detail(raw):
     for name in ("interrupted", "background", "accepted", "other_skill_operation"):
         if type(raw.get(name)) is bool:
             result[name] = raw[name]
-    for name in ("duration_ms", "result_version", "revision_count"):
+    for name in ("duration_ms", "result_version", "revision_count", "mapping_version"):
         value = number(raw.get(name))
         if value is not None and (name == "duration_ms" or type(value) is int):
             result[name] = value
     if type(raw.get("exit_code")) is int and -255 <= raw["exit_code"] <= 65535:
         result["exit_code"] = raw["exit_code"]
-    for name in ("reason", "error", "turn_status", "response_status"):
+    for name in ("reason", "error", "turn_status", "response_status", "task_status"):
         value = code_token(raw.get(name))
         if value:
             result[name] = value
-    for name in ("launched_agent_id", "from_agent_id"):
+    for name in ("launched_agent_id", "from_agent_id", "background_task_id"):
         value = id_token(raw.get(name))
         if value:
             result[name] = value
@@ -270,15 +272,18 @@ def safe_db(raw, events):
 
 
 class ReleaseReader:
-    def __init__(self, workspace=None, *, clock=time.time, native_sessions_root=None):
+    def __init__(self, workspace=None, *, clock=time.time, native_sessions_root=None, claude_sessions_root=None):
         self.workspace = Path(workspace) if workspace else None
         self.clock = clock
         self.native_sessions_root = native_sessions_root
+        self.claude_sessions_root = claude_sessions_root
+        self._claude_receipts = None
+        self._verified_files = {}
 
     @classmethod
     def from_env(cls, env=None):
         config = os.environ if env is None else env
-        return cls(config.get("AX_RELEASE_WORKSPACE"), native_sessions_root=config.get('AX_RELEASE_NATIVE_SESSIONS'))
+        return cls(config.get("AX_RELEASE_WORKSPACE"), native_sessions_root=config.get('AX_RELEASE_NATIVE_SESSIONS'), claude_sessions_root=config.get('AX_RELEASE_CLAUDE_SESSIONS'))
 
     def _path(self, relative, *, optional=False):
         root = self.workspace
@@ -332,9 +337,17 @@ class ReleaseReader:
             seen.add(entry["path"])
             if OBSERVER_FILES.fullmatch(entry["path"]):
                 continue
+            path = self._path(entry['path'])
+            info = path.stat()
+            signature = (fingerprint, entry['sha256'], info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_ino, info.st_dev)
+            previous = self._verified_files.get(entry['path'])
+            if previous and previous[0] == signature and 0 <= self.clock()-previous[1] < 30:
+                continue
             data = self._read(entry["path"])
             if hashlib.sha256(data).hexdigest() != entry["sha256"]:
+                self._verified_files.pop(entry['path'], None)
                 raise ReleaseReadError("release_mismatch")
+            self._verified_files[entry['path']] = (signature, self.clock())
         return engine, fingerprint
 
     def _release(self):
@@ -347,6 +360,42 @@ class ReleaseReader:
         except (ReleaseReadError, UnicodeError):
             return None
         return release if isinstance(release, str) and RELEASE_PATTERN.fullmatch(release) else None
+
+    def result_document(self):
+        """Open only the exact bound delivery using the verified installed viewer.
+
+        Build an in-memory standalone view, like build_view.py --standalone.
+        No business/model call and no output file is created.
+        """
+        snapshot=self.snapshot();db=snapshot['db']
+        if db.get('binding_status')!='matched' or not db.get('turn',{}).get('valid'):
+            raise ReleaseReadError('unavailable')
+        sidecar=self._read('runtime-data/visual-viewer/view-data.js')
+        match=re.fullmatch(r'\s*(?:/\*.*?\*/\s*)?window\.LGAX_VIEW\s*=\s*(.*?)\s*;\s*',sidecar.decode('utf-8-sig'),re.S)
+        if not match:raise ReleaseReadError('schema_error')
+        view=parse_object(match[1]);delivery=view.get('delivery')
+        delivered=delivery.get('binding') if isinstance(delivery,dict) else None
+        if (view.get('kind')!='lgax-view' or not isinstance(view.get('pages'),list) or not view['pages']
+                or not isinstance(delivered,dict) or delivery.get('display_ready') is not True
+                or any(delivered.get(k)!=v for k,v in db['binding'].items())
+                or type(delivered.get('result_version')) is not int
+                or delivered.get('result_version')!=db['turn'].get('result_version')):
+            raise ReleaseReadError('unavailable')
+        relative='web/prototypes/visual-viewer/index.html'
+        record=parse_object(self._read('product-install.json').decode('utf-8'))
+        entry=next((e for e in record['files'] if e.get('path')==relative),None)
+        raw=self._read(relative)
+        if not entry or hashlib.sha256(raw).hexdigest()!=entry.get('sha256'):
+            raise ReleaseReadError('release_mismatch')
+        for page in view['pages']:
+            if not isinstance(page,dict):raise ReleaseReadError('schema_error')
+            for block in page.get('blocks',[]):
+                if isinstance(block,dict) and block.get('type')=='files':
+                    block.pop('href',None);block.pop('href_label',None)
+        encoded=json.dumps(view,ensure_ascii=True,allow_nan=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
+        html=raw.decode('utf-8');tag='<script src="view-data.js" charset="utf-8"></script>'
+        if tag not in html:raise ReleaseReadError('schema_error')
+        return html.replace(tag,'<script>window.LGAX_VIEW_INLINE = true; window.LGAX_VIEW = '+encoded+';</script>',1)
 
     def snapshot(self):
         if self.workspace is None:
@@ -394,7 +443,18 @@ class ReleaseReader:
                     raise ReleaseReadError("schema_error")
                 by_id[event["id"]] = event
             events = sorted(by_id.values(), key=lambda e: seconds(e["ts"]))[-MAX_EVENTS:]
+            if engine == 'claude':
+                from .claude_native import ClaudeReceipts
+                if self._claude_receipts is None:
+                    self._claude_receipts = ClaudeReceipts(self.workspace, self.claude_sessions_root)
+                events = sorted((event_projection(e,engine) for e in self._claude_receipts.project(events)), key=lambda e: seconds(e['ts']))[-MAX_EVENTS:]
             summary = safe_db(db, events)
+            if engine=='claude' and summary.get('binding_status')!='matched':
+                selected,prompts,floor=selected_native(events)
+                expected=next((e['detail'].get('business_binding') for e in reversed(events[floor:]) if e['session']==selected and e['prompt_id'] in prompts and e['actor']=='main' and not e['agent_id'] and e['detail'].get('business_binding')),None)
+                if expected and self._path('runtime-data/product.sqlite',optional=True):
+                    exact=self._claude_receipts.bound_snapshot(expected)
+                    if exact:summary=safe_db(exact,events)
             updates.extend(e["ts"] for e in events)
             if timestamp(summary.get("read_at")):
                 updates.append(summary["read_at"])
@@ -410,7 +470,9 @@ class ReleaseReader:
                     # Async hooks may record a call's end just before its start; that start is already closed.
                     if event["phase"] == "start" and event["call"] not in closed:
                         opened.add(event["call"])
-                    elif event["phase"] in ("end", "fail"):
+                    elif event['phase']=='end' and event['detail'].get('background') and event['call'] not in closed:
+                        opened.add(event['call'])
+                    elif event["phase"] in ("end", "fail") and not event['detail'].get('background'):
                         opened.discard(event["call"])
                         closed.add(event["call"])
                 if event["kind"] == "subagent":

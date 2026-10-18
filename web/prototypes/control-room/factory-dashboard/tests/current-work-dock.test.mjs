@@ -34,5 +34,5 @@ test('idle, pause, reduced motion and selecting a different space cannot advance
  for(const options of [{working:false,dt:.1},{working:true,reducedMotion:true,dt:.1}]){const before=3.6,after=advanceResearcherClock(before,options);assert.equal(after,before);for(const id of Object.keys(SKILL_ACTIONS))assert.deepEqual(illustratedWorkPose(id,before),illustratedWorkPose(id,after));}
 });
 test('responsive work panels reserve space only when opened or executing',()=>{
- assert.deepEqual(workDockInsets(1200),{left:0,right:0,bottom:0});assert.deepEqual(workDockInsets(1200,{visible:true,listOpen:true}),{left:204,right:298,bottom:0});assert.deepEqual(workDockInsets(390,{visible:true}),{left:0,right:0,bottom:212});assert.equal(workDockInsets(650,{visible:true,height:390}).right,298);
+ assert.deepEqual(workDockInsets(1200),{left:0,right:0,bottom:0});assert.deepEqual(workDockInsets(1200,{visible:true,listOpen:true}),{left:204,right:298,bottom:0});const mobile=workDockInsets(390,{visible:true});assert.equal(mobile.left,0);assert.equal(mobile.right,0);assert.ok(mobile.bottom>=266,'reserve the panel and the still-clickable footer');assert.equal(workDockInsets(650,{visible:true,height:390}).right,298);
 });

@@ -89,7 +89,7 @@ test('generic helper with a business binding stays a shell tool, never a promote
   const view = viewFor([request('request'), event('helper', { kind: 'shell', node: 'main', basis: 'observed', detail: { business_binding: TRIPLE, programs: ['python'] } })]);
   assert.equal(view.header.state, 'active'); assert.deepEqual(view.activeSkills, []); assert.deepEqual(view.activeNodes, []);
   assert.equal(view.skills.filter(skill => skill.used).length, 0);
-  assert.match(view.header.text, /일반 코드·셸 Tool/); assert.equal(view.counts.openCalls, 1);
+  assert.match(view.header.text, /로컬 명령/); assert.equal(view.counts.openCalls, 1);
 });
 
 test('command path observation activates the corresponding building and explicit end closes it', () => {

@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {factoryLayout,fitFactory,ROOM_ORDER,worldToField} from '../src/factory-layout.js';
 import {composeWorkshopLayout} from '../src/workshop-composition.js';
 
-test('approved composition preserves every real active state and size, and room addresses stay fixed',()=>{
+test('approved composition preserves actual states and sizes, with clearance for the planner beside enlarged room 05',()=>{
  for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:1012,height:633,panelWidth:420}]){
   const base=composeWorkshopLayout(factoryLayout({...viewport,roomIds:ROOM_ORDER}));
   for(let mask=0;mask<128;mask++){
@@ -15,7 +15,9 @@ test('approved composition preserves every real active state and size, and room 
    assert.deepEqual(result.active,input.active);assert.equal(result.activeSkillCount,input.activeSkillCount);
    for(const [id,z] of Object.entries(result.zones)){
     assert.equal(z.scale,input.zones[id].scale);assert.equal(z.active,input.zones[id].active);
-    assert.equal(z.x,base.zones[id].x);assert.equal(z.z,base.zones[id].z);
+    if(id==='validate'&&z.active&&result.columns===3){
+     const at=worldToField(z.x,0,z.z);assert.ok(Math.abs(at.u)<.001);assert.ok(at.v-6.5*z.scale>=2.2*result.zones.overview.scale+.69);
+    }else{assert.equal(z.x,base.zones[id].x);assert.equal(z.z,base.zones[id].z);}
    }
   }
  }

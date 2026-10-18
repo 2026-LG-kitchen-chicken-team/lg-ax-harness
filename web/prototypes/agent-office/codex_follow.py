@@ -255,7 +255,8 @@ def command_text(item: dict) -> str:
 def classify_command(item: dict, cwd) -> dict:
     """What a Codex shell command was, by the same rules as the Claude hook (run.py path, SKILL.md, programs, area)."""
     text = command_text(item)
-    pairs = [(s, o) for s, o in ob.RUN_PY.findall(text) if s in ob.SKILL_OPS]
+    spec = ob.command_spec(item.get('command'), cwd)
+    pairs = [(spec['skill'], spec['op'])] if spec else []
     if pairs:
         skill, op = pairs[0]
         op = op if op in ob.CLI_OPS else "unknown_operation"

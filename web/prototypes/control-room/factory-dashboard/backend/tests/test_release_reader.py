@@ -73,8 +73,39 @@ class Fixture(unittest.TestCase):
         raw = "/* agent-office observe.py writes this file; do not edit. */\nwindow.LGAX_OFFICE_LIVE = " + json.dumps(data) + ";\n"
         (self.out / "live.js").write_text(raw, encoding="utf-8")
 
+    def result_files(self):
+        self.lines([event(detail={'business_binding':BUSINESS})])
+        db=product_snapshot();db['turn'].update(valid=True,result_version=1,status='completed')
+        self.db(db)
+        folder=self.root/'web/prototypes/visual-viewer';folder.mkdir(parents=True)
+        html='<html><head><script src="view-data.js" charset="utf-8"></script></head><body><script>const example="<script>";document.title="synthetic viewer";</script></body></html>'
+        (folder/'index.html').write_text(html,encoding='utf-8')
+        record=json.loads((self.root/'product-install.json').read_text(encoding='utf-8'))
+        record['files'].append({'path':'web/prototypes/visual-viewer/index.html','sha256':hashlib.sha256(html.encode()).hexdigest()})
+        (self.root/'product-install.json').write_text(json.dumps(record),encoding='utf-8')
+        out=self.root/'runtime-data/visual-viewer';out.mkdir(parents=True)
+        data={'kind':'lgax-view','delivery':{'display_ready':True,'binding':{**BUSINESS,'result_version':1}},'pages':[{'id':'synthetic','blocks':[{'type':'text','text':'</script><img src=x onerror=alert(1)>'},{'type':'files','href':'../private-export.json'}]}]}
+        path=out/'view-data.js';path.write_text('window.LGAX_VIEW = '+json.dumps(data)+';',encoding='utf-8')
+        return path,data
+
 
 class ReaderTests(Fixture):
+    def test_verification_cache_keeps_path_checks_and_invalidates_changed_files(self):
+        with patch.object(self.reader,'_read',wraps=self.reader._read) as read:
+            self.reader._verify();first=sum(c.args[0]=='product-doctor.py' for c in read.call_args_list)
+            self.reader._verify();self.assertEqual(first,sum(c.args[0]=='product-doctor.py' for c in read.call_args_list))
+            self.reader.clock=lambda:NOW+41
+            self.reader._verify();self.assertEqual(first+1,sum(c.args[0]=='product-doctor.py' for c in read.call_args_list))
+        (self.root/'product-doctor.py').write_text('changed',encoding='utf-8')
+        with self.assertRaises(ReleaseReadError):self.reader._verify()
+
+    def test_result_document_requires_exact_delivery_version_and_verified_template(self):
+        path,data=self.result_files();html=self.reader.result_document()
+        self.assertIn('LGAX_VIEW_INLINE',html);self.assertNotIn('<img src=x',html);self.assertNotIn('../private-export.json',html)
+        data['delivery']['binding']['result_version']=2
+        path.write_text('window.LGAX_VIEW = '+json.dumps(data)+';',encoding='utf-8')
+        with self.assertRaises(ReleaseReadError):self.reader.result_document()
+
     def test_installed_empty_workspace_is_waiting_without_creating_files(self):
         result = self.reader.snapshot()
         self.assertEqual("waiting_for_session", result["source"]["observer_status"])
@@ -314,6 +345,18 @@ class InstalledVersionTests(Fixture):
 
 
 class HTTPTests(Fixture):
+    def test_bound_result_is_navigable_only_from_local_factory_and_has_nonce_csp(self):
+        self.result_files()
+        self.assertEqual(403,self.request('/result',origin='https://approved.example',token=TOKEN)[0])
+        self.assertEqual(403,self.request('/result')[0])
+        headers={'Sec-Fetch-Site':'same-origin','Sec-Fetch-Dest':'document'}
+        status,body,response=self.request('/result',headers=headers)
+        self.assertEqual(200,status);self.assertIn("'nonce-",response['Content-Security-Policy'])
+        self.assertIn(b'<script nonce=',body);self.assertNotIn(TOKEN.encode(),body)
+        self.assertIn(b'const example="<script>";',body)
+        self.assertIsNone(response.get('Access-Control-Allow-Origin'))
+        self.assertEqual(403,self.request('/result?token=x',headers=headers)[0])
+
     def setUp(self):
         super().setUp()
         self.dist = self.root / "ui-dist"

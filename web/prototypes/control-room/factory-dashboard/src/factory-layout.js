@@ -54,6 +54,13 @@ export function popScale(from,to,age,reduced=false){
  const t=Math.max(0,age),response=1-Math.exp(-7*t)*(Math.cos(12*t)+7/12*Math.sin(12*t));
  return from+(to-from)*response;
 }
+// Keep a recently enlarged room in the layout briefly, while its real status,
+// orange light and researcher motion stop immediately on the terminal event.
+export function roomPresentation(activeIds,now,previous={},holdMs=800){
+ const until={};for(const [id,at]of Object.entries(previous))if(at>now)until[id]=at;
+ for(const id of activeIds)until[id]=now+holdMs;
+ return {until,ids:Object.keys(until)};
+}
 export function patrolPosition(time,{planner=false,worker=0}={}){
  const x=planner?1.03:2.10,z=planner?.97:1.75;
  const points=[[0,z],[x,z],[x,-z],[-x,-z],[-x,z],[0,z]],lengths=points.slice(1).map((p,i)=>Math.hypot(p[0]-points[i][0],p[1]-points[i][1]));
